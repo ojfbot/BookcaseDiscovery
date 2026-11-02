@@ -1,0 +1,19 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/ojfbot/BookcaseDiscovery/blob/main/contracts/events/ImageRejected.schema.json",
+  "title": "ImageRejected",
+  "description": "Payload: a file failed ingest validation. It is listed with reasons and never processed.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["sessionId", "fileName", "reasons"],
+  "properties": {
+    "sessionId": { "$ref": "../common.schema.json#/definitions/Id" },
+    "fileName": { "type": "string", "minLength": 1 },
+    "fileHash": { "description": "Absent when the file could not be read (placeholders).", "$ref": "../common.schema.json#/definitions/Sha256" },
+    "reasons": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "enum": ["below-min-resolution", "no-exif", "unsupported-format", "zero-byte", "icloud-placeholder"] }
+    }
+  }
+}

@@ -1,0 +1,30 @@
+{
+  "id": "r",
+  "image": {
+    "width": 1,
+    "height": 1
+  },
+  "detections": [
+    {
+      "polygon": [
+        [
+          100,
+          50
+        ],
+        [
+          140,
+          50
+        ],
+        [
+          140,
+          900
+        ]
+      ],
+      "score": 0.5
+    }
+  ],
+  "version": {
+    "backend": "b",
+    "weightsSha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+  }
+}

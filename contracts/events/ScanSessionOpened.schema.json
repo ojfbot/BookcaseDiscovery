@@ -1,0 +1,13 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/ojfbot/BookcaseDiscovery/blob/main/contracts/events/ScanSessionOpened.schema.json",
+  "title": "ScanSessionOpened",
+  "description": "Payload of a ScanSession opening: one visit's set of photos is about to be ingested.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["sessionId", "minPixels"],
+  "properties": {
+    "sessionId": { "$ref": "../common.schema.json#/definitions/Id" },
+    "minPixels": { "description": "Session minimum for ingest validation (default 12 MP = 12000000).", "type": "integer", "minimum": 1 }
+  }
+}

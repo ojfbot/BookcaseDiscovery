@@ -1,0 +1,23 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/ojfbot/BookcaseDiscovery/blob/main/contracts/events/AdjudicationRecorded.schema.json",
+  "title": "AdjudicationRecorded",
+  "description": "Payload: one bounded adjudicator call (or cache hit) for one spine. Agreement on the same crop counts as one piece of evidence (INV-6); the cache key is (cropHash, candidateSetHash, model).",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["observationId", "model", "cropHash", "candidateSetHash", "choice", "cached", "inputTokens", "outputTokens"],
+  "properties": {
+    "observationId": { "$ref": "../common.schema.json#/definitions/Id" },
+    "model": { "type": "string", "minLength": 1 },
+    "cropHash": { "$ref": "../common.schema.json#/definitions/Sha256" },
+    "candidateSetHash": { "$ref": "../common.schema.json#/definitions/Sha256" },
+    "choice": {
+      "description": "A candidate workId, or null for none of them.",
+      "oneOf": [{ "$ref": "../common.schema.json#/definitions/Id" }, { "type": "null" }]
+    },
+    "readText": { "type": "string" },
+    "cached": { "description": "True when served from the cache; tokens are then 0.", "type": "boolean" },
+    "inputTokens": { "type": "integer", "minimum": 0 },
+    "outputTokens": { "type": "integer", "minimum": 0 }
+  }
+}

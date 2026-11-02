@@ -1,0 +1,16 @@
+{
+  "id": "r",
+  "image": {
+    "width": 1,
+    "height": 1
+  },
+  "detections": [],
+  "version": {
+    "backend": "b",
+    "weightsSha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+  },
+  "error": {
+    "code": "c",
+    "message": "m"
+  }
+}

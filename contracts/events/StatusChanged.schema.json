@@ -1,0 +1,14 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/ojfbot/BookcaseDiscovery/blob/main/contracts/events/StatusChanged.schema.json",
+  "title": "StatusChanged",
+  "description": "Payload: an observation changed status. 'from' is null for the first status. Legal transitions are the status machine's business (L-2), not the contract's.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["observationId", "from", "to"],
+  "properties": {
+    "observationId": { "$ref": "../common.schema.json#/definitions/Id" },
+    "from": { "oneOf": [{ "$ref": "../common.schema.json#/definitions/Status" }, { "type": "null" }] },
+    "to": { "$ref": "../common.schema.json#/definitions/Status" }
+  }
+}

@@ -1,0 +1,23 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/ojfbot/BookcaseDiscovery/blob/main/contracts/events/RunFinished.schema.json",
+  "title": "RunFinished",
+  "description": "Payload: a run ends. A spent budget gives 'paused', never a closed shelf (INV-2).",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["outcome", "usage"],
+  "properties": {
+    "outcome": { "enum": ["completed", "paused", "failed"] },
+    "usage": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["adjudications", "inputTokens", "outputTokens"],
+      "properties": {
+        "adjudications": { "type": "integer", "minimum": 0 },
+        "inputTokens": { "type": "integer", "minimum": 0 },
+        "outputTokens": { "type": "integer", "minimum": 0 },
+        "spendUsd": { "type": "number", "minimum": 0 }
+      }
+    }
+  }
+}
