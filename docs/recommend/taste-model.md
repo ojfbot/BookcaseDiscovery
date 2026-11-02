@@ -349,3 +349,5 @@ All read on 2026-11-02.
 **Recommendation, as one question for the owner:** *Adopt this facet model for R-1/R-2 (centre from seeds, temperature as facet distance with Sideways/Farther, no popularity signals), including Haiku batch theme extraction from publisher summaries in the MVP (about $0.25 per 1,000 books, hypothesis)?*
 
 Two smaller questions ride along, for O-4 and O-5: does *read all of Gibson* also mean *liked*? Should a liked author's far-out book appear at the default setting?
+
+**Owner ruling (2026-11-02):** "Adopt, incl. Haiku extraction." The facet model is adopted for R-1/R-2, including Haiku batch theme extraction from publisher summaries in the MVP. Paid calls wait for the API key and spend ceiling (checklist #7) and go through the budget wrapper. The two smaller questions stay open for O-4 and O-5.
