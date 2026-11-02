@@ -21,8 +21,11 @@ export const ROTATIONS = [90, 270] as const;
 
 /** Acceptance thresholds (OC36 yardstick 2). Conservative; see docs/machine-labelling.md. */
 export const ACCEPT = {
-  /** Retrieval evidence score of the agreed work, for each agreeing reader. C-3: no-match tops reached 0.721. */
-  minScore: 0.8,
+  /**
+   * Retrieval evidence score of the agreed work, for each agreeing reader. Set from C-3's golden run, never from
+   * the yardstick: no-match top scores reached 0.721, correct top-1 scores went down to 0.71.
+   */
+  minScore: 0.72,
   /** The title field must be explained, not just the author. */
   minTitleEvidence: 0.8,
   /** Share of the reading's tokens the work explains. */

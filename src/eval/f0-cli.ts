@@ -298,10 +298,11 @@ async function yardstick(limit: number, qwenCap: number, runId: string): Promise
     for (const raw of (a.author ?? "").split(";")) if (raw.trim()) g.authors.add(normalize(cleanAuthor(raw)).split(" ").pop()!);
     gt.set(a.image_name!, g);
   }
-  // Deterministic sample: every k-th annotated image that exists on disk.
+  // Deterministic sample: every k-th annotated image that exists on disk, from the middle of each stride. The
+  // stride starts (i % step === 0) were the smoke-test images looked at while building the pipeline; they stay out.
   const names = [...gt.keys()].filter((n) => existsSync(join(imgDir, n))).sort();
-  const step = Math.max(1, Math.floor(names.length / limit));
-  const sample = names.filter((_, i) => i % step === 0).slice(0, limit);
+  const step = Math.max(2, Math.floor(names.length / limit));
+  const sample = names.filter((_, i) => i % step === Math.floor(step / 2)).slice(0, limit);
   const images: InputImage[] = sample.map((n) => ({ id: n.replace(/\.jpg$/i, ""), photoHash: "0".repeat(64), path: join(imgDir, n), setting: "proxy" }));
   const dir = stageDir(root, "yardstick-library");
   const t0 = Date.now();

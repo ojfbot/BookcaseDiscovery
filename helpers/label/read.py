@@ -14,6 +14,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import re
 import sys
 import time
 from pathlib import Path
@@ -105,8 +106,9 @@ class Qwen:
         pil = Image.fromarray(cv2.cvtColor(img, cv2.COLOR_BGR2RGB))
         out = self.generate(self.model, self.processor, self.prompt, [pil], max_tokens=48, temperature=0.0,
                             verbose=False)
-        text = (getattr(out, "text", out) or "").strip()
-        if text.lower().rstrip(".") == "unreadable":
+        # The prompt allows "unreadable"; the model sometimes adds it beside text it did read.
+        text = re.sub(r"\bunreadable\b\.?", "", (getattr(out, "text", out) or ""), flags=re.I).strip()
+        if not text:
             return "", 0.0
         return text, 1.0  # no calibrated confidence from a generative reader
 
