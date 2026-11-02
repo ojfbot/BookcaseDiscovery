@@ -1,0 +1,17 @@
+{
+  "type": "RecommendationIssued",
+  "ts": "2026-11-02T10:00:00Z",
+  "runId": "run-synthetic-001",
+  "payload": {
+    "recommendationId": "rec-001",
+    "rankingVersion": "synthetic-1",
+    "recommendation": {
+      "workId": "work-alpha",
+      "observationId": "obs-001",
+      "rank": 1,
+      "band": "unknown",
+      "lens": "reading-taste",
+      "rationale": "Synthetic rationale: shares a theme with a liked example."
+    }
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/ojfbot/BookcaseDiscovery/blob/main/contracts/events/RunStarted.schema.json",
+  "title": "RunStarted",
+  "description": "Payload: a run begins. Everything needed to reproduce it (INV-14).",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["codeCommit", "helperVersions", "modelIds", "budget"],
+  "properties": {
+    "codeCommit": { "description": "Git commit; a -dirty suffix marks uncommitted changes.", "type": "string", "pattern": "^[0-9a-f]{7,40}(-dirty)?$" },
+    "helperVersions": { "description": "Helper name to version string.", "type": "object", "additionalProperties": { "type": "string", "minLength": 1 } },
+    "modelIds": { "description": "Model IDs this run may call.", "type": "array", "items": { "type": "string", "minLength": 1 } },
+    "budget": {
+      "description": "Caps for this run. Absent key = no cap on that axis.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "maxAdjudications": { "type": "integer", "minimum": 0 },
+        "maxTokens": { "type": "integer", "minimum": 0 },
+        "maxSpendUsd": { "type": "number", "minimum": 0 }
+      }
+    }
+  }
+}

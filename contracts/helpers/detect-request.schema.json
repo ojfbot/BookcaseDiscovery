@@ -1,0 +1,23 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/ojfbot/BookcaseDiscovery/blob/main/contracts/helpers/detect-request.schema.json",
+  "title": "detect request",
+  "description": "One JSON Lines record on the detect helper's stdin: one image to scan for spines.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "id",
+    "image"
+  ],
+  "properties": {
+    "id": {
+      "description": "Echoed in the response so a caller can pipeline requests.",
+      "$ref": "../common.schema.json#/definitions/Id"
+    },
+    "image": {
+      "description": "Path to the GPS-stripped working copy.",
+      "type": "string",
+      "minLength": 1
+    }
+  }
+}

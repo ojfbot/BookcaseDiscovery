@@ -1,0 +1,196 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/ojfbot/BookcaseDiscovery/blob/main/contracts/common.schema.json",
+  "title": "Common definitions",
+  "description": "Primitives, enums and small shared shapes. Referenced by the event payloads in events/ and the helper contracts in helpers/. Vocabulary: CONTEXT.md.",
+  "definitions": {
+    "Seq": {
+      "description": "Position in the ledger, assigned by the ledger on append. Starts at 1.",
+      "type": "integer",
+      "minimum": 1
+    },
+    "Timestamp": {
+      "description": "ISO 8601 date-time with a Z or numeric offset.",
+      "type": "string",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d+)?(Z|[+-]\\d{2}:\\d{2})$"
+    },
+    "Id": {
+      "description": "Opaque identifier chosen by the emitter. Never parsed.",
+      "type": "string",
+      "minLength": 1
+    },
+    "Sha256": {
+      "description": "Lower-case hex SHA-256.",
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "PhotoSetting": {
+      "description": "How the photo was taken (OC6, E1).",
+      "enum": [
+        "whole-12",
+        "whole-48",
+        "shelf-48",
+        "overview"
+      ]
+    },
+    "Status": {
+      "description": "Per-observation work state. There is no 'exhausted' (INV-1): a spent budget gives 'paused' (INV-2).",
+      "enum": [
+        "unresolved",
+        "resolved",
+        "paused",
+        "needs-pixels"
+      ]
+    },
+    "Band": {
+      "description": "Evidence band for an identity. Bands are not probabilities.",
+      "enum": [
+        "verified",
+        "probable",
+        "candidate",
+        "unknown"
+      ]
+    },
+    "UnresolvedReason": {
+      "description": "Why an observation is unknown (INV-8). A reason on an observation, never a shelf state.",
+      "enum": [
+        "missing-pixels",
+        "no-catalog-candidate",
+        "conflicting-evidence",
+        "strategies-exhausted"
+      ]
+    },
+    "Rotation": {
+      "description": "Clockwise rotation, in degrees, applied to a crop before OCR.",
+      "enum": [
+        0,
+        90,
+        180,
+        270
+      ]
+    },
+    "Confidence": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1
+    },
+    "Point": {
+      "description": "[x, y] in pixels.",
+      "type": "array",
+      "items": {
+        "type": "number"
+      },
+      "minItems": 2,
+      "maxItems": 2
+    },
+    "Polygon": {
+      "description": "Exactly four corners, in order around the box, in the pixel grid of the image it refers to. A detector that finds free-form regions emits the minimum-area rotated quad.",
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/Point"
+      },
+      "minItems": 4,
+      "maxItems": 4
+    },
+    "DetectorVersion": {
+      "description": "Which detector produced a polygon (INV-14).",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "backend",
+        "weightsSha256"
+      ],
+      "properties": {
+        "backend": {
+          "type": "string",
+          "minLength": 1
+        },
+        "weightsSha256": {
+          "$ref": "#/definitions/Sha256"
+        }
+      }
+    },
+    "OcrVersion": {
+      "description": "Which OCR helper produced a reading (INV-14).",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "helper",
+        "os",
+        "requestRevision"
+      ],
+      "properties": {
+        "helper": {
+          "type": "string",
+          "minLength": 1
+        },
+        "os": {
+          "type": "string",
+          "minLength": 1
+        },
+        "requestRevision": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+    "RecommendationState": {
+      "description": "One recommendation as shown. The band sits beside the rank and is never multiplied into it. 'unknown' spines are not recommendable.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "workId",
+        "observationId",
+        "rank",
+        "band",
+        "lens",
+        "rationale"
+      ],
+      "properties": {
+        "workId": {
+          "$ref": "#/definitions/Id"
+        },
+        "observationId": {
+          "$ref": "#/definitions/Id"
+        },
+        "rank": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "band": {
+          "enum": [
+            "verified",
+            "probable",
+            "candidate"
+          ]
+        },
+        "lens": {
+          "type": "string",
+          "minLength": 1
+        },
+        "rationale": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "HelperError": {
+      "description": "A helper's failure for one request. The helper keeps running and answers the next line.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "code",
+        "message"
+      ],
+      "properties": {
+        "code": {
+          "type": "string",
+          "minLength": 1
+        },
+        "message": {
+          "type": "string"
+        }
+      }
+    }
+  }
+}

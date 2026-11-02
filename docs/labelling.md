@@ -2,7 +2,7 @@
 
 Card V-1a asks whether Label Studio is the labelling tool (adopt) or whether V-1b builds a custom one. This page records what was checked, with numbers, and what is still open. Label format: [labels.md](labels.md).
 
-**Status: the owner's 10-minute trial has not happened yet. Verdict: pending.** The agent-labelling clause of the decision rule was not measured as written (see [Decision rule](#decision-rule)).
+**Status: trial done 2026-11-02. Verdict: not adopted; no hand labelling (OC36).** The agent-labelling clause of the decision rule was not measured as written (see [Decision rule](#decision-rule)).
 
 ## Run it
 

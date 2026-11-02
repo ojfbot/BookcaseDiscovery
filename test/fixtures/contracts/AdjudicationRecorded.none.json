@@ -1,0 +1,15 @@
+{
+  "type": "AdjudicationRecorded",
+  "ts": "2026-11-02T10:00:00Z",
+  "runId": "run-synthetic-001",
+  "payload": {
+    "observationId": "obs-001",
+    "model": "synthetic-model",
+    "cropHash": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+    "candidateSetHash": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+    "choice": null,
+    "cached": true,
+    "inputTokens": 0,
+    "outputTokens": 0
+  }
+}

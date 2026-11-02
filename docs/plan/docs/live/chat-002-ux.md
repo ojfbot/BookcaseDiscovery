@@ -554,3 +554,10 @@ Each line can become a test. "Clip" means a replayed recorded or synthetic detec
 No external sources: a synthesis of this conversation, the U-3 brief (`~/selfco/prompts/bookcase-discovery-chat-layer-ux-handoff.md`), the [[BookcaseDiscovery]] plan (`REQUIREMENTS.md` OC32, OC33, INV-21, INV-24; `DELIVERY-PLAN.md` U-3, R-0, R-3, T-4; `docs/live/overlay-ux.md` §1 and §10), the U-1 spec [[bookcase-discovery-u1-overlay-ux — Build handoff spec (visuals by link)]] and the U-2 spec [[bookcase-discovery-u2-guided-sweep-ux — Build handoff spec (visuals by link)]].
 Series: bookcase-discovery-u3-chat-layer-ux · Part 01 of 2 · Previous: [[none]] · Next: [[bookcase-discovery-u3-chat-layer-ux — Part 02: 006 taste tree and export]]
 — end of part 01 —
+
+---
+## 13. Owner rulings (2026-11-02, key questions)
+4. **Voice:** the mic opens for an answer only if the user asked by voice first. It never opens on its own.
+6. **Answers as labels:** yes. ASSERTED identity answers become **private** training labels (F-1), marked `user-asserted`. They are never public and never placed in an audit slice.
+
+The remaining questions (1–3, 5, 7) take the spec's proposals as starting values until the owner rules.

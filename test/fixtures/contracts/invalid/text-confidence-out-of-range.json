@@ -1,0 +1,17 @@
+{
+  "type": "TextObserved",
+  "ts": "2026-11-02T10:00:00Z",
+  "runId": "run-synthetic-001",
+  "payload": {
+    "observationId": "obs-001",
+    "rotation": 90,
+    "langCorrection": false,
+    "text": "EXAMPLE TITLE ALPHA",
+    "confidence": 2,
+    "ocr": {
+      "helper": "synthetic-ocr 0.0.0",
+      "os": "synthetic-os 1.0",
+      "requestRevision": 3
+    }
+  }
+}

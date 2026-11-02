@@ -1,0 +1,21 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/ojfbot/BookcaseDiscovery/blob/main/contracts/events/ImageAssetIngested.schema.json",
+  "title": "ImageAssetIngested",
+  "description": "Payload: an original passed validation and entered the store. The hashes tie every later observation to its pixels (INV-12, INV-14).",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["sessionId", "imageHash", "workingCopyHash", "format", "width", "height", "setting", "capturedAt"],
+  "properties": {
+    "sessionId": { "$ref": "../common.schema.json#/definitions/Id" },
+    "imageHash": { "description": "SHA-256 of the untouched original.", "$ref": "../common.schema.json#/definitions/Sha256" },
+    "workingCopyHash": { "description": "SHA-256 of the GPS-stripped working copy every later stage reads.", "$ref": "../common.schema.json#/definitions/Sha256" },
+    "format": { "enum": ["heic", "jpeg"] },
+    "width": { "description": "Pixels, as the working copy decodes.", "type": "integer", "minimum": 1 },
+    "height": { "type": "integer", "minimum": 1 },
+    "setting": { "$ref": "../common.schema.json#/definitions/PhotoSetting" },
+    "capturedAt": { "description": "EXIF DateTimeOriginal as an instant.", "$ref": "../common.schema.json#/definitions/Timestamp" },
+    "shelfIndex": { "description": "Which shelf a per-shelf photo shows (0 = top), from the session map. Absent for whole-case photos.", "type": "integer", "minimum": 0 },
+    "flags": { "type": "array", "items": { "enum": ["edited-derivative"] } }
+  }
+}

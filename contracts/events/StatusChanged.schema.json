@@ -1,0 +1,37 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/ojfbot/BookcaseDiscovery/blob/main/contracts/events/StatusChanged.schema.json",
+  "title": "StatusChanged",
+  "description": "Payload: an observation changed status. 'from' is null for the first status. Which transitions are legal, and which need a 'cause', is the status machine's business (src/ledger/status.ts), not the contract's; the contract only says what a cause looks like.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["observationId", "from", "to"],
+  "properties": {
+    "observationId": { "$ref": "../common.schema.json#/definitions/Id" },
+    "from": { "oneOf": [{ "$ref": "../common.schema.json#/definitions/Status" }, { "type": "null" }] },
+    "to": { "$ref": "../common.schema.json#/definitions/Status" },
+    "cause": {
+      "description": "Why, when the transition needs one. 'budget-spent' is the only cause of a pause (INV-2). A trigger (new image, correction, model change; catalog refresh has no event yet) is the only cause of resolved -> unresolved; 'eventSeq' names the earlier event that is the trigger.",
+      "oneOf": [
+        {
+          "description": "The run's budget is spent; the spine pauses and stays queued.",
+          "type": "object", "additionalProperties": false, "required": ["kind"],
+          "properties": { "kind": { "const": "budget-spent" } }
+        },
+        {
+          "description": "A trigger that is an event in the ledger: an ImageAssetIngested, an IdentityCorrected on this spine, or a RunStarted that changes the models.",
+          "type": "object", "additionalProperties": false, "required": ["kind", "eventSeq"],
+          "properties": {
+            "kind": { "enum": ["new-image", "correction", "model-change"] },
+            "eventSeq": { "$ref": "../common.schema.json#/definitions/Seq" }
+          }
+        },
+        {
+          "description": "The catalog was refreshed. No event type records that yet, so there is no seq to cite.",
+          "type": "object", "additionalProperties": false, "required": ["kind"],
+          "properties": { "kind": { "const": "catalog-refresh" } }
+        }
+      ]
+    }
+  }
+}

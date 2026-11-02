@@ -1,0 +1,2 @@
+{"id":"spine-1","variants":[{"rotation":90,"langCorrection":false,"text":"EXAMPLE TITLE ALPHA","confidence":0.81},{"rotation":90,"langCorrection":true,"text":"Example Title Alpha","confidence":0.78},{"rotation":0,"langCorrection":false,"text":"","confidence":0}],"version":{"helper":"synthetic-ocr 0.0.0","os":"synthetic-os 1.0","requestRevision":3}}
+{"id":"spine-2","error":{"code":"polygon-out-of-bounds","message":"synthetic failure"}}

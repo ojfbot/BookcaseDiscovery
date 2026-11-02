@@ -1,0 +1,19 @@
+{
+  "type": "ImageAssetIngested",
+  "ts": "2026-11-02T10:00:00Z",
+  "runId": "run-synthetic-001",
+  "payload": {
+    "sessionId": "session-synthetic",
+    "imageHash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "workingCopyHash": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+    "format": "jpeg",
+    "width": 4000,
+    "height": 3000,
+    "setting": "panorama",
+    "capturedAt": "2026-11-01T15:30:00-06:00",
+    "shelfIndex": 2,
+    "flags": [
+      "edited-derivative"
+    ]
+  }
+}

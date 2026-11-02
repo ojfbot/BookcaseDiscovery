@@ -5,3 +5,9 @@ Third-party data attribution
 ----------------------------
 Catalog sources and their attribution text are added here by card C-0
 (licence check) before any catalog data is indexed. See docs/licences.md.
+
+ISFDB (the MVP catalog, OC20)
+  Source: Internet Speculative Fiction Database, https://www.isfdb.org/
+  Licence: CC BY 4.0 (UNVERIFIED: isfdb.org returned HTTP 403 to C-0; taken from C-R's fetch and a search snippet. Re-check before the first index build)
+  Attribution text (UNVERIFIED: proposed, not ISFDB's wording):
+    Catalog data from the Internet Speculative Fiction Database (ISFDB), https://www.isfdb.org/, used under CC BY 4.0.

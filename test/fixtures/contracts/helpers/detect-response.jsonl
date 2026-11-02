@@ -1,0 +1,3 @@
+{"id":"req-1","image":{"width":4000,"height":3000},"detections":[{"polygon":[[100,50],[140,50],[140,900],[100,900]],"score":0.93},{"polygon":[[160,50],[200,50],[200,900],[160,900]],"score":0.88}],"version":{"backend":"synthetic-detector","weightsSha256":"dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"}}
+{"id":"req-2","image":{"width":4000,"height":3000},"detections":[],"version":{"backend":"synthetic-detector","weightsSha256":"dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"}}
+{"id":"req-3","error":{"code":"unreadable-image","message":"synthetic failure"}}
