@@ -22,7 +22,8 @@ bin/bookcase --help
 ## Privacy
 
 The repo is public. Photos, crops, labels, per-spine results and any personal data stay on the
-owner's machine under `$BOOKCASE_DATA` and never enter git (`docs/plan/REQUIREMENTS.md`, OC9).
+owner's machine under `$BOOKCASE_DATA` and never enter git (`docs/plan/REQUIREMENTS.md`, OC9). [`docs/privacy.md`](docs/privacy.md) says where each
+kind of data lives and how to purge it; `pnpm guard` and `pnpm guard --history` enforce it.
 
 ## Licence
 
