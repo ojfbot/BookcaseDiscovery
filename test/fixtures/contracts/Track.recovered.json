@@ -1,0 +1,13 @@
+{
+  "type": "Track",
+  "ts": "2026-11-02T10:00:00Z",
+  "runId": "run-synthetic-001",
+  "payload": {
+    "trackId": "track-001",
+    "sessionId": "live-synthetic-001",
+    "state": "stable",
+    "previous": "lost",
+    "firstFrame": 120,
+    "lastFrame": 210
+  }
+}

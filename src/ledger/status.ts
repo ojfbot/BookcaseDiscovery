@@ -68,11 +68,15 @@ export function countedCapReached(run: Pick<RunView, "started" | "usage">): bool
  * allowed, and so is any adjudication of a run that was never started (it has no budget to spend).
  * The last call may overshoot a token cap: tokens are only known after the call.
  */
-export function checkAdjudication(run: RunView | undefined, payload: Payload<"AdjudicationRecorded">): void {
+export function checkAdjudication(
+  run: RunView | undefined,
+  payload: { cached: boolean },
+  type = "AdjudicationRecorded",
+): void {
   if (!run || payload.cached) return;
   if (countedCapReached(run)) {
     throw new LedgerError(
-      `AdjudicationRecorded: run "${run.runId}" has spent its budget; pause instead (INV-2)`,
+      `${type}: run "${run.runId}" has spent its budget; pause instead (INV-2)`,
     );
   }
 }

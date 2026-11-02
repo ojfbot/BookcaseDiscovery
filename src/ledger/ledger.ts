@@ -43,6 +43,33 @@ export interface RunView {
   finished: Payload<"RunFinished"> | null;
 }
 
+/** One live track and where it stands (S9). */
+export interface TrackView {
+  trackId: string;
+  /** The latest `Track` edge. */
+  current: Payload<"Track">;
+  /** Whether it has ever been `stable`; a track lost before that is not resumed. */
+  reachedStable: boolean;
+}
+
+/** One live card and its history in brief (INV-21). */
+export interface CardView {
+  cardId: string;
+  current: Payload<"CardProposed">["card"];
+  status: "active" | "retracted";
+  /** How many `CardRevised` events it has had. */
+  revisions: number;
+  /** `seq` of each revision that can still be undone, oldest first; undo takes the last. */
+  undoable: number[];
+}
+
+/** One live adjudication request and whether it has been answered. */
+export interface RequestView {
+  requestId: string;
+  requested: Payload<"AdjudicationRequested">;
+  answered: boolean;
+}
+
 /** A plain, ordered dump of every view; equal dumps mean equal state. Replay is checked on this. */
 export interface ViewDump {
   images: Payload<"ImageAssetIngested">[];
@@ -51,6 +78,9 @@ export interface ViewDump {
   workItems: WorkItemView[];
   recommendations: RecommendationView[];
   runs: RunView[];
+  tracks: TrackView[];
+  cards: CardView[];
+  adjudicationRequests: RequestView[];
 }
 
 export interface Ledger {
@@ -72,6 +102,12 @@ export interface Ledger {
   recommendations(): RecommendationView[];
   run(runId: string): RunView | undefined;
   runs(): RunView[];
+  /** Live tracks in the order they were born. */
+  tracks(): TrackView[];
+  /** Live cards in the order they were proposed. */
+  cards(): CardView[];
+  /** Live adjudication requests in the order they were made. */
+  adjudicationRequests(): RequestView[];
   images(sessionId?: string): Payload<"ImageAssetIngested">[];
   rejections(sessionId?: string): Payload<"ImageRejected">[];
 

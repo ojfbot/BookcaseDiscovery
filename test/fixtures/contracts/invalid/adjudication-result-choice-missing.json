@@ -1,0 +1,14 @@
+{
+  "type": "AdjudicationResult",
+  "ts": "2026-11-02T10:00:00Z",
+  "runId": "run-synthetic-001",
+  "payload": {
+    "requestId": "adj-001",
+    "model": "synthetic-model",
+    "cropHash": "4444444444444444444444444444444444444444444444444444444444444444",
+    "candidateSetHash": "3333333333333333333333333333333333333333333333333333333333333333",
+    "readText": "Example Title Alpha",
+    "inputTokens": 900,
+    "outputTokens": 40
+  }
+}

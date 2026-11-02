@@ -88,7 +88,16 @@ These are kept apart on purpose: raw evidence is stored separately from interpre
 
 ## Live and sweep
 
-- **Track** — one spine followed across video frames (T-0). Readings of one track that differ only in time are one observation per condition (INV-20).
+- **Track** — one spine followed across video frames (`Track`, T-0). It is `born` when first detected, `stable` once seen for N frames, `lost` when gone; a `lost` track returns to `stable` only if it had been stable, and one lost before that is not resumed (a new track starts). Legal edges: `docs/contracts.md`. Readings of one track that differ only in time are one observation per condition (INV-20).
+- **Live session** — one continuous camera run or one guided sweep, named by a `sessionId`. No event opens it: the first `Track` or `FrameSample` that names it does.
+- **Frame index** — a frame's position in a live session's capture stream, counted from 0 for every frame the tracker sees. A track's first and last frame are frame indices.
+- **Live frame** — the coordinate frame of every polygon in a live event: the frame as the detector receives it, upright as the owner sees it, origin top-left (`FramePixels`). The live twin of working-copy pixels.
+- **Frame sample** — a sparse (at most 1 Hz) record of one frame: its hash, capture time and size, never its pixels (`FrameSample`, INV-22). In live mode the frame is not retained; in guided sweep a face-checked keyframe may be kept privately.
+- **Bystander region** — a face or person outside every detected book box. Its region is blurred before hashing and storage, and counted in `bystanderRegionsBlurred`. A face inside a book box is published cover art and is kept (INV-22 as amended).
+- **Track window** — a per-track summary over a span of frames: the best frame (hash, sharpness, pose) to read from (`TrackWindow`).
+- **Condition** — the viewpoint bucket (`left-oblique`, `frontal`, `right-oblique`) and exposure bucket (`under`, `normal`, `over`) a reading was taken under. Readings of one track with equal conditions are one observation; a band may rise only on agreeing readings under different conditions (INV-20).
+- **Observation (live)** — the count INV-20 keeps: one per (track, condition), however many `OcrReading`s there are. Not the same word as an *observation* in the batch sense (a spine's polygon plus readings); say "condition observation" where it could be confused.
+- **Card lifecycle** — a card is **proposed** (`CardProposed`), may be **revised** (`CardRevised`: what it was, what it is, the exact fields that differ, the events that changed it), **undone** (`CardUndo`: reverses the latest revision, one at a time) or **retracted** (`CardRetracted`, final). None is silent (INV-21).
 - **Card (recommendation card)** — one entry in the live card list. *Not* a delivery task card; say "task card" for that.
 - **Glass** — what is shown on screen. It changes less often than the ledger: a new label or rank is committed only after a margin held for a dwell time, **hysteresis** (INV-24).
 - **Pixels on demand** — a tracked spine marked `needs-pixels` requests a 48 MP still that runs the batch pipeline on that spine.

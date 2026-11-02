@@ -1,0 +1,39 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/ojfbot/BookcaseDiscovery/blob/main/contracts/events/AdjudicationRequested.schema.json",
+  "title": "AdjudicationRequested",
+  "description": "Payload: a live adjudicator call was sent for one tracked spine (S9). It is refused once the run's counted cap is spent (INV-2). The cost is counted when the result arrives. The candidate set is the one a LookupResult returned.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "requestId",
+    "trackId",
+    "lookupEventSeq",
+    "model",
+    "cropHash",
+    "candidateSetHash"
+  ],
+  "properties": {
+    "requestId": {
+      "$ref": "../common.schema.json#/definitions/Id"
+    },
+    "trackId": {
+      "$ref": "../common.schema.json#/definitions/Id"
+    },
+    "lookupEventSeq": {
+      "description": "Ledger position of the LookupResult whose candidates were sent. Its candidateSetHash must equal candidateSetHash here (ledger rule).",
+      "$ref": "../common.schema.json#/definitions/Seq"
+    },
+    "model": {
+      "type": "string",
+      "minLength": 1
+    },
+    "cropHash": {
+      "description": "Hash of the spine crop sent. Crops persist (INV-22); frames do not.",
+      "$ref": "../common.schema.json#/definitions/Sha256"
+    },
+    "candidateSetHash": {
+      "$ref": "../common.schema.json#/definitions/Sha256"
+    }
+  }
+}

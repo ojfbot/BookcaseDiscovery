@@ -1,0 +1,49 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/ojfbot/BookcaseDiscovery/blob/main/contracts/events/AdjudicationCacheHit.schema.json",
+  "title": "AdjudicationCacheHit",
+  "description": "Payload: an adjudication answered from the cache, so no call was made (S9) and nothing is spent. It names the earlier answer it was served from; the ledger checks that event has the same model, cropHash, candidateSetHash and choice. A cache hit is not new evidence (INV-6).",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "trackId",
+    "model",
+    "cropHash",
+    "candidateSetHash",
+    "choice",
+    "sourceEventSeq"
+  ],
+  "properties": {
+    "trackId": {
+      "$ref": "../common.schema.json#/definitions/Id"
+    },
+    "model": {
+      "type": "string",
+      "minLength": 1
+    },
+    "cropHash": {
+      "$ref": "../common.schema.json#/definitions/Sha256"
+    },
+    "candidateSetHash": {
+      "$ref": "../common.schema.json#/definitions/Sha256"
+    },
+    "choice": {
+      "description": "A candidate workId, or null for none of them.",
+      "oneOf": [
+        {
+          "$ref": "../common.schema.json#/definitions/Id"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "readText": {
+      "type": "string"
+    },
+    "sourceEventSeq": {
+      "description": "Ledger position of the AdjudicationResult (or batch AdjudicationRecorded) the answer came from.",
+      "$ref": "../common.schema.json#/definitions/Seq"
+    }
+  }
+}

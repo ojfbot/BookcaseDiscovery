@@ -1,0 +1,38 @@
+{
+  "type": "TrackWindow",
+  "ts": "2026-11-02T10:00:00Z",
+  "runId": "run-synthetic-001",
+  "payload": {
+    "trackId": "track-001",
+    "windowIndex": 0,
+    "startFrame": 120,
+    "endFrame": 149,
+    "frameCount": 28,
+    "bestFrame": {
+      "frameIndex": 133,
+      "hash": "2222222222222222222222222222222222222222222222222222222222222222",
+      "sharpness": 412.5,
+      "pose": {
+        "polygon": [
+          [
+            100,
+            40
+          ],
+          [
+            140,
+            42
+          ],
+          [
+            138,
+            400
+          ],
+          [
+            98,
+            398
+          ]
+        ],
+        "tiltDegrees": -3.5
+      }
+    }
+  }
+}
