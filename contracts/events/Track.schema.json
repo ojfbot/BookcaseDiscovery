@@ -1,0 +1,83 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/ojfbot/BookcaseDiscovery/blob/main/contracts/events/Track.schema.json",
+  "title": "Track",
+  "description": "Payload: a track changed state (S9). One event per lifecycle edge, never per frame. 'previous' is the state it leaves (null at birth), so every edge says where it came from; the legal edges are born from nothing, born to stable, born to lost, stable to lost, lost to stable. The ledger also requires 'previous' to be the track's current state, lost to stable only for a track that had been stable, the same sessionId and firstFrame throughout, and lastFrame never going back.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "trackId",
+    "sessionId",
+    "state",
+    "previous",
+    "firstFrame",
+    "lastFrame"
+  ],
+  "properties": {
+    "trackId": {
+      "$ref": "../common.schema.json#/definitions/Id"
+    },
+    "sessionId": {
+      "description": "The live session (one continuous camera run or one sweep). No event opens it: the first Track or FrameSample naming it does.",
+      "$ref": "../common.schema.json#/definitions/Id"
+    },
+    "state": {
+      "$ref": "../common.schema.json#/definitions/TrackState"
+    },
+    "previous": {
+      "description": "The state this edge leaves; null when the track is born.",
+      "enum": [
+        "born",
+        "stable",
+        "lost",
+        null
+      ]
+    },
+    "firstFrame": {
+      "description": "Frame index (FrameIndex) where the track first appeared. Fixed for the life of the track.",
+      "$ref": "../common.schema.json#/definitions/FrameIndex"
+    },
+    "lastFrame": {
+      "description": "Frame index of the last frame the track was seen in, at this edge. Not before firstFrame (ledger rule).",
+      "$ref": "../common.schema.json#/definitions/FrameIndex"
+    }
+  },
+  "oneOf": [
+    {
+      "properties": {
+        "state": {
+          "const": "born"
+        },
+        "previous": {
+          "const": null
+        }
+      }
+    },
+    {
+      "properties": {
+        "state": {
+          "const": "stable"
+        },
+        "previous": {
+          "enum": [
+            "born",
+            "lost"
+          ]
+        }
+      }
+    },
+    {
+      "properties": {
+        "state": {
+          "const": "lost"
+        },
+        "previous": {
+          "enum": [
+            "born",
+            "stable"
+          ]
+        }
+      }
+    }
+  ]
+}

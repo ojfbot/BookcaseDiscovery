@@ -1,0 +1,43 @@
+{
+  "type": "LookupResult",
+  "ts": "2026-11-02T10:00:00Z",
+  "runId": "run-synthetic-001",
+  "payload": {
+    "trackId": "track-001",
+    "queryText": "EXAMPLE TITLE ALPHA",
+    "readingEventSeqs": [
+      4
+    ],
+    "catalog": {
+      "name": "synthetic-catalog",
+      "version": "2026-11-02"
+    },
+    "candidateSetHash": "3333333333333333333333333333333333333333333333333333333333333333",
+    "candidates": [
+      {
+        "workId": "work-alpha",
+        "title": "Example Title Alpha",
+        "author": "Author Example",
+        "score": 0.8,
+        "evidence": [
+          {
+            "kind": "title-fragment",
+            "score": 0.8
+          }
+        ]
+      },
+      {
+        "workId": "work-beta",
+        "title": "Example Title Beta",
+        "author": "Author Example",
+        "score": 0.8,
+        "evidence": [
+          {
+            "kind": "title-fragment",
+            "score": 0.8
+          }
+        ]
+      }
+    ]
+  }
+}

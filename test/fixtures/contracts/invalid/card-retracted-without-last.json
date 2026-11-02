@@ -1,0 +1,12 @@
+{
+  "type": "CardRetracted",
+  "ts": "2026-11-02T10:00:00Z",
+  "runId": "run-synthetic-001",
+  "payload": {
+    "cardId": "card-001",
+    "reason": "track-lost",
+    "reasonEventSeqs": [
+      9
+    ]
+  }
+}

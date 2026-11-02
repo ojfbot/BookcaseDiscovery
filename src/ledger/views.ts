@@ -3,7 +3,27 @@
 // behaviour suite (`test/ledger-behaviour.ts`) holds both to it.
 import type { LedgerEvent } from "./contracts.ts";
 import { LedgerError } from "./ledger.ts";
-import type { ObservationView, RecommendationView, RunView, ViewDump, WorkItemView } from "./ledger.ts";
+import type {
+  CardView,
+  ObservationView,
+  RecommendationView,
+  RequestView,
+  RunView,
+  TrackView,
+  ViewDump,
+  WorkItemView,
+} from "./ledger.ts";
+import {
+  checkCacheHit,
+  checkLookup,
+  checkOcrReading,
+  checkRequest,
+  checkResult,
+  checkTrackWindow,
+  nextCard,
+  nextTrack,
+} from "./live.ts";
+import type { LiveContext } from "./live.ts";
 import { checkAdjudication, checkStatusChange } from "./status.ts";
 
 export interface ViewState {
@@ -13,6 +33,9 @@ export interface ViewState {
   workItems: Map<string, WorkItemView>;
   recommendations: Map<string, RecommendationView>;
   runs: Map<string, RunView>;
+  tracks: Map<string, TrackView>;
+  cards: Map<string, CardView>;
+  requests: Map<string, RequestView>;
   /** `seq` of the event that set each observation's status (the status machine's trigger check needs it). */
   statusSeq: Map<string, number>;
   /** An event already in the log, for the status machine to check a cited trigger against. */
@@ -27,6 +50,9 @@ export function emptyState(eventAt: ViewState["eventAt"] = () => undefined): Vie
     workItems: new Map(),
     recommendations: new Map(),
     runs: new Map(),
+    tracks: new Map(),
+    cards: new Map(),
+    requests: new Map(),
     statusSeq: new Map(),
     eventAt,
   };
@@ -160,11 +186,62 @@ export function apply(state: ViewState, event: LedgerEvent): void {
       rec.revisions += 1;
       return;
     }
+    // ---- live track (S9). Only tracks, cards and adjudication requests have views; frame samples,
+    // windows, readings, lookups and cache hits are checked and kept in the log. ----
+    case "Track":
+      state.tracks.set(event.payload.trackId, nextTrack(event.payload, state.tracks.get(event.payload.trackId)));
+      return;
+    case "FrameSample":
+      return;
+    case "TrackWindow":
+      checkTrackWindow(event.payload, liveContext(state, event.seq));
+      return;
+    case "OcrReading":
+      checkOcrReading(event.payload, liveContext(state, event.seq));
+      return;
+    case "LookupResult":
+      checkLookup(event.payload, liveContext(state, event.seq));
+      return;
+    case "AdjudicationRequested": {
+      const p = event.payload;
+      checkRequest(p, state.requests.get(p.requestId), liveContext(state, event.seq));
+      checkAdjudication(state.runs.get(event.runId), { cached: false }, event.type);
+      state.requests.set(p.requestId, { requestId: p.requestId, requested: p, answered: false });
+      return;
+    }
+    case "AdjudicationResult": {
+      const p = event.payload;
+      const request = state.requests.get(p.requestId);
+      checkResult(p, request);
+      request!.answered = true;
+      const run = state.runs.get(event.runId);
+      if (run) {
+        run.usage.adjudications += 1;
+        run.usage.inputTokens += p.inputTokens;
+        run.usage.outputTokens += p.outputTokens;
+      }
+      return;
+    }
+    case "AdjudicationCacheHit":
+      checkCacheHit(event.payload, liveContext(state, event.seq));
+      return;
+    case "CardProposed":
+    case "CardRevised":
+    case "CardRetracted":
+    case "CardUndo": {
+      const id = event.payload.cardId;
+      state.cards.set(id, nextCard(event, state.cards.get(id), liveContext(state, event.seq)));
+      return;
+    }
     default: {
       const unreachable: never = event;
       throw new LedgerError(`unhandled event ${JSON.stringify(unreachable)}`);
     }
   }
+}
+
+function liveContext(state: ViewState, seq: number): LiveContext {
+  return { seq, eventAt: (at) => state.eventAt(at), hasTrack: (id) => state.tracks.has(id) };
 }
 
 export function toDump(state: ViewState): ViewDump {
@@ -175,5 +252,8 @@ export function toDump(state: ViewState): ViewDump {
     workItems: [...state.workItems.values()],
     recommendations: [...state.recommendations.values()],
     runs: [...state.runs.values()],
+    tracks: [...state.tracks.values()],
+    cards: [...state.cards.values()],
+    adjudicationRequests: [...state.requests.values()],
   };
 }

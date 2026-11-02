@@ -18,6 +18,9 @@ Durable, replayable state (INV-14). The `Ledger` interface is in [`contracts.md`
 | `work_items` | the opening payload and the resolution |
 | `recommendations` | the current recommendation and how many times it was revised |
 | `runs` | the budget, the spend counted so far, and the outcome |
+| `tracks`, `cards`, `adjudication_requests` | the live track (S9, T-0): each track's latest edge and whether it was ever `stable`; each card's current state, status and the revisions that can still be undone; each live adjudication request and whether it is answered |
+
+`FrameSample`, `TrackWindow`, `OcrReading`, `LookupResult` and `AdjudicationCacheHit` have no table: they are checked on append (`src/ledger/live.ts`, [`contracts.md`](contracts.md)) and read from `events`. A live `AdjudicationResult` adds to `runs` exactly as `AdjudicationRecorded` does. The schema version is 2 (T-0 added the three tables). A writable `SqliteLedger` upgrades a version-1 file in place on open, by creating the three empty tables (a version-1 log holds no live events); a read-only open of a version-1 file is refused, so open it once writable before `bookcase replay`.
 
 `viewDump()` reads these tables, not the events. The in-memory ledger folds the same events with `views.ts`; `test/ledger-behaviour.ts` runs the same tests against both, and a test checks their dumps are equal.
 

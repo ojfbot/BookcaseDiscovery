@@ -11,12 +11,33 @@ import { mkdirSync } from "node:fs";
 import { dirname } from "node:path";
 import type { EventType, LedgerEvent, NewEvent, Payload, Status } from "./contracts.ts";
 import { LedgerError } from "./ledger.ts";
-import type { Ledger, ObservationView, RecommendationView, RunView, ViewDump, WorkItemView } from "./ledger.ts";
+import type {
+  CardView,
+  Ledger,
+  ObservationView,
+  RecommendationView,
+  RequestView,
+  RunView,
+  TrackView,
+  ViewDump,
+  WorkItemView,
+} from "./ledger.ts";
+import {
+  checkCacheHit,
+  checkLookup,
+  checkOcrReading,
+  checkRequest,
+  checkResult,
+  checkTrackWindow,
+  nextCard,
+  nextTrack,
+} from "./live.ts";
+import type { LiveContext } from "./live.ts";
 import { prepareEvent } from "./prepare.ts";
 import { checkAdjudication, checkStatusChange } from "./status.ts";
 
 /** Bump when a table changes; `PRAGMA user_version` holds it. */
-export const SCHEMA_VERSION = 1;
+export const SCHEMA_VERSION = 2;
 
 const SCHEMA = `
 CREATE TABLE events (
@@ -92,6 +113,32 @@ CREATE TABLE runs (
 );
 `;
 
+/** Added in version 2 (card T-0). A version-1 database gets them when a writable ledger first opens it. */
+const LIVE_TABLES = `
+-- Live track (S9). Frame samples, windows, readings, lookups and cache hits have no view: they are
+-- checked on append and read from \`events\`.
+CREATE TABLE tracks (
+  track_id       TEXT PRIMARY KEY,
+  seq            INTEGER NOT NULL UNIQUE,
+  current        TEXT NOT NULL,
+  reached_stable INTEGER NOT NULL CHECK (reached_stable IN (0, 1))
+);
+CREATE TABLE cards (
+  card_id   TEXT PRIMARY KEY,
+  seq       INTEGER NOT NULL UNIQUE,
+  current   TEXT NOT NULL,
+  status    TEXT NOT NULL CHECK (status IN ('active','retracted')),
+  revisions INTEGER NOT NULL DEFAULT 0,
+  undoable  TEXT NOT NULL CHECK (json_valid(undoable))
+);
+CREATE TABLE adjudication_requests (
+  request_id TEXT PRIMARY KEY,
+  seq        INTEGER NOT NULL UNIQUE,
+  requested  TEXT NOT NULL,
+  answered   INTEGER NOT NULL DEFAULT 0 CHECK (answered IN (0, 1))
+);
+`;
+
 export interface SqliteLedgerOptions {
   /** Also validate each event against the JSON Schema (Ajv) and refuse on disagreement with Zod. Off by default. */
   crossCheck?: boolean;
@@ -118,6 +165,11 @@ export class SqliteLedger implements Ledger {
     this.#db = new DatabaseSync(path, { readOnly: this.#readOnly });
     this.#db.exec("PRAGMA busy_timeout = 5000; PRAGMA foreign_keys = ON; PRAGMA recursive_triggers = ON;");
     const version = Number(this.#get("PRAGMA user_version")!.user_version);
+    if (version === 1 && !this.#readOnly) {
+      this.#db.exec("PRAGMA journal_mode = WAL;");
+      this.#db.exec(`BEGIN; ${LIVE_TABLES} PRAGMA user_version = ${SCHEMA_VERSION}; COMMIT;`);
+      return;
+    }
     if (version === SCHEMA_VERSION) {
       if (!this.#readOnly) this.#db.exec("PRAGMA journal_mode = WAL;");
       return;
@@ -128,7 +180,7 @@ export class SqliteLedger implements Ledger {
       throw new LedgerError(`${path}: not a ledger database this code can open (user_version ${version}, ${tables} objects)`);
     }
     this.#db.exec("PRAGMA journal_mode = WAL;");
-    this.#db.exec(`BEGIN; ${SCHEMA} PRAGMA user_version = ${SCHEMA_VERSION}; COMMIT;`);
+    this.#db.exec(`BEGIN; ${SCHEMA} ${LIVE_TABLES} PRAGMA user_version = ${SCHEMA_VERSION}; COMMIT;`);
   }
 
   close(): void {
@@ -331,11 +383,89 @@ export class SqliteLedger implements Ledger {
         );
         return;
       }
+      // ---- live track (S9): the SQL twin of the same cases in views.ts ----
+      case "Track": {
+        const next = nextTrack(event.payload, this.#track(event.payload.trackId));
+        this.#run(
+          "INSERT INTO tracks (track_id, seq, current, reached_stable) VALUES (?, ?, ?, ?) " +
+            "ON CONFLICT (track_id) DO UPDATE SET current = excluded.current, reached_stable = excluded.reached_stable",
+          next.trackId,
+          seq,
+          json(next.current),
+          next.reachedStable ? 1 : 0,
+        );
+        return;
+      }
+      case "FrameSample":
+        return;
+      case "TrackWindow":
+        checkTrackWindow(event.payload, this.#liveContext(seq));
+        return;
+      case "OcrReading":
+        checkOcrReading(event.payload, this.#liveContext(seq));
+        return;
+      case "LookupResult":
+        checkLookup(event.payload, this.#liveContext(seq));
+        return;
+      case "AdjudicationRequested": {
+        const p = event.payload;
+        checkRequest(p, this.#request(p.requestId), this.#liveContext(seq));
+        checkAdjudication(this.run(event.runId), { cached: false }, type);
+        this.#run("INSERT INTO adjudication_requests (request_id, seq, requested) VALUES (?, ?, ?)", p.requestId, seq, json(p));
+        return;
+      }
+      case "AdjudicationResult": {
+        const p = event.payload;
+        checkResult(p, this.#request(p.requestId));
+        this.#run("UPDATE adjudication_requests SET answered = 1 WHERE request_id = ?", p.requestId);
+        if (this.run(event.runId)) {
+          this.#run(
+            "UPDATE runs SET adjudications = adjudications + 1, input_tokens = input_tokens + ?, output_tokens = output_tokens + ? WHERE run_id = ?",
+            p.inputTokens,
+            p.outputTokens,
+            event.runId,
+          );
+        }
+        return;
+      }
+      case "AdjudicationCacheHit":
+        checkCacheHit(event.payload, this.#liveContext(seq));
+        return;
+      case "CardProposed":
+      case "CardRevised":
+      case "CardRetracted":
+      case "CardUndo": {
+        const id = event.payload.cardId;
+        const next = nextCard(event, this.#card(id), this.#liveContext(seq));
+        this.#run(
+          "INSERT INTO cards (card_id, seq, current, status, revisions, undoable) VALUES (?, ?, ?, ?, ?, ?) " +
+            "ON CONFLICT (card_id) DO UPDATE SET current = excluded.current, status = excluded.status, " +
+            "revisions = excluded.revisions, undoable = excluded.undoable",
+          id,
+          seq,
+          json(next.current),
+          next.status,
+          next.revisions,
+          json(next.undoable),
+        );
+        return;
+      }
       default: {
         const unreachable: never = event;
         throw new LedgerError(`unhandled event ${JSON.stringify(unreachable)}`);
       }
     }
+  }
+
+  #liveContext(seq: number): LiveContext {
+    return {
+      seq,
+      eventAt: (at) => {
+        const e = this.#get("SELECT type, payload FROM events WHERE seq = ?", at);
+        return e && { type: e.type as EventType, payload: parse(e.payload) };
+      },
+      hasTrack: (id) => this.#get("SELECT 1 AS x FROM tracks WHERE track_id = ?", id) !== undefined,
+    };
   }
 
   // ---- reads ----
@@ -435,6 +565,45 @@ export class SqliteLedger implements Ledger {
     return this.#all("SELECT * FROM runs ORDER BY seq").map((r) => this.#runView(r));
   }
 
+  #trackView(r: Row): TrackView {
+    return { trackId: r.track_id as string, current: parse(r.current), reachedStable: r.reached_stable === 1 };
+  }
+  #track(id: string): TrackView | undefined {
+    const r = this.#get("SELECT * FROM tracks WHERE track_id = ?", id);
+    return r && this.#trackView(r);
+  }
+  tracks(): TrackView[] {
+    return this.#all("SELECT * FROM tracks ORDER BY seq").map((r) => this.#trackView(r));
+  }
+
+  #cardView(r: Row): CardView {
+    return {
+      cardId: r.card_id as string,
+      current: parse(r.current),
+      status: r.status as CardView["status"],
+      revisions: Number(r.revisions),
+      undoable: parse(r.undoable),
+    };
+  }
+  #card(id: string): CardView | undefined {
+    const r = this.#get("SELECT * FROM cards WHERE card_id = ?", id);
+    return r && this.#cardView(r);
+  }
+  cards(): CardView[] {
+    return this.#all("SELECT * FROM cards ORDER BY seq").map((r) => this.#cardView(r));
+  }
+
+  #requestView(r: Row): RequestView {
+    return { requestId: r.request_id as string, requested: parse(r.requested), answered: r.answered === 1 };
+  }
+  #request(id: string): RequestView | undefined {
+    const r = this.#get("SELECT * FROM adjudication_requests WHERE request_id = ?", id);
+    return r && this.#requestView(r);
+  }
+  adjudicationRequests(): RequestView[] {
+    return this.#all("SELECT * FROM adjudication_requests ORDER BY seq").map((r) => this.#requestView(r));
+  }
+
   images(sessionId?: string): Payload<"ImageAssetIngested">[] {
     const rows = sessionId === undefined
       ? this.#all("SELECT body FROM images ORDER BY seq")
@@ -457,6 +626,9 @@ export class SqliteLedger implements Ledger {
       workItems: this.workItems(),
       recommendations: this.recommendations(),
       runs: this.runs(),
+      tracks: this.tracks(),
+      cards: this.cards(),
+      adjudicationRequests: this.adjudicationRequests(),
     };
   }
 }
