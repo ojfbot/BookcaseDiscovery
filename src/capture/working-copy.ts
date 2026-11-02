@@ -12,7 +12,8 @@ import { execFileSync } from "node:child_process";
 import { rmSync } from "node:fs";
 import { join } from "node:path";
 import type { MetadataReader, PhotoMeta } from "./metadata.ts";
-import type { ImageFormat } from "./store.ts";
+
+export type ImageFormat = "jpeg" | "heic";
 
 export interface Size {
   width: number;

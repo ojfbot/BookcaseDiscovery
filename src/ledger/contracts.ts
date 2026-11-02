@@ -13,7 +13,7 @@ export const UNRESOLVED_REASONS = [
   "conflicting-evidence",
   "strategies-exhausted",
 ] as const;
-export const PHOTO_SETTINGS = ["whole-12", "whole-48", "shelf-48", "overview"] as const;
+export const PHOTO_SETTINGS = ["whole-12", "whole-48", "shelf-48", "overview", "real-use"] as const;
 export const ROTATIONS = [0, 90, 180, 270] as const;
 export const TRACK_STATES = ["born", "stable", "lost"] as const;
 export const VIEWPOINTS = ["left-oblique", "frontal", "right-oblique"] as const;

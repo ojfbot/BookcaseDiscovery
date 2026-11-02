@@ -55,7 +55,7 @@ export type ShelfBand = z.infer<typeof ShelfBand>;
 export const Photo = z.object({
   /** sha256 of the original file, lowercase hex. */
   hash: z.string().regex(/^[0-9a-f]{64}$/),
-  /** Capture setting: `whole-12`, `whole-48`, `shelf-48`, `overview` (REQUIREMENTS OC6), or `real-use` kinds later. */
+  /** Capture setting: `whole-12`, `whole-48`, `shelf-48`, `overview` (REQUIREMENTS OC6), or `real-use` (OC35). */
   setting: z.string().min(1),
   /** Which shelf of the case a per-shelf photo shows; null for whole-case photos. */
   shelfIndex: z.number().int().nonnegative().nullable(),
