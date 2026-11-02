@@ -1,4 +1,5 @@
 // `run` module: the CLI router behind `bin/bookcase`. Commands are stubs until their cards land.
+import { ingestCommand } from "../capture/cli.ts";
 import { replayCommand } from "./replay.ts";
 
 export const moduleName = "run";
@@ -19,6 +20,7 @@ export function main(argv: string[]): number {
     console.log(usage);
     return 0;
   }
+  if (cmd === "ingest") return ingestCommand(argv.slice(1));
   if (cmd === "replay") return replayCommand(argv.slice(1));
   if ((commands as readonly string[]).includes(cmd)) {
     console.error(`bookcase ${cmd}: not implemented yet`);
