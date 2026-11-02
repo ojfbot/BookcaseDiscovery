@@ -1,5 +1,5 @@
 // The Ledger interface every module writes through (ADR §1). L-1 ships the in-memory
-// implementation (`memory.ts`); L-2 adds SQLite behind the same interface.
+// implementation (`memory.ts`); L-2 adds SQLite (`sqlite.ts`) behind the same interface.
 import type { LedgerEvent, NewEvent, Payload, Status } from "./contracts.ts";
 
 /** One spine and everything the ledger knows about it. Observation, hypothesis and band stay separate (INV-3). */
@@ -33,6 +33,16 @@ export interface RecommendationView {
   revisions: number;
 }
 
+/** One run and what it has spent so far (INV-2). */
+export interface RunView {
+  runId: string;
+  started: Payload<"RunStarted">;
+  /** Counted from `AdjudicationRecorded` events of this run that were not cache hits. */
+  usage: { adjudications: number; inputTokens: number; outputTokens: number };
+  /** Null while the run is open. */
+  finished: Payload<"RunFinished"> | null;
+}
+
 /** A plain, ordered dump of every view; equal dumps mean equal state. Replay is checked on this. */
 export interface ViewDump {
   images: Payload<"ImageAssetIngested">[];
@@ -40,13 +50,15 @@ export interface ViewDump {
   observations: ObservationView[];
   workItems: WorkItemView[];
   recommendations: RecommendationView[];
+  runs: RunView[];
 }
 
 export interface Ledger {
   /**
    * Validate and store an event; returns it with its `seq`. Rejects (throws) an event that fails its
-   * contract, or that names an observation, work item or recommendation the ledger has not seen.
-   * The ledger never stamps time: `ts` is the emitter's, so replay is deterministic.
+   * contract, or that names an observation, work item, recommendation or run the ledger has not seen,
+   * or that breaks the status machine or a run's budget (`status.ts`). A refused event leaves the
+   * ledger unchanged. The ledger never stamps time: `ts` is the emitter's, so replay is deterministic.
    */
   append(event: NewEvent): LedgerEvent;
   /** Events with `seq` greater than `after` (default 0: all), oldest first. */
@@ -58,6 +70,8 @@ export interface Ledger {
   observations(filter?: { sessionId?: string; imageHash?: string }): ObservationView[];
   workItems(filter?: { open?: boolean }): WorkItemView[];
   recommendations(): RecommendationView[];
+  run(runId: string): RunView | undefined;
+  runs(): RunView[];
   images(sessionId?: string): Payload<"ImageAssetIngested">[];
   rejections(sessionId?: string): Payload<"ImageRejected">[];
 

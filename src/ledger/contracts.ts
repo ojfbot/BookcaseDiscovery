@@ -164,6 +164,13 @@ export const payloadSchemas = {
     observationId: IdSchema,
     from: StatusSchema.nullable(),
     to: StatusSchema,
+    cause: z
+      .discriminatedUnion("kind", [
+        z.strictObject({ kind: z.literal("budget-spent") }),
+        z.strictObject({ kind: z.enum(["new-image", "correction", "model-change"]), eventSeq: SeqSchema }),
+        z.strictObject({ kind: z.literal("catalog-refresh") }),
+      ])
+      .optional(),
   }),
   WorkItemOpened: z.strictObject({
     workItemId: IdSchema,
