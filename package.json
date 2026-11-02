@@ -15,6 +15,7 @@
   "scripts": {
     "test": "vitest run",
     "typecheck": "tsc --noEmit",
+    "labels:import": "node src/eval/labels-import.ts",
     "guard": "node scripts/privacy-guard.mjs",
     "prepare": "simple-git-hooks"
   },
