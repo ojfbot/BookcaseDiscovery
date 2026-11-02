@@ -18,11 +18,11 @@ The record shapes these words name are in `contracts/` and explained in `docs/co
 ## Photos and ingest
 
 - **Scan session** — one visit's set of photos, ingested together (`ScanSessionOpened`). Named like a fixture (`sf-store-001`).
-- **Original** — the file exactly as exported from the phone ("Export Unmodified Original"). Hashed first, never written to (INV-12). Edited derivatives (`IMG_E*`, `.AAE` sidecar) are flagged.
-- **Working copy** — the GPS-stripped copy every later stage reads (INV-12). Same pixels as the original.
+- **Original** — the file exactly as exported from the phone ("Export Unmodified Original"). Hashed first, never written to (INV-12). Edited derivatives are **flagged, not rejected** (OC35): an `IMG_E*` name, an `.AAE` sidecar, a `Software` tag that is not the camera's, or an EXIF size that differs from the stored pixels.
+- **Working copy** — the GPS-stripped, orientation-normalised copy every later stage reads (INV-12): pixels rotated per EXIF Orientation and the tag cleared (set to 1), so it has one pixel frame. Its hash is `workingCopyHash`; `imageHash` is the untouched original's.
 - **Image asset** — an original that passed validation, identified by its SHA-256 (`ImageAssetIngested`). A file that fails is **rejected** (`ImageRejected`) with reasons and never processed.
 - **Photo setting** — how a photo was taken: `whole-12` (whole case, 12 MP), `whole-48` (whole case, 48 MP), `shelf-48` (one shelf, 48 MP), `overview`. E1 compares them (OC6).
-- **Original-image pixels** — the coordinate frame of a polygon: the pixel grid of the image it was found in, origin top-left. The report scales from it to display size.
+- **Working-copy pixels** — the coordinate frame of every box and polygon: the decoded pixel grid of the working copy, origin top-left, as `ImageAssetIngested.width/height` report it. The report scales from it to display size. (Replaces "original-image pixels": the original may carry an Orientation tag that the working copy has applied.)
 - **Content-addressed** — stored under its own hash, so the path never matters (ADR §10).
 
 ## Observation, hypothesis, work (INV-3)
