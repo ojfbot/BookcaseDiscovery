@@ -1,0 +1,735 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`report from the synthetic ledger > structure snapshot 1`] = `
+"<html lang="en">
+  <head>
+    <title>
+      "Bookcase report · synthetic-shelf-001 · run-synthetic-001"
+    <script>
+    <style>
+  <body>
+    <header class="top">
+      <h1>
+        "synthetic-shelf-001"
+      <div class="counts">
+    <main class="grid">
+      <section aria-label="Photo and overlay">
+        <div class="controls">
+          <div class="chips" role="group" aria-label="Show spines by status (others dim, none are removed)">
+            <button class="chip" data-lens="all" aria-pressed="true">
+              "All"
+            <button class="chip" data-lens="resolved" aria-pressed="false">
+              <svg viewBox="0 0 16 12" aria-hidden="true">
+                <rect width="16" height="12">
+                <rect width="14.5" height="10.5">
+              "resolved"
+            <button class="chip" data-lens="unresolved" aria-pressed="false">
+              <svg viewBox="0 0 16 12" aria-hidden="true">
+                <pattern id="lg-unresolved" width="5" height="5">
+                <rect width="16" height="12">
+                <rect width="14.5" height="10.5">
+              "unresolved"
+            <button class="chip" data-lens="needs-pixels" aria-pressed="false">
+              <svg viewBox="0 0 16 12" aria-hidden="true">
+                <pattern id="lg-needs-pixels" width="5" height="5">
+                <rect width="16" height="12">
+                <rect width="14.5" height="10.5">
+              "needs closer photo"
+            <button class="chip" data-lens="paused" aria-pressed="false">
+              <svg viewBox="0 0 16 12" aria-hidden="true">
+                <pattern id="lg-paused" width="5" height="5">
+                <rect width="16" height="12">
+                <rect width="14.5" height="10.5">
+              "paused (budget)"
+            <button class="chip" data-lens="none" aria-pressed="false">
+              <svg viewBox="0 0 16 12" aria-hidden="true">
+                <rect width="16" height="12">
+                <rect width="14.5" height="10.5">
+              "detected"
+          <label class="mono">
+            <input id="labels">
+            "labels"
+        <div class="key" aria-label="Band key: stroke style, glyph and word">
+          <svg viewBox="0 0 34 10" aria-hidden="true">
+          <svg viewBox="0 0 34 10" aria-hidden="true">
+          <svg viewBox="0 0 34 10" aria-hidden="true">
+          <svg viewBox="0 0 34 10" aria-hidden="true">
+          <svg viewBox="0 0 34 10" aria-hidden="true">
+        <nav class="tabs" role="tablist" aria-label="Photos">
+          <button class="tab" role="tab" data-image="i0" aria-selected="true">
+            "whole-12"
+            <span class="mono">
+          <button class="tab" role="tab" data-image="i1" aria-selected="false">
+            "shelf-48 · shelf 0"
+            <span class="mono">
+        <div id="stage" data-lens="all">
+          <figure class="shot" id="img-0" data-image="i0">
+            <div class="frame">
+              <img src="images/@WC0x16@.jpg" width="3000" height="2250">
+              <svg class="over" viewBox="0 0 3000 2250" aria-label="Spine overlay">
+                <pattern id="p0-unresolved" width="20" height="20">
+                <pattern id="p0-needs-pixels" width="20" height="20">
+                <pattern id="p0-paused" width="20" height="20">
+                <a id="s-obs-s0-0" class="spine st-resolved bd-verified" href="#p-obs-s0-0" data-obs="obs-s0-0" data-status="resolved">
+                  <title>
+                    "shelf 0 · ordinal 0 · resolved · verified · The Lantern Years"
+                  <polygon class="fill" points="225,300 365.6,300 365.6,956.3 225,956.3">
+                  <polygon class="edge" points="225,300 365.6,300 365.6,956.3 225,956.3">
+                  <polygon class="ring" points="225,300 365.6,300 365.6,956.3 225,956.3">
+                  <text class="lbl">
+                <a id="s-obs-s0-1" class="spine st-resolved bd-probable" href="#p-obs-s0-1" data-obs="obs-s0-1" data-status="resolved">
+                  <title>
+                    "shelf 0 · ordinal 1 · resolved · probable · A Clockmaker&#39;s Atlas"
+                  <polygon class="fill" points="403.1,300 585,300 585,956.3 403.1,956.3">
+                  <polygon class="edge" points="403.1,300 585,300 585,956.3 403.1,956.3">
+                  <polygon class="ring" points="403.1,300 585,300 585,956.3 403.1,956.3">
+                  <text class="lbl">
+                <a id="s-obs-s0-2" class="spine st-unresolved bd-candidate" href="#p-obs-s0-2" data-obs="obs-s0-2" data-status="unresolved">
+                  <title>
+                    "shelf 0 · ordinal 2 · unresolved · candidate · Salt and Orbit"
+                  <polygon class="fill" points="622.5,300 845.6,300 845.6,956.3 622.5,956.3">
+                  <polygon class="edge" points="622.5,300 845.6,300 845.6,956.3 622.5,956.3">
+                  <polygon class="ring" points="622.5,300 845.6,300 845.6,956.3 622.5,956.3">
+                  <text class="lbl">
+                <a id="s-obs-s0-3" class="spine st-unresolved bd-unknown" href="#p-obs-s0-3" data-obs="obs-s0-3" data-status="unresolved">
+                  <title>
+                    "shelf 0 · ordinal 3 · unresolved · unknown"
+                  <polygon class="fill" points="883.1,300 1044.4,300 1044.4,956.3 883.1,956.3">
+                  <polygon class="edge" points="883.1,300 1044.4,300 1044.4,956.3 883.1,956.3">
+                  <polygon class="ring" points="883.1,300 1044.4,300 1044.4,956.3 883.1,956.3">
+                  <text class="lbl">
+                <a id="s-obs-s0-4" class="spine st-needs-pixels bd-unknown" href="#p-obs-s0-4" data-obs="obs-s0-4" data-status="needs-pixels">
+                  <title>
+                    "shelf 0 · ordinal 4 · needs closer photo · unknown"
+                  <polygon class="fill" points="1081.9,300 1284.4,300 1284.4,956.3 1081.9,956.3">
+                  <polygon class="edge" points="1081.9,300 1284.4,300 1284.4,956.3 1081.9,956.3">
+                  <polygon class="ring" points="1081.9,300 1284.4,300 1284.4,956.3 1081.9,956.3">
+                  <text class="lbl">
+                <a id="s-obs-s0-5" class="spine st-unresolved bd-unknown" href="#p-obs-s0-5" data-obs="obs-s0-5" data-status="unresolved">
+                  <title>
+                    "shelf 0 · ordinal 5 · unresolved · unknown"
+                  <polygon class="fill" points="1321.9,300 1462.5,300 1462.5,956.3 1321.9,956.3">
+                  <polygon class="edge" points="1321.9,300 1462.5,300 1462.5,956.3 1321.9,956.3">
+                  <polygon class="ring" points="1321.9,300 1462.5,300 1462.5,956.3 1321.9,956.3">
+                  <text class="lbl">
+                <a id="s-obs-s0-6" class="spine st-none bd-none" href="#p-obs-s0-6" data-obs="obs-s0-6" data-status="none">
+                  <title>
+                    "shelf 0 · ordinal 6 · detected · not banded"
+                  <polygon class="fill" points="1500,300 1681.9,300 1681.9,956.3 1500,956.3">
+                  <polygon class="edge" points="1500,300 1681.9,300 1681.9,956.3 1500,956.3">
+                  <polygon class="ring" points="1500,300 1681.9,300 1681.9,956.3 1500,956.3">
+                  <text class="lbl">
+                <a id="s-obs-s1-0" class="spine st-paused bd-none" href="#p-obs-s1-0" data-obs="obs-s1-0" data-status="paused">
+                  <title>
+                    "shelf 1 · ordinal 0 · paused (budget) · not banded"
+                  <polygon class="fill" points="225,1275 386.3,1275 386.3,1931.3 225,1931.3">
+                  <polygon class="edge" points="225,1275 386.3,1275 386.3,1931.3 225,1931.3">
+                  <polygon class="ring" points="225,1275 386.3,1275 386.3,1931.3 225,1931.3">
+                  <text class="lbl">
+                <a id="s-obs-s1-1" class="spine st-paused bd-none" href="#p-obs-s1-1" data-obs="obs-s1-1" data-status="paused">
+                  <title>
+                    "shelf 1 · ordinal 1 · paused (budget) · not banded"
+                  <polygon class="fill" points="423.8,1275 626.3,1275 626.3,1931.3 423.8,1931.3">
+                  <polygon class="edge" points="423.8,1275 626.3,1275 626.3,1931.3 423.8,1931.3">
+                  <polygon class="ring" points="423.8,1275 626.3,1275 626.3,1931.3 423.8,1931.3">
+                  <text class="lbl">
+                <a id="s-obs-s1-2" class="spine st-resolved bd-probable" href="#p-obs-s1-2" data-obs="obs-s1-2" data-status="resolved">
+                  <title>
+                    "shelf 1 · ordinal 2 · resolved · probable · Rivers of Glass"
+                  <polygon class="fill" points="663.8,1275 804.4,1275 804.4,1931.3 663.8,1931.3">
+                  <polygon class="edge" points="663.8,1275 804.4,1275 804.4,1931.3 663.8,1931.3">
+                  <polygon class="ring" points="663.8,1275 804.4,1275 804.4,1931.3 663.8,1931.3">
+                  <text class="lbl">
+                <a id="s-obs-s1-3" class="spine st-resolved bd-verified" href="#p-obs-s1-3" data-obs="obs-s1-3" data-status="resolved">
+                  <title>
+                    "shelf 1 · ordinal 3 · resolved · verified · A Field Guide to Silence"
+                  <polygon class="fill" points="841.9,1275 1023.8,1275 1023.8,1931.3 841.9,1931.3">
+                  <polygon class="edge" points="841.9,1275 1023.8,1275 1023.8,1931.3 841.9,1931.3">
+                  <polygon class="ring" points="841.9,1275 1023.8,1275 1023.8,1931.3 841.9,1931.3">
+                  <text class="lbl">
+                <a id="s-obs-s1-4" class="spine st-unresolved bd-unknown" href="#p-obs-s1-4" data-obs="obs-s1-4" data-status="unresolved">
+                  <title>
+                    "shelf 1 · ordinal 4 · unresolved · unknown"
+                  <polygon class="fill" points="1061.3,1275 1284.4,1275 1284.4,1931.3 1061.3,1931.3">
+                  <polygon class="edge" points="1061.3,1275 1284.4,1275 1284.4,1931.3 1061.3,1931.3">
+                  <polygon class="ring" points="1061.3,1275 1284.4,1275 1284.4,1931.3 1061.3,1931.3">
+                  <text class="lbl">
+            <figcaption>
+              "whole-12 · working copy 3200×2400 → 3000×2250 for display · 12 spines · @WC0x12@"
+          <figure class="shot" id="img-1" data-image="i1">
+            <div class="frame">
+              <img src="images/@WC1x16@.jpg" width="1600" height="1200">
+              <svg class="over" viewBox="0 0 1600 1200" aria-label="Spine overlay">
+                <pattern id="p1-unresolved" width="11" height="11">
+                <pattern id="p1-needs-pixels" width="11" height="11">
+                <pattern id="p1-paused" width="11" height="11">
+                <a id="s-obs-c-0" class="spine st-resolved bd-verified" href="#p-obs-c-0" data-obs="obs-c-0" data-status="resolved">
+                  <title>
+                    "shelf 0 · ordinal 0 · resolved · verified · The Lantern Years"
+                  <polygon class="fill" points="200,150 480,150 480,1050 200,1050">
+                  <polygon class="edge" points="200,150 480,150 480,1050 200,1050">
+                  <polygon class="ring" points="200,150 480,150 480,1050 200,1050">
+                  <text class="lbl">
+                <a id="s-obs-c-1" class="spine st-resolved bd-verified" href="#p-obs-c-1" data-obs="obs-c-1" data-status="resolved">
+                  <title>
+                    "shelf 0 · ordinal 1 · resolved · verified · A Clockmaker&#39;s Atlas"
+                  <polygon class="fill" points="560,150 760,150 760,1050 560,1050">
+                  <polygon class="edge" points="560,150 760,150 760,1050 560,1050">
+                  <polygon class="ring" points="560,150 760,150 760,1050 560,1050">
+                  <text class="lbl">
+            <figcaption>
+              "shelf-48 · shelf 0 · working copy 1600×1200 · 2 spines · @WC1x12@ · edited-derivative"
+      <aside id="panels" aria-label="Spine detail">
+        <p class="hint">
+        <article class="panel" id="p-obs-c-0" data-obs="obs-c-0" data-image="i1">
+          <h3>
+            "shelf 0 · ordinal 0"
+          <p class="meta">
+          <div class="badges">
+            <span class="badge b-resolved">
+            <span class="badge">
+          <h4>
+            "OCR variants"
+          <th class="num">
+          <td class="num">
+          <td class="txt">
+          <td class="num">
+          <h4>
+            "Candidates"
+          <th class="num">
+          <td class="num">
+          <span class="meta">
+          <ul class="ev">
+            <span class="ev-derived">
+            <span class="ev-derived">
+          <td class="num">
+          <td class="num">
+          <span class="meta">
+          <ul class="ev">
+            <span class="ev-derived">
+          <td class="num">
+          <h4>
+            "Versions"
+          <h4>
+            "Status history"
+          <ol class="hist">
+            <span class="ts">
+            <span class="ts">
+            <span class="ts">
+        <article class="panel" id="p-obs-s0-0" data-obs="obs-s0-0" data-image="i0">
+          <h3>
+            "shelf 0 · ordinal 0"
+          <p class="meta">
+          <div class="badges">
+            <span class="badge b-resolved">
+            <span class="badge">
+          <h4>
+            "OCR variants"
+          <th class="num">
+          <td class="num">
+          <td class="txt">
+          <td class="num">
+          <td class="num">
+          <td class="txt">
+          <td class="num">
+          <h4>
+            "Candidates"
+          <th class="num">
+          <td class="num">
+          <span class="meta">
+          <ul class="ev">
+            <span class="ev-derived">
+            <span class="ev-derived">
+          <td class="num">
+          <td class="num">
+          <span class="meta">
+          <ul class="ev">
+            <span class="ev-derived">
+            <span class="ev-derived">
+          <td class="num">
+          <td class="num">
+          <span class="meta">
+          <ul class="ev">
+            <span class="ev-derived">
+          <td class="num">
+          <h4>
+            "Adjudication"
+          <th class="num">
+          <td class="txt">
+            <span class="ev-synth">
+          <td class="txt">
+          <td class="num">
+          <h4>
+            "Versions"
+          <h4>
+            "Status history"
+          <ol class="hist">
+            <span class="ts">
+            <span class="ts">
+            <span class="ts">
+        <article class="panel" id="p-obs-c-1" data-obs="obs-c-1" data-image="i1">
+          <h3>
+            "shelf 0 · ordinal 1"
+          <p class="meta">
+          <div class="badges">
+            <span class="badge b-resolved">
+            <span class="badge">
+          <h4>
+            "OCR variants"
+          <th class="num">
+          <td class="num">
+          <td class="txt">
+          <td class="num">
+          <h4>
+            "Candidates"
+          <th class="num">
+          <td class="num">
+          <span class="meta">
+          <ul class="ev">
+            <span class="ev-derived">
+            <span class="ev-derived">
+          <td class="num">
+          <td class="num">
+          <span class="meta">
+          <ul class="ev">
+            <span class="ev-derived">
+          <td class="num">
+          <h4>
+            "Versions"
+          <h4>
+            "Status history"
+          <ol class="hist">
+            <span class="ts">
+            <span class="ts">
+            <span class="ts">
+        <article class="panel" id="p-obs-s0-1" data-obs="obs-s0-1" data-image="i0">
+          <h3>
+            "shelf 0 · ordinal 1"
+          <p class="meta">
+          <div class="badges">
+            <span class="badge b-resolved">
+            <span class="badge">
+          <h4>
+            "OCR variants"
+          <th class="num">
+          <td class="num">
+          <td class="txt">
+          <td class="num">
+          <h4>
+            "Candidates"
+          <th class="num">
+          <td class="num">
+          <span class="meta">
+          <ul class="ev">
+            <span class="ev-derived">
+            <span class="ev-derived">
+          <td class="num">
+          <td class="num">
+          <span class="meta">
+          <ul class="ev">
+            <span class="ev-derived">
+          <td class="num">
+          <h4>
+            "Versions"
+          <h4>
+            "Status history"
+          <ol class="hist">
+            <span class="ts">
+            <span class="ts">
+            <span class="ts">
+        <article class="panel" id="p-obs-s0-2" data-obs="obs-s0-2" data-image="i0">
+          <h3>
+            "shelf 0 · ordinal 2"
+          <p class="meta">
+          <div class="badges">
+            <span class="badge b-unresolved">
+            <span class="badge">
+          <h4>
+            "OCR variants"
+          <th class="num">
+          <td class="num">
+          <td class="txt">
+          <td class="num">
+          <h4>
+            "Candidates"
+          <th class="num">
+          <td class="num">
+          <span class="meta">
+          <ul class="ev">
+            <span class="ev-derived">
+            <span class="ev-derived">
+          <td class="num">
+          <td class="num">
+          <span class="meta">
+          <ul class="ev">
+            <span class="ev-derived">
+            <span class="ev-derived">
+          <td class="num">
+          <td class="num">
+          <span class="meta">
+          <ul class="ev">
+            <span class="ev-derived">
+          <td class="num">
+          <h4>
+            "Versions"
+          <h4>
+            "Status history"
+          <ol class="hist">
+            <span class="ts">
+            <span class="ts">
+        <article class="panel" id="p-obs-s0-3" data-obs="obs-s0-3" data-image="i0">
+          <h3>
+            "shelf 0 · ordinal 3"
+          <p class="meta">
+          <div class="badges">
+            <span class="badge b-unresolved">
+            <span class="badge">
+          <h4>
+            "OCR variants"
+          <th class="num">
+          <td class="num">
+          <td class="txt">
+          <td class="num">
+          <h4>
+            "Candidates"
+          <th class="num">
+          <td class="num">
+          <span class="meta">
+          <ul class="ev">
+            <span class="ev-derived">
+            <span class="ev-derived">
+          <td class="num">
+          <td class="num">
+          <span class="meta">
+          <ul class="ev">
+            <span class="ev-derived">
+            <span class="ev-derived">
+          <td class="num">
+          <td class="num">
+          <span class="meta">
+          <ul class="ev">
+            <span class="ev-derived">
+          <td class="num">
+          <h4>
+            "Versions"
+          <h4>
+            "Status history"
+          <ol class="hist">
+            <span class="ts">
+            <span class="ts">
+        <article class="panel" id="p-obs-s0-4" data-obs="obs-s0-4" data-image="i0">
+          <h3>
+            "shelf 0 · ordinal 4"
+          <p class="meta">
+          <div class="badges">
+            <span class="badge b-needs-pixels">
+            <span class="badge">
+          <h4>
+            "Closer photo"
+          <ul class="ev">
+          <h4>
+            "OCR variants"
+          <th class="num">
+          <td class="num">
+          <td class="txt">
+          <td class="num">
+          <h4>
+            "Candidates"
+          <th class="num">
+          <td class="num">
+          <span class="meta">
+          <ul class="ev">
+            <span class="ev-derived">
+          <td class="num">
+          <h4>
+            "Versions"
+          <h4>
+            "Status history"
+          <ol class="hist">
+            <span class="ts">
+            <span class="ts">
+            <span class="ts">
+        <article class="panel" id="p-obs-s0-5" data-obs="obs-s0-5" data-image="i0">
+          <h3>
+            "shelf 0 · ordinal 5"
+          <p class="meta">
+          <div class="badges">
+            <span class="badge b-unresolved">
+            <span class="badge">
+          <h4>
+            "Closer photo"
+          <ul class="ev">
+          <h4>
+            "OCR variants"
+          <th class="num">
+          <td class="num">
+          <td class="txt">
+          <td class="num">
+          <h4>
+            "Candidates"
+          <th class="num">
+          <td class="num">
+          <span class="meta">
+          <ul class="ev">
+            <span class="ev-derived">
+            <span class="ev-derived">
+          <td class="num">
+          <td class="num">
+          <span class="meta">
+          <ul class="ev">
+            <span class="ev-derived">
+          <td class="num">
+          <h4>
+            "Corrections"
+          <ul class="ev">
+            <span class="ev-asserted">
+          <h4>
+            "Versions"
+          <h4>
+            "Status history"
+          <ol class="hist">
+            <span class="ts">
+            <span class="ts">
+            <span class="ts">
+            <span class="ts">
+            <span class="ts">
+            <span class="ts">
+        <article class="panel" id="p-obs-s0-6" data-obs="obs-s0-6" data-image="i0">
+          <h3>
+            "shelf 0 · ordinal 6"
+          <p class="meta">
+          <div class="badges">
+            <span class="badge b-none">
+            <span class="badge">
+          <h4>
+            "OCR variants"
+          <p class="meta">
+          <h4>
+            "Candidates"
+          <p class="meta">
+          <h4>
+            "Versions"
+          <h4>
+            "Status history"
+          <p class="meta">
+        <article class="panel" id="p-obs-s1-0" data-obs="obs-s1-0" data-image="i0">
+          <h3>
+            "shelf 1 · ordinal 0"
+          <p class="meta">
+          <div class="badges">
+            <span class="badge b-paused">
+            <span class="badge">
+          <h4>
+            "OCR variants"
+          <th class="num">
+          <td class="num">
+          <td class="txt">
+          <td class="num">
+          <h4>
+            "Candidates"
+          <th class="num">
+          <td class="num">
+          <span class="meta">
+          <ul class="ev">
+            <span class="ev-derived">
+            <span class="ev-derived">
+          <td class="num">
+          <td class="num">
+          <span class="meta">
+          <ul class="ev">
+            <span class="ev-derived">
+          <td class="num">
+          <h4>
+            "Adjudication"
+          <th class="num">
+          <td class="txt">
+            <span class="ev-synth">
+          <td class="txt">
+          <td class="num">
+          <h4>
+            "Versions"
+          <h4>
+            "Status history"
+          <ol class="hist">
+            <span class="ts">
+            <span class="ts">
+        <article class="panel" id="p-obs-s1-1" data-obs="obs-s1-1" data-image="i0">
+          <h3>
+            "shelf 1 · ordinal 1"
+          <p class="meta">
+          <div class="badges">
+            <span class="badge b-paused">
+            <span class="badge">
+          <h4>
+            "OCR variants"
+          <p class="meta">
+          <h4>
+            "Candidates"
+          <p class="meta">
+          <h4>
+            "Versions"
+          <h4>
+            "Status history"
+          <ol class="hist">
+            <span class="ts">
+            <span class="ts">
+        <article class="panel" id="p-obs-s1-2" data-obs="obs-s1-2" data-image="i0">
+          <h3>
+            "shelf 1 · ordinal 2"
+          <p class="meta">
+          <div class="badges">
+            <span class="badge b-resolved">
+            <span class="badge">
+          <h4>
+            "OCR variants"
+          <th class="num">
+          <td class="num">
+          <td class="txt">
+          <td class="num">
+          <h4>
+            "Candidates"
+          <th class="num">
+          <td class="num">
+          <span class="meta">
+          <ul class="ev">
+            <span class="ev-derived">
+            <span class="ev-derived">
+          <td class="num">
+          <td class="num">
+          <span class="meta">
+          <ul class="ev">
+            <span class="ev-derived">
+          <td class="num">
+          <h4>
+            "Adjudication"
+          <th class="num">
+          <td class="txt">
+            <span class="ev-synth">
+          <td class="txt">
+          <td class="num">
+          <h4>
+            "Versions"
+          <h4>
+            "Status history"
+          <ol class="hist">
+            <span class="ts">
+            <span class="ts">
+            <span class="ts">
+        <article class="panel" id="p-obs-s1-3" data-obs="obs-s1-3" data-image="i0">
+          <h3>
+            "shelf 1 · ordinal 3"
+          <p class="meta">
+          <div class="badges">
+            <span class="badge b-resolved">
+            <span class="badge">
+          <h4>
+            "OCR variants"
+          <th class="num">
+          <td class="num">
+          <td class="txt">
+          <td class="num">
+          <h4>
+            "Candidates"
+          <th class="num">
+          <td class="num">
+          <span class="meta">
+          <ul class="ev">
+            <span class="ev-derived">
+            <span class="ev-derived">
+            <span class="ev-derived">
+          <td class="num">
+          <td class="num">
+          <span class="meta">
+          <ul class="ev">
+            <span class="ev-derived">
+          <td class="num">
+          <h4>
+            "Versions"
+          <h4>
+            "Status history"
+          <ol class="hist">
+            <span class="ts">
+            <span class="ts">
+            <span class="ts">
+        <article class="panel" id="p-obs-s1-4" data-obs="obs-s1-4" data-image="i0">
+          <h3>
+            "shelf 1 · ordinal 4"
+          <p class="meta">
+          <div class="badges">
+            <span class="badge b-unresolved">
+            <span class="badge">
+          <h4>
+            "Closer photo"
+          <ul class="ev">
+          <h4>
+            "OCR variants"
+          <th class="num">
+          <td class="num">
+          <td class="txt">
+          <td class="num">
+          <h4>
+            "Candidates"
+          <p class="meta">
+          <h4>
+            "Versions"
+          <h4>
+            "Status history"
+          <ol class="hist">
+            <span class="ts">
+            <span class="ts">
+            <span class="ts">
+            <span class="ts">
+    <div class="lists">
+      <section id="unresolved">
+        <h2>
+          "Unresolved"
+        <tr data-obs="obs-s0-2">
+          <a href="#p-obs-s0-2" data-obs="obs-s0-2">
+          <span class="badge b-unresolved">
+        <tr data-obs="obs-s0-3">
+          <a href="#p-obs-s0-3" data-obs="obs-s0-3">
+          <span class="badge b-unresolved">
+        <tr data-obs="obs-s0-4">
+          <a href="#p-obs-s0-4" data-obs="obs-s0-4">
+          <span class="badge b-needs-pixels">
+        <tr data-obs="obs-s0-5">
+          <a href="#p-obs-s0-5" data-obs="obs-s0-5">
+          <span class="badge b-unresolved">
+        <tr data-obs="obs-s0-6">
+          <a href="#p-obs-s0-6" data-obs="obs-s0-6">
+          <span class="badge b-none">
+        <tr data-obs="obs-s1-0">
+          <a href="#p-obs-s1-0" data-obs="obs-s1-0">
+          <span class="badge b-paused">
+        <tr data-obs="obs-s1-1">
+          <a href="#p-obs-s1-1" data-obs="obs-s1-1">
+          <span class="badge b-paused">
+        <tr data-obs="obs-s1-4">
+          <a href="#p-obs-s1-4" data-obs="obs-s1-4">
+          <span class="badge b-unresolved">
+      <section id="closer-photos">
+        <h2>
+          "Closer photos"
+        <tr data-obs="obs-s0-4">
+          <a href="#p-obs-s0-4" data-obs="obs-s0-4">
+          <td class="txt">
+        <tr data-obs="obs-s0-5">
+          <a href="#p-obs-s0-5" data-obs="obs-s0-5">
+          <td class="txt">
+        <tr data-obs="obs-s1-4">
+          <a href="#p-obs-s1-4" data-obs="obs-s1-4">
+          <td class="txt">
+      <section id="recommendations">
+        <h2>
+          "Recommendations"
+        <div class="placeholder">
+      <section id="run">
+        <h2>
+          "Run and versions"
+        <h4>
+          "Not ingested"
+        <ul class="ev">
+    <footer class="foot">
+    <script>
+"
+`;

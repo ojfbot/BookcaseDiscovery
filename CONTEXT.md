@@ -23,6 +23,8 @@ The record shapes these words name are in `contracts/` and explained in `docs/co
 - **Image asset** — an original that passed validation, identified by its SHA-256 (`ImageAssetIngested`). A file that fails is **rejected** (`ImageRejected`) with reasons and never processed.
 - **Photo setting** — how a photo was taken: `whole-12` (whole case, 12 MP), `whole-48` (whole case, 48 MP), `shelf-48` (one shelf, 48 MP), `overview`. E1 compares them (OC6).
 - **Working-copy pixels** — the coordinate frame of every box and polygon: the decoded pixel grid of the working copy, origin top-left, as `ImageAssetIngested.width/height` report it. The report scales from it to display size. (Replaces "original-image pixels": the original may carry an Orientation tag that the working copy has applied.)
+- **Display derivative** — the JPEG the report shows for a working copy, made by `sips` with its long edge at most 3000 px (never enlarged). Polygons are scaled from working-copy pixels to it; it is a view, never an input to any stage. It lives in the report folder, not the image store.
+- **Report** — the static site `bookcase report` writes to `$BOOKCASE_DATA/reports/<session>/<run>/` (`docs/report.md`): the photos with every spine boxed, coloured by status and stroked by band, plus a panel per spine and the unresolved and closer-photo lists. It holds photos, so it is private like the image store.
 - **Content-addressed** — stored under its own hash, so the path never matters (ADR §10).
 
 ## Observation, hypothesis, work (INV-3)
