@@ -1,0 +1,161 @@
+{"id": "c001", "noise": [], "split": "dev", "variants": ["WILLIAM GIBSON NEUROMANCER"], "expect": {"title": "Neuromancer", "author": "William Gibson"}, "class": "clean"}
+{"id": "c002", "noise": [], "split": "test", "variants": ["COUNT ZERO GIBSON"], "expect": {"title": "Count Zero", "author": "William Gibson"}, "class": "clean"}
+{"id": "c003", "noise": [], "split": "dev", "variants": ["SNOW CRASH NEAL STEPHENSON"], "expect": {"title": "Snow Crash", "author": "Neal Stephenson"}, "class": "clean"}
+{"id": "c004", "noise": [], "split": "test", "variants": ["NEAL STEPHENSON ANATHEM"], "expect": {"title": "Anathem", "author": "Neal Stephenson"}, "class": "clean"}
+{"id": "c005", "noise": [], "split": "dev", "variants": ["KIM STANLEY ROBINSON RED MARS"], "expect": {"title": "Red Mars", "author": "Kim Stanley Robinson"}, "class": "clean"}
+{"id": "c006", "noise": [], "split": "test", "variants": ["2312 KIM STANLEY ROBINSON"], "expect": {"title": "2312", "author": "Kim Stanley Robinson"}, "class": "clean"}
+{"id": "c007", "noise": [], "split": "dev", "variants": ["DUNE FRANK HERBERT"], "expect": {"title": "Dune", "author": "Frank Herbert"}, "class": "clean"}
+{"id": "c008", "noise": [], "split": "test", "variants": ["FOUNDATION ISAAC ASIMOV"], "expect": {"title": "Foundation", "author": "Isaac Asimov"}, "class": "clean"}
+{"id": "c009", "noise": [], "split": "dev", "variants": ["I ROBOT ASIMOV"], "expect": {"title": "I, Robot", "author": "Isaac Asimov"}, "class": "clean"}
+{"id": "c010", "noise": [], "split": "test", "variants": ["URSULA K. LE GUIN THE LEFT HAND OF DARKNESS"], "expect": {"title": "The Left Hand of Darkness", "author": "Ursula K. Le Guin"}, "class": "clean"}
+{"id": "c011", "noise": [], "split": "dev", "variants": ["THE DISPOSSESSED LE GUIN"], "expect": {"title": "The Dispossessed", "author": "Ursula K. Le Guin"}, "class": "clean"}
+{"id": "c012", "noise": [], "split": "test", "variants": ["PHILIP K. DICK UBIK"], "expect": {"title": "Ubik", "author": "Philip K. Dick"}, "class": "clean"}
+{"id": "c013", "noise": [], "split": "dev", "variants": ["DO ANDROIDS DREAM OF ELECTRIC SHEEP? PHILIP K DICK"], "expect": {"title": "Do Androids Dream of Electric Sheep?", "author": "Philip K. Dick"}, "class": "clean"}
+{"id": "c014", "noise": [], "split": "test", "variants": ["THE MAN IN THE HIGH CASTLE DICK"], "expect": {"title": "The Man in the High Castle", "author": "Philip K. Dick"}, "class": "clean"}
+{"id": "c015", "noise": [], "split": "dev", "variants": ["RENDEZVOUS WITH RAMA ARTHUR C. CLARKE"], "expect": {"title": "Rendezvous with Rama", "author": "Arthur C. Clarke"}, "class": "clean"}
+{"id": "c016", "noise": [], "split": "test", "variants": ["CHILDHOODS END CLARKE"], "expect": {"title": "Childhood's End", "author": "Arthur C. Clarke"}, "class": "clean"}
+{"id": "c017", "noise": [], "split": "dev", "variants": ["STRANGER IN A STRANGE LAND ROBERT A. HEINLEIN"], "expect": {"title": "Stranger in a Strange Land", "author": "Robert A. Heinlein"}, "class": "clean"}
+{"id": "c018", "noise": [], "split": "test", "variants": ["HEINLEIN THE MOON IS A HARSH MISTRESS"], "expect": {"title": "The Moon Is a Harsh Mistress", "author": "Robert A. Heinlein"}, "class": "clean"}
+{"id": "c019", "noise": [], "split": "dev", "variants": ["HYPERION DAN SIMMONS"], "expect": {"title": "Hyperion", "author": "Dan Simmons"}, "class": "clean"}
+{"id": "c020", "noise": [], "split": "test", "variants": ["ENDER'S GAME ORSON SCOTT CARD"], "expect": {"title": "Ender's Game", "author": "Orson Scott Card"}, "class": "clean"}
+{"id": "c021", "noise": [], "split": "dev", "variants": ["A FIRE UPON THE DEEP VERNOR VINGE"], "expect": {"title": "A Fire Upon the Deep", "author": "Vernor Vinge"}, "class": "clean"}
+{"id": "c022", "noise": [], "split": "test", "variants": ["STANISLAW LEM SOLARIS"], "expect": {"title": "Solaris", "author": "Stanisław Lem"}, "class": "clean"}
+{"id": "c023", "noise": [], "split": "dev", "variants": ["PARABLE OF THE SOWER OCTAVIA E. BUTLER"], "expect": {"title": "Parable of the Sower", "author": "Octavia E. Butler"}, "class": "clean"}
+{"id": "c024", "noise": [], "split": "test", "variants": ["KINDRED OCTAVIA BUTLER"], "expect": {"title": "Kindred", "author": "Octavia E. Butler"}, "class": "clean"}
+{"id": "c025", "noise": [], "split": "dev", "variants": ["IAIN M. BANKS CONSIDER PHLEBAS"], "expect": {"title": "Consider Phlebas", "author": "Iain M. Banks"}, "class": "clean"}
+{"id": "c026", "noise": [], "split": "test", "variants": ["THE PLAYER OF GAMES BANKS"], "expect": {"title": "The Player of Games", "author": "Iain M. Banks"}, "class": "clean"}
+{"id": "c027", "noise": [], "split": "dev", "variants": ["LEVIATHAN WAKES JAMES S.A. COREY"], "expect": {"title": "Leviathan Wakes", "author": "James S. A. Corey"}, "class": "clean"}
+{"id": "c028", "noise": [], "split": "test", "variants": ["THE THREE-BODY PROBLEM CIXIN LIU"], "expect": {"title": "The Three-Body Problem", "author": "Cixin Liu"}, "class": "clean"}
+{"id": "c029", "noise": [], "split": "dev", "variants": ["SLAUGHTERHOUSE-FIVE KURT VONNEGUT"], "expect": {"title": "Slaughterhouse-Five", "author": "Kurt Vonnegut, Jr."}, "class": "clean"}
+{"id": "c030", "noise": [], "split": "test", "variants": ["FAHRENHEIT 451 RAY BRADBURY"], "expect": {"title": "Fahrenheit 451", "author": "Ray Bradbury"}, "class": "clean"}
+{"id": "c031", "noise": [], "split": "dev", "variants": ["BRAVE NEW WORLD ALDOUS HUXLEY"], "expect": {"title": "Brave New World", "author": "Aldous Huxley"}, "class": "clean"}
+{"id": "c032", "noise": [], "split": "test", "variants": ["H.G. WELLS THE TIME MACHINE"], "expect": {"title": "The Time Machine", "author": "H. G. Wells"}, "class": "clean"}
+{"id": "c033", "noise": [], "split": "dev", "variants": ["THE WAR OF THE WORLDS H. G. WELLS"], "expect": {"title": "The War of the Worlds", "author": "H. G. Wells"}, "class": "clean"}
+{"id": "c034", "noise": [], "split": "test", "variants": ["NINETEEN EIGHTY-FOUR GEORGE ORWELL"], "expect": {"title": "Nineteen Eighty-Four", "author": "George Orwell"}, "class": "clean"}
+{"id": "c035", "noise": [], "split": "dev", "variants": ["DOUGLAS ADAMS THE HITCHHIKER'S GUIDE TO THE GALAXY"], "expect": {"title": "The Hitchhiker's Guide to the Galaxy", "author": "Douglas Adams"}, "class": "clean"}
+{"id": "c036", "noise": [], "split": "test", "variants": ["DHALGREN SAMUEL R. DELANY"], "expect": {"title": "Dhalgren", "author": "Samuel R. Delany"}, "class": "clean"}
+{"id": "c037", "noise": [], "split": "dev", "variants": ["JOE HALDEMAN THE FOREVER WAR"], "expect": {"title": "The Forever War", "author": "Joe Haldeman"}, "class": "clean"}
+{"id": "c038", "noise": [], "split": "test", "variants": ["A CANTICLE FOR LEIBOWITZ WALTER M. MILLER JR."], "expect": {"title": "A Canticle for Leibowitz", "author": "Walter M. Miller, Jr."}, "class": "clean"}
+{"id": "c039", "noise": [], "split": "dev", "variants": ["THE STARS MY DESTINATION ALFRED BESTER"], "expect": {"title": "The Stars My Destination", "author": "Alfred Bester"}, "class": "clean"}
+{"id": "c040", "noise": [], "split": "test", "variants": ["SLAN A.E. VAN VOGT"], "expect": {"title": "Slan", "author": "A. E. van Vogt"}, "class": "clean"}
+{"id": "c041", "noise": [], "split": "dev", "variants": ["DOWNBELOW STATION C.J. CHERRYH"], "expect": {"title": "Downbelow Station", "author": "C. J. Cherryh"}, "class": "clean"}
+{"id": "c042", "noise": [], "split": "test", "variants": ["GATEWAY FREDERIK POHL"], "expect": {"title": "Gateway", "author": "Frederik Pohl"}, "class": "clean"}
+{"id": "c043", "noise": [], "split": "dev", "variants": ["RINGWORLD LARRY NIVEN"], "expect": {"title": "Ringworld", "author": "Larry Niven"}, "class": "clean"}
+{"id": "c044", "noise": [], "split": "test", "variants": ["THE MOTE IN GOD'S EYE NIVEN POURNELLE"], "expect": {"title": "The Mote in God's Eye", "author": "Larry Niven"}, "class": "clean"}
+{"id": "c045", "noise": [], "split": "dev", "variants": ["CONTACT CARL SAGAN"], "expect": {"title": "Contact", "author": "Carl Sagan"}, "class": "clean"}
+{"id": "c046", "noise": [], "split": "test", "variants": ["CHILDREN OF TIME ADRIAN TCHAIKOVSKY"], "expect": {"title": "Children of Time", "author": "Adrian Tchaikovsky"}, "class": "clean"}
+{"id": "c047", "noise": [], "split": "dev", "variants": ["ANCILLARY JUSTICE ANN LECKIE"], "expect": {"title": "Ancillary Justice", "author": "Ann Leckie"}, "class": "clean"}
+{"id": "c048", "noise": [], "split": "test", "variants": ["THE MARTIAN ANDY WEIR"], "expect": {"title": "The Martian", "author": "Andy Weir"}, "class": "clean"}
+{"id": "c049", "noise": [], "split": "dev", "variants": ["STATION ELEVEN EMILY ST. JOHN MANDEL"], "expect": {"title": "Station Eleven", "author": "Emily St. John Mandel"}, "class": "clean"}
+{"id": "c050", "noise": [], "split": "test", "variants": ["BLINDSIGHT PETER WATTS"], "expect": {"title": "Blindsight", "author": "Peter Watts"}, "class": "clean"}
+{"id": "c051", "noise": [], "split": "dev", "variants": ["ACCELERANDO CHARLES STROSS"], "expect": {"title": "Accelerando", "author": "Charles Stross"}, "class": "clean"}
+{"id": "c052", "noise": [], "split": "test", "variants": ["PATTERN RECOGNITION WILLIAM GIBSON"], "expect": {"title": "Pattern Recognition", "author": "William Gibson"}, "class": "clean"}
+{"id": "c053", "noise": [], "split": "dev", "variants": ["DUNE MESSIAH FRANK HERBERT"], "expect": {"title": "Dune Messiah", "author": "Frank Herbert"}, "class": "clean"}
+{"id": "c054", "noise": [], "split": "test", "variants": ["USE OF WEAPONS IAIN M. BANKS"], "expect": {"title": "Use of Weapons", "author": "Iain M. Banks"}, "class": "clean"}
+{"id": "c055", "noise": [], "split": "dev", "variants": ["SPEAKER FOR THE DEAD ORSON SCOTT CARD"], "expect": {"title": "Speaker for the Dead", "author": "Orson Scott Card"}, "class": "clean"}
+{"id": "c056", "noise": [], "split": "test", "variants": ["GREEN MARS KIM STANLEY ROBINSON"], "expect": {"title": "Green Mars", "author": "Kim Stanley Robinson"}, "class": "clean"}
+{"id": "c057", "noise": [], "split": "dev", "variants": ["THE HANDMAID'S TALE MARGARET ATWOOD"], "expect": {"title": "The Handmaid's Tale", "author": "Margaret Atwood"}, "class": "clean"}
+{"id": "c058", "noise": [], "split": "test", "variants": ["FOUNDATION AND EMPIRE ISAAC ASIMOV"], "expect": {"title": "Foundation and Empire", "author": "Isaac Asimov"}, "class": "clean"}
+{"id": "c059", "noise": [], "split": "dev", "variants": ["THE FALL OF HYPERION DAN SIMMONS"], "expect": {"title": "The Fall of Hyperion", "author": "Dan Simmons"}, "class": "clean"}
+{"id": "c060", "noise": [], "split": "test", "variants": ["ROADSIDE PICNIC STRUGATSKY"], "expect": {"title": "Roadside Picnic", "author": "Arkady Strugatsky"}, "class": "clean"}
+{"id": "c061", "noise": [], "split": "dev", "variants": ["EMBASSYTOWN CHINA MIEVILLE"], "expect": {"title": "Embassytown", "author": "China Miéville"}, "class": "clean"}
+{"id": "c062", "noise": [], "split": "test", "variants": ["CAT'S CRADLE KURT VONNEGUT"], "expect": {"title": "Cat's Cradle", "author": "Kurt Vonnegut, Jr."}, "class": "clean"}
+{"id": "c063", "noise": [], "split": "dev", "variants": ["CAMP CONCENTRATION THOMAS M. DISCH"], "expect": {"title": "Camp Concentration", "author": "Thomas M. Disch"}, "class": "clean"}
+{"id": "c064", "noise": [], "split": "test", "variants": ["STAND ON ZANZIBAR JOHN BRUNNER"], "expect": {"title": "Stand on Zanzibar", "author": "John Brunner"}, "class": "clean"}
+{"id": "c065", "noise": [], "split": "dev", "variants": ["HOTHOUSE BRIAN W. ALDISS"], "expect": {"title": "Hothouse", "author": "Brian W. Aldiss"}, "class": "clean"}
+{"id": "c066", "noise": [], "split": "test", "variants": ["THE SPARROW MARY DORIA RUSSELL"], "expect": {"title": "The Sparrow", "author": "Mary Doria Russell"}, "class": "clean"}
+{"id": "c067", "noise": [], "split": "dev", "variants": ["DOOMSDAY BOOK CONNIE WILLIS"], "expect": {"title": "Doomsday Book", "author": "Connie Willis"}, "class": "clean"}
+{"id": "c068", "noise": [], "split": "test", "variants": ["A DEEPNESS IN THE SKY VERNOR VINGE"], "expect": {"title": "A Deepness in the Sky", "author": "Vernor Vinge"}, "class": "clean"}
+{"id": "c069", "noise": [], "split": "dev", "variants": ["PERMUTATION CITY GREG EGAN"], "expect": {"title": "Permutation City", "author": "Greg Egan"}, "class": "clean"}
+{"id": "c070", "noise": [], "split": "test", "variants": ["EXCESSION IAIN M. BANKS"], "expect": {"title": "Excession", "author": "Iain M. Banks"}, "class": "clean"}
+{"id": "c071", "noise": [], "split": "dev", "variants": ["REVELATION SPACE ALASTAIR REYNOLDS"], "expect": {"title": "Revelation Space", "author": "Alastair Reynolds"}, "class": "clean"}
+{"id": "c072", "noise": [], "split": "test", "variants": ["THE LATHE OF HEAVEN URSULA K. LE GUIN"], "expect": {"title": "The Lathe of Heaven", "author": "Ursula K. Le Guin"}, "class": "clean"}
+{"id": "c073", "noise": [], "split": "dev", "variants": ["VALIS PHILIP K. DICK"], "expect": {"title": "VALIS", "author": "Philip K. Dick"}, "class": "clean"}
+{"id": "c074", "noise": [], "split": "test", "variants": ["GATEWAY"], "expect": {"title": "Gateway", "author": "Frederik Pohl"}, "class": "clean"}
+{"id": "c075", "noise": [], "split": "dev", "variants": ["CONTACT"], "expect": {"title": "Contact", "author": "Carl Sagan"}, "class": "clean"}
+{"id": "c076", "noise": [], "split": "test", "variants": ["KINDRED"], "expect": {"title": "Kindred", "author": "Octavia E. Butler"}, "class": "clean"}
+{"id": "c077", "noise": [], "split": "dev", "variants": ["SOLARIS"], "expect": {"title": "Solaris", "author": "Stanisław Lem"}, "class": "clean"}
+{"id": "c078", "noise": [], "split": "test", "variants": ["RINGWORLD"], "expect": {"title": "Ringworld", "author": "Larry Niven"}, "class": "clean"}
+{"id": "c079", "noise": [], "split": "dev", "variants": ["BLINDSIGHT"], "expect": {"title": "Blindsight", "author": "Peter Watts"}, "class": "clean"}
+{"id": "c080", "noise": [], "split": "test", "variants": ["ANATHEM"], "expect": {"title": "Anathem", "author": "Neal Stephenson"}, "class": "clean"}
+{"id": "c081", "noise": [], "split": "dev", "variants": ["THE FOREVER WAR"], "expect": {"title": "The Forever War", "author": "Joe Haldeman"}, "class": "clean"}
+{"id": "c082", "noise": [], "split": "test", "variants": ["BABEL-17 SAMUEL R. DELANY"], "expect": {"title": "Babel-17", "author": "Samuel R. Delany"}, "class": "clean"}
+{"id": "c083", "noise": [], "split": "dev", "variants": ["LILITH'S BROOD OCTAVIA E. BUTLER"], "expect": {"title": "Lilith's Brood", "author": "Octavia E. Butler"}, "class": "clean"}
+{"id": "c084", "noise": [], "split": "test", "variants": ["THE LONG EARTH TERRY PRATCHETT STEPHEN BAXTER"], "expect": {"title": "The Long Earth", "author": "Terry Pratchett"}, "class": "clean"}
+{"id": "c085", "noise": [], "split": "dev", "variants": ["THE GODS THEMSELVES ASIMOV"], "expect": {"title": "The Gods Themselves", "author": "Isaac Asimov"}, "class": "clean"}
+{"id": "c086", "noise": [], "split": "test", "variants": ["SEVENEVES NEAL STEPHENSON"], "expect": {"title": "Seveneves", "author": "Neal Stephenson"}, "class": "clean"}
+{"id": "c087", "noise": [], "split": "dev", "variants": ["MIRRORSHADES BRUCE STERLING"], "expect": {"title": "Mirrorshades: The Cyberpunk Anthology", "author": "Bruce Sterling"}, "class": "clean"}
+{"id": "n001", "noise": ["ocr-0O"], "split": "dev", "base": "c003", "variants": ["SN0W CRASH NEAL STEPHENSON"], "expect": {"title": "Snow Crash", "author": "Neal Stephenson"}, "class": "noisy"}
+{"id": "n002", "noise": ["ocr-0O"], "split": "test", "base": "c018", "variants": ["HEINLEIN THE M00N IS A HARSH MISTRESS"], "expect": {"title": "The Moon Is a Harsh Mistress", "author": "Robert A. Heinlein"}, "class": "noisy"}
+{"id": "n003", "noise": ["ocr-0O"], "split": "dev", "base": "c001", "variants": ["NEUR0MANCER WILLIAM GIBS0N"], "expect": {"title": "Neuromancer", "author": "William Gibson"}, "class": "noisy"}
+{"id": "n004", "noise": ["ocr-1l"], "split": "test", "base": "c030", "variants": ["FAHRENHEIT 45l RAY BRADBURY"], "expect": {"title": "Fahrenheit 451", "author": "Ray Bradbury"}, "class": "noisy"}
+{"id": "n005", "noise": ["ocr-1l"], "split": "dev", "base": "c006", "variants": ["23I2 KIM STANLEY ROBINSON"], "expect": {"title": "2312", "author": "Kim Stanley Robinson"}, "class": "noisy"}
+{"id": "n006", "noise": ["ocr-0O"], "split": "test", "base": "c034", "variants": ["NINETEEN EIGHTY-F0UR GE0RGE 0RWELL"], "expect": {"title": "Nineteen Eighty-Four", "author": "George Orwell"}, "class": "noisy"}
+{"id": "n007", "noise": ["ocr-0O"], "split": "dev", "base": "c017", "variants": ["R0BERT A. HEINLEIN STRANGER IN A STRANGE LAND"], "expect": {"title": "Stranger in a Strange Land", "author": "Robert A. Heinlein"}, "class": "noisy"}
+{"id": "n008", "noise": ["ocr-0O"], "split": "test", "base": "c013", "variants": ["D0 ANDR0IDS DREAM 0F ELECTRIC SHEEP? PHILIP K DICK"], "expect": {"title": "Do Androids Dream of Electric Sheep?", "author": "Philip K. Dick"}, "class": "noisy"}
+{"id": "n009", "noise": ["ocr-0O"], "split": "dev", "base": "c020", "variants": ["ENDER'S GAME 0RS0N SC0TT CARD"], "expect": {"title": "Ender's Game", "author": "Orson Scott Card"}, "class": "noisy"}
+{"id": "n010", "noise": ["ocr-0O"], "split": "test", "base": "c025", "variants": ["C0NSIDER PHLEBAS IAIN M. BANKS"], "expect": {"title": "Consider Phlebas", "author": "Iain M. Banks"}, "class": "noisy"}
+{"id": "n011", "noise": ["ocr-0O"], "split": "dev", "base": "c029", "variants": ["SLAUGHTERH0USE-FIVE VONNEGUT"], "expect": {"title": "Slaughterhouse-Five", "author": "Kurt Vonnegut, Jr."}, "class": "noisy"}
+{"id": "n012", "noise": ["ocr-1l"], "split": "test", "base": "c019", "variants": ["HYPER1ON DAN SIMM0NS"], "expect": {"title": "Hyperion", "author": "Dan Simmons"}, "class": "noisy"}
+{"id": "n013", "noise": ["split-words"], "split": "dev", "base": "c001", "variants": ["NEURO MANCER GIBSON"], "expect": {"title": "Neuromancer", "author": "William Gibson"}, "class": "noisy"}
+{"id": "n014", "noise": ["split-words"], "split": "test", "base": "c019", "variants": ["HYPER ION DAN SIMMONS"], "expect": {"title": "Hyperion", "author": "Dan Simmons"}, "class": "noisy"}
+{"id": "n015", "noise": ["split-words"], "split": "dev", "base": "c008", "variants": ["FOUN DATION ASIMOV"], "expect": {"title": "Foundation", "author": "Isaac Asimov"}, "class": "noisy"}
+{"id": "n016", "noise": ["split-words"], "split": "test", "base": "c036", "variants": ["DHAL GREN DELANY"], "expect": {"title": "Dhalgren", "author": "Samuel R. Delany"}, "class": "noisy"}
+{"id": "n017", "noise": ["split-words"], "split": "dev", "base": "c027", "variants": ["LEVIA THAN WAKES COREY"], "expect": {"title": "Leviathan Wakes", "author": "James S. A. Corey"}, "class": "noisy"}
+{"id": "n018", "noise": ["split-words"], "split": "test", "base": "c023", "variants": ["PARABLE OF THE SOW ER OCTAVIA BUTLER"], "expect": {"title": "Parable of the Sower", "author": "Octavia E. Butler"}, "class": "noisy"}
+{"id": "n019", "noise": ["split-words"], "split": "dev", "base": "c011", "variants": ["THE DISPOS SESSED URSULA LE GUIN"], "expect": {"title": "The Dispossessed", "author": "Ursula K. Le Guin"}, "class": "noisy"}
+{"id": "n020", "noise": ["split-words"], "split": "test", "base": "c079", "variants": ["BLIND SIGHT PETER WATTS"], "expect": {"title": "Blindsight", "author": "Peter Watts"}, "class": "noisy"}
+{"id": "n021", "noise": ["split-words"], "split": "dev", "base": "c051", "variants": ["ACCELER ANDO CHARLES STROSS"], "expect": {"title": "Accelerando", "author": "Charles Stross"}, "class": "noisy"}
+{"id": "n022", "noise": ["split-words"], "split": "test", "base": "c047", "variants": ["ANCIL LARY JUSTICE ANN LECKIE"], "expect": {"title": "Ancillary Justice", "author": "Ann Leckie"}, "class": "noisy"}
+{"id": "n023", "noise": ["truncated-author"], "split": "dev", "base": "c001", "variants": ["NEUROMANCER GIBS"], "expect": {"title": "Neuromancer", "author": "William Gibson"}, "class": "noisy"}
+{"id": "n024", "noise": ["truncated-author"], "split": "test", "base": "c007", "variants": ["DUNE HERBE"], "expect": {"title": "Dune", "author": "Frank Herbert"}, "class": "noisy"}
+{"id": "n025", "noise": ["truncated-author"], "split": "dev", "base": "c012", "variants": ["UBIK PHILIP K. DI"], "expect": {"title": "Ubik", "author": "Philip K. Dick"}, "class": "noisy"}
+{"id": "n026", "noise": ["truncated-author"], "split": "test", "base": "c005", "variants": ["RED MARS KIM STANLEY ROBIN"], "expect": {"title": "Red Mars", "author": "Kim Stanley Robinson"}, "class": "noisy"}
+{"id": "n027", "noise": ["truncated-author"], "split": "dev", "base": "c003", "variants": ["SNOW CRASH NEAL STEPHE"], "expect": {"title": "Snow Crash", "author": "Neal Stephenson"}, "class": "noisy"}
+{"id": "n028", "noise": ["truncated-author"], "split": "test", "base": "c049", "variants": ["STATION ELEVEN EMILY ST. JOHN MAND"], "expect": {"title": "Station Eleven", "author": "Emily St. John Mandel"}, "class": "noisy"}
+{"id": "n029", "noise": ["truncated-author"], "split": "dev", "base": "c030", "variants": ["FAHRENHEIT 451 BRADBU"], "expect": {"title": "Fahrenheit 451", "author": "Ray Bradbury"}, "class": "noisy"}
+{"id": "n030", "noise": ["truncated-author"], "split": "test", "base": "c048", "variants": ["THE MARTIAN ANDY WEI"], "expect": {"title": "The Martian", "author": "Andy Weir"}, "class": "noisy"}
+{"id": "n031", "noise": ["truncated-author"], "split": "dev", "base": "c078", "variants": ["RINGWORLD LARRY NIV"], "expect": {"title": "Ringworld", "author": "Larry Niven"}, "class": "noisy"}
+{"id": "n032", "noise": ["truncated-title"], "split": "test", "base": "c001", "variants": ["NEUROM GIBSON"], "expect": {"title": "Neuromancer", "author": "William Gibson"}, "class": "noisy"}
+{"id": "n033", "noise": ["truncated-title"], "split": "dev", "base": "c035", "variants": ["THE HITCHHIKER'S GUI ADAMS"], "expect": {"title": "The Hitchhiker's Guide to the Galaxy", "author": "Douglas Adams"}, "class": "noisy"}
+{"id": "n034", "noise": ["truncated-title"], "split": "test", "base": "c015", "variants": ["RENDEZVOUS WITH ARTHUR C. CLARKE"], "expect": {"title": "Rendezvous with Rama", "author": "Arthur C. Clarke"}, "class": "noisy"}
+{"id": "n035", "noise": ["truncated-title"], "split": "dev", "base": "c017", "variants": ["STRANGER IN A STRANGE LA HEINLEIN"], "expect": {"title": "Stranger in a Strange Land", "author": "Robert A. Heinlein"}, "class": "noisy"}
+{"id": "n036", "noise": ["truncated-title"], "split": "test", "base": "c010", "variants": ["THE LEFT HAND OF DARK LE GUIN"], "expect": {"title": "The Left Hand of Darkness", "author": "Ursula K. Le Guin"}, "class": "noisy"}
+{"id": "n037", "noise": ["series-larger"], "split": "dev", "base": "c027", "variants": ["THE EXPANSE LEVIATHAN"], "expect": {"title": "Leviathan Wakes", "author": "James S. A. Corey"}, "class": "noisy"}
+{"id": "n038", "noise": ["series-larger"], "split": "test", "base": "c053", "variants": ["DUNE MESSIAH FRANK HERBERT"], "expect": {"title": "Dune Messiah", "author": "Frank Herbert"}, "class": "noisy"}
+{"id": "n039", "noise": ["series-larger"], "split": "dev", "base": "c058", "variants": ["FOUNDATION EMPIRE ASIMOV"], "expect": {"title": "Foundation and Empire", "author": "Isaac Asimov"}, "class": "noisy"}
+{"id": "n040", "noise": ["series-larger"], "split": "test", "base": "c059", "variants": ["HYPERION CANTOS FALL SIMMONS"], "expect": {"title": "The Fall of Hyperion", "author": "Dan Simmons"}, "class": "noisy"}
+{"id": "n041", "noise": ["series-larger"], "split": "dev", "base": "c054", "variants": ["THE CULTURE USE WEAPONS"], "expect": {"title": "Use of Weapons", "author": "Iain M. Banks"}, "class": "noisy"}
+{"id": "n042", "noise": ["series-larger"], "split": "test", "base": "c055", "variants": ["ENDER SPEAKER DEAD CARD"], "expect": {"title": "Speaker for the Dead", "author": "Orson Scott Card"}, "class": "noisy"}
+{"id": "n043", "noise": ["series-larger"], "split": "dev", "base": "c056", "variants": ["MARS TRILOGY GREEN MARS KIM STANLEY ROBINSON"], "expect": {"title": "Green Mars", "author": "Kim Stanley Robinson"}, "class": "noisy"}
+{"id": "n044", "noise": ["series-larger"], "split": "test", "base": "c002", "variants": ["SPRAWL TRILOGY COUNT ZERO GIBSON"], "expect": {"title": "Count Zero", "author": "William Gibson"}, "class": "noisy"}
+{"id": "n045", "noise": ["ocr-0O", "split-words", "truncated-author"], "split": "dev", "base": "c001", "variants": ["NEUR0MANC ER GIBS0N"], "expect": {"title": "Neuromancer", "author": "William Gibson"}, "class": "noisy"}
+{"id": "n046", "noise": ["split-words", "truncated-author", "ocr-0O"], "split": "test", "base": "c003", "variants": ["SN0W CRA SH STEPHE"], "expect": {"title": "Snow Crash", "author": "Neal Stephenson"}, "class": "noisy"}
+{"id": "n047", "noise": ["ocr-rn-m"], "split": "dev", "base": "c001", "variants": ["NEUROrnANCER GIBSON"], "expect": {"title": "Neuromancer", "author": "William Gibson"}, "class": "noisy"}
+{"id": "n048", "noise": ["ocr-rn-m"], "split": "test", "base": "c018", "variants": ["THE MOON IS A HARSH rnISTRESS HEINLEIN"], "expect": {"title": "The Moon Is a Harsh Mistress", "author": "Robert A. Heinlein"}, "class": "noisy"}
+{"id": "n049", "noise": ["ocr-1l"], "split": "dev", "base": "c046", "variants": ["CH1LDREN OF T1ME TCHAIKOVSKY"], "expect": {"title": "Children of Time", "author": "Adrian Tchaikovsky"}, "class": "noisy"}
+{"id": "n050", "noise": ["surname-first"], "split": "test", "base": "c007", "variants": ["HERBERT, FRANK DUNE"], "expect": {"title": "Dune", "author": "Frank Herbert"}, "class": "noisy"}
+{"id": "n051", "noise": ["surname-first"], "split": "dev", "base": "c011", "variants": ["LE GUIN, URSULA K. THE DISPOSSESSED"], "expect": {"title": "The Dispossessed", "author": "Ursula K. Le Guin"}, "class": "noisy"}
+{"id": "n052", "noise": ["surname-first"], "split": "test", "base": "c077", "variants": ["LEM, STANISLAW SOLARIS"], "expect": {"title": "Solaris", "author": "Stanisław Lem"}, "class": "noisy"}
+{"id": "n053", "noise": ["initials"], "split": "dev", "base": "c012", "variants": ["DICK P.K. UBIK"], "expect": {"title": "Ubik", "author": "Philip K. Dick"}, "class": "noisy"}
+{"id": "n054", "noise": ["initials", "surname-first"], "split": "test", "base": "c040", "variants": ["VOGT A. E. VAN SLAN"], "expect": {"title": "Slan", "author": "A. E. van Vogt"}, "class": "noisy"}
+{"id": "n055", "noise": ["surname-first"], "split": "dev", "base": "c026", "variants": ["BANKS IAIN M. THE PLAYER OF GAMES"], "expect": {"title": "The Player of Games", "author": "Iain M. Banks"}, "class": "noisy"}
+{"id": "n056", "noise": ["split-words", "multi-variant"], "split": "test", "base": "c001", "variants": ["NEURO MANCER GIBSON", "NEUROMANCER GIBS0N"], "expect": {"title": "Neuromancer", "author": "William Gibson"}, "class": "noisy"}
+{"id": "n057", "noise": ["ocr-0O", "multi-variant"], "split": "dev", "base": "c003", "variants": ["SN0W CRASH STEPHENS0N", "SNOW CRASH STEPHENSON NEAL"], "expect": {"title": "Snow Crash", "author": "Neal Stephenson"}, "class": "noisy"}
+{"id": "n058", "noise": ["truncated-author", "multi-variant"], "split": "test", "base": "c049", "variants": ["STATION ELEVEN EMILY ST JOHN", "STATION ELEVEN MANDEL"], "expect": {"title": "Station Eleven", "author": "Emily St. John Mandel"}, "class": "noisy"}
+{"id": "n059", "noise": ["split-words"], "split": "dev", "base": "c061", "variants": ["EMBASSY TOWN CHINA MIEVILLE"], "expect": {"title": "Embassytown", "author": "China Miéville"}, "class": "noisy"}
+{"id": "n060", "noise": ["truncated-author"], "split": "test", "base": "c063", "variants": ["CAMP CONCENTRATION THOMAS M. DIS"], "expect": {"title": "Camp Concentration", "author": "Thomas M. Disch"}, "class": "noisy"}
+{"id": "n061", "noise": ["ocr-0O"], "split": "dev", "base": "c064", "variants": ["STAND 0N ZANZIBAR JOHN BRUNNER"], "expect": {"title": "Stand on Zanzibar", "author": "John Brunner"}, "class": "noisy"}
+{"id": "n062", "noise": ["split-words", "truncated-author"], "split": "test", "base": "c069", "variants": ["PERMUTATION CI TY GREG EG"], "expect": {"title": "Permutation City", "author": "Greg Egan"}, "class": "noisy"}
+{"id": "n063", "noise": ["truncated-title"], "split": "dev", "base": "c071", "variants": ["REVELATION SP ALASTAIR REYNOLDS"], "expect": {"title": "Revelation Space", "author": "Alastair Reynolds"}, "class": "noisy"}
+{"id": "n064", "noise": ["ocr-0O"], "split": "test", "base": "c067", "variants": ["D00MSDAY B00K CONNIE WILLIS"], "expect": {"title": "Doomsday Book", "author": "Connie Willis"}, "class": "noisy"}
+{"id": "n065", "noise": ["surname-first"], "split": "dev", "base": "c072", "variants": ["LE GUIN, URSULA K. LATHE OF HEAVEN"], "expect": {"title": "The Lathe of Heaven", "author": "Ursula K. Le Guin"}, "class": "noisy"}
+{"id": "n066", "noise": ["ocr-1l"], "split": "test", "base": "c082", "variants": ["BABEL-l7 DELANY"], "expect": {"title": "Babel-17", "author": "Samuel R. Delany"}, "class": "noisy"}
+{"id": "n067", "noise": ["split-words"], "split": "dev", "base": "c086", "variants": ["SEVEN EVES STEPHENSON"], "expect": {"title": "Seveneves", "author": "Neal Stephenson"}, "class": "noisy"}
+{"id": "n068", "noise": ["ocr-0O"], "split": "test", "base": "c070", "variants": ["EXCESSI0N BANKS"], "expect": {"title": "Excession", "author": "Iain M. Banks"}, "class": "noisy"}
+{"id": "x001", "noise": [], "split": "none", "variants": ["THE JOY OF COOKING"], "expect": null, "class": "none"}
+{"id": "x002", "noise": [], "split": "none", "variants": ["LONELY PLANET JAPAN"], "expect": null, "class": "none"}
+{"id": "x003", "noise": [], "split": "none", "variants": ["INTRODUCTION TO ALGORITHMS CORMEN LEISERSON"], "expect": null, "class": "none"}
+{"id": "x004", "noise": [], "split": "none", "variants": ["BETTY CROCKER COOKBOOK"], "expect": null, "class": "none"}
+{"id": "x005", "noise": [], "split": "none", "variants": ["CAMBRIDGE ENGLISH DICTIONARY"], "expect": null, "class": "none"}
+{"id": "x006", "noise": [], "split": "none", "variants": ["RAND MCNALLY ROAD ATLAS"], "expect": null, "class": "none"}
