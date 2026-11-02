@@ -1,0 +1,27 @@
+# Z-1 privacy guard (INV-19, OC9). Runs on every pull request and every push. The repo is public, so
+# this job is the backstop for what the pre-commit hook cannot see (a skipped hook, a web edit).
+name: privacy-guard
+
+on:
+  pull_request:
+  push:
+
+permissions:
+  contents: read
+
+jobs:
+  guard:
+    name: privacy-guard
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # the history scan needs every commit
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      # The guard has no dependencies, so it runs before (and without) `pnpm install`.
+      - name: Scan the tree
+        run: node scripts/privacy-guard.mjs
+      - name: Scan the full history
+        run: node scripts/privacy-guard.mjs --history
