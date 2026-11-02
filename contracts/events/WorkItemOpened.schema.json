@@ -1,0 +1,17 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/ojfbot/BookcaseDiscovery/blob/main/contracts/events/WorkItemOpened.schema.json",
+  "title": "WorkItemOpened",
+  "description": "Payload: work the system cannot do itself, e.g. a closer photo of one spine. Not a shelf state.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["workItemId", "kind", "observationId", "shelf", "ordinal", "reason"],
+  "properties": {
+    "workItemId": { "$ref": "../common.schema.json#/definitions/Id" },
+    "kind": { "enum": ["closer-photo"] },
+    "observationId": { "$ref": "../common.schema.json#/definitions/Id" },
+    "shelf": { "type": "integer", "minimum": 0 },
+    "ordinal": { "type": "integer", "minimum": 0 },
+    "reason": { "$ref": "../common.schema.json#/definitions/UnresolvedReason" }
+  }
+}

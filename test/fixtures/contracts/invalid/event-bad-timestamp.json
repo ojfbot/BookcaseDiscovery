@@ -1,0 +1,10 @@
+{
+  "type": "StatusChanged",
+  "ts": "yesterday",
+  "runId": "run-synthetic-001",
+  "payload": {
+    "observationId": "obs-001",
+    "from": "unresolved",
+    "to": "resolved"
+  }
+}

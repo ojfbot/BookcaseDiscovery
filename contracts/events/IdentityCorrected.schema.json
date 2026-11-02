@@ -1,0 +1,31 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/ojfbot/BookcaseDiscovery/blob/main/contracts/events/IdentityCorrected.schema.json",
+  "title": "IdentityCorrected",
+  "description": "Payload: the owner corrected which book a spine is. About identity only: it is not a preference (INV-3, INV-7). Shares no definition with PreferenceRecorded.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["observationId", "correction"],
+  "properties": {
+    "observationId": { "$ref": "../common.schema.json#/definitions/Id" },
+    "correction": {
+      "oneOf": [
+        {
+          "description": "This spine is that Work.",
+          "type": "object", "additionalProperties": false, "required": ["kind", "workId"],
+          "properties": { "kind": { "const": "is" }, "workId": { "$ref": "../common.schema.json#/definitions/Id" } }
+        },
+        {
+          "description": "This spine is not that Work.",
+          "type": "object", "additionalProperties": false, "required": ["kind", "workId"],
+          "properties": { "kind": { "const": "not" }, "workId": { "$ref": "../common.schema.json#/definitions/Id" } }
+        },
+        {
+          "description": "This spine cannot be read.",
+          "type": "object", "additionalProperties": false, "required": ["kind"],
+          "properties": { "kind": { "const": "unreadable" } }
+        }
+      ]
+    }
+  }
+}

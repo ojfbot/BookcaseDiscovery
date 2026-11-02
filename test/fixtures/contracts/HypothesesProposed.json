@@ -1,0 +1,51 @@
+{
+  "type": "HypothesesProposed",
+  "ts": "2026-11-02T10:00:00Z",
+  "runId": "run-synthetic-001",
+  "payload": {
+    "observationId": "obs-001",
+    "candidates": [
+      {
+        "workId": "work-alpha",
+        "editionId": "edition-alpha-1",
+        "title": "Example Title Alpha",
+        "author": "Author Example",
+        "year": 1999,
+        "series": "Example Series",
+        "score": 0.88,
+        "evidence": [
+          {
+            "kind": "title-fragment",
+            "score": 0.9,
+            "detail": "trigram overlap"
+          },
+          {
+            "kind": "author-fragment",
+            "score": 0.7
+          }
+        ]
+      },
+      {
+        "workId": "work-beta",
+        "title": "Example Title Beta",
+        "author": "Author Sample",
+        "score": 0.31,
+        "evidence": [
+          {
+            "kind": "title-fragment",
+            "score": 0.31
+          }
+        ]
+      }
+    ],
+    "unknown": {
+      "score": 0.2,
+      "evidence": [
+        {
+          "kind": "threshold",
+          "score": 0.2
+        }
+      ]
+    }
+  }
+}

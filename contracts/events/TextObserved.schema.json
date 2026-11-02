@@ -1,0 +1,17 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/ojfbot/BookcaseDiscovery/blob/main/contracts/events/TextObserved.schema.json",
+  "title": "TextObserved",
+  "description": "Payload: one OCR variant for one spine (rotation x language-correction flag). One event per variant.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["observationId", "rotation", "langCorrection", "text", "confidence", "ocr"],
+  "properties": {
+    "observationId": { "$ref": "../common.schema.json#/definitions/Id" },
+    "rotation": { "$ref": "../common.schema.json#/definitions/Rotation" },
+    "langCorrection": { "description": "Whether the OCR engine's language correction was on.", "type": "boolean" },
+    "text": { "description": "May be empty (nothing read).", "type": "string" },
+    "confidence": { "$ref": "../common.schema.json#/definitions/Confidence" },
+    "ocr": { "$ref": "../common.schema.json#/definitions/OcrVersion" }
+  }
+}

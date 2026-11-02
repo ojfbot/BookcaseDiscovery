@@ -1,0 +1,18 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/ojfbot/BookcaseDiscovery/blob/main/contracts/events/BandAssigned.schema.json",
+  "title": "BandAssigned",
+  "description": "Payload: the evidence band for one spine. A reason is required exactly when the band is unknown (INV-8); a workId exactly when it is not.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["observationId", "band"],
+  "properties": {
+    "observationId": { "$ref": "../common.schema.json#/definitions/Id" },
+    "band": { "$ref": "../common.schema.json#/definitions/Band" },
+    "workId": { "description": "The Work the band is about.", "$ref": "../common.schema.json#/definitions/Id" },
+    "reason": { "$ref": "../common.schema.json#/definitions/UnresolvedReason" }
+  },
+  "if": { "properties": { "band": { "const": "unknown" } } },
+  "then": { "required": ["reason"], "properties": { "reason": true, "workId": false } },
+  "else": { "required": ["workId"], "properties": { "workId": true, "reason": false } }
+}

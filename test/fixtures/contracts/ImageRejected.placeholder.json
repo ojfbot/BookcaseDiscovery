@@ -1,0 +1,12 @@
+{
+  "type": "ImageRejected",
+  "ts": "2026-11-02T10:00:00Z",
+  "runId": "run-synthetic-001",
+  "payload": {
+    "sessionId": "session-synthetic",
+    "fileName": "synthetic.icloud",
+    "reasons": [
+      "icloud-placeholder"
+    ]
+  }
+}
