@@ -1,0 +1,74 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/ojfbot/BookcaseDiscovery/blob/main/contracts/events/FrameSample.schema.json",
+  "title": "FrameSample",
+  "description": "Payload: a sparse sample of the camera stream, at most one a second (S9). It records a frame's hash and capture time, never its pixels: in live mode nothing is retained (INV-22), in sweep mode only a face-checked keyframe is kept privately under its hash. Faces inside a detected book box are published cover art and are kept; a face outside every book box has only its region blurred, counted in bystanderRegionsBlurred; a frame where a person dominates, or a face's placement is ambiguous, is dropped and gets no FrameSample (INV-22 as amended 2026-11-02).",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "sessionId",
+    "frameIndex",
+    "hash",
+    "capturedAt",
+    "frame",
+    "mode",
+    "retention",
+    "bystanderRegionsBlurred"
+  ],
+  "properties": {
+    "sessionId": {
+      "$ref": "../common.schema.json#/definitions/Id"
+    },
+    "frameIndex": {
+      "$ref": "../common.schema.json#/definitions/FrameIndex"
+    },
+    "hash": {
+      "description": "SHA-256 of the sampled frame's decoded pixels, after any blur. Identifies the frame; the frame itself is not stored in live mode.",
+      "$ref": "../common.schema.json#/definitions/Sha256"
+    },
+    "capturedAt": {
+      "description": "When the camera captured the frame, from the capture device (the envelope's ts is when the event was written).",
+      "$ref": "../common.schema.json#/definitions/Timestamp"
+    },
+    "frame": {
+      "description": "The extent of the frame; its pixel grid is FramePixels (origin top-left, upright).",
+      "$ref": "../common.schema.json#/definitions/FramePixels"
+    },
+    "mode": {
+      "description": "'live' for the continuous view, 'sweep' for a guided sweep (OC31).",
+      "enum": [
+        "live",
+        "sweep"
+      ]
+    },
+    "retention": {
+      "description": "'none': the frame was not kept. 'keyframe': kept privately for scrub-back (sweep only, INV-22).",
+      "enum": [
+        "none",
+        "keyframe"
+      ]
+    },
+    "bystanderRegionsBlurred": {
+      "description": "How many regions outside every book box were blurred before hashing and any storage. Zero when none.",
+      "type": "integer",
+      "minimum": 0
+    }
+  },
+  "if": {
+    "properties": {
+      "mode": {
+        "const": "live"
+      }
+    },
+    "required": [
+      "mode"
+    ]
+  },
+  "then": {
+    "properties": {
+      "retention": {
+        "const": "none"
+      }
+    }
+  }
+}

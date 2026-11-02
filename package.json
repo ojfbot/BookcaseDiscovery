@@ -17,7 +17,8 @@
     "typecheck": "tsc --noEmit",
     "labels:import": "node src/eval/labels-import.ts",
     "guard": "node scripts/privacy-guard.mjs",
-    "prepare": "simple-git-hooks"
+    "prepare": "simple-git-hooks",
+    "report:synthetic": "node scripts/synthetic-report.ts"
   },
   "simple-git-hooks": {
     "pre-commit": "if [ -f scripts/privacy-guard.mjs ]; then node scripts/privacy-guard.mjs; fi"

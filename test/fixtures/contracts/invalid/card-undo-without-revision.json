@@ -1,0 +1,16 @@
+{
+  "type": "CardUndo",
+  "ts": "2026-11-02T10:00:00Z",
+  "runId": "run-synthetic-001",
+  "payload": {
+    "cardId": "card-001",
+    "restored": {
+      "workId": "work-alpha",
+      "trackId": "track-001",
+      "rank": 2,
+      "band": "candidate",
+      "lens": "reading-taste",
+      "rationale": "Synthetic rationale: shares a theme with a liked example."
+    }
+  }
+}

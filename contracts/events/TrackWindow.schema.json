@@ -1,0 +1,64 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/ojfbot/BookcaseDiscovery/blob/main/contracts/events/TrackWindow.schema.json",
+  "title": "TrackWindow",
+  "description": "Payload: a per-track summary of one window of frames (S9): the best frame in the window, how sharp it is, and the spine's pose in it. Written per window, never per frame. Ledger rules: the best frame lies inside the window, and startFrame is not after endFrame.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "trackId",
+    "windowIndex",
+    "startFrame",
+    "endFrame",
+    "frameCount",
+    "bestFrame"
+  ],
+  "properties": {
+    "trackId": {
+      "$ref": "../common.schema.json#/definitions/Id"
+    },
+    "windowIndex": {
+      "description": "0 for the track's first window, then counting up.",
+      "type": "integer",
+      "minimum": 0
+    },
+    "startFrame": {
+      "$ref": "../common.schema.json#/definitions/FrameIndex"
+    },
+    "endFrame": {
+      "$ref": "../common.schema.json#/definitions/FrameIndex"
+    },
+    "frameCount": {
+      "description": "Frames of this track seen in the window.",
+      "type": "integer",
+      "minimum": 1
+    },
+    "bestFrame": {
+      "description": "The window's best frame for reading the spine. The frame is not kept (INV-22); the hash identifies it.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "frameIndex",
+        "hash",
+        "sharpness",
+        "pose"
+      ],
+      "properties": {
+        "frameIndex": {
+          "$ref": "../common.schema.json#/definitions/FrameIndex"
+        },
+        "hash": {
+          "$ref": "../common.schema.json#/definitions/Sha256"
+        },
+        "sharpness": {
+          "description": "Variance of the Laplacian over the spine's quad; higher is sharper. Comparable within a session only.",
+          "type": "number",
+          "minimum": 0
+        },
+        "pose": {
+          "$ref": "../common.schema.json#/definitions/Pose"
+        }
+      }
+    }
+  }
+}

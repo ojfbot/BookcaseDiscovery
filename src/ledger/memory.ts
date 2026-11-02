@@ -1,7 +1,17 @@
 // In-memory Ledger: the reference implementation of the L-1 interface. Tests and the synthetic
 // end-to-end run use it; L-2's SQLite ledger replaces it for real runs.
 import type { LedgerEvent, NewEvent } from "./contracts.ts";
-import type { Ledger, ObservationView, RecommendationView, RunView, ViewDump, WorkItemView } from "./ledger.ts";
+import type {
+  CardView,
+  Ledger,
+  ObservationView,
+  RecommendationView,
+  RequestView,
+  RunView,
+  TrackView,
+  ViewDump,
+  WorkItemView,
+} from "./ledger.ts";
 import { prepareEvent } from "./prepare.ts";
 import { apply, emptyState, toDump } from "./views.ts";
 import type { Payload } from "./contracts.ts";
@@ -68,6 +78,18 @@ export class MemoryLedger implements Ledger {
 
   runs(): RunView[] {
     return [...this.#state.runs.values()].map((r) => structuredClone(r));
+  }
+
+  tracks(): TrackView[] {
+    return [...this.#state.tracks.values()].map((t) => structuredClone(t));
+  }
+
+  cards(): CardView[] {
+    return [...this.#state.cards.values()].map((c) => structuredClone(c));
+  }
+
+  adjudicationRequests(): RequestView[] {
+    return [...this.#state.requests.values()].map((r) => structuredClone(r));
   }
 
   images(sessionId?: string): Payload<"ImageAssetIngested">[] {

@@ -1,0 +1,13 @@
+{
+  "type": "AdjudicationCacheHit",
+  "ts": "2026-11-02T10:00:00Z",
+  "runId": "run-synthetic-001",
+  "payload": {
+    "trackId": "track-001",
+    "model": "synthetic-model",
+    "cropHash": "4444444444444444444444444444444444444444444444444444444444444444",
+    "candidateSetHash": "3333333333333333333333333333333333333333333333333333333333333333",
+    "choice": "work-alpha",
+    "readText": "Example Title Alpha"
+  }
+}

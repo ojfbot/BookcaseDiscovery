@@ -1,0 +1,18 @@
+{
+  "type": "FrameSample",
+  "ts": "2026-11-02T10:00:00Z",
+  "runId": "run-synthetic-001",
+  "payload": {
+    "sessionId": "live-synthetic-001",
+    "frameIndex": 150,
+    "hash": "1111111111111111111111111111111111111111111111111111111111111111",
+    "capturedAt": "2026-11-02T10:00:05Z",
+    "frame": {
+      "width": 1080,
+      "height": 1920
+    },
+    "mode": "live",
+    "retention": "none",
+    "bystanderRegionsBlurred": 0
+  }
+}

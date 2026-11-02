@@ -11,7 +11,7 @@
     "sessionId": { "$ref": "../common.schema.json#/definitions/Id" },
     "imageHash": { "description": "Hash of the original (ImageAssetIngested.imageHash).", "$ref": "../common.schema.json#/definitions/Sha256" },
     "setting": { "$ref": "../common.schema.json#/definitions/PhotoSetting" },
-    "polygon": { "description": "Original-image pixels.", "$ref": "../common.schema.json#/definitions/Polygon" },
+    "polygon": { "description": "Working-copy pixels: the pixel grid of the orientation-normalised working copy (ImageAssetIngested.width/height), origin top-left.", "$ref": "../common.schema.json#/definitions/Polygon" },
     "score": { "description": "Detector confidence.", "$ref": "../common.schema.json#/definitions/Confidence" },
     "shelf": { "description": "Shelf index, 0 = top.", "type": "integer", "minimum": 0 },
     "ordinal": { "description": "Position on the shelf, 0 = leftmost.", "type": "integer", "minimum": 0 },
