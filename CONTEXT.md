@@ -46,6 +46,7 @@ These are kept apart on purpose: raw evidence is stored separately from interpre
 
 - **Band** — how strongly we hold an identity. **`verified`** (an ISBN read that matches an edition, or an owner correction), **`probable`** (title and author both match one candidate with a margin, no contradiction), **`candidate`** (a partial match with alternatives alive), **`unknown`**. Evidence bands, not probabilities (A4).
 - **Status** — where a spine is in the work: **`unresolved`**, **`resolved`**, **`paused`**, **`needs-pixels`**. There is no `exhausted` (INV-1). A spent budget gives `paused` (INV-2); `resolved → unresolved` happens only on a trigger.
+- **Status machine** — the table of legal status changes (`src/ledger/status.ts`). `StatusChanged` carries an optional **cause** where the table asks for one: `budget-spent` for a pause, a trigger for reopening a resolved spine.
 - **Unresolved reason** — why a spine is `unknown` (INV-8): **`missing-pixels`**, **`no-catalog-candidate`**, **`conflicting-evidence`**, **`strategies-exhausted`**. A reason on an observation, never a state of a shelf. "Strategies exhausted" means *current* strategies, and a new image or model reopens it.
 - **Trigger** — an event that requeues observations: a new image, a correction, a catalog refresh, a model change.
 - **Recognition coverage** — identified spines over all spines on a shelf, with each `unknown`'s reason. The aim is every spine (OC32); the number is measured, never claimed (INV-23).
@@ -65,7 +66,8 @@ These are kept apart on purpose: raw evidence is stored separately from interpre
 - **Event** — one fact in the ledger: `{seq, type, ts, runId, payload}`. Defined by a JSON Schema.
 - **Seq** — an event's position in the ledger, assigned on append.
 - **View** — current state derived from the events (observations, hypotheses, bands, statuses, work items, recommendations). Rebuilt by replay.
-- **Replay** — rebuild the views from the log; the result must be identical (INV-14).
+- **Replay** — rebuild the views from the log; the result must be identical (INV-14). `bookcase replay <db> --to <fresh db>` does it and diffs.
+- **Image store** — the content-addressed directory of originals and working copies under `$BOOKCASE_DATA/images/sha256/` (`docs/ledger.md`).
 - **Contract** — a JSON Schema in `contracts/`, the source of truth for a record shape (OC13). Zod validators are checked against it.
 - **Helper** — a separate process behind a contract, speaking JSON Lines over stdin/stdout: `detect` (Python) and `ocr-vision` (Swift).
 - **JSON Lines** — one JSON object per line, one request or response each.

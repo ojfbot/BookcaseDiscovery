@@ -16,6 +16,8 @@ src/ledger/helper-contracts.ts    Zod validators for helper records
 src/ledger/schemas.ts             Ajv, loading the schema files
 src/ledger/ledger.ts              the Ledger interface
 src/ledger/memory.ts              the in-memory implementation
+src/ledger/sqlite.ts              the SQLite implementation (docs/ledger.md)
+src/ledger/status.ts              the status machine and the budget rule
 ```
 
 Schemas are JSON Schema draft-07 with `additionalProperties: false` throughout, so an unknown field is an error, not a silent drop.
@@ -53,7 +55,7 @@ Every event is an envelope `{ seq?, type, ts, runId, payload }`. `seq` is assign
 | `HypothesesProposed` | `observationId`, `candidates[]`, `unknown{score, evidence[]}` | `unknown` is required (INV-5). A candidate has `workId`, `title`, `author`, `score`, `evidence[]` (≥1); optional `editionId`, `year`, `series` |
 | `AdjudicationRecorded` | `observationId`, `model`, `cropHash`, `candidateSetHash`, `choice` (workId or `null` for none), `cached`, `inputTokens`, `outputTokens`; optional `readText` | Cache key is (crop, candidate set, model). Agreement on one crop is one piece of evidence (INV-6) |
 | `BandAssigned` | `observationId`, `band`, then `reason` **iff** `unknown`, else `workId` | Both schema and Zod enforce the either/or |
-| `StatusChanged` | `observationId`, `from` (status or `null`), `to` | Legal transitions belong to L-2's status machine |
+| `StatusChanged` | `observationId`, `from` (status or `null`), `to`; optional `cause` | `cause` is `budget-spent`, a trigger (`new-image` `correction` `model-change` with `eventSeq`, or `catalog-refresh`). Which transitions are legal and which need a cause: [`ledger.md`](ledger.md) |
 | `WorkItemOpened` | `workItemId`, `kind` (`closer-photo`), `observationId`, `shelf`, `ordinal`, `reason` | |
 | `WorkItemClosed` | `workItemId`, `resolution` (`fulfilled` `withdrawn`) | |
 | `IdentityCorrected` | `observationId`, `correction`: `{kind:"is", workId}` \| `{kind:"not", workId}` \| `{kind:"unreadable"}` | Identity only |
@@ -78,14 +80,14 @@ Example lines: `test/fixtures/contracts/helpers/*.jsonl`. Zod: `src/ledger/helpe
 
 ## The Ledger interface
 
-`src/ledger/ledger.ts`. L-1 ships `MemoryLedger`; L-2 adds SQLite behind the same interface.
+`src/ledger/ledger.ts`. L-1 ships `MemoryLedger`; L-2 adds `SqliteLedger` behind the same interface, and the same tests run against both.
 
 - `append(event): LedgerEvent` — validates with Zod, assigns `seq`, returns the stored event. With `{ crossCheck: true }` it also validates with the JSON Schema and refuses if the two disagree.
 - `events(after = 0)` — events with `seq` greater than `after`, oldest first. `lastSeq()` is the newest.
-- Views: `observation(id)`, `observations({sessionId?, imageHash?})`, `workItems({open?})`, `recommendations()`, `images(sessionId?)`, `rejections(sessionId?)`.
+- Views: `observation(id)`, `observations({sessionId?, imageHash?})`, `workItems({open?})`, `recommendations()`, `run(id)` / `runs()`, `images(sessionId?)`, `rejections(sessionId?)`.
 - `viewDump()` — every view as one plain ordered object. Equal dumps mean equal state; replay is checked on it.
 
-`append` refuses (throws `LedgerError`, leaving the ledger unchanged) an event that fails its contract, carries a `seq`, names an observation, work item or recommendation the ledger has not seen, or reuses an existing `observationId`, `workItemId` or `recommendationId`. Results are copies; mutating one never changes the ledger.
+`append` refuses (throws `LedgerError`, leaving the ledger unchanged) an event that fails its contract, carries a `seq`, names an observation, work item, recommendation or run the ledger has not seen, reuses an existing `observationId`, `workItemId`, `recommendationId` or run, breaks the status machine, or (`AdjudicationRecorded`) spends a run's budget past its cap. Results are copies; mutating one never changes the ledger.
 
 ## Changing a contract
 

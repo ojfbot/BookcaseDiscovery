@@ -1,10 +1,8 @@
 // In-memory Ledger: the reference implementation of the L-1 interface. Tests and the synthetic
 // end-to-end run use it; L-2's SQLite ledger replaces it for real runs.
-import { parseEvent } from "./contracts.ts";
 import type { LedgerEvent, NewEvent } from "./contracts.ts";
-import { LedgerError } from "./ledger.ts";
-import type { Ledger, ObservationView, RecommendationView, ViewDump, WorkItemView } from "./ledger.ts";
-import { eventSchemaErrors } from "./schemas.ts";
+import type { Ledger, ObservationView, RecommendationView, RunView, ViewDump, WorkItemView } from "./ledger.ts";
+import { prepareEvent } from "./prepare.ts";
 import { apply, emptyState, toDump } from "./views.ts";
 import type { Payload } from "./contracts.ts";
 
@@ -15,7 +13,7 @@ export interface MemoryLedgerOptions {
 
 export class MemoryLedger implements Ledger {
   readonly #log: LedgerEvent[] = [];
-  readonly #state = emptyState();
+  readonly #state = emptyState((seq) => this.#log[seq - 1]);
   readonly #crossCheck: boolean;
 
   constructor(options: MemoryLedgerOptions = {}) {
@@ -23,17 +21,7 @@ export class MemoryLedger implements Ledger {
   }
 
   append(event: NewEvent): LedgerEvent {
-    if ("seq" in event) throw new LedgerError("append: the ledger assigns seq; do not supply one");
-    let parsed: NewEvent;
-    try {
-      parsed = parseEvent(event) as NewEvent;
-    } catch (cause) {
-      throw new LedgerError(`append: event fails its contract: ${cause instanceof Error ? cause.message : cause}`);
-    }
-    if (this.#crossCheck) {
-      const errors = eventSchemaErrors(parsed);
-      if (errors.length) throw new LedgerError(`append: Zod accepts but the JSON Schema rejects: ${errors.join("; ")}`);
-    }
+    const parsed = prepareEvent(event, this.#crossCheck);
     const stored = structuredClone({ ...parsed, seq: this.#log.length + 1 }) as LedgerEvent;
     apply(this.#state, stored); // throws before changing anything if the event names something unknown
     this.#log.push(stored);
@@ -71,6 +59,15 @@ export class MemoryLedger implements Ledger {
 
   recommendations(): RecommendationView[] {
     return [...this.#state.recommendations.values()].map((r) => structuredClone(r));
+  }
+
+  run(runId: string): RunView | undefined {
+    const r = this.#state.runs.get(runId);
+    return r && structuredClone(r);
+  }
+
+  runs(): RunView[] {
+    return [...this.#state.runs.values()].map((r) => structuredClone(r));
   }
 
   images(sessionId?: string): Payload<"ImageAssetIngested">[] {
