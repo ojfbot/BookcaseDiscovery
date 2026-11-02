@@ -78,6 +78,9 @@ These are kept apart on purpose: raw evidence is stored separately from interpre
 ## Catalog and recommendation
 
 - **Catalog** — the local index of works and editions (ISFDB for the MVP, OC20; broader backend per C-R, OC32). Local search, live APIs only to verify.
+- **Fragment** — a piece of a spine's text, as OCR gives it: truncated, split, misread, title and author in either order. Retrieval matches fragments to works; it never needs a whole title.
+- **Match evidence** — what `retrieve` returns beside each candidate: per field (title, author, series) the score, the catalog form that matched and each token match with its kind (`exact`, `prefix`, `fuzzy`, …). It is what I-1 turns into `Evidence` records. Not a probability.
+- **Golden fragments** — the hand-written, public query set `evals/golden/fragments.jsonl` that scores retrieval (C-3). Never derived from photos or from the index it scores.
 - **Profile** — what we know of the reader: entries marked `read`, `liked`, `cooler`, `not-for-me`, `inferred` or `unknown`, each with provenance. Read, liked, inferred and unknown stay separate (INV-18).
 - **Taste** — what animates a reader: ideas, themes, patterns, authors, styles, questions and topoi. Never "people like you also bought" (no collaborative filtering, OC33).
 - **Recommendation** — a Work suggested to the reader, located at a spine, with a rank, a band, a lens and a templated rationale (`RecommendationIssued`). A **revision** (`RecommendationRevised`) says what it was, what it is and which events changed it (INV-21).

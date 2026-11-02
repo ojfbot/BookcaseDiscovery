@@ -1,4 +1,5 @@
 // `run` module: the CLI router behind `bin/bookcase`. Commands are stubs until their cards land.
+import { catalogCommand } from "../catalog/cli.ts";
 import { ingestCommand, manifestCommand } from "../capture/cli.ts";
 import { reportCommand } from "../report/cli.ts";
 import { replayCommand } from "./replay.ts";
@@ -22,6 +23,7 @@ export function main(argv: string[]): number {
     return 0;
   }
   if (cmd === "ingest") return ingestCommand(argv.slice(1));
+  if (cmd === "catalog") return catalogCommand(argv.slice(1));
   if (cmd === "replay") return replayCommand(argv.slice(1));
   if (cmd === "manifest") return manifestCommand(argv.slice(1));
   if (cmd === "report") return reportCommand(argv.slice(1));

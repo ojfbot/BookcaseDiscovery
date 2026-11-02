@@ -117,3 +117,101 @@ Vocabulary (`CONTEXT.md`): an ISFDB **title** is a **Work**, and an ISFDB **publ
 - ISFDB's backup terms (above).
 - That `ca_status = 2` means interviewee, and `tags.tag_status = 1`'s meaning.
 - That the dump is complete: counts were checked against the AUTO_INCREMENT values and the stats page order of magnitude (967,341 pubs staged against C-R's 967,479 from the weekly stats report), not against any ISFDB checksum.
+
+---
+
+# Catalog index and retrieval (C-3)
+
+C-3 turns the staging file into `catalog/catalog.sqlite` (under `$BOOKCASE_DATA`, never in the repo) and answers "which works could these OCR fragments mean?" for identification (I-1), label resolution (V-3) and the reading profile (R-1).
+
+| | |
+|---|---|
+| Code | `src/catalog/normalize.ts`, `build.ts`, `retrieve.ts`, `golden.ts`, `cli.ts` |
+| Commands | `bookcase catalog build`, `bookcase catalog query <text>... [-k N] [--json]`, `bookcase catalog eval [--run-id <id>]` |
+| Output | `$BOOKCASE_DATA/catalog/catalog.sqlite` (426 MB, built in about 15 s from the 2026-10-31 staging; schema version 1 in `PRAGMA user_version` and `meta`) |
+| Golden set | `evals/golden/fragments.jsonl` (161 queries) |
+| Run record | `evals/C3-catalog-retrieval/{metrics.json,report.md}` |
+| Tests | `test/catalog-normalize.test.ts`, `test/catalog-retrieve.test.ts` (hand-built staging file in `test/helpers/mini-staging.ts`) |
+
+```
+bookcase catalog build
+bookcase catalog query "GIBS NEUROM"
+bookcase catalog query "SN0W CRASH" "SNOW CRASH STEPHENSON" -k 5    # two readings (variants) of one spine
+```
+
+## What is a work
+
+A **work** is a root ISFDB title (`title_parent = 0`) of one of six types, with at least one edition: `NOVEL`, `COLLECTION`, `OMNIBUS`, `ANTHOLOGY`, `CHAPBOOK`, `NONFICTION`. Short fiction, poems, essays, reviews, interviews, cover art and interior art are parts of books, not books on a shelf; `SERIAL` and `EDITOR` are magazine-level. The six are the book-level title types: they are also the content types a book `pub_ctype` carries (`MAGAZINE` and `FANZINE` are publication types, not title types). Result on the 2026-10-31 dump: **340,829 works** and **943,917 editions** (an edition is a (publication, work) pair: an omnibus publication appears once for the omnibus and once for each novel in it).
+
+- **Variants are folded in.** An ISFDB variant (translation, retitling, pseudonymous edition; `title_parent` points at the root) is not a work of its own. Its title becomes an alias title of the root, its authors become alias authors, and its publications are the root's editions. A spine can print the US title, the translated title or the pseudonym, and all of them find the one work. 101,863 variant titles of the kept types exist; no variant has a variant parent.
+- **All languages and non-genre titles are kept** (ISFDB's flags are stored: `works.language`, `non_genre`, `graphic`). A bookshelf holds translations and non-genre books, and dropping them is a later, reversible filter on a column.
+- **Authors** are the `canonical_author` links with `ca_status = 1`, in link order, on the root; variants' authors are aliases (`work_authors.alias = 1`) and searchable but not shown as the work's authors.
+- **Subtitle.** ISFDB has no subtitle column. A title is split at its first `": "`; `works.title` is the part before, `works.subtitle` the part after, and the three forms (whole, main, subtitle alone) are all searchable. A subtitle-only match is worth 0.85 of a whole-title match, a main-only match 0.95 (`WEIGHTS.formKind`). Display text is `title: subtitle`.
+- **Series** is the work's direct series, with its parents (to four levels) searchable: a spine that says "CYBERPUNK COLLECTION" finds the books of a series nested under it.
+- **Tags** are the eight most-applied user tags per work (by distinct users), as a JSON array. They include award and list tags (R-0, OC33); their `tag_status` is not interpreted.
+- **`sources`** is a JSON array of `{source:"isfdb", id:<title_id>, dump:<date>}`. A work's id is the opaque string `isfdb:<title_id>`; an edition's is `isfdb-pub:<pub_id>`. OC32's later backends add their own `source` entries and can join on this.
+- **ISFDB stores non-Latin text as numeric entities** (`&#1057;&#1086;…`; 60,502 titles). C-1's staging kept them as they are; the build decodes them everywhere (`decodeEntities`), so a Cyrillic or Japanese title is searchable and displayable.
+
+## Tables
+
+`works` (id, title, subtitle, authors JSON, series, series_num, year, ttype, language, non_genre, graphic, tags JSON, sources JSON, edition_count, plus three normalised form columns the scorer reads), `editions` (edition_id, work_id, isbn13, isbn, publisher, year, title, format; indexed on `isbn13`), `authors` / `work_authors`, `series` / `work_series`, and the forms tables `title_forms`, `author_forms`, `series_forms` that the three FTS5 indexes `fts_title`, `fts_author`, `fts_series` point at (`tokenize='trigram'`, contentless, so the text is stored once). `meta` carries the staging content hash and dump date, the work types and row counts. `year` is the first-publication year (`NULL` for `0000` and `8888` dates).
+
+## Normalisation
+
+One function, `normalize`, is used for the index and for the query. Unicode-decompose, drop combining marks, spell out letters that do not decompose (ß ø æ œ ł đ þ), lower-case, `&` to "and", delete apostrophes and periods (`Ender's` → `enders`, `J.R.R.` → `jrr`, `J. R. R.` → `j r r`), every other run of non-letters to one space. Forms the matcher understands on top of that:
+
+- **Initials.** A run of single-letter tokens also reads as one joined token (`j r r` ≙ `jrr`), on both sides. A one-letter token matches a word that starts with it at half weight (`P. K. DICK` finds `Philip K. Dick`).
+- **"Surname, Given" and field order.** Matching is token-level and order-free, so `HERBERT, FRANK DUNE`, `DUNE FRANK HERBERT` and `FRANK HERBERT DUNE` are the same query. ISFDB's legal name (`Dick, Philip Kindred`) is turned round and indexed as a second author form.
+- **0/O, 1/l/I, 5/S, 8/B.** A mixed token has its digits read as letters (`neur0mancer`), a mostly-digit token its letters as digits (`I984`).
+- **rn/m, vv/w, cl/d** collapse to one skeleton on both sides (match worth 0.9; also used to widen the FTS query).
+- **Split words.** Adjacent OCR tokens are also read joined (`neuro mancer` → `neuromancer`, up to three tokens).
+
+## How `retrieve` works
+
+`retrieve(db, variants, k = 10)` takes alternative readings of **one whole spine** (all its lines in one string, any order, as P-1's text variants give them) and returns at most `k` candidates, best first, each work once with the evidence of the variant that scored it highest (repeated agreement is not summed, INV-6). A candidate carries `workId`, title, subtitle, authors, series, year, `editionCount`, `score`, `queryCoverage`, the winning `variant` index and `evidence[]`: for each of title, author and series the score, the matched normalised form, the form kind (`title`, `main`, `subtitle`, `variant`, …) and every token match (`neurom` → `neuromancer`, `prefix`, 0.77). Those map one to one onto `title-fragment`, `author-fragment` and `series` in the `Evidence` contract.
+
+1. **Generate.** FTS5 trigram queries, one OR-query per field, from the OCR tokens (3+ letters, stopwords skipped), their 0/O readings, joined neighbours, skeletons and, for words of 7+ letters, both halves (one wrong character leaves the other half intact). The best 250 forms per field by bm25 are scored in code; forms that explain at least 0.25 of themselves pull their works in; the best 12 authors and 8 series add their works (400 per author or series, most-edited first). The whole variant is also looked up as an exact title (short titles such as `IT` have no trigram).
+2. **Score each work** against every form of its title, author and series: exact (1), skeleton (0.9), prefix (0.55 + 0.4 × length ratio; this is truncation), substring (0.45 + 0.3 × ratio; this is cropping), edit distance 1 (or 2 for 9+ letters; 0.85 × (1 − d/len)), initial (0.5). Tokens are matched greedily, best first, each used once; stopwords weigh a quarter and single letters 0.4. The title and series score is the weighted share of the form that the fragments explain; the author score is 0.7 × the surname's match + 0.3 × the given names' (a surname alone scores 0.7).
+3. **Combine.** `1 − (1 − 0.85·T)(1 − 0.55·A)(1 − 0.45·S)`, times `0.55 + 0.45 × queryCoverage`, where `queryCoverage` is the share of the OCR tokens that some field explains. Words in the fragments that nothing explains cost score; a second field that explains them gains it.
+4. **Rank** by score in steps of 0.01, then by number of editions, then by score, then id. Edition count is a catalog fact (not the reader's profile, INV-13), and it decides only between near-equal scores: a bare `GATEWAY` returns the most-published work called Gateway first. It is shown as `editionCount`.
+
+All weights are in `WEIGHTS` in `retrieve.ts`.
+
+**What `retrieve` does not do.** It applies no threshold and never appends `unknown`; I-1 does (INV-5, OC32). **`score` is an evidence score, not a probability, and it does not separate "right" from "nothing here"**: on the golden set the top candidate of the six no-match queries (cookbooks, atlases, a dictionary) scored up to 0.721, while the lowest score of a correct top-1 was 0.71 (`REVELATION SP ALASTAIR REYNOLDS`, a title cut to two letters). A fixed score threshold would drop real matches; I-1/I-2 should decide `unknown` on evidence structure (which fields matched, `queryCoverage`, margin to the second candidate) and calibrate on the fixture. Reversed reading direction, series runs and shelf neighbours are I-1's.
+
+## The golden set and how corpus-generated inflation was avoided
+
+`evals/golden/fragments.jsonl`: 87 `clean`, 68 `noisy`, 6 `none` queries. One JSON object per line: `id`, `class`, `noise[]` tags, `split`, `variants[]` (the fragments), `expect {title, author}`, and for noisy ones `base` (the clean twin). Public catalog knowledge only: known science-fiction books and their authors; the owner-public seeds (Gibson, Kim Stanley Robinson, Stephenson; OC9) are among them. No photo, no OCR of a photo, nothing from `$BOOKCASE_DATA`.
+
+U14 M3 warns that a set generated from the corpus it scores is inflated: its queries are by construction the strings the index holds. What was done:
+
+1. **The queries were written by hand, from memory of what a spine prints,** before any query was run, not sampled from `catalog.sqlite` or from ISFDB rows. Titles and authors were chosen for variety (famous and mid-list books, one-word titles, common words, initials, compound surnames, diacritics, a subtitle, multi-author books, books that share a title with others).
+2. **Noise is hand-applied** to a clean twin, one named mechanism per tag: `ocr-0O`, `ocr-1l`, `ocr-rn-m`, `split-words`, `truncated-author`, `truncated-title`, `series-larger` (the series name is large and only a fragment of the title survives), `surname-first`, `initials`, `multi-variant`, and a few combinations. Nothing was generated by perturbing index strings.
+3. **Targets are looked up by exact normalised title and author, never from retrieval output** (`targetWorks`). A query whose book is absent from the catalog is a catalog gap, reported and left out of the rates. There were none.
+4. **The index was consulted once per query, only to confirm the book exists,** and the only edit that allowed was spelling the *expected* title or author as ISFDB records it (`Kurt Vonnegut, Jr.`, `Walter M. Miller, Jr.`). No fragment was changed after seeing a result. Five probe queries were run against the index while the matcher was being built, before the golden set existed (`GIBS NEUROM`, `neur0mancer gibson`, `NEURO MANCER`, `J R R TOLKIEN`, `dune`); two of them concern books that are also in the set.
+5. **Dev and test halves.** `split` alternates by position: every code change that followed a result was made against `dev` failures only, and `test` stayed unused for tuning. The numbers below are for both halves and each separately.
+6. **Honest limits.** The first 59 clean queries came out at 100 % top-5, so a second batch of 28 harder ones (lesser-known books, bare one-word titles) was added; none of those was run before it was fixed. The queries were still written by someone who knew how the matcher works. The noise is plausible OCR error written by hand, not measured OCR error. Numbers on real spines come from E-3/I-1 on the fixture, and will be lower.
+
+**Tuning log** (everything changed after seeing a result): (a) before the golden set was first run, title forms were discounted by kind after a probe showed a subtitle-alone match tying the novel it names (`Chapterhouse: Dune` against "DUNE"); (b) one dev failure, `NEUROrnANCER` (n047), added the skeleton form of each token to the FTS query; (c) an index on `title_forms(norm)` removed a 25 ms table scan per variant. No weight in `WEIGHTS` was tuned against the set.
+
+## Exit numbers
+
+`evals/C3-catalog-retrieval/`, 2026-11-02, golden sha256 `9b464c41…`, staging content hash `b22bea09…`, on the build Mac (node v24.22.1).
+
+| subset | queries | top-1 | **top-5** | top-10 |
+|---|---:|---:|---:|---:|
+| **clean** (exit: ≥ 90 % top-5) | 87 | 98.9 % | **100.0 %** | 100.0 % |
+| clean, dev / test | 44 / 43 | 100 % / 97.7 % | 100 % / 100 % | |
+| **noisy** (recorded) | 68 | 95.6 % | **100.0 %** | 100.0 % |
+| noisy, dev / test | 34 / 34 | 97.1 % / 94.1 % | 100 % / 100 % | |
+
+Weakest noisy tags by top-1 (top-5 is 100 % for every tag): `truncated-title` 83.3 % (6), `ocr-1l` 80 % (5), `split-words` 93.8 % (16), `truncated-author` 92.9 % (14). Counts per tag are small; read them as direction, not rate.
+
+**Latency** (`retrieve` per query, warm cache after one untimed pass, 161 queries, ~35 ms mean): **p50 31.5 ms, p95 78.7 ms**, max 110 ms; a second run gave p95 80.2 ms. No target (card). The cost per variant is dominated by FTS and the JS scoring of up to a few thousand works; I-1 with 4 to 6 variants per spine should expect 100 to 200 ms per spine. Cheap levers if that matters: `ftsLimit`, `expandLimit`, dropping the skeleton and half-word phrases.
+
+## Not verified
+
+- Real OCR. All noise is hand-written; the rates above say the matcher handles those mechanisms, not that P-1's output is that kind of noise.
+- Recall outside the golden set. 161 queries on well-known books; a large catalog has long-tail titles with common-word names, where the cap of 250 forms per FTS query and 400 works per author could cut a true match. No test exercises that.
+- `ca_status = 1` as "author" and `tags.tag_status` carry over from C-1's not-verified list.
+- On-device behaviour: the iOS FTS5/trigram probe is a later card.
