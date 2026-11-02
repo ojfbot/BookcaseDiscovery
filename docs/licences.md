@@ -35,3 +35,7 @@ Checked 2026-11-02 by card C-0 (`claude/c-0-licences-2a30cf`). Question: may the
 
 - Only ISFDB is needed for the MVP index (OC20). The other rows are for the record, and for C-R's choice of later backends.
 - `G-L` (`docs/gates/G-LIC.md` covers the detector only) is raised by the conductor if the ISFDB check fails, or if the owner wants covers or the NC dataset.
+
+## Conductor verification (2026-11-02)
+
+**ISFDB: verified.** The conductor loaded https://www.isfdb.org/cgi-bin/index.cgi in a browser. Its footer reads "License: This work is licensed under a Creative Commons Attribution 4.0 International License", linking https://creativecommons.org/licenses/by/4.0/. The ISFDB wiki pages (including the licence page) need a login, which explains the 403s above. Local indexing and redistribution with attribution: **yes**. The attribution text in `NOTICE` stands. The downloads page's terms for the database backups remain to be read by C-1 before the import.
