@@ -58,3 +58,8 @@ Only `read` seeds expand. A `liked` or `cooler` author stays at author level: ex
 ## The review sheet (O-4)
 
 `bookcase profile review` writes `<data root>/private/profile-review.html`: what the seeds say, what expansion found (collapsed), and two yes/no questions from R-0 — *Does reading all of Gibson also mean you liked him?* and *Should a liked author's far-out book appear at the default setting?* — with a "copy my answers" button. About two minutes; skipping keeps the default (No on both). One self-contained file, no network.
+
+## O-4 owner answers (2026-11-02)
+
+- **Q1, "Does reading all of William Gibson also mean you liked him?": yes.** Recorded as the owner statement `seed-gibson-liked` in `profile/seeds.json` (`liked`, scope all-works), beside the `read` seed. Gibson now counts towards the centre at the `liked` weight.
+- **Q2, "Should a book by an author you like show up at the default setting even when its ideas are far from your usual?": yes.** A ranking rule for R-2: at the default discovery temperature, a book by a `liked` author is eligible even when its facet distance puts it outside the default ring. Ideas still rank it; the author only makes it eligible. R-2 implements and tests it.

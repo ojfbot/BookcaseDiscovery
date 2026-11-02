@@ -64,15 +64,21 @@ const file = (entries: Entry[] = [], nodes: Node[] = []): ProfileFile => ({ sche
 const resolved = (f: ProfileFile): ResolvedProfile => mergeOverlay(f, null);
 
 describe("profile/seeds.json is exactly the owner's stated profile (OC9)", () => {
-  it("has the three statements from the 2026-10-31 brief and nothing else", () => {
+  it("has the statements from the 2026-10-31 brief and the O-4 answer, and nothing else", () => {
     expect(seedsJson.nodes).toEqual([]);
     expect(seedsJson.entries.map((e) => [e.subject.kind, e.subject.name, e.relation, e.scope])).toEqual([
       ["author", "William Gibson", "read", "all-works"],
+      ["author", "William Gibson", "liked", "all-works"],
       ["author", "Kim Stanley Robinson", "liked", "all-works"],
       ["author", "Neal Stephenson", "cooler", "all-works"],
     ]);
     for (const e of seedsJson.entries) {
-      expect(e.provenance).toEqual({ source: "owner-statement", ref: "owner statement, project brief 2026-10-31", date: "2026-10-31" });
+      const fromO4 = e.id === "seed-gibson-liked";
+      expect(e.provenance).toEqual(
+        fromO4
+          ? { source: "owner-statement", ref: "owner answer, O-4 profile review 2026-11-02", date: "2026-11-02" }
+          : { source: "owner-statement", ref: "owner statement, project brief 2026-10-31", date: "2026-10-31" },
+      );
       expect(e.expanded).toBeUndefined();
     }
   });
@@ -136,7 +142,8 @@ describe("weights: what each relation adds to the centre of taste (taste-model.m
   });
 
   it("w_read_all is configurable and moves only the read-all seeds", () => {
-    const p = resolved(seedsJson);
+    // Without the O-4 Gibson-liked seed, so read-all is the only Gibson weight being moved.
+    const p = resolved(file(seedsJson.entries.filter((e) => e.id !== "seed-gibson-liked")));
     const at = (readAll: number) => Object.fromEntries(centreSeeds(p, { ...DEFAULT_SEED_WEIGHTS, readAll }).map((s) => [s.subject.name, s.weight]));
     expect(at(0.6)).toEqual({ "William Gibson": 0.6, "Kim Stanley Robinson": 1 });
     expect(at(1.0)).toEqual({ "William Gibson": 1, "Kim Stanley Robinson": 1 });
@@ -373,6 +380,7 @@ describe("the overlay: merge and refusal, never promotion (INV-18, OC22)", () =>
     ]);
     expect(merged.entries.filter((e) => e.subject.name === "William Gibson").map((e) => [e.relation, e.origin])).toEqual([
       ["read", "seeds"],
+      ["liked", "seeds"],
       ["inferred-interest", "overlay"],
     ]);
   });
@@ -417,7 +425,7 @@ describe("the overlay: merge and refusal, never promotion (INV-18, OC22)", () =>
   it("loadProfile: a missing overlay file is an empty overlay; one that does not parse is an error", () => {
     const dir = tmp();
     writeFileSync(join(dir, "seeds.json"), readFileSync(SEEDS_PATH));
-    expect(loadProfile({ seeds: join(dir, "seeds.json"), overlay: join(dir, "nope.json") }).entries).toHaveLength(3);
+    expect(loadProfile({ seeds: join(dir, "seeds.json"), overlay: join(dir, "nope.json") }).entries).toHaveLength(seedsJson.entries.length);
     writeFileSync(join(dir, "overlay.json"), JSON.stringify(overlayExample));
     const p = loadProfile({ seeds: join(dir, "seeds.json"), overlay: join(dir, "overlay.json") });
     expect(p.entries.filter((e) => e.origin === "overlay").map((e) => e.relation)).toEqual(["inferred-interest", "unknown"]);
