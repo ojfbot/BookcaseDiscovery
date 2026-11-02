@@ -2,10 +2,10 @@ import { createHash } from "node:crypto";
 import { chmodSync, copyFileSync, existsSync, mkdirSync, readdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
-import { formatTable, ingest, ImageStore, ingestCommand } from "../src/capture/index.ts";
+import { formatTable, ingest, ingestCommand } from "../src/capture/index.ts";
 import type { IngestResult } from "../src/capture/index.ts";
 import { parseJpegMetadata } from "../src/capture/metadata.ts";
-import { MemoryLedger } from "../src/ledger/index.ts";
+import { ImageStore, MemoryLedger } from "../src/ledger/index.ts";
 import { main } from "../src/run/index.ts";
 import { exif, gpsTags, pixelAt, swiftAvailable, toolsAvailable, Workbench } from "./helpers/synth.ts";
 import type { PhotoSpec } from "./helpers/synth.ts";
@@ -65,9 +65,11 @@ describe.skipIf(!toolsAvailable())("ingest (synthetic photos)", () => {
       const [asset] = s.ledger.images();
       expect(asset!.imageHash).toBe(originalHash);
       const store = new ImageStore(s.dataDir);
-      const stored = store.pathFor(asset!.imageHash, "jpeg");
-      const working = store.pathFor(asset!.workingCopyHash, "jpeg");
+      const stored = store.find(asset!.imageHash)!;
+      const working = store.find(asset!.workingCopyHash)!;
       expect(sha(stored)).toBe(originalHash);
+      // one store for the whole repo: the ledger's layout, images/sha256/<aa>/<bb>/<hash>.<ext>
+      expect(stored).toBe(join(s.dataDir, "images", "sha256", originalHash.slice(0, 2), originalHash.slice(2, 4), `${originalHash}.jpg`));
       expect(gpsTags(working)).toEqual([]);
       expect(sha(working)).toBe(asset!.workingCopyHash);
       expect(asset!.workingCopyHash).not.toBe(originalHash);
@@ -113,7 +115,7 @@ describe.skipIf(!toolsAvailable())("ingest (synthetic photos)", () => {
       run(s);
       const [asset] = s.ledger.images();
       expect(asset).toMatchObject({ width: 100, height: 200 });
-      const working = new ImageStore(s.dataDir).pathFor(asset!.workingCopyHash, "jpeg");
+      const working = new ImageStore(s.dataDir).find(asset!.workingCopyHash)!;
       expect(exif(working, "-Orientation").Orientation ?? 1).toBe(1);
       expect(gpsTags(working)).toEqual([]);
       // the stored red top-left quadrant, rotated 90° clockwise for display, sits top-right
@@ -128,7 +130,7 @@ describe.skipIf(!toolsAvailable())("ingest (synthetic photos)", () => {
       run(s);
       const [asset] = s.ledger.images();
       expect([asset!.width, asset!.height]).toEqual(orientation === 8 ? [100, 200] : [200, 100]);
-      expect(exif(new ImageStore(s.dataDir).pathFor(asset!.workingCopyHash, "jpeg"), "-Orientation").Orientation ?? 1).toBe(1);
+      expect(exif(new ImageStore(s.dataDir).find(asset!.workingCopyHash)!, "-Orientation").Orientation ?? 1).toBe(1);
     });
 
     it("an Orientation 1 working copy keeps the original's pixel size and is lossless-stripped", () => {
@@ -150,7 +152,7 @@ describe.skipIf(!toolsAvailable())("ingest (synthetic photos)", () => {
       expect(images.map((i) => i.format)).toEqual(["heic", "heic"]);
       expect(images.map((i) => [i.width, i.height])).toEqual([[200, 100], [100, 200]]);
       for (const i of images) {
-        const working = new ImageStore(s.dataDir).pathFor(i.workingCopyHash, "heic");
+        const working = new ImageStore(s.dataDir).find(i.workingCopyHash)!;
         expect(gpsTags(working)).toEqual([]);
         expect(exif(working, "-Orientation").Orientation ?? 1).toBe(1);
       }
@@ -250,7 +252,7 @@ describe.skipIf(!toolsAvailable())("ingest (synthetic photos)", () => {
       const images = s.ledger.images();
       expect(images.map((i) => [i.width, i.height, i.capturedAt])).toEqual([[200, 100, "2026-01-02T03:04:05-07:00"], [100, 200, "2026-01-02T03:04:05-07:00"]]);
       for (const i of images) {
-        const working = new ImageStore(s.dataDir).pathFor(i.workingCopyHash, "jpeg");
+        const working = new ImageStore(s.dataDir).find(i.workingCopyHash)!;
         expect(gpsTags(working)).toEqual([]); // checked by a different reader than the one that proved it
         expect(exif(working, "-Orientation").Orientation ?? 1).toBe(1);
       }
@@ -266,7 +268,7 @@ describe.skipIf(!toolsAvailable())("ingest (synthetic photos)", () => {
       const p = join(s.folder, "a.jpg");
       expect(parseJpegMetadata(readFileSync(p))).toMatchObject({ make: "Apple", model: "iPhone Test", orientation: 8, hasGps: true, exifWidth: 200, exifHeight: 100, dateTimeOriginal: "2026:01:02 03:04:05" });
       run(s);
-      const working = new ImageStore(s.dataDir).pathFor(s.ledger.images()[0]!.workingCopyHash, "jpeg");
+      const working = new ImageStore(s.dataDir).find(s.ledger.images()[0]!.workingCopyHash)!;
       expect(parseJpegMetadata(readFileSync(working)).hasGps).toBe(false);
     });
   });

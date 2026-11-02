@@ -2,9 +2,8 @@
 import { mkdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { parseArgs } from "node:util";
-import { MemoryLedger } from "../ledger/index.ts";
+import { MemoryLedger, dataRoot } from "../ledger/index.ts";
 import { formatTable, ingest, loadSettingsMap, DEFAULT_MIN_PIXELS } from "./ingest.ts";
-import { dataRoot } from "./store.ts";
 
 export const ingestUsage = `usage: bookcase ingest <folder> --session <name> [--settings <map.json>] [--min-pixels <n>]
 

@@ -4,13 +4,15 @@
 import { mkdirSync, mkdtempSync, openSync, closeSync, readSync, readdirSync, readFileSync, realpathSync, rmSync, statSync } from "node:fs";
 import { basename, extname, join, relative, resolve } from "node:path";
 import { z } from "zod";
-import { PhotoSettingSchema } from "../ledger/index.ts";
+import { ImageStore, PhotoSettingSchema, sha256Hex } from "../ledger/index.ts";
 import type { Ledger, PhotoSetting } from "../ledger/index.ts";
 import { exiftoolReader, hasExiftool, nativeReader } from "./metadata.ts";
 import type { MetadataReader, PhotoMeta } from "./metadata.ts";
-import { ImageStore, sha256File } from "./store.ts";
-import type { ImageFormat } from "./store.ts";
 import { makeWorkingCopy, pixelSize, WorkingCopyError } from "./working-copy.ts";
+import type { ImageFormat } from "./working-copy.ts";
+
+const EXTENSION: Record<ImageFormat, string> = { jpeg: "jpg", heic: "heic" };
+const sha256File = (path: string): string => sha256Hex(readFileSync(path));
 
 export const DEFAULT_MIN_PIXELS = 12_000_000;
 
@@ -175,13 +177,14 @@ export function ingest(options: IngestOptions): IngestResult {
         continue;
       }
 
-      store.put(path, imageHash, format);
+      const original = store.putFile(path, EXTENSION[format]);
+      if (original.hash !== imageHash) throw new Error(`ingest: ${fileName} changed while it was being read`);
       const entry = settings[fileName];
       const setting = (typeof entry === "string" ? entry : entry?.setting) ?? inferSetting(stored.width * stored.height);
       const shelfIndex = typeof entry === "object" ? entry.shelfIndex : undefined;
       const signals = derivativeSignals(fileName, siblings, meta, stored);
 
-      const wcTmp = join(tmpDir, `${imageHash}.${format === "jpeg" ? "jpg" : "heic"}`);
+      const wcTmp = join(tmpDir, `${imageHash}.${EXTENSION[format]}`);
       let wc;
       try {
         wc = makeWorkingCopy({ src: path, dst: wcTmp, tmpDir, format, meta, stored, reader });
@@ -189,8 +192,7 @@ export function ingest(options: IngestOptions): IngestResult {
         if (e instanceof WorkingCopyError) throw new Error(`ingest: ${fileName}: ${e.message}`);
         throw e;
       }
-      const workingCopyHash = sha256File(wc.path);
-      store.put(wc.path, workingCopyHash, format, { move: true });
+      const workingCopyHash = store.putFile(wc.path, EXTENSION[format]).hash;
 
       emit("ImageAssetIngested", {
         sessionId: session,
