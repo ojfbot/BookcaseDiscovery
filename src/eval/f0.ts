@@ -157,7 +157,9 @@ export async function visionStage(images: InputImage[], dets: Map<string, Detect
     const reqs = spineRequests([img], dets).filter((r) => !done.has(r.id));
     if (reqs.length === 0) continue;
     const t0 = Date.now();
-    const res = await runOcr(reqs, { timeoutMs: 600_000 });
+    // Batches keep one helper call well inside its timeout when the GPU is shared with detection.
+    const res = [];
+    for (let i = 0; i < reqs.length; i += 100) res.push(...(await runOcr(reqs.slice(i, i + 100), { timeoutMs: 600_000 })));
     const per = (Date.now() - t0) / 1000 / reqs.length;
     for (const r of res) {
       const line: Reading =
