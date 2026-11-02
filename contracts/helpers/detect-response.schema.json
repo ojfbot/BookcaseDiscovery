@@ -1,0 +1,80 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/ojfbot/BookcaseDiscovery/blob/main/contracts/helpers/detect-response.schema.json",
+  "title": "detect response",
+  "description": "One JSON Lines record on the detect helper's stdout. Success, or an error for that id. Polygons are in the pixel grid of the decoded image, whose size is echoed in 'image'.",
+  "oneOf": [
+    {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "image",
+        "detections",
+        "version"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "../common.schema.json#/definitions/Id"
+        },
+        "image": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "width",
+            "height"
+          ],
+          "properties": {
+            "width": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "height": {
+              "type": "integer",
+              "minimum": 1
+            }
+          }
+        },
+        "detections": {
+          "description": "May be empty. Order is not significant.",
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "polygon",
+              "score"
+            ],
+            "properties": {
+              "polygon": {
+                "$ref": "../common.schema.json#/definitions/Polygon"
+              },
+              "score": {
+                "$ref": "../common.schema.json#/definitions/Confidence"
+              }
+            }
+          }
+        },
+        "version": {
+          "$ref": "../common.schema.json#/definitions/DetectorVersion"
+        }
+      }
+    },
+    {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "error"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "../common.schema.json#/definitions/Id"
+        },
+        "error": {
+          "$ref": "../common.schema.json#/definitions/HelperError"
+        }
+      }
+    }
+  ]
+}

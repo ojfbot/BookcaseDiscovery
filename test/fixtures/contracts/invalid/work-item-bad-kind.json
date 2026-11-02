@@ -1,0 +1,13 @@
+{
+  "type": "WorkItemOpened",
+  "ts": "2026-11-02T10:00:00Z",
+  "runId": "run-synthetic-001",
+  "payload": {
+    "workItemId": "work-item-001",
+    "kind": "re-shoot-everything",
+    "observationId": "obs-002",
+    "shelf": 2,
+    "ordinal": 5,
+    "reason": "missing-pixels"
+  }
+}

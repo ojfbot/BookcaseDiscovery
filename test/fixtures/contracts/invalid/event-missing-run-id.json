@@ -1,0 +1,9 @@
+{
+  "type": "StatusChanged",
+  "ts": "2026-11-02T10:00:00Z",
+  "payload": {
+    "observationId": "obs-001",
+    "from": null,
+    "to": "unresolved"
+  }
+}

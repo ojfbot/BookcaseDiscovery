@@ -1,0 +1,21 @@
+{
+  "type": "HypothesesProposed",
+  "ts": "2026-11-02T10:00:00Z",
+  "runId": "run-synthetic-001",
+  "payload": {
+    "observationId": "obs-001",
+    "candidates": [
+      {
+        "workId": "work-alpha",
+        "title": "Example Title Alpha",
+        "author": "Author Example",
+        "score": 1,
+        "evidence": []
+      }
+    ],
+    "unknown": {
+      "score": 0,
+      "evidence": []
+    }
+  }
+}
