@@ -5,7 +5,7 @@ import { z } from "zod";
 
 export const SCHEMA_VERSION = 1;
 
-/** A point in original-image pixels. Origin top-left, y down. */
+/** A point in working-copy pixels (the orientation-normalised working copy; see CONTEXT.md). Origin top-left, y down. */
 export const Point = z.tuple([z.number().finite(), z.number().finite()]);
 export type Point = z.infer<typeof Point>;
 
