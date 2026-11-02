@@ -1,0 +1,371 @@
+// F-0 machine labelling (OC34 as amended by OC36): open models box and read every spine, the catalog
+// confirms identity, and a label is accepted only when two independent readers agree on one catalog work.
+// Everything else stays unknown with its reason; there is no human queue. Stage outputs are cached as JSON
+// Lines under $BOOKCASE_DATA/f0/<session>/ (private: they hold recognised text). Only aggregates leave
+// through `metrics`, which the CLI writes to evals/<run-id>/. Spec: docs/machine-labelling.md.
+import { spawn } from "node:child_process";
+import { appendFileSync, existsSync, mkdirSync, readFileSync } from "node:fs";
+import { join } from "node:path";
+import { createInterface } from "node:readline";
+import { fileURLToPath } from "node:url";
+import type { DatabaseSync } from "node:sqlite";
+import { retrieve, type Candidate } from "../catalog/retrieve.ts";
+import { runOcr } from "../perceive/ocr.ts";
+import { assignShelves, type LabelSet, type Photo, type Polygon4 } from "./labels.ts";
+
+const REPO_ROOT = fileURLToPath(new URL("../../", import.meta.url));
+const HELPER = join(REPO_ROOT, "helpers", "label");
+
+/** Crops are turned to horizontal both ways; no label says which is right, so the catalog decides (H-0 §3.2). */
+export const ROTATIONS = [90, 270] as const;
+
+/** Acceptance thresholds (OC36 yardstick 2). Conservative; see docs/machine-labelling.md. */
+export const ACCEPT = {
+  /** Retrieval evidence score of the agreed work, for each agreeing reader. C-3: no-match tops reached 0.721. */
+  minScore: 0.8,
+  /** The title field must be explained, not just the author. */
+  minTitleEvidence: 0.8,
+  /** Share of the reading's tokens the work explains. */
+  minCoverage: 0.5,
+  /** Readers that must name the same work. */
+  minReaders: 2,
+} as const;
+
+export type ReaderName = "vision" | "ppocr" | "qwen";
+export const READERS: ReaderName[] = ["vision", "ppocr", "qwen"];
+
+export interface InputImage {
+  /** Working-copy hash (or a yardstick file name): the stage key. */
+  id: string;
+  /** Hash written to Photo.hash (the original's sha256 for fixtures). */
+  photoHash: string;
+  path: string;
+  setting: string;
+}
+
+export interface DetectedSpine {
+  polygon: Polygon4;
+  boxScore: number;
+  maskScore: number;
+  aspect: number;
+  cut: boolean;
+}
+
+export interface Detection {
+  id: string;
+  width: number;
+  height: number;
+  spines: DetectedSpine[];
+  bands: { polygon: Polygon4; spines: number; span: number; gap: number }[];
+  gaps: { bandLength: number; gapLength: number; gapCount: number; medianWidth: number };
+  tiles: number;
+  seconds: number;
+  error?: string;
+}
+
+interface ReadVariant {
+  rotation: number;
+  text: string;
+  confidence: number;
+}
+
+export interface Reading {
+  id: string;
+  reader: ReaderName;
+  variants: ReadVariant[];
+  seconds: number;
+  error?: string;
+}
+
+export type UnknownReason = "no-text" | "no-catalog-match" | "single-reader" | "readers-disagree";
+
+export interface SpineDecision {
+  id: string;
+  imageId: string;
+  boxScore: number;
+  /** Top confirmed work per reader (null: the reader's best candidate failed the bar, or it read nothing). */
+  confirmed: Partial<Record<ReaderName, string | null>>;
+  /** Top candidate per reader, confirmed or not. */
+  top: Partial<Record<ReaderName, string | null>>;
+  readText: Partial<Record<ReaderName, boolean>>;
+  accepted: Candidate | null;
+  agreeing: ReaderName[];
+  reason: UnknownReason | null;
+  hard: boolean;
+}
+
+// --- stage plumbing ---------------------------------------------------------------------------
+
+export function readJsonl<T>(path: string): T[] {
+  if (!existsSync(path)) return [];
+  return readFileSync(path, "utf8")
+    .split("\n")
+    .filter((l) => l.trim() !== "")
+    .map((l) => JSON.parse(l) as T);
+}
+
+/** Spawn a helper, feed it request lines, append each answer line to `out`. Resolves when it exits. */
+function runHelper(script: string, args: string[], requests: object[], out: string, log: (s: string) => void): Promise<void> {
+  if (requests.length === 0) return Promise.resolve();
+  return new Promise((resolve, reject) => {
+    const child = spawn("uv", ["run", "--project", HELPER, "python", join(HELPER, script), ...args], {
+      stdio: ["pipe", "pipe", "pipe"],
+    });
+    const lines = createInterface({ input: child.stdout, crlfDelay: Infinity });
+    lines.on("line", (line) => {
+      if (line.trim()) appendFileSync(out, `${line}\n`);
+    });
+    let tail = "";
+    child.stderr.setEncoding("utf8");
+    child.stderr.on("data", (chunk: string) => {
+      tail = (tail + chunk).slice(-2000);
+      for (const l of chunk.split("\n")) if (/^(detect|read):/.test(l)) log(l);
+    });
+    child.stdin.on("error", () => {});
+    child.stdin.end(requests.map((r) => `${JSON.stringify(r)}\n`).join(""));
+    child.once("error", reject);
+    child.once("close", (code) =>
+      code === 0 ? resolve() : reject(new Error(`${script} exited ${code}: ${tail.split("\n").slice(-4).join(" | ")}`)),
+    );
+  });
+}
+
+const spineId = (imageId: string, i: number): string => `${imageId}:${i}`;
+
+export async function detectStage(images: InputImage[], dir: string, log: (s: string) => void): Promise<Map<string, Detection>> {
+  const out = join(dir, "detect.jsonl");
+  const done = new Set(readJsonl<Detection>(out).filter((d) => !d.error).map((d) => d.id));
+  await runHelper("detect.py", [], images.filter((i) => !done.has(i.id)).map((i) => ({ id: i.id, image: i.path })), out, log);
+  return new Map(readJsonl<Detection>(out).filter((d) => !d.error).map((d) => [d.id, d]));
+}
+
+function spineRequests(images: InputImage[], dets: Map<string, Detection>, only?: Set<string>) {
+  return images.flatMap((img) =>
+    (dets.get(img.id)?.spines ?? [])
+      .map((s, i) => ({ id: spineId(img.id, i), image: img.path, polygon: s.polygon, rotations: [...ROTATIONS] }))
+      .filter((r) => !only || only.has(r.id)),
+  );
+}
+
+export async function visionStage(images: InputImage[], dets: Map<string, Detection>, dir: string, log: (s: string) => void): Promise<void> {
+  const out = join(dir, "vision.jsonl");
+  const done = new Set(readJsonl<Reading>(out).map((r) => r.id));
+  for (const img of images) {
+    const reqs = spineRequests([img], dets).filter((r) => !done.has(r.id));
+    if (reqs.length === 0) continue;
+    const t0 = Date.now();
+    const res = await runOcr(reqs, { timeoutMs: 600_000 });
+    const per = (Date.now() - t0) / 1000 / reqs.length;
+    for (const r of res) {
+      const line: Reading =
+        "error" in r
+          ? { id: r.id, reader: "vision", variants: [], seconds: per, error: r.error.code }
+          : { id: r.id, reader: "vision", variants: r.variants.map((v) => ({ rotation: v.rotation, text: v.text, confidence: v.confidence })), seconds: per };
+      appendFileSync(out, `${JSON.stringify(line)}\n`);
+    }
+    log(`vision: ${img.id.slice(0, 12)} ${reqs.length} spines ${((Date.now() - t0) / 1000).toFixed(1)} s`);
+  }
+}
+
+export async function pyReaderStage(
+  reader: "ppocr" | "qwen",
+  images: InputImage[],
+  dets: Map<string, Detection>,
+  dir: string,
+  log: (s: string) => void,
+  only?: Set<string>,
+): Promise<void> {
+  const out = join(dir, `${reader}.jsonl`);
+  const done = new Set(readJsonl<{ id: string }>(out).map((r) => r.id));
+  const reqs = spineRequests(images, dets, only).filter((r) => !done.has(r.id));
+  // PP-OCR runs on the CPU, about 1 s a crop: split by image across workers (each loads the models once).
+  const workers = reader === "ppocr" ? Math.max(1, Number(process.env.F0_PPOCR_WORKERS ?? 3)) : 1;
+  const shards: (typeof reqs)[] = Array.from({ length: workers }, () => []);
+  const order = [...new Set(reqs.map((r) => r.image))];
+  for (const r of reqs) shards[order.indexOf(r.image) % workers]!.push(r);
+  await Promise.all(shards.map((s) => runHelper("read.py", ["--reader", reader], s, out, log)));
+}
+
+export function loadReadings(dir: string): Map<string, Partial<Record<ReaderName, Reading>>> {
+  const byId = new Map<string, Partial<Record<ReaderName, Reading>>>();
+  for (const reader of READERS) {
+    for (const r of readJsonl<Reading & { reader: string }>(join(dir, `${reader}.jsonl`))) {
+      const entry = byId.get(r.id) ?? {};
+      entry[reader] = { ...r, reader };
+      byId.set(r.id, entry);
+    }
+  }
+  return byId;
+}
+
+// --- deciding ---------------------------------------------------------------------------------
+
+/** One reader's texts as retrieval variants: each rotation (and correction setting) is one whole-spine reading. */
+export function variantsOf(r: Reading | undefined): string[] {
+  if (!r || r.error) return [];
+  const texts = r.variants.map((v) => v.text.replace(/\s+/g, " ").trim()).filter((t) => t.length >= 2);
+  return [...new Set(texts)];
+}
+
+/** Does the catalog confirm this candidate as the book (OC36 yardstick 2)? */
+export function confirms(c: Candidate | undefined): boolean {
+  if (!c) return false;
+  const title = c.evidence.find((e) => e.field === "title")?.score ?? 0;
+  return c.score >= ACCEPT.minScore && title >= ACCEPT.minTitleEvidence && c.queryCoverage >= ACCEPT.minCoverage;
+}
+
+export function topFor(db: DatabaseSync, r: Reading | undefined, cache: Map<string, Candidate | undefined>): Candidate | undefined {
+  const variants = variantsOf(r);
+  if (variants.length === 0) return undefined;
+  const key = variants.join("\u0000");
+  if (!cache.has(key)) cache.set(key, retrieve(db, variants, 3)[0]);
+  return cache.get(key);
+}
+
+/** Decide one spine from whatever readers have read it. */
+export function decide(
+  db: DatabaseSync,
+  id: string,
+  imageId: string,
+  boxScore: number,
+  reads: Partial<Record<ReaderName, Reading>>,
+  cache: Map<string, Candidate | undefined>,
+): SpineDecision {
+  const confirmed: SpineDecision["confirmed"] = {};
+  const top: SpineDecision["top"] = {};
+  const readText: SpineDecision["readText"] = {};
+  const cands = new Map<string, Candidate>();
+  for (const reader of READERS) {
+    if (!reads[reader]) continue;
+    readText[reader] = variantsOf(reads[reader]).length > 0;
+    const c = topFor(db, reads[reader], cache);
+    top[reader] = c?.workId ?? null;
+    confirmed[reader] = confirms(c) ? c!.workId : null;
+    if (c && confirms(c) && !cands.has(c.workId)) cands.set(c.workId, c);
+  }
+  const votes = new Map<string, ReaderName[]>();
+  for (const [reader, w] of Object.entries(confirmed) as [ReaderName, string | null][]) {
+    if (w) votes.set(w, [...(votes.get(w) ?? []), reader]);
+  }
+  const ranked = [...votes.entries()].sort((a, b) => b[1].length - a[1].length);
+  const best = ranked[0];
+  const unique = best && (ranked.length === 1 || ranked[1]![1].length < best[1].length);
+  let accepted: Candidate | null = null;
+  let agreeing: ReaderName[] = [];
+  let reason: UnknownReason | null = null;
+  if (best && best[1].length >= ACCEPT.minReaders && unique) {
+    accepted = cands.get(best[0])!;
+    agreeing = best[1];
+  } else if (!Object.values(readText).some(Boolean)) reason = "no-text";
+  else if (votes.size === 0) reason = "no-catalog-match";
+  else if (votes.size > 1) reason = "readers-disagree";
+  else reason = "single-reader";
+  // Hard crop (OC10 rule, served by the local VLM): the two OCR readers have not settled it.
+  const hard = !(confirmed.vision && confirmed.vision === confirmed.ppocr);
+  return { id, imageId, boxScore, confirmed, top, readText, accepted, agreeing, reason, hard };
+}
+
+// --- labels -----------------------------------------------------------------------------------
+
+export function buildLabelSet(
+  session: string,
+  images: InputImage[],
+  dets: Map<string, Detection>,
+  decisions: Map<string, SpineDecision>,
+): LabelSet {
+  const photos: Photo[] = [];
+  for (const img of images) {
+    const det = dets.get(img.id);
+    if (!det) continue;
+    const bands = det.bands.map((b, i) => ({ id: `${img.id.slice(0, 12)}:band:${i}`, polygon: b.polygon }));
+    const spines = det.spines.map((s, i) => {
+      const d = decisions.get(spineId(img.id, i));
+      const a = d?.accepted;
+      return {
+        id: spineId(img.id.slice(0, 12), i),
+        polygon: s.polygon,
+        kind: "spine" as const,
+        text: { title: a?.title ?? "", author: a?.authors.join("; ") ?? "" },
+        unreadable: d?.reason === "no-text",
+        catalogId: a?.workId ?? null,
+        notes: a ? `machine:accepted readers=${d!.agreeing.join("+")}` : `machine:unknown reason=${d?.reason ?? "not-read"}`,
+      };
+    });
+    const placed = assignShelves(bands, spines);
+    photos.push({
+      hash: img.photoHash,
+      setting: img.setting,
+      shelfIndex: null,
+      width: det.width,
+      height: det.height,
+      shelfBands: placed.bands,
+      spines: placed.spines,
+    });
+  }
+  return { schemaVersion: 1, session, photos };
+}
+
+// --- aggregates (the only thing that reaches the repo) ------------------------------------------
+
+const share = (n: number, d: number): number | null => (d === 0 ? null : Math.round((n / d) * 10000) / 10000);
+const quantile = (xs: number[], q: number): number | null => {
+  if (xs.length === 0) return null;
+  const s = [...xs].sort((a, b) => a - b);
+  return Math.round(s[Math.min(s.length - 1, Math.floor(q * s.length))]! * 1000) / 1000;
+};
+
+export function machineAgreement(dets: Map<string, Detection>, decisions: SpineDecision[], readings: Map<string, Partial<Record<ReaderName, Reading>>>) {
+  const n = decisions.length;
+  const pair = (a: ReaderName, b: ReaderName) => {
+    const both = decisions.filter((d) => d.confirmed[a] && d.confirmed[b]);
+    const read = decisions.filter((d) => a in d.top && b in d.top);
+    return {
+      spinesReadByBoth: read.length,
+      bothConfirmedSomething: both.length,
+      sameWork: both.filter((d) => d.confirmed[a] === d.confirmed[b]).length,
+      sameWorkShare: share(both.filter((d) => d.confirmed[a] === d.confirmed[b]).length, both.length),
+    };
+  };
+  const reasons: Record<string, number> = {};
+  for (const d of decisions) if (d.reason) reasons[d.reason] = (reasons[d.reason] ?? 0) + 1;
+  const det = [...dets.values()];
+  const bandLength = det.reduce((s, d) => s + d.gaps.bandLength, 0);
+  const gapLength = det.reduce((s, d) => s + d.gaps.gapLength, 0);
+  const seconds = (r: ReaderName) => {
+    const xs = [...readings.values()].map((x) => x[r]?.seconds).filter((x): x is number => typeof x === "number");
+    return { cropCount: xs.length, total: Math.round(xs.reduce((a, b) => a + b, 0)), perCropP50: quantile(xs, 0.5) };
+  };
+  const perReaderConfirmed = Object.fromEntries(
+    READERS.map((r) => [r, { read: decisions.filter((d) => r in d.top).length, confirmed: decisions.filter((d) => d.confirmed[r]).length }]),
+  );
+  const hard = decisions.filter((d) => d.hard);
+  return {
+    images: det.length,
+    spineCount: n,
+    spinesPerImage: { p50: quantile(det.map((d) => d.spines.length), 0.5), min: Math.min(...det.map((d) => d.spines.length)), max: Math.max(...det.map((d) => d.spines.length)) },
+    boxScore: { p10: quantile(decisions.map((d) => d.boxScore), 0.1), p50: quantile(decisions.map((d) => d.boxScore), 0.5), p90: quantile(decisions.map((d) => d.boxScore), 0.9) },
+    catalogConfirmed: { count: decisions.filter((d) => d.accepted).length, share: share(decisions.filter((d) => d.accepted).length, n) },
+    agreeingReaders: {
+      two: decisions.filter((d) => d.agreeing.length === 2).length,
+      three: decisions.filter((d) => d.agreeing.length === 3).length,
+    },
+    unknownByReason: reasons,
+    perReaderConfirmed,
+    readerAgreement: { visionPpocr: pair("vision", "ppocr"), visionQwen: pair("vision", "qwen"), ppocrQwen: pair("ppocr", "qwen") },
+    hardCrops: { count: hard.length, readByQwen: hard.filter((d) => "qwen" in d.top).length, acceptedAfterQwen: hard.filter((d) => d.agreeing.includes("qwen")).length },
+    gaps: { bandLengthPx: Math.round(bandLength), gapLengthPx: Math.round(gapLength), gapShare: share(gapLength, bandLength), gapCount: det.reduce((s, d) => s + d.gaps.gapCount, 0) },
+    runtimeSeconds: {
+      detectPerImage: { p50: quantile(det.map((d) => d.seconds), 0.5), max: quantile(det.map((d) => d.seconds), 1), total: Math.round(det.reduce((s, d) => s + d.seconds, 0)) },
+      vision: seconds("vision"),
+      ppocr: seconds("ppocr"),
+      qwen: seconds("qwen"),
+    },
+    spendPerSpineUsd: 0,
+  };
+}
+
+export function stageDir(dataRoot: string, session: string): string {
+  const dir = join(dataRoot, "f0", session);
+  mkdirSync(dir, { recursive: true });
+  return dir;
+}
