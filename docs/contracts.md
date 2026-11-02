@@ -39,7 +39,7 @@ Schemas are JSON Schema draft-07 with `additionalProperties: false` throughout, 
 | Status | `unresolved` `resolved` `paused` `needs-pixels` | No `exhausted` (INV-1). Budget exhaustion gives `paused` (INV-2) |
 | Band | `verified` `probable` `candidate` `unknown` | Evidence bands |
 | Unresolved reason | `missing-pixels` `no-catalog-candidate` `conflicting-evidence` `strategies-exhausted` | A reason on an observation (INV-8), never a shelf state |
-| Photo setting | `whole-12` `whole-48` `shelf-48` `overview` | |
+| Photo setting | `whole-12` `whole-48` `shelf-48` `overview` `real-use` | The first four are the controlled E1 settings (OC6). `real-use` is a handheld, angled shot with no protocol (OC35); it carries no `shelfIndex` |
 | Rotation | `0` `90` `180` `270` | Degrees clockwise, before OCR |
 | Track state | `born` `stable` `lost` | Live. Edges below |
 | Viewpoint | `left-oblique` `frontal` `right-oblique` | Live. Half of an OCR condition (INV-20); bucket edges are T-3's |

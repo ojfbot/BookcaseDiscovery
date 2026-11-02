@@ -15,7 +15,7 @@ Spine     { id, polygon, shelf, ordinal, kind, text{title, author, series?}, unr
 |---|---|
 | `session` | Session id such as `sf-store-001`. Lowercase letters, digits, `.`, `-`, `_`. It is also the file name. |
 | `Photo.hash` | sha256 of the original file, lowercase hex. Unique within a session. |
-| `Photo.setting` | Capture setting: `whole-12`, `whole-48`, `shelf-48`, `overview` (REQUIREMENTS OC6); free text is allowed so real-use kinds (OC35) can add their own. |
+| `Photo.setting` | Capture setting: `whole-12`, `whole-48`, `shelf-48`, `overview` (REQUIREMENTS OC6), or `real-use` (OC35); free text is still allowed. |
 | `Photo.shelfIndex` | Which shelf of the case a per-shelf photo shows; `null` for a whole-case photo. |
 | `Photo.width`, `height` | Pixels of the **original** image. All polygons are in these pixels. |
 | `shelfBands` | One rotated rectangle per shelf, drawn on whole-case photos (and optionally on per-shelf photos). Sorted top to bottom by centre y. |

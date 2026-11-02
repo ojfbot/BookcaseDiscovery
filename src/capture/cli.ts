@@ -9,7 +9,7 @@ export const ingestUsage = `usage: bookcase ingest <folder> --session <name> [--
 
   <folder>       an exported folder of originals (read only; it is never written to)
   --session      scan session name, e.g. sf-store-001
-  --settings     JSON map: file name -> "whole-12" | "whole-48" | "shelf-48" | "overview"
+  --settings     JSON map: file name -> "whole-12" | "whole-48" | "shelf-48" | "overview" | "real-use"
                  or {"setting": "...", "shelfIndex": n}
   --min-pixels   session minimum in pixels (default ${DEFAULT_MIN_PIXELS})
 
