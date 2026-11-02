@@ -25,3 +25,6 @@ conversations.json
 *.mlpackage/
 *.safetensors
 chat.html
+
+# SwiftPM build output
+.build/

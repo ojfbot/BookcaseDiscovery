@@ -76,6 +76,8 @@ Each helper reads one JSON object per line from stdin and writes one per line to
 
 Example lines: `test/fixtures/contracts/helpers/*.jsonl`. Zod: `src/ledger/helper-contracts.ts`.
 
+OCR semantics (card P-1; details in [`helpers/ocr-vision/README.md`](../helpers/ocr-vision/README.md)): the request polygon is in the stored pixels of the working copy and the helper applies no EXIF orientation; a request yields two variants per rotation, correction off then on, in request order; `rotations` may name 0, 90, 180 or 270; `confidence` is the mean over recognised lines and `text` joins them with a newline. TypeScript callers use `runOcr` in `src/perceive/ocr.ts`.
+
 ## The Ledger interface
 
 `src/ledger/ledger.ts`. L-1 ships `MemoryLedger`; L-2 adds SQLite behind the same interface.
