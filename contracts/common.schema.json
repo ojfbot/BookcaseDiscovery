@@ -191,6 +191,361 @@
           "type": "string"
         }
       }
+    },
+    "Evidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "score"
+      ],
+      "properties": {
+        "kind": {
+          "enum": [
+            "title-fragment",
+            "author-fragment",
+            "isbn",
+            "series",
+            "neighbour",
+            "adjudication",
+            "correction",
+            "threshold"
+          ]
+        },
+        "score": {
+          "type": "number"
+        },
+        "detail": {
+          "type": "string"
+        }
+      }
+    },
+    "Candidate": {
+      "description": "A Work (and optionally one Edition of it). Work and Edition stay separate (INV-3).",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "workId",
+        "title",
+        "author",
+        "score",
+        "evidence"
+      ],
+      "properties": {
+        "workId": {
+          "$ref": "#/definitions/Id"
+        },
+        "editionId": {
+          "$ref": "#/definitions/Id"
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1
+        },
+        "author": {
+          "type": "string",
+          "minLength": 1
+        },
+        "year": {
+          "type": "integer"
+        },
+        "series": {
+          "type": "string",
+          "minLength": 1
+        },
+        "score": {
+          "type": "number"
+        },
+        "evidence": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/definitions/Evidence"
+          }
+        }
+      }
+    },
+    "UnknownHypothesis": {
+      "description": "The none-of-the-above hypothesis. Required wherever candidates are listed, so no match is ever forced (INV-5).",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "score",
+        "evidence"
+      ],
+      "properties": {
+        "score": {
+          "type": "number"
+        },
+        "evidence": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Evidence"
+          }
+        }
+      }
+    },
+    "FrameIndex": {
+      "description": "Position of a frame in a live session's capture stream, counted from 0 in arrival order. Every frame the tracker sees has one, whether or not a FrameSample was written for it.",
+      "type": "integer",
+      "minimum": 0
+    },
+    "FramePixels": {
+      "description": "The pixel frame of a live frame (S9), like working-copy pixels for a photo: the frame as the detector receives it, upright as the owner sees it (device orientation applied), origin top-left, x right, y down, extent width x height as the session's FrameSample reports. Every polygon in a live event is in this grid.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "width",
+        "height"
+      ],
+      "properties": {
+        "width": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "height": {
+          "type": "integer",
+          "minimum": 1
+        }
+      }
+    },
+    "TrackState": {
+      "description": "Where a track is in its life. Legal moves are the table in docs/contracts.md (Track): born to stable or lost, stable to lost, lost back to stable only if it had been stable.",
+      "enum": [
+        "born",
+        "stable",
+        "lost"
+      ]
+    },
+    "Viewpoint": {
+      "description": "Which side of the spine the camera sees it from, bucketed (a half of an INV-20 condition). The bucket edges are T-3's parameters, not part of the contract.",
+      "enum": [
+        "left-oblique",
+        "frontal",
+        "right-oblique"
+      ]
+    },
+    "Exposure": {
+      "description": "How the spine is lit in the frame, bucketed (the other half of an INV-20 condition).",
+      "enum": [
+        "under",
+        "normal",
+        "over"
+      ]
+    },
+    "OcrCondition": {
+      "description": "The conditions a reading was taken under (INV-20). Readings of one track with the same condition differ only in time and count as one observation; a band may rise only on agreeing readings under different conditions.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "viewpoint",
+        "exposure"
+      ],
+      "properties": {
+        "viewpoint": {
+          "$ref": "#/definitions/Viewpoint"
+        },
+        "exposure": {
+          "$ref": "#/definitions/Exposure"
+        }
+      }
+    },
+    "Pose": {
+      "description": "Where the spine sits in one frame: its quad in live-frame pixels (FramePixels) and its tilt.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "polygon",
+        "tiltDegrees"
+      ],
+      "properties": {
+        "polygon": {
+          "$ref": "#/definitions/Polygon"
+        },
+        "tiltDegrees": {
+          "description": "Angle of the spine's long axis from vertical, clockwise positive, from -90 to 90.",
+          "type": "number",
+          "minimum": -90,
+          "maximum": 90
+        }
+      }
+    },
+    "CardBand": {
+      "description": "A card shows a band beside its rank. 'unknown' spines are not recommendable.",
+      "enum": [
+        "verified",
+        "probable",
+        "candidate"
+      ]
+    },
+    "CardState": {
+      "description": "One card as shown: a Work recommended at a tracked spine. The band sits beside the rank and is never multiplied into it.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "workId",
+        "trackId",
+        "rank",
+        "band",
+        "lens",
+        "rationale"
+      ],
+      "properties": {
+        "workId": {
+          "$ref": "#/definitions/Id"
+        },
+        "trackId": {
+          "$ref": "#/definitions/Id"
+        },
+        "rank": {
+          "description": "Position in the card list, 1 first.",
+          "type": "integer",
+          "minimum": 1
+        },
+        "band": {
+          "$ref": "#/definitions/CardBand"
+        },
+        "lens": {
+          "description": "The interest lens the card was ranked under.",
+          "type": "string",
+          "minLength": 1
+        },
+        "rationale": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "CardFieldChange": {
+      "description": "One field of a card that a revision changed: the field, what it was, what it is (INV-21). The fields are the CardState fields; CardRevised.diff lists exactly those that differ, once each, in the order rank, workId, trackId, band, lens, rationale.",
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "field",
+            "from",
+            "to"
+          ],
+          "properties": {
+            "field": {
+              "const": "rank"
+            },
+            "from": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "to": {
+              "type": "integer",
+              "minimum": 1
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "field",
+            "from",
+            "to"
+          ],
+          "properties": {
+            "field": {
+              "const": "workId"
+            },
+            "from": {
+              "$ref": "#/definitions/Id"
+            },
+            "to": {
+              "$ref": "#/definitions/Id"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "field",
+            "from",
+            "to"
+          ],
+          "properties": {
+            "field": {
+              "const": "trackId"
+            },
+            "from": {
+              "$ref": "#/definitions/Id"
+            },
+            "to": {
+              "$ref": "#/definitions/Id"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "field",
+            "from",
+            "to"
+          ],
+          "properties": {
+            "field": {
+              "const": "band"
+            },
+            "from": {
+              "$ref": "#/definitions/CardBand"
+            },
+            "to": {
+              "$ref": "#/definitions/CardBand"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "field",
+            "from",
+            "to"
+          ],
+          "properties": {
+            "field": {
+              "const": "lens"
+            },
+            "from": {
+              "type": "string",
+              "minLength": 1
+            },
+            "to": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "field",
+            "from",
+            "to"
+          ],
+          "properties": {
+            "field": {
+              "const": "rationale"
+            },
+            "from": {
+              "type": "string",
+              "minLength": 1
+            },
+            "to": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        }
+      ]
     }
   }
 }

@@ -1,0 +1,25 @@
+{
+  "type": "OcrReading",
+  "ts": "2026-11-02T10:00:00Z",
+  "runId": "run-synthetic-001",
+  "payload": {
+    "trackId": "track-001",
+    "condition": {
+      "viewpoint": "left-oblique",
+      "exposure": "under"
+    },
+    "source": "fast",
+    "frameIndices": [
+      133
+    ],
+    "rotation": 0,
+    "langCorrection": false,
+    "text": "",
+    "confidence": 0.2,
+    "ocr": {
+      "helper": "ocr-vision",
+      "os": "26.0",
+      "requestRevision": 3
+    }
+  }
+}

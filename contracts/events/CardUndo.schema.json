@@ -1,0 +1,26 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/ojfbot/BookcaseDiscovery/blob/main/contracts/events/CardUndo.schema.json",
+  "title": "CardUndo",
+  "description": "Payload: the owner undid a card's most recent revision (S9). It names the CardRevised it reverses and states the card it restores; the ledger checks that is the most recent revision not yet undone, for this card, and that 'restored' is that revision's 'previous'. Undo walks back one revision at a time.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "cardId",
+    "revisionEventSeq",
+    "restored"
+  ],
+  "properties": {
+    "cardId": {
+      "$ref": "../common.schema.json#/definitions/Id"
+    },
+    "revisionEventSeq": {
+      "description": "Ledger position of the CardRevised being undone.",
+      "$ref": "../common.schema.json#/definitions/Seq"
+    },
+    "restored": {
+      "description": "What the card is again.",
+      "$ref": "../common.schema.json#/definitions/CardState"
+    }
+  }
+}

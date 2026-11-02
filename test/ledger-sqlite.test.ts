@@ -7,6 +7,7 @@ import { afterAll, describe, expect, it } from "vitest";
 import { MemoryLedger, SqliteLedger, diffValues, replay } from "../src/ledger/index.ts";
 import { main } from "../src/run/index.ts";
 import { ledgerBehaviour } from "./ledger-behaviour.ts";
+import { liveBehaviour } from "./live-behaviour.ts";
 import { example, scenario, spine, status } from "./helpers/ledger-fixtures.ts";
 
 const dir = mkdtempSync(join(tmpdir(), "bookcase-ledger-"));
@@ -30,6 +31,7 @@ function filled(path = dbPath()): SqliteLedger {
 
 // The same behaviour as the in-memory ledger (test/ledger-behaviour.ts), on a file database.
 ledgerBehaviour("SqliteLedger", (options) => open(dbPath(), options));
+liveBehaviour("SqliteLedger", (options) => open(dbPath(), options));
 
 describe("SqliteLedger: storage", () => {
   it("uses WAL mode on a file database", () => {
@@ -90,6 +92,33 @@ describe("SqliteLedger: storage", () => {
     const readOnly = open(ledgerPath, { readOnly: true });
     expect(readOnly.lastSeq()).toBe(scenario().length);
     expect(() => readOnly.append(example("PreferenceRecorded"))).toThrow(/read-only/);
+  });
+});
+
+describe("SqliteLedger: a version-1 database (before the live track)", () => {
+  /** A v2 ledger made to look like L-2's: the live tables dropped, user_version back to 1. */
+  function version1(): { path: string; dump: string } {
+    const path = dbPath();
+    const ledger = filled(path);
+    const dump = JSON.stringify({ ...ledger.viewDump(), tracks: [], cards: [], adjudicationRequests: [] });
+    ledger.close();
+    const db = new DatabaseSync(path);
+    db.exec("DROP TABLE tracks; DROP TABLE cards; DROP TABLE adjudication_requests; PRAGMA user_version = 1;");
+    db.close();
+    return { path, dump };
+  }
+
+  it("is refused read-only, and upgraded in place by a writable open, keeping its events and views", () => {
+    const { path, dump } = version1();
+    expect(() => new SqliteLedger(path, { readOnly: true })).toThrow(/not a ledger database/);
+    const upgraded = open(path);
+    expect(JSON.stringify(upgraded.viewDump())).toBe(dump);
+    expect(upgraded.lastSeq()).toBe(scenario().length);
+    upgraded.append(example("Track.born"));
+    expect(upgraded.tracks()).toHaveLength(1);
+    upgraded.close();
+    const again = open(path, { readOnly: true });
+    expect(again.tracks()).toHaveLength(1);
   });
 });
 
