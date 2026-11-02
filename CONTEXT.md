@@ -18,11 +18,11 @@ The record shapes these words name are in `contracts/` and explained in `docs/co
 ## Photos and ingest
 
 - **Scan session** — one visit's set of photos, ingested together (`ScanSessionOpened`). Named like a fixture (`sf-store-001`).
-- **Original** — the file exactly as exported from the phone ("Export Unmodified Original"). Hashed first, never written to (INV-12). Edited derivatives (`IMG_E*`, `.AAE` sidecar) are flagged.
-- **Working copy** — the GPS-stripped copy every later stage reads (INV-12). Same pixels as the original.
+- **Original** — the file exactly as exported from the phone ("Export Unmodified Original"). Hashed first, never written to (INV-12). Edited derivatives are **flagged, not rejected** (OC35): an `IMG_E*` name, an `.AAE` sidecar, a `Software` tag that is not the camera's, or an EXIF size that differs from the stored pixels.
+- **Working copy** — the GPS-stripped, orientation-normalised copy every later stage reads (INV-12): pixels rotated per EXIF Orientation and the tag cleared (set to 1), so it has one pixel frame. Its hash is `workingCopyHash`; `imageHash` is the untouched original's.
 - **Image asset** — an original that passed validation, identified by its SHA-256 (`ImageAssetIngested`). A file that fails is **rejected** (`ImageRejected`) with reasons and never processed.
 - **Photo setting** — how a photo was taken: `whole-12` (whole case, 12 MP), `whole-48` (whole case, 48 MP), `shelf-48` (one shelf, 48 MP), `overview`. E1 compares them (OC6).
-- **Original-image pixels** — the coordinate frame of a polygon: the pixel grid of the image it was found in, origin top-left. The report scales from it to display size.
+- **Working-copy pixels** — the coordinate frame of every box and polygon: the decoded pixel grid of the working copy, origin top-left, as `ImageAssetIngested.width/height` report it. The report scales from it to display size. (Replaces "original-image pixels": the original may carry an Orientation tag that the working copy has applied.)
 - **Content-addressed** — stored under its own hash, so the path never matters (ADR §10).
 
 ## Observation, hypothesis, work (INV-3)
@@ -46,6 +46,7 @@ These are kept apart on purpose: raw evidence is stored separately from interpre
 
 - **Band** — how strongly we hold an identity. **`verified`** (an ISBN read that matches an edition, or an owner correction), **`probable`** (title and author both match one candidate with a margin, no contradiction), **`candidate`** (a partial match with alternatives alive), **`unknown`**. Evidence bands, not probabilities (A4).
 - **Status** — where a spine is in the work: **`unresolved`**, **`resolved`**, **`paused`**, **`needs-pixels`**. There is no `exhausted` (INV-1). A spent budget gives `paused` (INV-2); `resolved → unresolved` happens only on a trigger.
+- **Status machine** — the table of legal status changes (`src/ledger/status.ts`). `StatusChanged` carries an optional **cause** where the table asks for one: `budget-spent` for a pause, a trigger for reopening a resolved spine.
 - **Unresolved reason** — why a spine is `unknown` (INV-8): **`missing-pixels`**, **`no-catalog-candidate`**, **`conflicting-evidence`**, **`strategies-exhausted`**. A reason on an observation, never a state of a shelf. "Strategies exhausted" means *current* strategies, and a new image or model reopens it.
 - **Trigger** — an event that requeues observations: a new image, a correction, a catalog refresh, a model change.
 - **Recognition coverage** — identified spines over all spines on a shelf, with each `unknown`'s reason. The aim is every spine (OC32); the number is measured, never claimed (INV-23).
@@ -65,7 +66,8 @@ These are kept apart on purpose: raw evidence is stored separately from interpre
 - **Event** — one fact in the ledger: `{seq, type, ts, runId, payload}`. Defined by a JSON Schema.
 - **Seq** — an event's position in the ledger, assigned on append.
 - **View** — current state derived from the events (observations, hypotheses, bands, statuses, work items, recommendations). Rebuilt by replay.
-- **Replay** — rebuild the views from the log; the result must be identical (INV-14).
+- **Replay** — rebuild the views from the log; the result must be identical (INV-14). `bookcase replay <db> --to <fresh db>` does it and diffs.
+- **Image store** — the content-addressed directory of originals and working copies under `$BOOKCASE_DATA/images/sha256/` (`docs/ledger.md`).
 - **Contract** — a JSON Schema in `contracts/`, the source of truth for a record shape (OC13). Zod validators are checked against it.
 - **Helper** — a separate process behind a contract, speaking JSON Lines over stdin/stdout: `detect` (Python) and `ocr-vision` (Swift).
 - **JSON Lines** — one JSON object per line, one request or response each.
