@@ -91,4 +91,4 @@ Project **V-1a owner trial (synthetic shelf)** holds the 48 MP synthetic shelf w
 4. Note how many spines you finished, what slowed you, and anything that would stop you doing 30–60 spines in a sitting.
 5. Optional: Submit, Export → JSON, `pnpm labels:import <file> --session v1a-trial`.
 
-**Verdict: pending.** Record here: spines labelled in 10 minutes, blockers (yes / no, which), adopt or build.
+**Verdict (owner, 2026-11-02): not adopted. No hand labelling (OC36).** The owner ran the trial from a laptop over the LAN and stopped: drawing rotated boxes and typing titles is very tedious and not worth their time. The agent-timing clause was waived by the owner beforehand. Label Studio is not adopted and V-1b is not built. The label schema (`src/eval/labels.ts`) and converter stay, for importing a public yardstick dataset and machine labels.
