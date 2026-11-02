@@ -1,0 +1,68 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/ojfbot/BookcaseDiscovery/blob/main/contracts/helpers/ocr-response.schema.json",
+  "title": "ocr response",
+  "description": "One JSON Lines record on the OCR helper's stdout: one variant per (rotation x language-correction), or an error for that id.",
+  "oneOf": [
+    {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "variants",
+        "version"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "../common.schema.json#/definitions/Id"
+        },
+        "variants": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "rotation",
+              "langCorrection",
+              "text",
+              "confidence"
+            ],
+            "properties": {
+              "rotation": {
+                "$ref": "../common.schema.json#/definitions/Rotation"
+              },
+              "langCorrection": {
+                "type": "boolean"
+              },
+              "text": {
+                "type": "string"
+              },
+              "confidence": {
+                "$ref": "../common.schema.json#/definitions/Confidence"
+              }
+            }
+          }
+        },
+        "version": {
+          "$ref": "../common.schema.json#/definitions/OcrVersion"
+        }
+      }
+    },
+    {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "error"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "../common.schema.json#/definitions/Id"
+        },
+        "error": {
+          "$ref": "../common.schema.json#/definitions/HelperError"
+        }
+      }
+    }
+  ]
+}

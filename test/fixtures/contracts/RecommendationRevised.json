@@ -1,0 +1,29 @@
+{
+  "type": "RecommendationRevised",
+  "ts": "2026-11-02T10:00:00Z",
+  "runId": "run-synthetic-001",
+  "payload": {
+    "recommendationId": "rec-001",
+    "rankingVersion": "synthetic-1",
+    "recommendation": {
+      "workId": "work-alpha",
+      "observationId": "obs-001",
+      "rank": 2,
+      "band": "verified",
+      "lens": "reading-taste",
+      "rationale": "Synthetic rationale: shares a theme with a liked example."
+    },
+    "previous": {
+      "workId": "work-alpha",
+      "observationId": "obs-001",
+      "rank": 1,
+      "band": "probable",
+      "lens": "reading-taste",
+      "rationale": "Synthetic rationale: shares a theme with a liked example."
+    },
+    "reasonEventSeqs": [
+      12,
+      14
+    ]
+  }
+}

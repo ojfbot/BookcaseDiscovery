@@ -1,0 +1,15 @@
+{
+  "id": "s",
+  "variants": [
+    {
+      "rotation": 0,
+      "text": "x",
+      "confidence": 0.5
+    }
+  ],
+  "version": {
+    "helper": "synthetic-ocr 0.0.0",
+    "os": "synthetic-os 1.0",
+    "requestRevision": 3
+  }
+}

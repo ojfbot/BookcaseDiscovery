@@ -1,0 +1,14 @@
+{
+  "type": "RunFinished",
+  "ts": "2026-11-02T10:00:00Z",
+  "runId": "run-synthetic-001",
+  "payload": {
+    "outcome": "completed",
+    "usage": {
+      "adjudications": 0,
+      "inputTokens": 0,
+      "outputTokens": 0
+    }
+  },
+  "seq": 42
+}

@@ -1,0 +1,36 @@
+{
+  "type": "SpineObserved",
+  "ts": "2026-11-02T10:00:00Z",
+  "runId": "run-synthetic-001",
+  "payload": {
+    "observationId": "obs-001",
+    "sessionId": "session-synthetic",
+    "imageHash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "setting": "shelf-48",
+    "polygon": [
+      [
+        100,
+        50
+      ],
+      [
+        140,
+        50
+      ],
+      [
+        140,
+        900
+      ],
+      [
+        100,
+        900
+      ]
+    ],
+    "score": 0.93,
+    "shelf": 2,
+    "ordinal": -1,
+    "detector": {
+      "backend": "synthetic-detector",
+      "weightsSha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+    }
+  }
+}

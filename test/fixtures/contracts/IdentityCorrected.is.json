@@ -1,0 +1,12 @@
+{
+  "type": "IdentityCorrected",
+  "ts": "2026-11-02T10:00:00Z",
+  "runId": "run-synthetic-001",
+  "payload": {
+    "observationId": "obs-001",
+    "correction": {
+      "kind": "is",
+      "workId": "work-alpha"
+    }
+  }
+}

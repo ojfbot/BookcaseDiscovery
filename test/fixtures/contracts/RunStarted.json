@@ -1,0 +1,19 @@
+{
+  "type": "RunStarted",
+  "ts": "2026-11-02T10:00:00Z",
+  "runId": "run-synthetic-001",
+  "payload": {
+    "codeCommit": "5108a5c0000000000000000000000000000000ff",
+    "helperVersions": {
+      "detect": "synthetic-detector 0.0.0",
+      "ocr-vision": "synthetic-ocr 0.0.0"
+    },
+    "modelIds": [
+      "synthetic-model"
+    ],
+    "budget": {
+      "maxAdjudications": 50,
+      "maxSpendUsd": 1.5
+    }
+  }
+}

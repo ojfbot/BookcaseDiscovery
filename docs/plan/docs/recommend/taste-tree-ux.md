@@ -734,3 +734,9 @@ Kim Stanley Robinson liked, cooler on Neal Stephenson. Every branch below is a
 No external sources: a synthesis of this conversation, the U-3 brief (`~/selfco/prompts/bookcase-discovery-chat-layer-ux-handoff.md`), the [[BookcaseDiscovery]] plan (`REQUIREMENTS.md` OC9, OC33, INV-21; `DELIVERY-PLAN.md` U-3, R-0, R-3, T-4; `docs/live/overlay-ux.md` §10), and the public reading profile (three owner statements). Book titles are works by the seed authors, used as examples of the seeds, not as reading history beyond what the seeds state.
 Series: bookcase-discovery-u3-chat-layer-ux · Part 02 of 2 · Previous: [[bookcase-discovery-u3-chat-layer-ux — Part 01: 002 agent asks, you tap]] · Next: [[none]]
 — end of part 02 —
+
+---
+## 16. Owner rulings (2026-11-02, key questions)
+4. **Public tree:** only nodes the user **stated** (ASSERTED) go into the public `profile/seeds.json`. Accepted SYNTH hypotheses stay private in `$BOOKCASE_DATA/private/`, and still shape the user's own picks.
+
+The remaining questions (1–3, 5–8) take the spec's proposals as starting values until the owner rules; question 1, the vocabulary, waits for R-0.

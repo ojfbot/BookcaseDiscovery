@@ -1,0 +1,13 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/ojfbot/BookcaseDiscovery/blob/main/contracts/events/WorkItemClosed.schema.json",
+  "title": "WorkItemClosed",
+  "description": "Payload: a work item is done or no longer needed.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["workItemId", "resolution"],
+  "properties": {
+    "workItemId": { "$ref": "../common.schema.json#/definitions/Id" },
+    "resolution": { "enum": ["fulfilled", "withdrawn"] }
+  }
+}

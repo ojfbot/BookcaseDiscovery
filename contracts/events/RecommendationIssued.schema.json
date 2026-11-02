@@ -1,0 +1,14 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/ojfbot/BookcaseDiscovery/blob/main/contracts/events/RecommendationIssued.schema.json",
+  "title": "RecommendationIssued",
+  "description": "Payload: a Work was recommended, located at a spine.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["recommendationId", "rankingVersion", "recommendation"],
+  "properties": {
+    "recommendationId": { "$ref": "../common.schema.json#/definitions/Id" },
+    "rankingVersion": { "type": "string", "minLength": 1 },
+    "recommendation": { "$ref": "../common.schema.json#/definitions/RecommendationState" }
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/ojfbot/BookcaseDiscovery/blob/main/contracts/events/PreferenceRecorded.schema.json",
+  "title": "PreferenceRecorded",
+  "description": "Payload: the owner said how they feel about a Work. About taste only: a rejected recommendation is not a wrong identity (INV-7). Shares no definition with IdentityCorrected.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["workId", "preference"],
+  "properties": {
+    "workId": { "$ref": "../common.schema.json#/definitions/Id" },
+    "preference": { "enum": ["more", "less", "not-for-me", "already-read"] }
+  }
+}

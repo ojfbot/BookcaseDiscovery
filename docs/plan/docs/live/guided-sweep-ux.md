@@ -659,3 +659,11 @@ Each is phrased so a coding agent can turn it into a test (unit, UI or fixture-c
 12. **Time-to-result target** for O-7: is 1–2 × pan duration the right frame?
 ## Sources
 No external sources: a synthesis of this conversation, the U-2 brief (`~/selfco/prompts/bookcase-discovery-guided-sweep-ux-handoff.md`), the [[BookcaseDiscovery]] plan (`REQUIREMENTS.md` OC28, OC30–OC33, INV-20–INV-24; `DELIVERY-PLAN.md` U-2, T-9; `docs/live/overlay-ux.md` §10) and the U-1 spec, [[bookcase-discovery-u1-overlay-ux — Build handoff spec (visuals by link)]].
+
+---
+## 11. Owner rulings (2026-11-02, in progress)
+4. **Faces on book covers:** cover art is published material, and showing it matters to the experience. **Faces inside a detected book box are kept and shown.** Faces outside every book box (likely bystanders) have only that region blurred, and the keyframe is kept. A keyframe is dropped only when a person fills a large part of it, or when a face straddles a book box ambiguously. This narrows §8 items 3–4 and acceptance check 19: a fixture face on a cover is kept, a fixture bystander face is blurred. INV-22 is amended to match.
+3. **Capture resolution:** 4K, with an automatic per-device fallback to 1080p under thermal pressure or dropped frames. It is recorded in the ledger per pass. Recognition (OC32) wins over pan speed.
+7. **Keyframe retention:** keyframes **expire after 30 days**, unless the sweep is pinned or its keyframes were already ingested into the training set (F-1). "Delete this sweep" still works at any time.
+
+The remaining questions (1, 2, 5, 6, 8–12) take the spec's proposals as starting values until the owner rules.
