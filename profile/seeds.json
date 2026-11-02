@@ -16,6 +16,20 @@
       }
     },
     {
+      "id": "seed-gibson-liked",
+      "subject": {
+        "kind": "author",
+        "name": "William Gibson"
+      },
+      "relation": "liked",
+      "scope": "all-works",
+      "provenance": {
+        "source": "owner-statement",
+        "ref": "owner answer, O-4 profile review 2026-11-02",
+        "date": "2026-11-02"
+      }
+    },
+    {
       "id": "seed-robinson-liked",
       "subject": {
         "kind": "author",

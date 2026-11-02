@@ -88,7 +88,7 @@ describe("expandProfile", () => {
     const names = profile.entries.filter((e) => e.expanded).map((e) => e.subject.name);
     expect(names).not.toContain("Red Mars");
     expect(names).not.toContain("Snow Crash");
-    expect(profile.entries.filter((e) => !e.expanded)).toHaveLength(3);
+    expect(profile.entries.filter((e) => !e.expanded)).toHaveLength(seeds().entries.length);
   });
 
   it("is idempotent, and does not change what the centre sees", () => {
