@@ -22,7 +22,7 @@ These are things only the owner can do or decide. Items 1 and 2 are on the criti
 | 0 | Before GO | **Create the public repo `ojfbot/BookcaseDiscovery`** yourself, empty except for a README. The conductor clones it in Z-0; agents don't create it. **Done 2026-11-02:** created public at https://github.com/ojfbot/BookcaseDiscovery, with an AGPL-3.0 `LICENSE` and a stub README, on branch `main`. Claude created it at the owner's explicit authorisation. Z-0 keeps the GitHub `LICENSE` instead of writing its own. | — |
 | 0b | ~~Before GO~~ **Done 2026-10-31** | ~~Pick the repo licence~~ **Owner chose AGPL-3.0 for the whole repo** ("AGPL-3.0 repo"). Z-0 writes `LICENSE` as AGPL-3.0; `helpers/detect` needs no carve-out; owner-trained weights may be published under AGPL-3.0 once G-W rules. | — |
 | 1 | **Now** (O-1) ⌨ | **Get the bookcase originals onto Yojimbo.** Try these in order and stop at the first that works.<br>**(a)** On the Mac, open System Settings → your name. Confirm it is the **same Apple ID** as on the iPhone (Settings → your name). Then open Photos → Settings → iCloud, turn **iCloud Photos** on, and choose **Download Originals to this Mac**. Wait for the album to appear, then File → Export → **Export Unmodified Original** into `~/data/bookcase-discovery/inbox/<album>/`.<br>**(b)** AirDrop. On the iPhone, select the album's photos, tap Share, then **Options** at the top, and turn on **All Photos Data**. AirDrop to Yojimbo; the files land in `~/Downloads`. This path is unverified, so card K-2 checks dimensions and EXIF before anything uses the files.<br>**(c)** USB cable and Image Capture on the Mac: import the album's photos as HEIC.<br>Then tell the conductor three things: which path worked, the folder, and how many photos the album holds. | (a) if the Apple IDs match; otherwise (b) |
-| 2 | **Book now; do after the shoot** (O-3a, O-3b) ⌨ | **Changed by OC34 (2026-11-02).** Reserve **under an hour** for the blind audit slice: about 2 shelves, labelled before you see any machine output. Then one review session for the spines the machines flag; that time is measured, not estimated. Do a 10-minute trial of Label Studio when V-1a merges. | Book the audit right after the shoot |
+| 2 | ~~Book now; do after the shoot (O-3a, O-3b)~~ **Withdrawn 2026-11-02 (OC36)** | **No labelling sessions.** Machines label; a public dataset and the catalog score them. Optional: yes/no taps on your phone (V-6) whenever you feel like it, about 10 minutes, no drawing. | — |
 | 3 | Before GO | **Confirm the default OCs** in `REQUIREMENTS.md`: OC5–OC8, OC10–OC14 and OC18. OC1–OC4, OC9, OC16, OC17 and OC19 are already confirmed. | Accept all |
 | 4 | Before GO | **Say GO** to the conductor, scoped to this plan's Low and Medium cards. | "GO for BookcaseDiscovery DELIVERY-PLAN cards" |
 | 5 | Before GO | **Approve downloads** into `$BOOKCASE_DATA` (`~/data/bookcase-discovery/`, about 8 GB of working space now that Open Library is post-MVP (OC20); Yojimbo had 313 GB free on 2026-10-31):<br>• the ISFDB database dump (about 315 MB, a snippet figure);<br>• YOLO-OBB pretrained weights (Ultralytics);<br>• a SAM checkpoint, **only if P-3 is triggered** (OC23).<br>**You download** the public spine datasets that need an account (Roboflow book-spine set, IEEE DataPort shelf-spine set) into `~/data/bookcase-discovery/proxy/`. Agents don't create accounts. | Approve all; download both datasets |
@@ -63,13 +63,13 @@ S1–S3 run **in parallel** from GO. S4 is the owner's lane and starts with chec
 | **S1** Foundations (no photos) | Contracts, ledger, validator, labels, scorer, report scaffold | L-1, L-2, K-0, K-1, V-1a (V-1b fallback), V-2, W-1 | S0 | Synthetic end to end: a generated image passes through `ingest` (accept and reject cases), fake observations go through the ledger, then through `replay`, the scorer and the report. All in one test script, `pnpm test:e2e-synthetic` | Report on synthetic data |
 | **S2** Catalog and profile | Local SF catalog (ISFDB only, OC20) with fragment retrieval; seed profile | C-0, C-1, C-3, R-1, O-4 | S0; checklist #5 | C-3 golden set: ≥90 % top-5 on clean fragments, noisy-fragment rate recorded; profile seeds load; `docs/licences.md` shows no blocker to local use | `bookcase catalog query "GIBS NEUROM"` |
 | **S3** Perception spikes (PROXY) | OCR helper, detector helper, perceive wiring on public library-shelf images | P-1, P-2, P-4, (P-3 only if triggered, OC23) | S0; checklist #5–#6 | `perceive` on 3 held-out proxy images writes traceable observations; `replay` is identical; PROXY metrics recorded under `evals/proxy-*` | Report with boxes and OCR on a proxy image, labelled PROXY |
-| **S4** Fixture (owner lane) | Labelled, verified originals of `sf-store-001` | O-1, K-2, O-2, K-3, O-3, V-3, (V-4) | GO for O-1; the protocol in checklist #8 for O-2; V-1a (or V-1b) for O-3; C-3 for V-3 | `fixtures/sf-store-001/manifest.json` validates; every manifest photo is a verified original; 100 % of readable labels resolved to a catalog ID or `not-in-catalog` | — |
+| **S4** Fixture (owner lane) | Labelled, verified originals of `sf-store-001` | O-1, K-2, O-2, K-3, F-0, V-3 (OC36: O-3 and V-4 withdrawn) | GO for O-1; the protocol in checklist #8 for O-2; H-0 for F-0; C-3 for V-3 | `fixtures/sf-store-001/manifest.json` validates; every manifest photo is a verified original; 100 % of readable labels resolved to a catalog ID or `not-in-catalog` | — |
 | **S5** M1 — traceable observations | E1, E2 and E3 on the real fixture; perceive defaults chosen | E-1, E-2, E-3 | S1, S3, S4 | Assessment §11 acceptance: every observation traces to image hash, box and versions; re-run reproducible from the ledger; scorer numbers recorded. Packets for G-P (decided), G-E1 and G-M1 (asked) | **M1 demo:** fixture report with boxes and OCR, plus E1–E3 numbers |
 | **S6** Identify | Retrieval, joint assignment, bands, adjudicator, scheduler; E4, E5 | I-1, I-2, I-3, **[G-R]**, I-4, I-5, E-4, E-5 | S2, S5 (G-P); **G-R before I-4** | E-4 and E-5 run records; packets G-E4 and G-E5 ruled; INV-1, 2, 5, 6, 13 tests green | Fixture report with bands and candidates |
 | **S7** Recommend and corrections | Ranked, explained, located recommendations; corrections reactivate | R-2, R-3, W-2 | S2 (R-1), S6 (I-3; I-5 for R-3) | INV-7 and INV-9 tests; fixture report shows recommendations with click-to-locate and the unresolved queue | Full report |
 | **S8** MVP | One clean end-to-end run, owner judgement, handoff | M-1, O-5, D-1, D-2 (D-1 waits for G-LIVE too) | S6 and S7 exits; G-E4 ruled | **G-MVP** (owner) on the M-1 report and `evals/MVP/` | **MVP demo** |
 | **S9** Live track (gap cycle, OC24–OC25) | Stage A: the streaming stage graph on a Mac harness. Stage B: the loop on the phone. Live scorer and the live-vs-still experiment | T-0, T-1, T-2, T-3, T-4, T-5 · **[G-SURF]** · T-6, T-8, T-7a, T-7b · V-5, O-6, E-6, O-7 | T-0 after L-1; T-1 needs the owner's iPhone on the Mac; Stage B after F-2 (fixture-trained detector) and G-SURF; E-6 after V-5 labels and T-7b | **G-LIVE** (owner): V-5 metrics on the video fixtures against the owner's targets (O-7) | Stage A: sticky labels and revising cards on the Mac from the Continuity Camera. Stage B: the same on the phone |
-| **S10** Flywheel (gap cycle, OC27) | Dataset manifest, grouped splits, training on MPS, registry, prefill-and-correct, held-out harness | F-1, F-2, F-3, F-4 · **[G-LIC]** before F-2 | F-1 after K-3; F-2 after O-3 labels, P-2 and G-LIC; F-0 on `sf-store-001` after O-3a; F-3 for later fixtures; F-4 after V-2 and V-5 | `models/registry/` holds one owner-trained detector with manifest hash, held-out metrics and a model-card stub; F-4 runs it on stills and clips; the Z-1 guard rejects weight and video files | A registry record and the harness output |
+| **S10** Flywheel (gap cycle, OC27) | Dataset manifest, grouped splits, training on MPS, registry, prefill-and-correct, held-out harness | F-1, F-2, F-3, F-4 · **[G-LIC]** before F-2 | F-1 after K-3; F-2 after F-0's catalog-confirmed labels, P-2 and G-LIC; F-0 after H-0 (OC36); F-3 for later fixtures; F-4 after V-2 and V-5 | `models/registry/` holds one owner-trained detector with manifest hash, held-out metrics and a model-card stub; F-4 runs it on stills and clips; the Z-1 guard rejects weight and video files | A registry record and the harness output |
 
 ### Gates
 
@@ -91,6 +91,7 @@ S1–S3 run **in parallel** from GO. S4 is the owner's lane and starts with chec
 | **G-W** *(post-MVP, gap cycle)* Weights release | Whether owner-trained weights may be published, under which licence, with which model card | Owner | Packet: faces stripped from training data (counts); boxes-only detector; membership-inference test (loss-threshold attack) near chance on held-out vs training photos; licence chain; model card and datasheet; takedown contact | Any public weight file. Until ruled, only registry JSON (hashes, metrics) is public |
 
 **G-P pre-registered rule** (written before any fixture data is seen):
+- **OC36 (2026-11-02):** recall and merges-plus-splits are measured on H-0's public yardstick (PROXY) and, where they exist, on V-6 taps (real use). Without taps, the rule decides on the yardstick and the record says the real-use side is machine agreement only.
 - **Detector.** YOLO-OBB (P-2) is the default **if** its spine recall on the shelf-48 photos is ≥0.85 **and** its merge-plus-split rate is ≤10 %. If either fails, dispatch P-3 (SAM) and choose the arm with the higher recall; within 3 points, prefer fewer merges plus splits; still tied, prefer the faster one. If both arms miss the bar, apply F-DETECT (§6) and record it (OC23).
 - **OCR.** Apple Vision is the default. VLM transcription becomes the default only if both of these hold:
   - its character error rate (CER) on ground-truth boxes is ≥20 % lower (relative) than Vision's best variant;
@@ -264,8 +265,9 @@ S1–S3 run **in parallel** from GO. S4 is the owner's lane and starts with chec
   - **Decision rule** (pre-registered): adopt if a synthetic 20-spine shelf can be labelled in ≤25 minutes by the agent and the owner's 10-minute trial (checklist #2) raises no blocker. Otherwise dispatch **V-1b**.
 - **exit:** `pnpm test` (converter round-trips a Label Studio export into the schema and back); `docs/labelling.md` with the timings; the owner's trial verdict recorded. The tool reads and writes only under `$BOOKCASE_DATA/labels/` (private).
 - **tier:** T2 Sonnet · S · Low · ⌨ (10-minute trial) · feeds O-3 · budget 35.
+- **Outcome 2026-11-02 (OC36):** Label Studio not adopted. The owner tried it and stopped hand labelling. The label schema and converter (`src/eval/labels.ts`) stay, for importing the public yardstick and machine labels. V-1b is not built.
 
-#### V-1b · Custom labelling tool (fallback, only if V-1a's rule fails)
+#### ~~V-1b · Custom labelling tool~~ — withdrawn 2026-11-02 (OC36)
 - **goal:** a keyboard-first labeller tuned to spines.
 - **entry:** V-1a verdict "build".
 - **do:**
@@ -519,22 +521,15 @@ The Opus draft carded a science-fiction subset of the Open Library dumps here. T
 - **exit:** every photo accepted, or each reject explained; the manifest validates.
 - **tier:** T1 Haiku · S · Low · feeds O-3, M1 · budget 20.
 
-#### O-3a · Blind audit slice ⌨ (critical path; OC34)
-- **do:**
-  - Before seeing any machine output, label every spine position on about 2 shelves of `sf-store-001`. The conductor picks the shelves at random from the manifest and records them in `docs/fixtures/audit-slice.md`.
-  - Draw the shelf bands on both whole-case photos.
-- **exit:** the owner sends "audit done". The conductor validates the labels and locks the slice: the guard keeps it out of every training manifest and out of F-0's prefill.
-- About 30–60 spines, under an hour.
+#### ~~O-3a · Blind audit slice~~ — withdrawn 2026-11-02 (OC36)
+The owner stopped hand labelling. The scorecard is H-0's public yardstick (PROXY) plus optional V-6 taps (real use).
 
-#### O-3b · Review the machine labels ⌨ (critical path; OC34)
-- **entry:** F-0 run on the rest of the fixture.
-- **do:** work through the ranked review queue in Label Studio. Confirm or fix each flagged spine, add boxes for gaps, and mark any non-books. Unflagged spines are spot-checked: the conductor samples 10 % of them into the queue at random, so silent errors get counted.
-- **exit:** the owner sends "review done". The conductor records the number of spines flagged, corrected and added, and the spot-check error rate.
-- Time is measured, not estimated: it is the flywheel's headline number.
+#### ~~O-3b · Review the machine labels~~ — withdrawn 2026-11-02 (OC36)
+No review queue. F-0 accepts a label only when readers agree and the catalog confirms; the rest stays `unknown` with a reason.
 
 #### V-3 · Label resolution
 - **goal:** the labels carry catalog IDs, so identity can be scored.
-- **entry:** O-3, C-3.
+- **entry:** F-0 (OC36: machine labels, not O-3), C-3.
 - **do:** for each readable label without a `catalogId`:
   - run `retrieve`;
   - auto-accept on a unique exact normalized title-plus-author match;
@@ -546,7 +541,7 @@ The Opus draft carded a science-fiction subset of the Open Library dumps here. T
 
 #### V-4 · Catalog autocomplete in the labelling tool (optional)
 - **goal:** cut labelling time and make V-3 almost empty.
-- **entry:** V-1a (or V-1b) and C-3 merged **before O-3 starts**; otherwise drop the card.
+- **entry:** ~~V-1a (or V-1b) and C-3 merged before O-3 starts~~ **Dropped 2026-11-02 (OC36): there is no hand labelling to autocomplete.**
 - **do:**
   - A typed fragment shows catalog suggestions.
   - Free text is always allowed.
@@ -879,10 +874,10 @@ Newline unit per card: `CURRICULUM-MAP.md` §1b. All S9 cards inherit INV-20 to 
 - **exit:** on the video fixtures replayed through the device path, `evals/live-B/cards.json` (time to first useful card, revision rate, RBO) and `ocr.json` (CER of fast, accurate, fused); the live demo for G-LIVE.
 - **tier:** T2 Sonnet · M · Medium (paid calls via the Mac) · ⌨ · feeds E-6, G-LIVE · budget 70.
 
-#### V-5 · Video fixtures and the live scorer ⌨
+#### V-5 · Video fixtures and the live scorer
 - **goal:** the sweep clips become labelled fixtures, and the stream has a scorer.
 - **entry:** O-6 clips ingested by K-3 (hashes, no audio track); C-3; V-2.
-- **do:** CVAT via `uv`/Docker for keyframe labels with rotated boxes and track ids, interpolated between keyframes; a converter to the label schema; the owner labels sparse keyframes (budget: about 1 hour per 3 clips, an estimate); the scorer: time to first annotation and first useful card, window-based live recall vs still recall on the same shelf, HOTA/IDF1/ID switches via TrackEval, label change rate, anchor jitter (px, against interpolated ground truth), revision rate and RBO, glass-to-glass from a timecode-screen recording method, all as distributions; a `bookcase score --live` command.
+- **do:** CVAT via `uv`/Docker for keyframe labels with rotated boxes and track ids, interpolated between keyframes; a converter to the label schema; ~~the owner labels sparse keyframes (budget: about 1 hour per 3 clips, an estimate)~~ **OC36: keyframes are machine-labelled with F-0's stack and scored with the yardstick and optional V-6 taps; the owner labels nothing;** the scorer: time to first annotation and first useful card, window-based live recall vs still recall on the same shelf, HOTA/IDF1/ID switches via TrackEval, label change rate, anchor jitter (px, against interpolated ground truth), revision rate and RBO, glass-to-glass from a timecode-screen recording method, all as distributions; a `bookcase score --live` command.
 - **exit:** labels for ≥3 clips resolved to catalog IDs where readable; `pnpm test` on the scorer with a synthetic clip; `docs/live/metrics.md` defines every metric with its source or marks it a project definition.
 - **tier:** T2 Sonnet · M · Low · ⌨ (≈1–3 h labelling) · feeds E-6, G-LIVE · budget 60.
 
@@ -903,20 +898,37 @@ Newline unit per card: `CURRICULUM-MAP.md` §1b. All S9 cards inherit INV-20 to 
 
 ### S10 — Flywheel (gap cycle; OC27)
 
-#### F-0 · Machine pre-labelling and review queue (OC34)
-- **goal:** the first fixture is labelled by machines, scored honestly, and the owner's time goes to the gaps.
-- **entry:** K-3 (fixture ingested); O-3a (audit slice locked); P-1 (`ocr-vision`); P-2 (detector on proxy data); C-3 (catalog index); V-1a (Label Studio).
-- **pilot first (owner, 2026-11-02):** before `sf-store-001` exists, F-0 does a dry run on **`pilot-000`**: 31 JPEGs shot 2026-10-31, now at `~/Desktop/BDAssets/`. K-3 ingests them into `$BOOKCASE_DATA` like any fixture: private, hashed, never committed. They are edited JPEG exports, mostly ultra-wide shots of angled whole cases across SF, film, software and computing sections. It is **real-use data, the primary distribution (OC35)**, not a dry run to throw away. Before F-0 shows any output, the owner blind-labels **3–4 of its photos** as its audit slice (about 30 minutes; the conductor picks them at random across lenses and sections). The rest is machine-labelled, reviewed (O-3b) and becomes training data for F-2. Its scores are reported as **real-use**, beside the controlled `sf-store-001` scores, never merged with them.
+#### F-0 · Machine labelling (OC34, amended by OC36)
+- **goal:** every fixture is labelled by open models with no owner time, and scored against a yardstick the stack didn't produce (OC36).
+- **entry:** K-3 (fixture ingested); H-0 (labelling stack and yardstick chosen, downloads approved); P-1 (`ocr-vision`); C-3 (catalog index).
+- **pilot first (owner, 2026-11-02):** before `sf-store-001` exists, F-0 does a dry run on **`pilot-000`**: 31 JPEGs shot 2026-10-31, now at `~/Desktop/BDAssets/`. K-3 ingests them into `$BOOKCASE_DATA` like any fixture: private, hashed, never committed. They are edited JPEG exports, mostly ultra-wide shots of angled whole cases across SF, film, software and computing sections. It is **real-use data, the primary distribution (OC35)**, not a dry run to throw away. There is no audit slice (OC36). All of it is machine-labelled; catalog-confirmed labels become F-2 training data; optional V-6 taps score it. Its scores are reported as **real-use**, beside the controlled `sf-store-001` scores, never merged with them.
 - **do:**
   - Run the detector on every non-audit shelf.
   - Read each crop with Vision `.accurate`, and with a vision-language model for the hard crops only (the OC10 key; spend capped per run; crops are the only upload).
   - Look up each reading in the catalog.
   - Score agreement per spine: box confidence, OCR vs VLM, catalog match.
   - Find gaps: shelf-band width covered by no box.
-  - Serve all of it to Label Studio as pre-annotations through an ML backend, with flags and an uncertainty-ordered queue, plus the 10 % random spot-check sample.
-  - Run the same pipeline on the audit slice, without showing it, and score it.
-- **exit:** `evals/F0/` (aggregates only in the repo) reports, on the audit slice: box recall and precision, title and author accuracy, misses grouped by reason, and the share of the queue that was flagged. Also the spend per spine. The review queue is ready for O-3b.
-- **tier:** T2-J Opus · M · Medium (paid calls under the ceiling) · feeds O-3b, V-3, E-2, E-3, F-2 · budget 60.
+  - Accept a label automatically only when the readers agree and ISFDB confirms it (OC36 yardstick 2). Everything else stays `unknown` with its reason; there is no human queue.
+  - Run the same pipeline on H-0's yardstick set and score it there (PROXY).
+- **exit:** `evals/F0/` (aggregates only in the repo) reports, **on the yardstick (PROXY):** box recall and precision, title and author accuracy, misses by reason; **on `pilot-000` (real use):** catalog-confirmed share, reader agreement, gap share, and V-6 tap accuracy only if taps exist (otherwise labelled machine agreement). Also the spend per spine.
+- **tier:** T2-J Opus · M · Medium (paid calls under the ceiling) · feeds V-6, V-3, E-2, E-3, F-2 · budget 60.
+
+#### H-0 · Open-weight models and the public yardstick (OC36) — *J*
+- **goal:** label spines by composing existing open models, scored against a yardstick the stack didn't produce.
+- **entry:** none (research); `docs/licences.md` (C-0).
+- **do:**
+  - Survey Hugging Face (and GitHub, Roboflow, papers) for **spine boxes**: SAM 3 prompted with "book spine", oriented-box detectors, Grounding DINO or OWLv2 plus a segmenter; and for **spine reading**: Florence-2 OCR-with-region, Qwen2.5-VL grounded OCR, others. For each, fetch and quote: licence (AGPL-compatible?), whether the weights are gated, size, and whether it runs on Apple silicon (MPS or Core ML).
+  - Survey **labelled public book-spine or shelf datasets** (boxes and/or titles): licence, label type, size, capture conditions. Start from C-0's rows (Roboflow `open-shelves` CC BY-NC-SA 4.0; IEEE DataPort subscription-only). Recommend one as the yardstick: local only, never committed, never trained on.
+  - Run nothing heavy. List every download the owner must approve, with sizes.
+- **exit:** `docs/models/open-weights.md` with sourced tables, a recommended labelling stack, a recommended yardstick and the download list; owner approves the downloads (a checklist #5 addendum).
+- **tier:** T2-J Opus · S · Low · feeds F-0, P-2, G-P, E-2, E-3 · budget 40.
+
+#### V-6 · Yes/no tap check (optional; OC36) ⌨
+- **goal:** an honest real-use accuracy number for the cost of a few taps.
+- **entry:** F-0 has machine labels on `pilot-000`.
+- **do:** `bookcase taps --session <id>` serves a phone-friendly page (127.0.0.1 by default; the LAN only with an explicit flag). It shows one random spine crop at a time with the machine's title and author: **yes / no / skip / not a book**. A whole-shelf view lets a tap on an unboxed spine record a miss. No typing, no drawing. It shows a running count, says thanks after 50, and can be closed any time. Answers append to `$BOOKCASE_DATA/private/taps/` as `user-asserted` events; only aggregates go to `evals/`.
+- **exit:** `pnpm test` (seeded, uniform sampling; one answer is one event; the aggregate has no per-spine rows); the owner can answer 10 spines on a phone.
+- **tier:** T2 Sonnet · S · Low · ⌨ optional · feeds E-2, E-3, G-P, F-0 · budget 40.
 
 #### F-1 · Dataset manifest, grouped splits, near-duplicate flags
 - **goal:** every shoot lands in one content-addressed store with a split no model can leak across.
@@ -927,14 +939,15 @@ Newline unit per card: `CURRICULUM-MAP.md` §1b. All S9 cards inherit INV-20 to 
 
 #### F-2 · Training pipeline on MPS and the registry (heavy compute)
 - **goal:** an owner-trained OBB detector that knows bookstore spines, recorded so it can be judged and, later, released.
-- **entry:** O-3b reviewed labels (never the audit slice); F-1; P-2 (the recipe); **G-LIC ruled** if the weights may ever leave `$BOOKCASE_DATA`; a heavy-compute slot.
+- **entry:** F-0 labels that passed the catalog-agreement bar (never the yardstick set; OC36); F-1; P-2 (the recipe); **G-LIC ruled** if the weights may ever leave `$BOOKCASE_DATA`; a heavy-compute slot.
 - **do:** fine-tune YOLO-OBB nano and small on the fixture's train split with a fixed seed on MPS (`device=mps`; note the PyTorch float64 limit); evaluate on the held-out groups and on the PROXY set; write `models/registry/<id>.json` (weights sha256, manifest hash, base weights, Ultralytics and torch versions, commit, metrics, licence) and a model-card stub from the Hugging Face template; weights stay under `$BOOKCASE_DATA/models/`.
 - **exit:** registry record committed; `evals/F2/` with held-out mAP-OBB and recall per size; the record names the licence path from G-LIC.
 - **tier:** T2 Sonnet · M · Low · feeds T-6, E-2 (as an arm, if timing allows), F-4 · budget 60.
 
 #### F-3 · Prefill from the trained detector (fixtures after the first)
 - **goal:** later shoots are prefilled by the fixture-trained detector instead of the proxy one, so each shoot needs less review than the last.
-- **entry:** F-2; F-0's ML backend; a second fixture exists, with its own blind audit slice (OC34).
+- **entry:** F-2; F-0's ML backend; a second fixture exists (OC36: scored by the yardstick and optional taps, no audit slice).
+- **OC36 (2026-11-02):** there is no human labelling tool; F-3 feeds the registered detector's boxes into F-0's machine pipeline instead of a Label Studio backend. The text below is kept for history.
 - **do:** a Label Studio ML backend that serves the registered detector's boxes as pre-annotations; an own exporter from Label Studio JSON to the label schema and YOLO-OBB (the converter has no OBB export); never prefills an audit slice (OC34).
 - **exit:** prefill appears in the owner's trial on a second-fixture photo; export round-trips; the time saved is recorded as an estimate.
 - **tier:** T2 Sonnet · S · Low · feeds later shoots · budget 35.
@@ -950,12 +963,12 @@ Newline unit per card: `CURRICULUM-MAP.md` §1b. All S9 cards inherit INV-20 to 
 
 | Kind | Count |
 |---|---|
-| Dispatched cards, each ending in a PR (including Z-1, the privacy guard, and Z-2, fleet registration) | 39 unconditional (batch, incl. C-R and R-0) + 17 live and flywheel (T-0–T-5, T-6, T-7a, T-7b, T-8, T-9, V-5, E-6, F-1–F-4) + F-0 = **57** |
-| Conditional or optional dispatched cards (V-1b fallback, P-3 challenger, V-4 autocomplete) | 3 |
-| Owner cards (O-1, O-2, O-3a, O-3b, O-4 to O-7) | 8 |
+| Dispatched cards, each ending in a PR (including Z-1, the privacy guard, and Z-2, fleet registration) | 39 unconditional (batch, incl. C-R and R-0) + 17 live and flywheel (T-0–T-5, T-6, T-7a, T-7b, T-8, T-9, V-5, E-6, F-1–F-4) + F-0 + H-0 + V-6 (OC36) = **59** |
+| Conditional or optional dispatched cards (P-3 challenger, V-4 autocomplete; V-1b withdrawn by OC36) | 2 |
+| Owner cards (O-1, O-2, O-4 to O-7; O-3a and O-3b withdrawn by OC36) | 6 |
 | Owner-launched design cards (U-1, U-2, U-3, forked design sessions) | 3 |
 | Conductor bootstrap (Z-0) | 1 |
-| **Total** | **69 on the plan; 66 in the expected path** (67 / 64 after U-3; 66 / 63 after OC33; 65 / 62 after OC31–32; 62 / 59 after OC30; 61 / 58 after the gap cycle; 43 / 40 before it) |
+| **Total** | **71 on the plan; 69 in the expected path** (69 / 66 before OC36; 67 / 64 after U-3; 66 / 63 after OC33; 65 / 62 after OC31–32; 62 / 59 after OC30; 61 / 58 after the gap cycle; 43 / 40 before it) |
 
 Plus **11 MVP gates** (the 8 before, plus G-SURF, G-LIVE, G-LIC) and **3 post-MVP gates** (G-PUB, G-V2, G-W). The Opus draft had 44; the Fable pass removed C-2 and made V-1b and P-3 conditional (OC20, OC21, OC23); the gap cycle added S9 and S10 (OC24–OC29).
 
@@ -971,7 +984,7 @@ Tools     : L-1 ─► K-1 ;  V-1a (─► V-1b if "build") ─► V-2 ;  L-1 �
 Catalog   : C-0 ; C-1 ─► C-3 ─► R-1 ─► O-4 ─► R-2 (needs I-3) ────────────────────────┤
             C-3 ─► V-4 (optional, only if before O-3)                               │
 Perception: P-1 ∥ P-2 ─► P-4 ; P-3 only if E-2 triggers it                          │
-Owner     : O-1 ─► K-2 ─► O-2 (may precede GO) ─► K-2' ─► K-3 ─► O-3 ─► V-3 ─► E-1 ∥ E-2 ∥ E-3 ─► [G-P][G-E1][G-M1]
+Owner     : O-1 ─► K-2 ─► O-2 (may precede GO) ─► K-2' ─► K-3 ─► F-0 ─► V-3 ─► E-1 ∥ E-2 ∥ E-3 ─► [G-P][G-E1][G-M1]
                                                          └─────► E-4(J) ─► [G-E4] ; E-5 ─► [G-E5]
                                                                        └─► M-1 ─► O-5 ─► [G-MVP] ─► D-1, D-2
 ```
@@ -986,15 +999,17 @@ Owner     : O-1 ─► K-2 ─► O-2 (may precede GO) ─► K-2' ─► K-3 �
 | 4 | P-4, C-3 | P-3 is not scheduled; E-2 may trigger it later |
 | 5 | R-1, V-4 (if O-3 hasn't started), I-1 | — |
 | Then | Follow the map | Owner-lane cards are dispatched the moment their owner signal arrives; they jump the queue |
-| Live track (gap cycle) | T-0 joins wave 2 (after L-1); T-1 and T-2 wave 3 (T-1 needs the phone on the Mac); T-3, T-4, F-1 wave 4; T-5 wave 5; **F-2 after O-3b and G-LIC** (heavy); T-6 and T-8 after F-2; **[G-SURF]**; then T-7a → T-7b; V-5 as soon as O-6 clips are ingested; E-6 last | Stage A needs no photos and runs beside the batch waves. Stage B waits for a fixture-trained detector. At most one heavy card at a time still holds: F-2 shares the slot with P-2 and P-3 |
+| Live track (gap cycle) | T-0 joins wave 2 (after L-1); T-1 and T-2 wave 3 (T-1 needs the phone on the Mac); T-3, T-4, F-1 wave 4; T-5 wave 5; **F-2 after F-0 and G-LIC** (heavy); T-6 and T-8 after F-2; **[G-SURF]**; then T-7a → T-7b; V-5 as soon as O-6 clips are ingested; E-6 last | Stage A needs no photos and runs beside the batch waves. Stage B waits for a fixture-trained detector. At most one heavy card at a time still holds: F-2 shares the slot with P-2 and P-3 |
 
 **Critical path** — 14 steps, owner-bound:
 
-`O-1 → K-2 → O-2 → K-3 → O-3a → F-0 → O-3b → V-3 → E-2 ∥ E-3 → G-P → E-4 → G-E4 → M-1 → O-5 → G-MVP → D-1`
+`O-1 → K-2 → O-2 → K-3 → H-0 → F-0 → V-3 → E-2 ∥ E-3 → G-P → E-4 → G-E4 → M-1 → O-5 → G-MVP → D-1`
 
 *(OC34, 2026-11-02: the 3–6-hour O-3 is replaced by an audit slice of under an hour, then F-0's machine labels, then a review measured in time. **E-2 and E-3 report their headline numbers on the audit slice only.**)*
 
-- **Owner-held steps:** six of the 14 (O-1, O-2, O-3, G-E4, O-5, G-MVP), plus the labelling's 3–6 hours of hands-on time. **O-1 and O-2 need no repo and no card** (the protocol is in checklist #8), so the first three path steps can be done before GO; with that, the earliest agent-blocked step is O-3, which waits only on V-1a.
+*(OC36, 2026-11-02: no hand labelling. O-3a and O-3b are gone from both paths; H-0 picks the open-model stack and the public yardstick. E-2 and E-3 report on the yardstick (PROXY) and, for real use, on V-6 taps if any, otherwise as machine agreement. The owner holds no labelling step.)*
+
+- **Owner-held steps (OC36):** five of the 14 (O-1, O-2, G-E4, O-5, G-MVP) and no labelling time; V-6 taps are optional and off the path. ~~six of the 14 (O-1, O-2, O-3, G-E4, O-5, G-MVP), plus the labelling's 3–6 hours of hands-on time.~~ **O-1 and O-2 need no repo and no card** (the protocol is in checklist #8), so the first three path steps can be done before GO; with that, the earliest agent-blocked step was O-3 (withdrawn by OC36).
 - **Card time on the path:** about 12–15 hours of session time (estimate: XS ≈0.5 h, S ≈1–2 h, M ≈2–4 h, each including the conductor's review).
 - **Calendar length** is set by when the owner can do the shoot and the labelling. Realistically 1–2 weeks part-time. This is an estimate, not a measurement (INV-17).
 - **The build chain** runs in parallel and joins the critical path at E-4:
@@ -1009,10 +1024,10 @@ Owner     : O-1 ─► K-2 ─► O-2 (may precede GO) ─► K-2' ─► K-3 �
 
 **Live chain (gap cycle) — 17 steps, now the long pole:**
 
-`O-1 → K-2 → O-2 (+O-6 clips) → K-3 → O-3a → F-0 → O-3b → V-3 → E-2 ∥ E-3 → G-P → F-2 → T-6 → G-SURF → T-7a → T-7b → E-6 → O-7 → G-LIVE → D-1`
+`O-1 → K-2 → O-2 (+O-6 clips) → K-3 → H-0 → F-0 → V-3 → E-2 ∥ E-3 → G-P → F-2 → T-6 → G-SURF → T-7a → T-7b → E-6 → O-7 → G-LIVE → D-1`
 
 - Shares its first eight steps with the batch chain. From G-P it needs a fixture-trained detector (F-2, heavy), the export and benchmark (T-6), the surface gate, the two phone cards, the experiment and the owner's targets.
-- **Owner-held steps:** eight (O-1, O-2 with O-6, O-3, G-LIC before F-2, G-SURF, O-7, G-LIVE, plus the V-5 keyframe labelling of about 1–3 hours).
+- **Owner-held steps (OC36):** seven (O-1, O-2 with O-6, G-LIC before F-2 (ruled), G-SURF, O-7, G-LIVE). V-5's keyframe labelling is done by machines, not the owner.
 - **Card time on the live chain beyond the batch chain:** F-2, T-6, T-7a, T-7b, E-6 and V-5, about 14–20 hours of session time by the same size estimates (an estimate, not a measurement, INV-17), plus Stage A (T-0 to T-5, about 10–14 hours) which runs off the path.
 - Stage A can start in wave 2 and needs no photos; if the owner's shoot is late, Stage A is done long before Stage B can begin, which is the intended order.
 - D-1 now waits for both G-MVP and G-LIVE. If G-LIVE is missed, D-1 still writes the batch runbook and the live gate packet records the miss with its numbers.
@@ -1087,11 +1102,11 @@ Owner     : O-1 ─► K-2 ─► O-2 (may precede GO) ─► K-2' ─► K-3 �
 | Photos still won't reach Yojimbo | O-1 (a) fails | Path (b) AirDrop, then (c) Image Capture. K-2 decides whether the bytes are originals |
 | AirDrop delivers derivatives (JPEG, downscaled, edits baked in) | K-2 verdict `derivative` | Use path (a) or (c). Record the finding in `docs/ingest-verification.md`; it answers an open question from the assessment |
 | The 10-31 album lacks the E1 settings | K-2 | Expected. O-2 shoot as planned |
-| Labelling takes longer than the time budgeted | O-3 past 6 hours | **F-LABEL:** stop at ≥3 complete shelves and ≥100 spines, chosen across the case's height. Log a deviation. All experiments run on that subset, and the report says so |
+| ~~Labelling takes longer than the time budgeted~~ (withdrawn by OC36: no hand labelling) | O-3 past 6 hours | **F-LABEL:** stop at ≥3 complete shelves and ≥100 spines, chosen across the case's height. Log a deviation. All experiments run on that subset, and the report says so |
 | The detector doesn't transfer to bookstore shelves | E-2 recall low for both arms | **F-DETECT:** run identify and recommend on the **owner's label boxes** (oracle detection). The MVP's identify and recommend chain still runs end to end, and detection is reported as the known gap with its measured recall. The detector improves post-MVP with the fixture as training data |
 | OCR is poor | E-3 CER high | Per G-P, VLM transcription becomes the default if its invented-text rate passes. Otherwise E-1's per-shelf result shows whether more pixels would help |
 | ISFDB alone misses too many shelf books | `no-catalog-candidate` share high on the fixture (resolvable labels marked `not-in-catalog` >15 %) | Expected for new releases. Reported as a reason; the share is the trigger for reopening the Open Library import (backlog #4) post-MVP, not an MVP card |
-| Label Studio can't handle 48 MP, rotated boxes or the keyboard flow | V-1a decision rule fails, or the owner's trial raises a blocker | Dispatch **V-1b** (the custom tool) in wave 2; O-3 waits on it. About one extra conductor day |
+| ~~Label Studio can't handle 48 MP, rotated boxes or the keyboard flow~~ (moot under OC36) | V-1a decision rule fails, or the owner's trial raises a blocker | Dispatch **V-1b** (the custom tool) in wave 2; O-3 waits on it. About one extra conductor day |
 | GPT review late | G-R unruled when I-3 merges | Ask the owner for the provisional ruling. If declined, build lanes idle at I-3; S7's R-1 and W-2 work continues |
 | Spend | 80 % of the ceiling | Tell the owner. At 100 %, adjudication pauses (INV-2) |
 | Ultralytics AGPL | Distribution later | Local spike only. Swapping the backend is a helper change behind the contract (ADR §6) |
