@@ -1,0 +1,48 @@
+{
+  "schemaVersion": 1,
+  "entries": [
+    {
+      "id": "seed-gibson-read",
+      "subject": {
+        "kind": "author",
+        "name": "William Gibson"
+      },
+      "relation": "read",
+      "scope": "all-works",
+      "provenance": {
+        "source": "owner-statement",
+        "ref": "owner statement, project brief 2026-10-31",
+        "date": "2026-10-31"
+      }
+    },
+    {
+      "id": "seed-robinson-liked",
+      "subject": {
+        "kind": "author",
+        "name": "Kim Stanley Robinson"
+      },
+      "relation": "liked",
+      "scope": "all-works",
+      "provenance": {
+        "source": "owner-statement",
+        "ref": "owner statement, project brief 2026-10-31",
+        "date": "2026-10-31"
+      }
+    },
+    {
+      "id": "seed-stephenson-cooler",
+      "subject": {
+        "kind": "author",
+        "name": "Neal Stephenson"
+      },
+      "relation": "cooler",
+      "scope": "all-works",
+      "provenance": {
+        "source": "owner-statement",
+        "ref": "owner statement, project brief 2026-10-31",
+        "date": "2026-10-31"
+      }
+    }
+  ],
+  "nodes": []
+}

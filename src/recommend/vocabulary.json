@@ -1,0 +1,92 @@
+{
+  "schemaVersion": 1,
+  "facets": [
+    { "id": "theme", "description": "The human concern the book is about." },
+    { "id": "topos", "description": "A recurring place, situation or figure the literature returns to." },
+    { "id": "idea", "description": "A specific speculative premise or mechanism the plot depends on." },
+    { "id": "question", "description": "What the book keeps asking, open-ended." },
+    { "id": "style", "description": "How the prose works: register, tone, density, voice." },
+    { "id": "pattern", "description": "The shape of the story, whatever the setting." },
+    { "id": "form", "description": "Genre and form labels a catalog or bookshop would shelve by." },
+    { "id": "author", "description": "Who wrote it. Authors come from the catalog, so this facet has no terms here." }
+  ],
+  "terms": [
+    { "id": "theme:near-futures-real-systems", "label": "Near futures built from real systems" },
+    { "id": "theme:networks-media-attention", "label": "Networks, media and attention", "parent": "theme:near-futures-real-systems" },
+    { "id": "theme:climate-institutions", "label": "Climate, economics and institutions", "parent": "theme:near-futures-real-systems" },
+    { "id": "theme:limits-of-expansion", "label": "The limits of expansion" },
+
+    { "id": "topos:city-as-system", "label": "The city as a system" },
+    { "id": "topos:drowned-city", "label": "The drowned city", "parent": "topos:city-as-system" },
+    { "id": "topos:frontier-political-project", "label": "The frontier as a political project" },
+    { "id": "topos:mars-frontier", "label": "Mars, the frontier as a political project", "parent": "topos:frontier-political-project" },
+    { "id": "topos:cyberspace-as-place", "label": "Cyberspace as a place" },
+    { "id": "topos:generation-ship", "label": "The generation ship" },
+    { "id": "topos:private-project", "label": "The billionaire's private project" },
+
+    { "id": "idea:uploaded-personalities", "label": "Uploaded personalities" },
+    { "id": "idea:artificial-intelligence", "label": "Artificial intelligence" },
+    { "id": "idea:terraforming", "label": "Terraforming" },
+    { "id": "idea:longevity-treatment", "label": "A longevity treatment" },
+    { "id": "idea:geoengineering", "label": "Geoengineering" },
+    { "id": "idea:sea-level-rise", "label": "Sea-level rise" },
+    { "id": "idea:financial-regulation", "label": "Financial regulation" },
+    { "id": "idea:carbon-backed-currency", "label": "A carbon-backed currency" },
+    { "id": "idea:language-virus", "label": "A language virus" },
+    { "id": "idea:corporate-intelligence", "label": "Corporate intelligence" },
+
+    { "id": "question:can-institutions-act-in-time", "label": "Can institutions act in time?" },
+    { "id": "question:what-networks-do-to-a-self", "label": "What do networks do to a self?" },
+    { "id": "question:should-we-leave-earth", "label": "Should we leave Earth at all?" },
+    { "id": "question:who-gets-to-fix-the-climate", "label": "Who gets to fix the climate?" },
+
+    { "id": "style:implication-over-exposition", "label": "Implication over exposition" },
+    { "id": "style:documentary-collage", "label": "Documentary collage of many voices" },
+    { "id": "style:technology-explained-in-full", "label": "Technology explained in full" },
+    { "id": "style:comic-satirical", "label": "Comic, satirical tone" },
+    { "id": "style:first-person-machine-narrator", "label": "First-person machine narrator" },
+
+    { "id": "pattern:ensemble-institutions", "label": "Ensemble and institutions over a lone hero" },
+    { "id": "pattern:braided-multi-strand", "label": "Braided multi-strand plot" },
+    { "id": "pattern:heist", "label": "The heist" },
+    { "id": "pattern:long-duration-chronicle", "label": "The long-duration chronicle" },
+    { "id": "pattern:investigation", "label": "The investigation" },
+    { "id": "pattern:voyage", "label": "The voyage" },
+
+    { "id": "form:cyberpunk-fiction", "label": "Cyberpunk fiction" },
+    { "id": "form:climate-fiction", "label": "Climate fiction" },
+    { "id": "form:political-fiction", "label": "Political fiction" },
+    { "id": "form:utopian-fiction", "label": "Utopian fiction" },
+    { "id": "form:dystopian-fiction", "label": "Dystopian fiction" },
+    { "id": "form:humorous-fiction", "label": "Humorous fiction" },
+    { "id": "form:satirical-fiction", "label": "Satirical fiction" },
+    { "id": "form:mystery-fiction", "label": "Mystery fiction" },
+    { "id": "form:thriller", "label": "Thriller" }
+  ],
+  "crosswalk": {
+    "tagWeightDivisor": 3,
+    "generic": ["science fiction", "fiction", "novels"],
+    "dropPatterns": ["^(\\d+-award|1001 books|abebooks|sf: the 100|into-)", "^user rating", "\\bvotes?\\b"],
+    "rules": [
+      { "source": "isfdb-tag", "match": "climate change", "terms": [{ "id": "form:climate-fiction" }, { "id": "theme:climate-institutions", "weight": 0.5 }] },
+      { "source": "isfdb-tag", "match": "cli-fi", "terms": [{ "id": "form:climate-fiction" }, { "id": "theme:climate-institutions", "weight": 0.5 }] },
+      { "source": "isfdb-tag", "match": "climate fiction", "terms": [{ "id": "form:climate-fiction" }, { "id": "theme:climate-institutions", "weight": 0.5 }] },
+      { "source": "lcgft", "match": "climate fiction", "terms": [{ "id": "form:climate-fiction" }, { "id": "theme:climate-institutions", "weight": 0.5 }] },
+      { "source": "isfdb-tag", "match": "terraforming", "terms": [{ "id": "idea:terraforming" }] },
+      { "source": "isfdb-tag", "match": "geoengineering", "terms": [{ "id": "idea:geoengineering" }] },
+      { "source": "isfdb-tag", "match": "sea level rise", "terms": [{ "id": "idea:sea-level-rise" }] },
+      { "source": "isfdb-tag", "match": "artificial intelligence", "terms": [{ "id": "idea:artificial-intelligence" }] },
+      { "source": "isfdb-tag", "match": "generation ship", "terms": [{ "id": "topos:generation-ship" }] },
+      { "source": "isfdb-tag", "match": "mars", "terms": [{ "id": "topos:mars-frontier" }] },
+      { "source": "isfdb-tag", "match": "underground city", "terms": [{ "id": "topos:city-as-system", "weight": 0.5 }] },
+      { "source": "isfdb-tag", "match": "cyberpunk", "terms": [{ "id": "form:cyberpunk-fiction" }] },
+      { "source": "lcgft", "match": "cyberpunk fiction", "terms": [{ "id": "form:cyberpunk-fiction" }] },
+      { "source": "isfdb-tag", "match": "satire", "terms": [{ "id": "style:comic-satirical" }] },
+      { "source": "lcgft", "match": "humorous fiction", "terms": [{ "id": "form:humorous-fiction" }, { "id": "style:comic-satirical", "weight": 0.5 }] },
+      { "source": "lcgft", "match": "mystery fiction", "terms": [{ "id": "form:mystery-fiction" }] },
+      { "source": "lcsh", "match": "space colonies", "terms": [{ "id": "topos:frontier-political-project", "weight": 0.5 }] },
+      { "source": "lcsh", "match": "business intelligence", "terms": [{ "id": "idea:corporate-intelligence" }] },
+      { "source": "lcsh", "match": "women private investigators", "terms": [{ "id": "pattern:investigation" }] }
+    ]
+  }
+}
