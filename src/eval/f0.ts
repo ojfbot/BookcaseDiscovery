@@ -63,6 +63,10 @@ export interface Detection {
   gaps: { bandLength: number; gapLength: number; gapCount: number; medianWidth: number };
   tiles: number;
   seconds: number;
+  /** Box arm (b2, b3, b4) and the detector process's memory peaks so far, in MB. */
+  arm?: string;
+  peakRssMb?: number;
+  mpsPeakMb?: number;
   error?: string;
 }
 
@@ -108,11 +112,12 @@ export function readJsonl<T>(path: string): T[] {
 }
 
 /** Spawn a helper, feed it request lines, append each answer line to `out`. Resolves when it exits. */
-function runHelper(script: string, args: string[], requests: object[], out: string, log: (s: string) => void): Promise<void> {
+function runHelper(script: string, args: string[], requests: object[], out: string, log: (s: string) => void, env: NodeJS.ProcessEnv = {}): Promise<void> {
   if (requests.length === 0) return Promise.resolve();
   return new Promise((resolve, reject) => {
     const child = spawn("uv", ["run", "--project", HELPER, "python", join(HELPER, script), ...args], {
       stdio: ["pipe", "pipe", "pipe"],
+      env: { ...process.env, ...env },
     });
     const lines = createInterface({ input: child.stdout, crlfDelay: Infinity });
     lines.on("line", (line) => {
@@ -135,10 +140,28 @@ function runHelper(script: string, args: string[], requests: object[], out: stri
 
 const spineId = (imageId: string, i: number): string => `${imageId}:${i}`;
 
-export async function detectStage(images: InputImage[], dir: string, log: (s: string) => void): Promise<Map<string, Detection>> {
+/** Box arms (docs/models/open-weights.md): b2 Grounding DINO base, b3 OWLv2, b4 MM Grounding DINO large; all -> SAM 2.1. */
+export const ARMS = ["b2", "b3", "b4"] as const;
+export type Arm = (typeof ARMS)[number];
+
+/** Tile size and overlap in working-copy pixels; the detector shrinks each tile to about 800-1333 px. */
+export interface Tiling {
+  tile: number;
+  overlap: number;
+}
+/** Whole-case photos (pilot-000): spines are ~2 % of the frame. */
+export const CASE_TILING: Tiling = { tile: 1600, overlap: 700 };
+/** Shelf-scale photos (the yardstick's split images, ~7100 x 3100): one spine is ~2400 px tall, so a tile spans the shelf. */
+export const SHELF_TILING: Tiling = { tile: 3100, overlap: 1300 };
+
+export async function detectStage(images: InputImage[], dir: string, log: (s: string) => void, arm: Arm = "b2", tiling: Tiling = CASE_TILING): Promise<Map<string, Detection>> {
   const out = join(dir, "detect.jsonl");
   const done = new Set(readJsonl<Detection>(out).filter((d) => !d.error).map((d) => d.id));
-  await runHelper("detect.py", [], images.filter((i) => !done.has(i.id)).map((i) => ({ id: i.id, image: i.path })), out, log);
+  await runHelper("detect.py", [], images.filter((i) => !done.has(i.id)).map((i) => ({ id: i.id, image: i.path })), out, log, {
+    F0_ARM: arm,
+    F0_TILE: String(tiling.tile),
+    F0_OVERLAP: String(tiling.overlap),
+  });
   return new Map(readJsonl<Detection>(out).filter((d) => !d.error).map((d) => [d.id, d]));
 }
 
@@ -364,6 +387,10 @@ export function machineAgreement(dets: Map<string, Detection>, decisions: SpineD
       vision: seconds("vision"),
       ppocr: seconds("ppocr"),
       qwen: seconds("qwen"),
+    },
+    memoryMb: {
+      detectorPeakRss: Math.max(0, ...det.map((d) => d.peakRssMb ?? 0)) || null,
+      detectorPeakMps: Math.max(0, ...det.map((d) => d.mpsPeakMb ?? 0)) || null,
     },
     spendPerSpineUsd: 0,
   };

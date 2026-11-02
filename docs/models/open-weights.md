@@ -51,6 +51,13 @@ Two producers that don't share weights, so their agreement means something to F-
 1. **B1 · SAM 3, text prompt "book spine", tiled.** Split each working copy into shelf bands, then into tiles of about 1008 px with overlap, so each pass holds well under 200 spines. Merge across tiles by mask IoU. Each mask → minimum-area rotated rectangle → the 4-point `Polygon` (L-1's contract already says a SAM backend does this). It is the only zero-shot option that segments instances of a concept, and a library already uses it for exactly this prompt. Costs: a gated download (owner action), the SAM License flag, and 3.4 GB.
 2. **B2 · Grounding DINO base → SAM 2.1 base-plus, tiled.** Grounding DINO proposes "book spine" boxes (axis-aligned, up to 900 per pass). Each box prompts SAM 2.1 for a mask, which recovers the slanted shape on angled shots. Mask → 4-point polygon as above. All Apache-2.0, ungated, 1.26 GB together. If the owner declines SAM 3, B2 is the stack and B1's place stays empty.
 
+**Added by the owner on 2026-11-02 (F-0), while SAM 3 awaits Meta's review.** Two more arms with B2's shape, so the box detector can be compared with everything else fixed. Both are Apache-2.0 (model-card tag), ungated, and kept in `$BOOKCASE_DATA/models/`:
+
+3. **B3 · OWLv2 base patch16 ensemble → SAM 2.1 base-plus, tiled** ([`google/owlv2-base-patch16-ensemble`](https://huggingface.co/google/owlv2-base-patch16-ensemble), weights 604 MB). Open-vocabulary detector on a 960 px square input; box threshold 0.1 (its scores run lower than Grounding DINO's).
+4. **B4 · MM Grounding DINO large (all) → SAM 2.1 base-plus, tiled** ([`openmmlab-community/mm_grounding_dino_large_all`](https://huggingface.co/openmmlab-community/mm_grounding_dino_large_all), weights 1,313 MB). Grounding DINO re-trained by OpenMMLab on wider grounding data; B2's thresholds.
+
+F-0 compares B2, B3 and B4 on the same yardstick images through the end-to-end title score ([`evals/F0/report.md`](../../evals/F0/report.md)); B2 stays the default unless another clearly beats it. None of them is a second, independent opinion on the same spine yet: F-0 runs one arm at a time.
+
 How the two are used (for F-0, *hypothesis*): a spine both producers find (mask IoU ≥ a threshold F-0 sets) is box-confident; a spine only one finds is box-uncertain; shelf-band width that neither covers is a gap. Neither producer can find spines that both miss, which is why box recall is measured on the yardstick, never claimed on `pilot-000`.
 
 Not recommended as labellers: YOLO-OBB (no book class until P-2 fine-tunes it), Florence-2 detection (768 px, token output), the VLMs (slow for 40+ thin boxes), Rex-Omni and Moondream 3 (licences), the spine-specific fine-tunes (undocumented data, or no weights).
@@ -147,6 +154,8 @@ Everything lands under `$BOOKCASE_DATA` (`~/data/bookcase-discovery/`, 311 GB fr
 | 6 | Zhong/Yang spine set (box yardstick) | [figshare 12688436](https://figshare.com/articles/dataset/12688436) | `data.zip` | 766 MB | CC0 | no | Agent | `proxy/zhong-yang-661/` |
 | 7 | Library Dataset annotations (title yardstick) | [github.com/llabres/library-dataset](https://github.com/llabres/library-dataset) | the repo (CSV annotations, inventory list, OCR arrays) | about 55 MB | MIT | no | Agent | `proxy/library-dataset/` |
 | 8 | Library Dataset images | the README's OneDrive link for split images | `split_images_library.zip` (the annotations name split images, e.g. `…_1.jpg`) | UNVERIFIED; *hypothesis* about 0.5 GB | MIT (*hypothesis* for the images) | no login (verified) | Agent | `proxy/library-dataset/images/` |
+| 9 | OWLv2 base patch16 ensemble (B3, owner addition 2026-11-02) | [`google/owlv2-base-patch16-ensemble`](https://huggingface.co/google/owlv2-base-patch16-ensemble) | `model.safetensors` + configs | 604 MB (measured on disk) | Apache-2.0 | no | Downloaded (conductor) | `models/owlv2-base-patch16-ensemble/` |
+| 10 | MM Grounding DINO large, all (B4, owner addition 2026-11-02) | [`openmmlab-community/mm_grounding_dino_large_all`](https://huggingface.co/openmmlab-community/mm_grounding_dino_large_all) | `model.safetensors` + configs | 1,313 MB (measured on disk) | Apache-2.0 | no | Downloaded (conductor) | `models/mm-grounding-dino-large-all/` |
 
 **Total: about 11.3 GB** (10.8 GB verified plus about 0.5 GB estimated for item 8). Item 1 alone is the owner's; the rest an agent can fetch once approved. The original (unsplit) Library Dataset images are a second zip of similar size; F-0 asks for it only if full-resolution runs matter.
 

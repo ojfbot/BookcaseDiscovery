@@ -24,6 +24,11 @@ import {
   ROTATIONS,
   stageDir,
   visionStage,
+  ARMS,
+  CASE_TILING,
+  SHELF_TILING,
+  type Arm,
+  type Tiling,
   type Detection,
   type InputImage,
   type SpineDecision,
@@ -33,8 +38,8 @@ import { LabelSet } from "./labels.ts";
 const REPO_ROOT = fileURLToPath(new URL("../../", import.meta.url));
 const log = (s: string): void => console.error(`[f0] ${s}`);
 
-async function pipeline(images: InputImage[], db: DatabaseSync, dir: string, qwenCap: number) {
-  const dets = await detectStage(images, dir, log);
+async function pipeline(images: InputImage[], db: DatabaseSync, dir: string, qwenCap: number, arm: Arm = "b2", tiling: Tiling = CASE_TILING) {
+  const dets = await detectStage(images, dir, log, arm, tiling);
   // Per-spine provenance (producer, readers, scores, catalog id or reason) is private: decisions.jsonl beside the stages.
   await visionStage(images, dets, dir, log);
   log("ppocr: reading");
@@ -77,14 +82,14 @@ function writeEval(part: string, metrics: object, report: string): string {
 
 function publish(runId: string): void {
   const dir = join(dataRoot(), "f0", "parts");
-  const parts = ["yardstick", "pilot"].filter((p) => existsSync(join(dir, `${p}.json`)));
+  const parts = ["yardstick-b2", "yardstick-b3", "yardstick-b4", "pilot"].filter((p) => existsSync(join(dir, `${p}.json`)));
   const metrics = Object.fromEntries(parts.map((p) => [p, JSON.parse(readFileSync(join(dir, `${p}.json`), "utf8"))]));
   const out = join(REPO_ROOT, "evals", runId);
   mkdirSync(out, { recursive: true });
   writeFileSync(join(out, "metrics.json"), `${JSON.stringify({ runId, card: "F-0", ...metrics }, null, 2)}\n`);
   const intro = `# ${runId}: machine labelling (F-0)\n\nTwo scores, never merged (OC35, OC36): the **yardstick (PROXY)** scores the pipeline against labels it did not\nproduce; **\`pilot-000\` (real use)** reports machine agreement only. Method: \`docs/machine-labelling.md\`.\n\n`;
   const body = parts.map((p) => readFileSync(join(dir, `${p}.md`), "utf8").replace(/^# /, "## ").replace(/\n# /g, "\n## ")).join("\n");
-  writeFileSync(join(out, "report.md"), intro + body);
+  writeFileSync(join(out, "report.md"), intro + armsTable(metrics) + body);
   log(`published ${parts.join(" + ")} -> evals/${runId}/`);
 }
 
@@ -124,6 +129,7 @@ async function pilot(session: string, limit: number, qwenCap: number, runId: str
     stack: STACK,
     accept: ACCEPT,
     rotations: ROTATIONS,
+    tiling: CASE_TILING,
     qwenCapPerImage: qwenCap,
     hardSelection: { total: hardTotal, sentToQwen: hardSelected },
     wallSeconds: Math.round((Date.now() - t0) / 1000),
@@ -133,6 +139,12 @@ async function pilot(session: string, limit: number, qwenCap: number, runId: str
   log(`labels: ${set.photos.length} photos, ${decisions.length} spines -> $BOOKCASE_DATA/labels/${session}.machine.json`);
   log(`aggregates -> ${dir2}`);
 }
+
+const ARM_NAMES: Record<Arm, string> = {
+  b2: "grounding-dino-base -> sam2.1-hiera-base-plus",
+  b3: "owlv2-base-patch16-ensemble -> sam2.1-hiera-base-plus",
+  b4: "mm-grounding-dino-large-all -> sam2.1-hiera-base-plus",
+};
 
 const STACK = {
   boxProducer: "B2: grounding-dino-base ('book spine.') -> sam2.1-hiera-base-plus, tiled; min-area rect -> 4-point polygon",
@@ -267,7 +279,7 @@ function inventoryCatalog(lib: string, out: string): void {
   buildCatalog({ staging, out, log });
 }
 
-async function yardstick(limit: number, qwenCap: number, runId: string): Promise<void> {
+async function yardstick(limit: number, qwenCap: number, runId: string, arm: Arm): Promise<void> {
   const root = dataRoot();
   const lib = join(root, "proxy", "library-dataset");
   const imgDir = join(lib, "images");
@@ -304,9 +316,9 @@ async function yardstick(limit: number, qwenCap: number, runId: string): Promise
   const step = Math.max(2, Math.floor(names.length / limit));
   const sample = names.filter((_, i) => i % step === Math.floor(step / 2)).slice(0, limit);
   const images: InputImage[] = sample.map((n) => ({ id: n.replace(/\.jpg$/i, ""), photoHash: "0".repeat(64), path: join(imgDir, n), setting: "proxy" }));
-  const dir = stageDir(root, "yardstick-library");
+  const dir = stageDir(root, `yardstick-library-${arm}`);
   const t0 = Date.now();
-  const { dets, decisions, readings, hardSelected, hardTotal } = await pipeline(images, db, dir, qwenCap);
+  const { dets, decisions, readings, hardSelected, hardTotal } = await pipeline(images, db, dir, qwenCap, arm, SHELF_TILING);
   let tp = 0, predN = 0, gtN = 0, authorOk = 0, notDetected = 0, notInInv = 0;
   const perImage: { recall: number | null; precision: number | null }[] = [];
   for (const img of images) {
@@ -329,6 +341,9 @@ async function yardstick(limit: number, qwenCap: number, runId: string): Promise
   const metrics = {
     runId,
     card: "F-0",
+    arm,
+    boxArm: ARM_NAMES[arm],
+    tiling: SHELF_TILING,
     yardstick: "Library Dataset (Llabrés et al. 2024, MIT), split images; titles only. PROXY: library shelves, not bookstore",
     date: new Date().toISOString().slice(0, 10),
     stack: STACK,
@@ -358,7 +373,7 @@ async function yardstick(limit: number, qwenCap: number, runId: string): Promise
     wallSeconds: Math.round((Date.now() - t0) / 1000),
     machine: machineAgreement(dets, decisions, readings),
   };
-  const dir2 = writeEval("yardstick", metrics, yardstickReport(metrics));
+  const dir2 = writeEval(`yardstick-${arm}`, metrics, yardstickReport(metrics));
   log(`aggregates -> ${dir2}`);
 }
 
@@ -369,7 +384,7 @@ function median(xs: (number | null)[]): number | null {
 
 function yardstickReport(m: ReturnType<typeof Object> & Record<string, any>): string {
   const rt = m.machine.runtimeSeconds;
-  return `# ${m.runId}: F-0 pipeline on the yardstick (PROXY)
+  return `# ${m.runId}${m.arm && m.arm !== "b2" ? `-${m.arm}` : ""}: F-0 pipeline on the yardstick (PROXY), box arm ${(m.arm ?? "b2").toUpperCase()}
 
 Run ${m.date}. **PROXY**: the Library Dataset (Llabrés et al. 2024, MIT; library shelves in Catalan and Spanish, not a
 bookstore). It was not produced by this stack and is never trained on (OC36). Titles are matched against the dataset's
@@ -397,6 +412,26 @@ Runtime: detection p50 ${rt.detectPerImage.p50} s per image; PP-OCR p50 ${rt.ppo
 `;
 }
 
+/** One row per box arm, all on the same yardstick sample, scored the same way. */
+function armsTable(metrics: Record<string, any>): string {
+  const rows = (["yardstick-b2", "yardstick-b3", "yardstick-b4"] as const).filter((k) => metrics[k]).map((k) => {
+    const m = metrics[k];
+    const rt = m.machine.runtimeSeconds;
+    return `| ${(m.arm ?? "b2").toUpperCase()} | ${m.boxArm ?? ARM_NAMES.b2} | ${m.images} | ${m.machine.spineCount} | ${pct(m.title.recall)} | ${pct(m.title.precision)} | ${pct(m.author.share)} | ${pct(m.machine.gaps.gapShare)} | ${rt.detectPerImage.p50} | ${m.machine.memoryMb.detectorPeakRss ?? "n/a"} / ${m.machine.memoryMb.detectorPeakMps ?? "n/a"} |`;
+  });
+  if (rows.length < 2) return "";
+  return `## Box arms on the yardstick (PROXY)
+
+Same ${metrics["yardstick-b2"]?.images ?? ""} held-out images, same prompt (\`book spine\`), tiling, SAM 2.1 masks, readers and acceptance bar; only the box detector
+changes. Box recall and precision stay pending (no box ground truth), so arms are compared through the end-to-end title score.
+
+| arm | detector → masks | images | boxes | title recall | title precision | author | gap share | detect s/image p50 | detector peak MB (RSS / MPS) |
+|---|---|---:|---:|---:|---:|---:|---:|---:|---:|
+${rows.join("\n")}
+
+`;
+}
+
 // --- main --------------------------------------------------------------------------------------
 
 const { positionals, values } = parseArgs({
@@ -406,15 +441,20 @@ const { positionals, values } = parseArgs({
     "qwen-cap": { type: "string", default: "40" },
     "run-id": { type: "string" },
     session: { type: "string", default: "pilot-000" },
+    arm: { type: "string", default: "b2" },
   },
 });
 const limit = Number(values.limit);
 const qwenCap = Number(values["qwen-cap"]);
 const cmd = positionals[0];
 if (cmd === "pilot") await pilot(values.session!, limit, qwenCap, values["run-id"] ?? "F0-pilot-000");
-else if (cmd === "yardstick") await yardstick(limit, qwenCap, values["run-id"] ?? "F0-yardstick");
+else if (cmd === "yardstick") {
+  const arm = values.arm as Arm;
+  if (!ARMS.includes(arm)) throw new Error(`--arm must be one of ${ARMS.join(", ")}`);
+  await yardstick(limit, qwenCap, values["run-id"] ?? "F0-yardstick", arm);
+}
 else if (cmd === "publish") publish(values["run-id"] ?? "F0");
 else {
-  console.error("usage: node src/eval/f0-cli.ts pilot|yardstick|publish [--limit n] [--qwen-cap n] [--run-id id] [--session id]");
+  console.error("usage: node src/eval/f0-cli.ts pilot|yardstick|publish [--limit n] [--qwen-cap n] [--run-id id] [--session id] [--arm b2|b3|b4]");
   process.exit(2);
 }
