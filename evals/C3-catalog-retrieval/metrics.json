@@ -1,0 +1,177 @@
+{
+  "runId": "C3-catalog-retrieval",
+  "card": "C-3",
+  "date": "2026-11-02",
+  "code": "5471a0505249",
+  "golden": {
+    "file": "evals/golden/fragments.jsonl",
+    "sha256": "9b464c41379ba6265b9065931d39c33f22d7b8967230b587ddbac40c67036e49",
+    "queries": 161,
+    "catalogGaps": 0
+  },
+  "catalog": {
+    "schemaVersion": 1,
+    "stagingContentHash": "b22bea092bedf73789b37c06ee611e0e77cf80266c04df245e0b28b171295f3c",
+    "stagingDumpDate": "2026-10-31",
+    "workTypes": "NOVEL,COLLECTION,OMNIBUS,ANTHOLOGY,CHAPBOOK,NONFICTION",
+    "works": 340829,
+    "editions": 943917,
+    "bytes": 426409984
+  },
+  "k": 10,
+  "rates": {
+    "clean": {
+      "n": 87,
+      "top1": 0.989,
+      "top5": 1,
+      "top10": 1,
+      "mrr": 0.992
+    },
+    "noisy": {
+      "n": 68,
+      "top1": 0.956,
+      "top5": 1,
+      "top10": 1,
+      "mrr": 0.967
+    },
+    "clean.dev": {
+      "n": 44,
+      "top1": 1,
+      "top5": 1,
+      "top10": 1,
+      "mrr": 1
+    },
+    "clean.test": {
+      "n": 43,
+      "top1": 0.977,
+      "top5": 1,
+      "top10": 1,
+      "mrr": 0.984
+    },
+    "noisy.dev": {
+      "n": 34,
+      "top1": 0.971,
+      "top5": 1,
+      "top10": 1,
+      "mrr": 0.978
+    },
+    "noisy.test": {
+      "n": 34,
+      "top1": 0.941,
+      "top5": 1,
+      "top10": 1,
+      "mrr": 0.957
+    },
+    "noise.initials": {
+      "n": 2,
+      "top1": 1,
+      "top5": 1,
+      "top10": 1,
+      "mrr": 1
+    },
+    "noise.multi-variant": {
+      "n": 3,
+      "top1": 1,
+      "top5": 1,
+      "top10": 1,
+      "mrr": 1
+    },
+    "noise.ocr-0O": {
+      "n": 15,
+      "top1": 1,
+      "top5": 1,
+      "top10": 1,
+      "mrr": 1
+    },
+    "noise.ocr-1l": {
+      "n": 5,
+      "top1": 0.8,
+      "top5": 1,
+      "top10": 1,
+      "mrr": 0.84
+    },
+    "noise.ocr-rn-m": {
+      "n": 2,
+      "top1": 1,
+      "top5": 1,
+      "top10": 1,
+      "mrr": 1
+    },
+    "noise.series-larger": {
+      "n": 8,
+      "top1": 1,
+      "top5": 1,
+      "top10": 1,
+      "mrr": 1
+    },
+    "noise.split-words": {
+      "n": 16,
+      "top1": 0.938,
+      "top5": 1,
+      "top10": 1,
+      "mrr": 0.958
+    },
+    "noise.surname-first": {
+      "n": 6,
+      "top1": 1,
+      "top5": 1,
+      "top10": 1,
+      "mrr": 1
+    },
+    "noise.truncated-author": {
+      "n": 14,
+      "top1": 0.929,
+      "top5": 1,
+      "top10": 1,
+      "mrr": 0.952
+    },
+    "noise.truncated-title": {
+      "n": 6,
+      "top1": 0.833,
+      "top5": 1,
+      "top10": 1,
+      "mrr": 0.875
+    }
+  },
+  "latencyMs": {
+    "n": 161,
+    "p50": 31.5,
+    "p95": 78.7,
+    "max": 110.2,
+    "mean": 36,
+    "note": "per retrieve() call (all variants of one query), warm cache after one untimed pass"
+  },
+  "host": {
+    "cpu": "Apple M4 Pro",
+    "cores": 12,
+    "node": "v24.22.1",
+    "platform": "darwin"
+  },
+  "noMatchScores": {
+    "n": 6,
+    "topScoreMax": 0.721,
+    "topScoreMedian": 0.578
+  },
+  "topScoreWhenTop1Correct": {
+    "n": 151,
+    "min": 0.71,
+    "p10": 0.855,
+    "median": 0.933
+  },
+  "weights": {
+    "title": 0.85,
+    "author": 0.55,
+    "series": 0.45,
+    "coverageFloor": 0.55,
+    "minFormScore": 0.25,
+    "surnameShare": 0.7,
+    "formKind": {
+      "T": 1,
+      "M": 0.95,
+      "S": 0.85,
+      "V": 0.97,
+      "W": 0.92,
+      "X": 0.8
+    }
+  }
+}
