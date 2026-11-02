@@ -8,6 +8,9 @@ Catalog sources and their attribution text are added here by card C-0
 
 ISFDB (the MVP catalog, OC20)
   Source: Internet Speculative Fiction Database, https://www.isfdb.org/
-  Licence: CC BY 4.0 (UNVERIFIED: isfdb.org returned HTTP 403 to C-0; taken from C-R's fetch and a search snippet. Re-check before the first index build)
-  Attribution text (UNVERIFIED: proposed, not ISFDB's wording):
+  Licence: CC BY 4.0, per the site footer (verified in a browser by the conductor, 2026-11-02; docs/licences.md).
+    The downloads page's terms for the database backups are UNVERIFIED (login-gated; docs/catalog.md).
+  Dump staged locally by card C-1: backup-MySQL-55-2026-10-31 (docs/catalog.md). The dump and the staging
+  database are not redistributed in this repo.
+  Attribution text (ours, not ISFDB's wording; ISFDB prescribes none that any agent could read):
     Catalog data from the Internet Speculative Fiction Database (ISFDB), https://www.isfdb.org/, used under CC BY 4.0.
