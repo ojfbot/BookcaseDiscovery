@@ -14,7 +14,7 @@ inside a checkout.
 | Data class | Lives in | Public? | Guard rule that protects it |
 |---|---|---|---|
 | Code, contracts, docs, plan, gate packets | the repo | yes | none needed |
-| Owner-stated reading profile (`read`, `liked`, `cooler`, `not-for-me`) | `profile/seeds.json` in the repo | yes | `banned-provenance` |
+| Owner-stated reading profile (`read`, `liked`, `cooler`, `not-for-me`) | `profile/seeds.json` in the repo | yes: owner statements only (provenance `owner-statement`, no expanded entries, ASSERTED nodes only) | `banned-provenance`, `public-seeds` |
 | Profile entries derived from a ChatGPT export | `$BOOKCASE_DATA/private/profile-overlay.json` | never | `banned-provenance` |
 | ChatGPT export, SelfCo context, adapter caches | `$BOOKCASE_DATA/private/` | never | `chatgpt-export-file`, `chatgpt-export-shape`, `banned-provenance`, `private-path` |
 | Original photos, working copies, crops, display derivatives, HTML reports | `$BOOKCASE_DATA/images/`, `reports/` | no, until G-PUB | `image-type`, `exif-gps`, `large-binary` |

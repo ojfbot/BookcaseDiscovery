@@ -308,13 +308,20 @@ describe("the Z-1 privacy guard catches what the writer would have refused (INV-
     expect(() => writeSeeds(f, join(tmp(), "seeds.json"))).toThrow(SeedsRefusal);
     const r = guardOn({ "profile/seeds.json": JSON.stringify(f, null, 2) });
     expect(r.status).toBe(1);
-    expect(r.rules).toEqual(["banned-provenance"]);
+    expect(r.rules).toEqual(["banned-provenance", "public-seeds"]);
+  });
+
+  it("blocks private taste-tree provenance written by hand (taste-tree ruling Q4)", () => {
+    const f = structuredClone(seedsJson);
+    (f.entries[2]!.provenance as { source: string }).source = "taste-tree";
+    expect(() => writeSeeds(f, join(tmp(), "seeds.json"))).toThrow(SeedsRefusal);
+    expect(guardOn({ "profile/seeds.json": JSON.stringify(f, null, 2) }).rules).toEqual(["public-seeds"]);
   });
 
   it("blocks it on a node too", () => {
     const f = structuredClone(nodesExample);
     (f.nodes[0]!.provenance as { source: string }).source = "chatgpt-export";
-    expect(guardOn({ "profile/seeds.json": JSON.stringify(f) }).rules).toEqual(["banned-provenance"]);
+    expect(guardOn({ "profile/seeds.json": JSON.stringify(f) }).rules).toEqual(["banned-provenance", "public-seeds"]);
   });
 });
 
