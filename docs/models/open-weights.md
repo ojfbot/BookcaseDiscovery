@@ -164,3 +164,5 @@ Everything lands under `$BOOKCASE_DATA` (`~/data/bookcase-discovery/`, 311 GB fr
 ## 7. Ruling
 
 **Approve the labelling stack (SAM 3 plus Grounding DINO → SAM 2.1 for boxes; Apple Vision, Qwen3-VL-4B and PP-OCRv5 for reading), the yardstick pair (Library Dataset for titles, Zhong/Yang for boxes), and the 8 downloads (about 11.3 GB, SAM 3 downloaded by you)?**
+
+**Owner ruling (2026-11-02):** "Approve, SAM 3 later." The stack, the yardstick pair and the 8 downloads are approved. Agents fetch items 2–8. The owner downloads SAM 3 (item 1) whenever convenient; until then F-0 runs B2 (Grounding DINO → SAM 2.1) alone and records that only one box producer was available.
