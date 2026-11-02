@@ -14,3 +14,14 @@ conversations.json
 *.PNG
 !test/fixtures/synthetic/**
 .DS_Store
+# Video, RAW and model-weight types (INV-22). The Z-1 guard rejects them outside test/fixtures/synthetic/.
+*.mov
+*.mp4
+*.m4v
+*.dng
+*.pt
+*.onnx
+*.mlmodel
+*.mlpackage/
+*.safetensors
+chat.html
