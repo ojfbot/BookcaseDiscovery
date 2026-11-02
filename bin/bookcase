@@ -1,0 +1,5 @@
+#!/usr/bin/env node
+// CLI entry. Node ≥22.18 runs TypeScript by stripping types, so there is no build step.
+import { main } from "../src/run/index.ts";
+
+process.exitCode = main(process.argv.slice(2));

@@ -1,0 +1,16 @@
+# Private data never enters the repo (REQUIREMENTS.md OC9). The Z-1 guard enforces this.
+node_modules/
+data/
+private/
+.venv/
+conversations.json
+*.heic
+*.HEIC
+*.jpg
+*.JPG
+*.jpeg
+*.JPEG
+*.png
+*.PNG
+!test/fixtures/synthetic/**
+.DS_Store
