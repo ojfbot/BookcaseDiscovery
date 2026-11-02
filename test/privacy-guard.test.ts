@@ -177,7 +177,7 @@ describe("rule: image, RAW, video and weight types outside test/fixtures/synthet
     expect(rulesOf(repoWith({ [path]: content }))).toContain("video-type");
   });
 
-  const weights = ["models/a.pt", "models/a.onnx", "models/a.mlmodel", "models/a.safetensors", "models/a.mlpackage/Data/w.bin", "models/b.mlmodelc/model.mil"];
+  const weights = ["models/a.pt", "models/a.onnx", "models/a.mlmodel", "models/a.safetensors", "models/a.mlpackage/Data/w.bin", "models/b.mlmodelc/model.mil", "models/C.MLPackage/Data/w.bin"];
   it.each(weights)("rejects weight file %s", (path) => {
     expect(rulesOf(repoWith({ [path]: "w" }))).toContain("weight-type");
   });
@@ -301,6 +301,8 @@ describe("rule: evals/ aggregate-only allowlist", () => {
     ["private evals committed", "private/evals/E1/metrics.json", metrics()],
     ["evals deeper in the tree", "x/evals/E1/metrics.json", metrics()],
     ["golden dir, other file", "evals/golden/rows.jsonl", "{}\n"],
+    ["differently-cased evals dir", "Evals/E1/metrics.json", metrics({ spines: [] })],
+    ["differently-cased evals dir, detail file", "EVALS/E1/rows.jsonl", "{}\n"],
   ])("rejects %s", (_n, path, content) => {
     expect(rulesOf(repoWith({ [path]: content }))).toContain("evals-allowlist");
   });
@@ -340,6 +342,10 @@ describe("rule: fixture manifest carries no capture time, GPS or store fields", 
   it("applies under test/fixtures too, and to manifest variants", () => {
     expect(rulesOf(repoWith({ "test/fixtures/synthetic/manifest.json": JSON.stringify({ capture_time: "x" }) }))).toContain("fixture-manifest");
     expect(rulesOf(repoWith({ "fixtures/a/manifest.private.json": JSON.stringify({ gps: 1 }) }))).toContain("fixture-manifest");
+  });
+
+  it("matches the fixtures directory case-insensitively", () => {
+    expect(rulesOf(repoWith({ "Fixtures/a/manifest.json": JSON.stringify({ capture_time: "x" }) }))).toContain("fixture-manifest");
   });
 
   it("does not police manifest.json files outside fixtures/", () => {

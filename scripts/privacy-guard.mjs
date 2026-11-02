@@ -281,6 +281,8 @@ function checkFile(path, buf, cache, oid) {
   const ext = extOf(path);
   const base = baseOf(path).toLowerCase();
   const segments = path.split('/');
+  // Directory names are matched case-insensitively (macOS and Windows filesystems are); allowlists stay case-sensitive.
+  const lowerSegments = segments.map((x) => x.toLowerCase());
   const synthetic = inSynthetic(path);
 
   const memo = (key, fn) => {
@@ -295,7 +297,7 @@ function checkFile(path, buf, cache, oid) {
   const isImage = isImageByExt || sniffed === 'image';
   const isVideo = VIDEO_EXT.has(ext) || (sniffed === 'video' && !isImageByExt);
   const isWeight =
-    WEIGHT_EXT.has(ext) || segments.slice(0, -1).some((s) => WEIGHT_DIR_SUFFIXES.some((x) => s.endsWith(x)));
+    WEIGHT_EXT.has(ext) || lowerSegments.slice(0, -1).some((s) => WEIGHT_DIR_SUFFIXES.some((x) => s.endsWith(x)));
   if (!synthetic) {
     if (isImage) add('image-type', 'image or RAW file outside test/fixtures/synthetic/');
     if (isVideo) add('video-type', 'video file outside test/fixtures/synthetic/');
@@ -330,7 +332,7 @@ function checkFile(path, buf, cache, oid) {
   }
 
   // --- evals/ allowlist -------------------------------------------------------------------------
-  if (segments.includes('evals')) {
+  if (lowerSegments.includes('evals')) {
     const allowed = EVAL_ALLOW.find((a) => a.re.test(path));
     if (!allowed) {
       add('evals-allowlist', 'not on the aggregate-only evals/ allowlist (evals/<run-id>/metrics.json or report.md)');
@@ -352,7 +354,7 @@ function checkFile(path, buf, cache, oid) {
   }
 
   // --- fixture manifest ---------------------------------------------------------------------------
-  if (segments.includes('fixtures') && /^manifest.*\.json$/.test(base)) {
+  if (lowerSegments.includes('fixtures') && /^manifest.*\.json$/.test(base)) {
     const j = json || analyseJson(path, buf);
     const bad = [...j.keys].filter((k) => MANIFEST_FORBIDDEN_KEYS.has(k));
     if (bad.length) add('fixture-manifest', `public fixture manifest carries forbidden field(s): ${bad.join(', ')}`);
