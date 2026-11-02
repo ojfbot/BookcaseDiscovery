@@ -16,6 +16,8 @@
     "test": "vitest run",
     "typecheck": "tsc --noEmit",
     "labels:import": "node src/eval/labels-import.ts",
+    "catalog:import": "node src/catalog/isfdb-import.ts import",
+    "catalog:check": "node src/catalog/isfdb-import.ts check",
     "guard": "node scripts/privacy-guard.mjs",
     "prepare": "simple-git-hooks",
     "report:synthetic": "node scripts/synthetic-report.ts"
