@@ -4,7 +4,7 @@ import { existsSync, readdirSync } from "node:fs";
 import { DatabaseSync } from "node:sqlite";
 import { join } from "node:path";
 import { parseArgs } from "node:util";
-import { dataRoot } from "../capture/store.ts";
+import { dataRoot } from "../ledger/images.ts";
 import { computeContentHash, stageDump, tableCounts } from "./isfdb-staging.ts";
 import { runSpotChecks } from "./spot-check.ts";
 import type { SpotCheckResult } from "./spot-check.ts";

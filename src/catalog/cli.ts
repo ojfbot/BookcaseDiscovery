@@ -6,7 +6,7 @@ import { cpus } from "node:os";
 import { join } from "node:path";
 import { parseArgs } from "node:util";
 import { DatabaseSync } from "node:sqlite";
-import { dataRoot } from "../capture/store.ts";
+import { dataRoot } from "../ledger/images.ts";
 import { buildCatalog, catalogFileSize, CATALOG_SCHEMA_VERSION } from "./build.ts";
 import { loadGolden, runGolden } from "./golden.ts";
 import type { GoldenRun } from "./golden.ts";
