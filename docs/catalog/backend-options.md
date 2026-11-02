@@ -218,4 +218,4 @@ catalog-gap share of `unknown` (OC32), never forced.
 when ISFDB covers < 85 % of a fixture's readable labels or when the first non-SF or library shelf is
 shot, whichever comes first, with LoC SRU as the keyless verifier: yes or no?
 
-**Owner ruling:** _pending_
+**Owner ruling (2026-11-02):** "Yes, ISFDB-only." OC20 stands for the MVP, with LoC SRU as the keyless verifier and the Open Library import (backlog #4) reopened on either trigger above.
