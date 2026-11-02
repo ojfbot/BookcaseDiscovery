@@ -34,6 +34,7 @@ export {
   observations,
 } from "./live.ts";
 export type { LiveContext } from "./live.ts";
-export { ImageStore, dataRoot } from "./images.ts";
+export { ImageStore, dataRoot, sha256Hex } from "./images.ts";
+export type { StoredImage } from "./images.ts";
 export { diffValues, replay } from "./replay.ts";
 export type { ReplayResult } from "./replay.ts";

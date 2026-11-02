@@ -9,7 +9,7 @@ export const reportUsage = `usage: bookcase report <session> [--run <id>] [--led
 
   <session>   scan session name, e.g. sf-store-001
   --run       the run to report (default: the most recently started)
-  --ledger    the SQLite ledger (default: $BOOKCASE_DATA/ledger.sqlite), opened read-only
+  --ledger    the SQLite ledger (default: $BOOKCASE_DATA/ledger/<session>.sqlite, else $BOOKCASE_DATA/ledger.sqlite), opened read-only
 
 Writes a static site to $BOOKCASE_DATA/reports/<session>/<run>/index.html (default data root
 ~/data/bookcase-discovery/). The folder holds photos: it is private and never committed.`;
@@ -36,7 +36,8 @@ export function reportCommand(argv: string[], env: NodeJS.ProcessEnv = process.e
     return 1;
   }
   const dataDir = dataRoot(env);
-  const dbPath = values.ledger ?? join(dataDir, "ledger.sqlite");
+  const sessionDb = join(dataDir, "ledger", `${positionals[0]}.sqlite`);
+  const dbPath = values.ledger ?? (existsSync(sessionDb) ? sessionDb : join(dataDir, "ledger.sqlite"));
   if (!existsSync(dbPath)) {
     console.error(`bookcase report: no ledger at ${dbPath} (pass --ledger <db>)`);
     return 1;

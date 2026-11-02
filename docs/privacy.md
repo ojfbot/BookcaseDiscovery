@@ -19,8 +19,9 @@ inside a checkout.
 | ChatGPT export, SelfCo context, adapter caches | `$BOOKCASE_DATA/private/` | never | `chatgpt-export-file`, `chatgpt-export-shape`, `banned-provenance`, `private-path` |
 | Original photos, working copies, crops, display derivatives, HTML reports | `$BOOKCASE_DATA/images/`, `reports/` | no, until G-PUB | `image-type`, `exif-gps`, `large-binary` |
 | Labels, per-spine OCR text, per-spine eval rows | `$BOOKCASE_DATA/labels/`, `$BOOKCASE_DATA/private/evals/` | no, until G-PUB | `evals-allowlist` |
-| Fixture manifest (hashes, dimensions, setting, shelf index) | `fixtures/<session>/manifest.json` in the repo | yes, with no capture time, GPS or store fields | `fixture-manifest` |
-| Private fixture manifest (capture time, store, GPS) | `$BOOKCASE_DATA/private/fixtures/` | never | `fixture-manifest`, `private-path` |
+| Fixture manifest (hashes, dimensions, setting, shelf index, derivative flag) | `fixtures/<session>/manifest.json` in the repo | yes, with no capture time, GPS, store or file-name fields | `fixture-manifest` |
+| Private fixture manifest (file names, capture time, device, lens class, edit status; GPS is never read) | `$BOOKCASE_DATA/private/fixtures/<session>.json` | never | `fixture-manifest`, `private-path` |
+| The ledger and the image store of a real fixture | `$BOOKCASE_DATA/ledger/<session>.sqlite`, `$BOOKCASE_DATA/images/` | no, until G-PUB | `image-type`, `large-binary` |
 | Aggregate eval metrics (recall, CER, top-k, bands, tokens, spend) | `evals/<run-id>/{metrics.json,report.md}` in the repo | yes | `evals-allowlist` (this is the allowlist) |
 | Catalog databases and dumps | `$BOOKCASE_DATA/catalog/` | no (size; attribution goes in `NOTICE`) | `large-binary` |
 | Live camera frames | memory only (INV-22) | never stored | `image-type`, `video-type` |

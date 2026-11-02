@@ -25,12 +25,13 @@
       "pattern": "^[0-9a-f]{64}$"
     },
     "PhotoSetting": {
-      "description": "How the photo was taken (OC6, E1).",
+      "description": "How the photo was taken: the four controlled E1 settings (OC6), or 'real-use' for a handheld, angled shot with no protocol (OC35).",
       "enum": [
         "whole-12",
         "whole-48",
         "shelf-48",
-        "overview"
+        "overview",
+        "real-use"
       ]
     },
     "Status": {
