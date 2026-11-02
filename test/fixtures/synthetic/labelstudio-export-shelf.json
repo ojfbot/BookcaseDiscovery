@@ -1,0 +1,1275 @@
+[
+ {
+  "id": 2,
+  "annotations": [
+   {
+    "id": 1,
+    "completed_by": 1,
+    "result": [
+     {
+      "id": "band0",
+      "to_name": "image",
+      "original_width": 8064,
+      "original_height": 6048,
+      "image_rotation": 0,
+      "origin": "manual",
+      "value": {
+       "x": 1.429,
+       "y": 11.886,
+       "width": 100,
+       "height": 71.66,
+       "rotation": 3,
+       "rectanglelabels": [
+        "shelf-band"
+       ]
+      },
+      "type": "rectanglelabels",
+      "from_name": "label"
+     },
+     {
+      "id": "s00",
+      "to_name": "image",
+      "original_width": 8064,
+      "original_height": 6048,
+      "image_rotation": 0,
+      "origin": "manual",
+      "value": {
+       "x": 5.455,
+       "y": 13.045,
+       "width": 3.467,
+       "height": 65.79,
+       "rotation": 3,
+       "rectanglelabels": [
+        "spine"
+       ]
+      },
+      "type": "rectanglelabels",
+      "from_name": "label"
+     },
+     {
+      "id": "s00",
+      "to_name": "image",
+      "original_width": 8064,
+      "original_height": 6048,
+      "image_rotation": 0,
+      "origin": "manual",
+      "value": {
+       "x": 5.455,
+       "y": 13.045,
+       "width": 3.467,
+       "height": 65.79,
+       "rotation": 3,
+       "text": [
+        "Hollow Lighthouse"
+       ]
+      },
+      "type": "textarea",
+      "from_name": "title"
+     },
+     {
+      "id": "s00",
+      "to_name": "image",
+      "original_width": 8064,
+      "original_height": 6048,
+      "image_rotation": 0,
+      "origin": "manual",
+      "value": {
+       "x": 5.455,
+       "y": 13.045,
+       "width": 3.467,
+       "height": 65.79,
+       "rotation": 3,
+       "text": [
+        "Priya Verhoeven"
+       ]
+      },
+      "type": "textarea",
+      "from_name": "author"
+     },
+     {
+      "id": "s01",
+      "to_name": "image",
+      "original_width": 8064,
+      "original_height": 6048,
+      "image_rotation": 0,
+      "origin": "manual",
+      "value": {
+       "x": 8.934,
+       "y": 17.543,
+       "width": 5.367,
+       "height": 61.541,
+       "rotation": 3,
+       "rectanglelabels": [
+        "spine"
+       ]
+      },
+      "type": "rectanglelabels",
+      "from_name": "label"
+     },
+     {
+      "id": "s01",
+      "to_name": "image",
+      "original_width": 8064,
+      "original_height": 6048,
+      "image_rotation": 0,
+      "origin": "manual",
+      "value": {
+       "x": 8.934,
+       "y": 17.543,
+       "width": 5.367,
+       "height": 61.541,
+       "rotation": 3,
+       "text": [
+        "Winter Almanac"
+       ]
+      },
+      "type": "textarea",
+      "from_name": "title"
+     },
+     {
+      "id": "s01",
+      "to_name": "image",
+      "original_width": 8064,
+      "original_height": 6048,
+      "image_rotation": 0,
+      "origin": "manual",
+      "value": {
+       "x": 8.934,
+       "y": 17.543,
+       "width": 5.367,
+       "height": 61.541,
+       "rotation": 3,
+       "text": [
+        "Anselm Marchetti"
+       ]
+      },
+      "type": "textarea",
+      "from_name": "author"
+     },
+     {
+      "id": "s02",
+      "to_name": "image",
+      "original_width": 8064,
+      "original_height": 6048,
+      "image_rotation": 0,
+      "origin": "manual",
+      "value": {
+       "x": 14.463,
+       "y": 19.188,
+       "width": 5.144,
+       "height": 60.284,
+       "rotation": 3,
+       "rectanglelabels": [
+        "spine"
+       ]
+      },
+      "type": "rectanglelabels",
+      "from_name": "label"
+     },
+     {
+      "id": "s02",
+      "to_name": "image",
+      "original_width": 8064,
+      "original_height": 6048,
+      "image_rotation": 0,
+      "origin": "manual",
+      "value": {
+       "x": 14.463,
+       "y": 19.188,
+       "width": 5.144,
+       "height": 60.284,
+       "rotation": 3,
+       "text": [
+        "Salt Accord"
+       ]
+      },
+      "type": "textarea",
+      "from_name": "title"
+     },
+     {
+      "id": "s02",
+      "to_name": "image",
+      "original_width": 8064,
+      "original_height": 6048,
+      "image_rotation": 0,
+      "origin": "manual",
+      "value": {
+       "x": 14.463,
+       "y": 19.188,
+       "width": 5.144,
+       "height": 60.284,
+       "rotation": 3,
+       "text": [
+        "Odile Okafor"
+       ]
+      },
+      "type": "textarea",
+      "from_name": "author"
+     },
+     {
+      "id": "s03",
+      "to_name": "image",
+      "original_width": 8064,
+      "original_height": 6048,
+      "image_rotation": 0,
+      "origin": "manual",
+      "value": {
+       "x": 19.95,
+       "y": 15.415,
+       "width": 3.789,
+       "height": 64.435,
+       "rotation": 3,
+       "rectanglelabels": [
+        "spine"
+       ]
+      },
+      "type": "rectanglelabels",
+      "from_name": "label"
+     },
+     {
+      "id": "s03",
+      "to_name": "image",
+      "original_width": 8064,
+      "original_height": 6048,
+      "image_rotation": 0,
+      "origin": "manual",
+      "value": {
+       "x": 19.95,
+       "y": 15.415,
+       "width": 3.789,
+       "height": 64.435,
+       "rotation": 3,
+       "choices": [
+        "unreadable"
+       ]
+      },
+      "type": "choices",
+      "from_name": "flags"
+     },
+     {
+      "id": "s04",
+      "to_name": "image",
+      "original_width": 8064,
+      "original_height": 6048,
+      "image_rotation": 0,
+      "origin": "manual",
+      "value": {
+       "x": 23.691,
+       "y": 21.124,
+       "width": 4.429,
+       "height": 58.995,
+       "rotation": 3,
+       "rectanglelabels": [
+        "spine"
+       ]
+      },
+      "type": "rectanglelabels",
+      "from_name": "label"
+     },
+     {
+      "id": "s04",
+      "to_name": "image",
+      "original_width": 8064,
+      "original_height": 6048,
+      "image_rotation": 0,
+      "origin": "manual",
+      "value": {
+       "x": 23.691,
+       "y": 21.124,
+       "width": 4.429,
+       "height": 58.995,
+       "rotation": 3,
+       "text": [
+        "Quiet Reservoir"
+       ]
+      },
+      "type": "textarea",
+      "from_name": "title"
+     },
+     {
+      "id": "s04",
+      "to_name": "image",
+      "original_width": 8064,
+      "original_height": 6048,
+      "image_rotation": 0,
+      "origin": "manual",
+      "value": {
+       "x": 23.691,
+       "y": 21.124,
+       "width": 4.429,
+       "height": 58.995,
+       "rotation": 3,
+       "text": [
+        "Odile Castellan"
+       ]
+      },
+      "type": "textarea",
+      "from_name": "author"
+     },
+     {
+      "id": "s05",
+      "to_name": "image",
+      "original_width": 8064,
+      "original_height": 6048,
+      "image_rotation": 0,
+      "origin": "manual",
+      "value": {
+       "x": 28.375,
+       "y": 19.415,
+       "width": 4.307,
+       "height": 61.028,
+       "rotation": 3,
+       "rectanglelabels": [
+        "spine"
+       ]
+      },
+      "type": "rectanglelabels",
+      "from_name": "label"
+     },
+     {
+      "id": "s05",
+      "to_name": "image",
+      "original_width": 8064,
+      "original_height": 6048,
+      "image_rotation": 0,
+      "origin": "manual",
+      "value": {
+       "x": 28.375,
+       "y": 19.415,
+       "width": 4.307,
+       "height": 61.028,
+       "rotation": 3,
+       "text": [
+        "Hollow Accord"
+       ]
+      },
+      "type": "textarea",
+      "from_name": "title"
+     },
+     {
+      "id": "s05",
+      "to_name": "image",
+      "original_width": 8064,
+      "original_height": 6048,
+      "image_rotation": 0,
+      "origin": "manual",
+      "value": {
+       "x": 28.375,
+       "y": 19.415,
+       "width": 4.307,
+       "height": 61.028,
+       "rotation": 3,
+       "text": [
+        "Wren Lindqvist"
+       ]
+      },
+      "type": "textarea",
+      "from_name": "author"
+     },
+     {
+      "id": "s06",
+      "to_name": "image",
+      "original_width": 8064,
+      "original_height": 6048,
+      "image_rotation": 0,
+      "origin": "manual",
+      "value": {
+       "x": 32.941,
+       "y": 17.846,
+       "width": 4.845,
+       "height": 62.913,
+       "rotation": 3,
+       "rectanglelabels": [
+        "spine"
+       ]
+      },
+      "type": "rectanglelabels",
+      "from_name": "label"
+     },
+     {
+      "id": "s06",
+      "to_name": "image",
+      "original_width": 8064,
+      "original_height": 6048,
+      "image_rotation": 0,
+      "origin": "manual",
+      "value": {
+       "x": 32.941,
+       "y": 17.846,
+       "width": 4.845,
+       "height": 62.913,
+       "rotation": 3,
+       "text": [
+        "Iron Bestiary"
+       ]
+      },
+      "type": "textarea",
+      "from_name": "title"
+     },
+     {
+      "id": "s06",
+      "to_name": "image",
+      "original_width": 8064,
+      "original_height": 6048,
+      "image_rotation": 0,
+      "origin": "manual",
+      "value": {
+       "x": 32.941,
+       "y": 17.846,
+       "width": 4.845,
+       "height": 62.913,
+       "rotation": 3,
+       "text": [
+        "Idris Lindqvist"
+       ]
+      },
+      "type": "textarea",
+      "from_name": "author"
+     },
+     {
+      "id": "s07",
+      "to_name": "image",
+      "original_width": 8064,
+      "original_height": 6048,
+      "image_rotation": 0,
+      "origin": "manual",
+      "value": {
+       "x": 37.937,
+       "y": 19.503,
+       "width": 5.211,
+       "height": 61.607,
+       "rotation": 3,
+       "rectanglelabels": [
+        "face-out"
+       ]
+      },
+      "type": "rectanglelabels",
+      "from_name": "label"
+     },
+     {
+      "id": "s07",
+      "to_name": "image",
+      "original_width": 8064,
+      "original_height": 6048,
+      "image_rotation": 0,
+      "origin": "manual",
+      "value": {
+       "x": 37.937,
+       "y": 19.503,
+       "width": 5.211,
+       "height": 61.607,
+       "rotation": 3,
+       "text": [
+        "Salt Reservoir"
+       ]
+      },
+      "type": "textarea",
+      "from_name": "title"
+     },
+     {
+      "id": "s07",
+      "to_name": "image",
+      "original_width": 8064,
+      "original_height": 6048,
+      "image_rotation": 0,
+      "origin": "manual",
+      "value": {
+       "x": 37.937,
+       "y": 19.503,
+       "width": 5.211,
+       "height": 61.607,
+       "rotation": 3,
+       "text": [
+        "Mara Abara"
+       ]
+      },
+      "type": "textarea",
+      "from_name": "author"
+     },
+     {
+      "id": "s07",
+      "to_name": "image",
+      "original_width": 8064,
+      "original_height": 6048,
+      "image_rotation": 0,
+      "origin": "manual",
+      "value": {
+       "x": 37.937,
+       "y": 19.503,
+       "width": 5.211,
+       "height": 61.607,
+       "rotation": 3,
+       "text": [
+        "price sticker"
+       ]
+      },
+      "type": "textarea",
+      "from_name": "notes"
+     },
+     {
+      "id": "s08",
+      "to_name": "image",
+      "original_width": 8064,
+      "original_height": 6048,
+      "image_rotation": 0,
+      "origin": "manual",
+      "value": {
+       "x": 43.258,
+       "y": 21.432,
+       "width": 3.359,
+       "height": 60.053,
+       "rotation": 3,
+       "rectanglelabels": [
+        "spine"
+       ]
+      },
+      "type": "rectanglelabels",
+      "from_name": "label"
+     },
+     {
+      "id": "s08",
+      "to_name": "image",
+      "original_width": 8064,
+      "original_height": 6048,
+      "image_rotation": 0,
+      "origin": "manual",
+      "value": {
+       "x": 43.258,
+       "y": 21.432,
+       "width": 3.359,
+       "height": 60.053,
+       "rotation": 3,
+       "text": [
+        "Hollow Orchestra"
+       ]
+      },
+      "type": "textarea",
+      "from_name": "title"
+     },
+     {
+      "id": "s08",
+      "to_name": "image",
+      "original_width": 8064,
+      "original_height": 6048,
+      "image_rotation": 0,
+      "origin": "manual",
+      "value": {
+       "x": 43.258,
+       "y": 21.432,
+       "width": 3.359,
+       "height": 60.053,
+       "rotation": 3,
+       "text": [
+        "Collette Nakamura"
+       ]
+      },
+      "type": "textarea",
+      "from_name": "author"
+     },
+     {
+      "id": "s09",
+      "to_name": "image",
+      "original_width": 8064,
+      "original_height": 6048,
+      "image_rotation": 0,
+      "origin": "manual",
+      "value": {
+       "x": 46.907,
+       "y": 17.647,
+       "width": 3.185,
+       "height": 64.087,
+       "rotation": 3,
+       "rectanglelabels": [
+        "spine"
+       ]
+      },
+      "type": "rectanglelabels",
+      "from_name": "label"
+     },
+     {
+      "id": "s09",
+      "to_name": "image",
+      "original_width": 8064,
+      "original_height": 6048,
+      "image_rotation": 0,
+      "origin": "manual",
+      "value": {
+       "x": 46.907,
+       "y": 17.647,
+       "width": 3.185,
+       "height": 64.087,
+       "rotation": 3,
+       "text": [
+        "Winter Almanac"
+       ]
+      },
+      "type": "textarea",
+      "from_name": "title"
+     },
+     {
+      "id": "s09",
+      "to_name": "image",
+      "original_width": 8064,
+      "original_height": 6048,
+      "image_rotation": 0,
+      "origin": "manual",
+      "value": {
+       "x": 46.907,
+       "y": 17.647,
+       "width": 3.185,
+       "height": 64.087,
+       "rotation": 3,
+       "text": [
+        "Priya Nakamura"
+       ]
+      },
+      "type": "textarea",
+      "from_name": "author"
+     },
+     {
+      "id": "s10",
+      "to_name": "image",
+      "original_width": 8064,
+      "original_height": 6048,
+      "image_rotation": 0,
+      "origin": "manual",
+      "value": {
+       "x": 50.226,
+       "y": 18.872,
+       "width": 5.336,
+       "height": 63.095,
+       "rotation": 3,
+       "rectanglelabels": [
+        "spine"
+       ]
+      },
+      "type": "rectanglelabels",
+      "from_name": "label"
+     },
+     {
+      "id": "s10",
+      "to_name": "image",
+      "original_width": 8064,
+      "original_height": 6048,
+      "image_rotation": 0,
+      "origin": "manual",
+      "value": {
+       "x": 50.226,
+       "y": 18.872,
+       "width": 5.336,
+       "height": 63.095,
+       "rotation": 3,
+       "text": [
+        "Velvet Carousel"
+       ]
+      },
+      "type": "textarea",
+      "from_name": "title"
+     },
+     {
+      "id": "s10",
+      "to_name": "image",
+      "original_width": 8064,
+      "original_height": 6048,
+      "image_rotation": 0,
+      "origin": "manual",
+      "value": {
+       "x": 50.226,
+       "y": 18.872,
+       "width": 5.336,
+       "height": 63.095,
+       "rotation": 3,
+       "text": [
+        "Femi Verhoeven"
+       ]
+      },
+      "type": "textarea",
+      "from_name": "author"
+     },
+     {
+      "id": "s10",
+      "to_name": "image",
+      "original_width": 8064,
+      "original_height": 6048,
+      "image_rotation": 0,
+      "origin": "manual",
+      "value": {
+       "x": 50.226,
+       "y": 18.872,
+       "width": 5.336,
+       "height": 63.095,
+       "rotation": 3,
+       "text": [
+        "Cinder Cycle"
+       ]
+      },
+      "type": "textarea",
+      "from_name": "series"
+     },
+     {
+      "id": "s11",
+      "to_name": "image",
+      "original_width": 8064,
+      "original_height": 6048,
+      "image_rotation": 0,
+      "origin": "manual",
+      "value": {
+       "x": 55.742,
+       "y": 19.588,
+       "width": 4.262,
+       "height": 62.765,
+       "rotation": 3,
+       "rectanglelabels": [
+        "spine"
+       ]
+      },
+      "type": "rectanglelabels",
+      "from_name": "label"
+     },
+     {
+      "id": "s11",
+      "to_name": "image",
+      "original_width": 8064,
+      "original_height": 6048,
+      "image_rotation": 0,
+      "origin": "manual",
+      "value": {
+       "x": 55.742,
+       "y": 19.588,
+       "width": 4.262,
+       "height": 62.765,
+       "rotation": 3,
+       "text": [
+        "Winter Lighthouse"
+       ]
+      },
+      "type": "textarea",
+      "from_name": "title"
+     },
+     {
+      "id": "s11",
+      "to_name": "image",
+      "original_width": 8064,
+      "original_height": 6048,
+      "image_rotation": 0,
+      "origin": "manual",
+      "value": {
+       "x": 55.742,
+       "y": 19.588,
+       "width": 4.262,
+       "height": 62.765,
+       "rotation": 3,
+       "text": [
+        "Priya Verhoeven"
+       ]
+      },
+      "type": "textarea",
+      "from_name": "author"
+     },
+     {
+      "id": "s12",
+      "to_name": "image",
+      "original_width": 8064,
+      "original_height": 6048,
+      "image_rotation": 0,
+      "origin": "manual",
+      "value": {
+       "x": 60.161,
+       "y": 20.725,
+       "width": 5.14,
+       "height": 61.938,
+       "rotation": 3,
+       "rectanglelabels": [
+        "spine"
+       ]
+      },
+      "type": "rectanglelabels",
+      "from_name": "label"
+     },
+     {
+      "id": "s12",
+      "to_name": "image",
+      "original_width": 8064,
+      "original_height": 6048,
+      "image_rotation": 0,
+      "origin": "manual",
+      "value": {
+       "x": 60.161,
+       "y": 20.725,
+       "width": 5.14,
+       "height": 61.938,
+       "rotation": 3,
+       "text": [
+        "Cinder Bestiary"
+       ]
+      },
+      "type": "textarea",
+      "from_name": "title"
+     },
+     {
+      "id": "s12",
+      "to_name": "image",
+      "original_width": 8064,
+      "original_height": 6048,
+      "image_rotation": 0,
+      "origin": "manual",
+      "value": {
+       "x": 60.161,
+       "y": 20.725,
+       "width": 5.14,
+       "height": 61.938,
+       "rotation": 3,
+       "text": [
+        "Priya Rydell"
+       ]
+      },
+      "type": "textarea",
+      "from_name": "author"
+     },
+     {
+      "id": "s13",
+      "to_name": "image",
+      "original_width": 8064,
+      "original_height": 6048,
+      "image_rotation": 0,
+      "origin": "manual",
+      "value": {
+       "x": 65.356,
+       "y": 23.903,
+       "width": 3.115,
+       "height": 59.127,
+       "rotation": 3,
+       "rectanglelabels": [
+        "spine"
+       ]
+      },
+      "type": "rectanglelabels",
+      "from_name": "label"
+     },
+     {
+      "id": "s13",
+      "to_name": "image",
+      "original_width": 8064,
+      "original_height": 6048,
+      "image_rotation": 0,
+      "origin": "manual",
+      "value": {
+       "x": 65.356,
+       "y": 23.903,
+       "width": 3.115,
+       "height": 59.127,
+       "rotation": 3,
+       "text": [
+        "Salt Carousel"
+       ]
+      },
+      "type": "textarea",
+      "from_name": "title"
+     },
+     {
+      "id": "s13",
+      "to_name": "image",
+      "original_width": 8064,
+      "original_height": 6048,
+      "image_rotation": 0,
+      "origin": "manual",
+      "value": {
+       "x": 65.356,
+       "y": 23.903,
+       "width": 3.115,
+       "height": 59.127,
+       "rotation": 3,
+       "text": [
+        "Odile Pell"
+       ]
+      },
+      "type": "textarea",
+      "from_name": "author"
+     },
+     {
+      "id": "s14",
+      "to_name": "image",
+      "original_width": 8064,
+      "original_height": 6048,
+      "image_rotation": 0,
+      "origin": "manual",
+      "value": {
+       "x": 68.63,
+       "y": 23.9,
+       "width": 4.296,
+       "height": 59.358,
+       "rotation": 3,
+       "rectanglelabels": [
+        "spine"
+       ]
+      },
+      "type": "rectanglelabels",
+      "from_name": "label"
+     },
+     {
+      "id": "s14",
+      "to_name": "image",
+      "original_width": 8064,
+      "original_height": 6048,
+      "image_rotation": 0,
+      "origin": "manual",
+      "value": {
+       "x": 68.63,
+       "y": 23.9,
+       "width": 4.296,
+       "height": 59.358,
+       "rotation": 3,
+       "text": [
+        "Amber Cartographer"
+       ]
+      },
+      "type": "textarea",
+      "from_name": "title"
+     },
+     {
+      "id": "s14",
+      "to_name": "image",
+      "original_width": 8064,
+      "original_height": 6048,
+      "image_rotation": 0,
+      "origin": "manual",
+      "value": {
+       "x": 68.63,
+       "y": 23.9,
+       "width": 4.296,
+       "height": 59.358,
+       "rotation": 3,
+       "text": [
+        "Tobias Lindqvist"
+       ]
+      },
+      "type": "textarea",
+      "from_name": "author"
+     },
+     {
+      "id": "s15",
+      "to_name": "image",
+      "original_width": 8064,
+      "original_height": 6048,
+      "image_rotation": 0,
+      "origin": "manual",
+      "value": {
+       "x": 73.192,
+       "y": 22.215,
+       "width": 5.032,
+       "height": 61.359,
+       "rotation": 3,
+       "rectanglelabels": [
+        "not-a-book"
+       ]
+      },
+      "type": "rectanglelabels",
+      "from_name": "label"
+     },
+     {
+      "id": "s15",
+      "to_name": "image",
+      "original_width": 8064,
+      "original_height": 6048,
+      "image_rotation": 0,
+      "origin": "manual",
+      "value": {
+       "x": 73.192,
+       "y": 22.215,
+       "width": 5.032,
+       "height": 61.359,
+       "rotation": 3,
+       "text": [
+        "bookend"
+       ]
+      },
+      "type": "textarea",
+      "from_name": "notes"
+     },
+     {
+      "id": "s16",
+      "to_name": "image",
+      "original_width": 8064,
+      "original_height": 6048,
+      "image_rotation": 0,
+      "origin": "manual",
+      "value": {
+       "x": 78.554,
+       "y": 18.633,
+       "width": 3.719,
+       "height": 65.311,
+       "rotation": 3,
+       "rectanglelabels": [
+        "spine"
+       ]
+      },
+      "type": "rectanglelabels",
+      "from_name": "label"
+     },
+     {
+      "id": "s16",
+      "to_name": "image",
+      "original_width": 8064,
+      "original_height": 6048,
+      "image_rotation": 0,
+      "origin": "manual",
+      "value": {
+       "x": 78.554,
+       "y": 18.633,
+       "width": 3.719,
+       "height": 65.311,
+       "rotation": 3,
+       "text": [
+        "Velvet Almanac"
+       ]
+      },
+      "type": "textarea",
+      "from_name": "title"
+     },
+     {
+      "id": "s16",
+      "to_name": "image",
+      "original_width": 8064,
+      "original_height": 6048,
+      "image_rotation": 0,
+      "origin": "manual",
+      "value": {
+       "x": 78.554,
+       "y": 18.633,
+       "width": 3.719,
+       "height": 65.311,
+       "rotation": 3,
+       "text": [
+        "Yuki Okafor"
+       ]
+      },
+      "type": "textarea",
+      "from_name": "author"
+     },
+     {
+      "id": "s17",
+      "to_name": "image",
+      "original_width": 8064,
+      "original_height": 6048,
+      "image_rotation": 0,
+      "origin": "manual",
+      "value": {
+       "x": 82.225,
+       "y": 24.949,
+       "width": 5.628,
+       "height": 59.259,
+       "rotation": 3,
+       "rectanglelabels": [
+        "spine"
+       ]
+      },
+      "type": "rectanglelabels",
+      "from_name": "label"
+     },
+     {
+      "id": "s17",
+      "to_name": "image",
+      "original_width": 8064,
+      "original_height": 6048,
+      "image_rotation": 0,
+      "origin": "manual",
+      "value": {
+       "x": 82.225,
+       "y": 24.949,
+       "width": 5.628,
+       "height": 59.259,
+       "rotation": 3,
+       "text": [
+        "Granite Garden"
+       ]
+      },
+      "type": "textarea",
+      "from_name": "title"
+     },
+     {
+      "id": "s17",
+      "to_name": "image",
+      "original_width": 8064,
+      "original_height": 6048,
+      "image_rotation": 0,
+      "origin": "manual",
+      "value": {
+       "x": 82.225,
+       "y": 24.949,
+       "width": 5.628,
+       "height": 59.259,
+       "rotation": 3,
+       "text": [
+        "Collette Lindqvist"
+       ]
+      },
+      "type": "textarea",
+      "from_name": "author"
+     },
+     {
+      "id": "s18",
+      "to_name": "image",
+      "original_width": 8064,
+      "original_height": 6048,
+      "image_rotation": 0,
+      "origin": "manual",
+      "value": {
+       "x": 88.257,
+       "y": 20.768,
+       "width": 5.511,
+       "height": 63.856,
+       "rotation": 3,
+       "rectanglelabels": [
+        "spine"
+       ]
+      },
+      "type": "rectanglelabels",
+      "from_name": "label"
+     },
+     {
+      "id": "s18",
+      "to_name": "image",
+      "original_width": 8064,
+      "original_height": 6048,
+      "image_rotation": 0,
+      "origin": "manual",
+      "value": {
+       "x": 88.257,
+       "y": 20.768,
+       "width": 5.511,
+       "height": 63.856,
+       "rotation": 3,
+       "text": [
+        "Velvet Threshold"
+       ]
+      },
+      "type": "textarea",
+      "from_name": "title"
+     },
+     {
+      "id": "s18",
+      "to_name": "image",
+      "original_width": 8064,
+      "original_height": 6048,
+      "image_rotation": 0,
+      "origin": "manual",
+      "value": {
+       "x": 88.257,
+       "y": 20.768,
+       "width": 5.511,
+       "height": 63.856,
+       "rotation": 3,
+       "text": [
+        "Lucan Holloway"
+       ]
+      },
+      "type": "textarea",
+      "from_name": "author"
+     },
+     {
+      "id": "s19",
+      "to_name": "image",
+      "original_width": 8064,
+      "original_height": 6048,
+      "image_rotation": 0,
+      "origin": "manual",
+      "value": {
+       "x": 93.862,
+       "y": 23.213,
+       "width": 3.191,
+       "height": 61.806,
+       "rotation": 3,
+       "rectanglelabels": [
+        "spine"
+       ]
+      },
+      "type": "rectanglelabels",
+      "from_name": "label"
+     },
+     {
+      "id": "s19",
+      "to_name": "image",
+      "original_width": 8064,
+      "original_height": 6048,
+      "image_rotation": 0,
+      "origin": "manual",
+      "value": {
+       "x": 93.862,
+       "y": 23.213,
+       "width": 3.191,
+       "height": 61.806,
+       "rotation": 3,
+       "text": [
+        "Granite Parade"
+       ]
+      },
+      "type": "textarea",
+      "from_name": "title"
+     },
+     {
+      "id": "s19",
+      "to_name": "image",
+      "original_width": 8064,
+      "original_height": 6048,
+      "image_rotation": 0,
+      "origin": "manual",
+      "value": {
+       "x": 93.862,
+       "y": 23.213,
+       "width": 3.191,
+       "height": 61.806,
+       "rotation": 3,
+       "text": [
+        "Anselm Castellan"
+       ]
+      },
+      "type": "textarea",
+      "from_name": "author"
+     }
+    ],
+    "was_cancelled": false,
+    "ground_truth": false,
+    "created_at": "2026-11-02T17:43:05.266803Z",
+    "updated_at": "2026-11-02T17:43:05.266812Z",
+    "draft_created_at": null,
+    "lead_time": null,
+    "prediction": {},
+    "result_count": 21,
+    "unique_id": "5f0660b7-b6ab-4777-a12f-578e45bfa3ee",
+    "import_id": null,
+    "last_action": null,
+    "bulk_created": false,
+    "task": 2,
+    "project": 1,
+    "updated_by": 1,
+    "parent_prediction": null,
+    "parent_annotation": null,
+    "last_created_by": null
+   }
+  ],
+  "drafts": [],
+  "predictions": [],
+  "data": {
+   "image": "/data/local-files/?d=labels/synthetic/shelf-20.jpg",
+   "hash": "0b7754b3f9827f5ea28f1286f8b849db1f1ea02e2a62121ce59abb5814173f25",
+   "setting": "shelf-48",
+   "shelfIndex": 0,
+   "width": 8064,
+   "height": 6048
+  },
+  "meta": {},
+  "created_at": "2026-11-02T17:42:02.372961Z",
+  "updated_at": "2026-11-02T17:43:05.275132Z",
+  "allow_skip": true,
+  "inner_id": 2,
+  "total_annotations": 1,
+  "cancelled_annotations": 0,
+  "total_predictions": 0,
+  "comment_count": 0,
+  "unresolved_comment_count": 0,
+  "last_comment_updated_at": null,
+  "project": 1,
+  "updated_by": 1,
+  "comment_authors": []
+ }
+]

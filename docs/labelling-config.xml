@@ -1,0 +1,24 @@
+<View>
+  <Header value="$setting · shelf $shelfIndex"/>
+  <View style="display:flex;gap:12px;align-items:flex-start">
+    <View style="flex:1 1 70%;min-width:0">
+      <Image name="image" value="$image" zoom="true" zoomControl="true" rotateControl="false" brightnessControl="true" contrastControl="true"/>
+      <RectangleLabels name="label" toName="image" canRotate="true" strokeWidth="2" opacity="0.25">
+        <Label value="spine" background="#2563eb" hotkey="1"/>
+        <Label value="face-out" background="#16a34a" hotkey="2"/>
+        <Label value="stacked" background="#d97706" hotkey="3"/>
+        <Label value="not-a-book" background="#6b7280" hotkey="4"/>
+        <Label value="shelf-band" background="#9333ea" hotkey="5"/>
+      </RectangleLabels>
+    </View>
+    <View style="flex:0 0 240px;position:sticky;top:0">
+      <TextArea name="title" toName="image" perRegion="true" rows="1" maxSubmissions="1" placeholder="Title" hotkey="t"/>
+      <TextArea name="author" toName="image" perRegion="true" rows="1" maxSubmissions="1" placeholder="Author" hotkey="a"/>
+      <TextArea name="series" toName="image" perRegion="true" rows="1" maxSubmissions="1" placeholder="Series (optional)"/>
+      <Choices name="flags" toName="image" perRegion="true" choice="multiple">
+        <Choice value="unreadable" hotkey="u"/>
+      </Choices>
+      <TextArea name="notes" toName="image" perRegion="true" rows="1" maxSubmissions="1" placeholder="Notes (optional)"/>
+    </View>
+  </View>
+</View>
