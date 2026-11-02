@@ -1,5 +1,5 @@
 import { execFileSync } from "node:child_process";
-import { mkdtempSync, readFileSync } from "node:fs";
+import { mkdtempSync, readFileSync, statSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
@@ -156,6 +156,18 @@ describe("pnpm labels:import", () => {
     expect(out).toContain(`${data}/labels/synthetic.json`);
     const written = JSON.parse(readFileSync(`${data}/labels/synthetic.json`, "utf8"));
     expect(LabelSet.safeParse(written).success).toBe(true);
+  });
+
+  it("keeps the labels directory, file and backup owner-only", () => {
+    const data = mkdtempSync(join(tmpdir(), "bookcase-labels-"));
+    const run = () =>
+      execFileSync("node", ["src/eval/labels-import.ts", "test/fixtures/synthetic/labelstudio-export-shelf.json", "--session", "synthetic"], {
+        env: { ...process.env, BOOKCASE_DATA: data },
+      });
+    run();
+    run(); // second import makes the .bak
+    for (const p of [`${data}/labels`, `${data}/labels/synthetic.json`, `${data}/labels/synthetic.json.bak`])
+      expect(statSync(p).mode & 0o077, p).toBe(0);
   });
 
   it("rejects a session id that could escape the labels directory", () => {

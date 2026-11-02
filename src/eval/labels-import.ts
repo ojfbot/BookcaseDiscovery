@@ -1,5 +1,5 @@
 // `pnpm labels:import <export.json> --session <id>`: Label Studio JSON export -> $BOOKCASE_DATA/labels/<session>.json
-import { mkdirSync, readFileSync, renameSync, writeFileSync, existsSync } from "node:fs";
+import { chmodSync, mkdirSync, readFileSync, renameSync, writeFileSync, existsSync } from "node:fs";
 import { parseArgs } from "node:util";
 import { LabelSet, labelsDir } from "./labels.ts";
 import { fromLabelStudio } from "./labelstudio.ts";
@@ -29,8 +29,13 @@ export function main(argv: string[], env: NodeJS.ProcessEnv = process.env): numb
   const existing = existsSync(target) ? LabelSet.parse(JSON.parse(readFileSync(target, "utf8"))) : undefined;
   const { labels, warnings } = fromLabelStudio(values.session, tasks, existing);
 
+  // Labels are private: keep the directory and every file in it owner-only, even if they already existed.
   mkdirSync(dir, { recursive: true, mode: 0o700 });
-  if (existing) writeFileSync(`${target}.bak`, readFileSync(target)); // one rolling backup
+  chmodSync(dir, 0o700);
+  if (existing) {
+    writeFileSync(`${target}.bak`, readFileSync(target), { mode: 0o600 }); // one rolling backup
+    chmodSync(`${target}.bak`, 0o600);
+  }
   writeFileSync(`${target}.tmp`, JSON.stringify(labels, null, 2) + "\n", { mode: 0o600 });
   renameSync(`${target}.tmp`, target);
 
