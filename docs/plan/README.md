@@ -29,6 +29,10 @@ Inputs (read-only):
 
 Format precedent: `~/ojfbot/selfco-inbox/docs/plan/`.
 
+## Changelog: no hand labelling, 2026-11-02 (OC36)
+
+The owner tried Label Studio on the synthetic shelf and stopped: hand labelling is a waste of their time and very painful. **OC36:** open-weight models label everything (H-0 chooses the stack: SAM 3, Florence-2, Qwen2.5-VL and others); a public labelled spine dataset is the yardstick (PROXY, local only); the catalog verifies identity; optional yes/no taps on a phone (V-6) give the only real-use accuracy number. O-3a, O-3b and V-1b are withdrawn; checklist #2 is withdrawn; F-0, F-2, F-3, the G-P note and both critical paths are amended. Cards 69/66 → 71/69.
+
 ## Changelog — calm overlay, 2026-11-01
 
 Owner direction: the live overlay must not be noisy or jittery; show top-k minimal options with a filter toggle; the UX is researched in forked design sessions. Added OC30 (one label per spine, top-k highlight under a lens toggle), INV-24 (on-glass changes are hysteretic; the ledger keeps everything), card **U-1** (overlay UX research, owner-launched in Claude Design / GPT Canvas from `~/selfco/prompts/bookcase-discovery-live-overlay-ux-handoff.md`), and wired U-1 into T-5, T-7a, O-7 (#16) and the G-LIVE definition of done. Cards 61/58 → 62/59. **2026-11-02:** U-1 delivered from Claude Design. The spec is in `docs/live/overlay-ux.md`; the owner rules §9.
