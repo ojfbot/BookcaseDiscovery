@@ -1,0 +1,324 @@
+{
+  "schemaVersion": 1,
+  "session": "pilot-000",
+  "photos": [
+    {
+      "hash": "127fd2e780e2daaf656f51b1bdedfbf7db876c68db8b1c08f30470967b2f1b23",
+      "workingCopyHash": "900173cc183c39f0a0332dcc6a3c9249d3fd0755cf792d4ce83e10ca40e3d839",
+      "format": "jpeg",
+      "width": 7488,
+      "height": 5616,
+      "setting": "real-use"
+    },
+    {
+      "hash": "18f3e13036f097b479f10566143d729e3f49716263d3e50eec4eda2a27a4ad00",
+      "workingCopyHash": "99ed8210e49690d3f006c282dc350d9ee348e1e0491802563d39a419534cb059",
+      "format": "jpeg",
+      "width": 8064,
+      "height": 6048,
+      "setting": "real-use"
+    },
+    {
+      "hash": "24d5a8fe8aee2aea2c2fa0c842d5017b118b119033da04de1f5e009842268fec",
+      "workingCopyHash": "c6f84f0c1920b650c8b72371d546bca672a59a0e8dcc2d17db99245caa09e5b3",
+      "format": "jpeg",
+      "width": 5522,
+      "height": 7362,
+      "setting": "real-use",
+      "flags": [
+        "edited-derivative"
+      ]
+    },
+    {
+      "hash": "2a1ae81526b2c96c8565a8874d936bad142344f69f8bf594c77511568020d625",
+      "workingCopyHash": "ed62135d30b1d7f8d70f79c304519acf20152a9b9915afa962fd2a3b4d3022d3",
+      "format": "jpeg",
+      "width": 4488,
+      "height": 5984,
+      "setting": "real-use",
+      "flags": [
+        "edited-derivative"
+      ]
+    },
+    {
+      "hash": "3be212c652637916af48c4140c6d3ffd41407105a7686e951a1dbff0c99895f2",
+      "workingCopyHash": "a95b892847f5a13156150ad0dc14816d41dd0131c5ae2d23529801a9aa3561c5",
+      "format": "jpeg",
+      "width": 6048,
+      "height": 8064,
+      "setting": "real-use",
+      "flags": [
+        "edited-derivative"
+      ]
+    },
+    {
+      "hash": "3e3b0bd01a922f0c60f7e21a26a1de91105a6ec84ec29efc075348bb4574df30",
+      "workingCopyHash": "d8cdb6b99c008c0e1943563b982b332a178dacaefb9dc491f4a21dedbab54bd3",
+      "format": "jpeg",
+      "width": 6048,
+      "height": 8064,
+      "setting": "real-use",
+      "flags": [
+        "edited-derivative"
+      ]
+    },
+    {
+      "hash": "4e7d0b1722824c13d80186a1da103e3bd2a8d4c28c0f5bba8bfa7ce5bc90a20e",
+      "workingCopyHash": "aaab6caa54a72c56d34998e4abe155cf95914f9297d5d8d950d7b6333afd176a",
+      "format": "jpeg",
+      "width": 6048,
+      "height": 8064,
+      "setting": "real-use",
+      "flags": [
+        "edited-derivative"
+      ]
+    },
+    {
+      "hash": "507a998404d35c2243533555ce53f7cde3d0b67bb2b95ba29cb929b4d60d31c0",
+      "workingCopyHash": "c7f8c6f2e101eb1c09c4b91a567c2c50617e751bd54ca78b6a1c8d3a6fb9774c",
+      "format": "jpeg",
+      "width": 6048,
+      "height": 8064,
+      "setting": "real-use",
+      "flags": [
+        "edited-derivative"
+      ]
+    },
+    {
+      "hash": "5606bc97bbd981b156bea8e945c25486e63f15b134c79bf0a39c5e3c828a8c7a",
+      "workingCopyHash": "c89929f2b0173231fcdec00ad7830142c939092240ff4c766fc32db3b5dca6aa",
+      "format": "jpeg",
+      "width": 8064,
+      "height": 6048,
+      "setting": "real-use"
+    },
+    {
+      "hash": "5e9dcee76f14af6dbd0a86ac4b17ee40d483dcb6679207a7af3b2432916c508f",
+      "workingCopyHash": "9c36456afc5d7e0bb3e033040bc8126073fe3f251f83305551b0ba93d0729f01",
+      "format": "jpeg",
+      "width": 6048,
+      "height": 8064,
+      "setting": "real-use",
+      "flags": [
+        "edited-derivative"
+      ]
+    },
+    {
+      "hash": "650ac527a89092c9ca18c848bef70afc6deafb9f26a7a7e201ad817480c57eb7",
+      "workingCopyHash": "d48e803b7302365022b2a17e9e8c206c08d93bb512f0980fcec8c198a955718b",
+      "format": "jpeg",
+      "width": 5522,
+      "height": 7362,
+      "setting": "real-use",
+      "flags": [
+        "edited-derivative"
+      ]
+    },
+    {
+      "hash": "6b9cd6cf3a3b39bbc60a588192c1da7a299dc6628d304b77dd5ea8bffc3d8738",
+      "workingCopyHash": "2752cb859053699f17b54be95ff7a666194e73b364b45f95bb2970ef2e6f02cf",
+      "format": "jpeg",
+      "width": 6048,
+      "height": 8064,
+      "setting": "real-use",
+      "flags": [
+        "edited-derivative"
+      ]
+    },
+    {
+      "hash": "6c11ee0c41dc05bc8954471605b2c337e4ad455e2c2faa0045dee1d8f695abc8",
+      "workingCopyHash": "e652c9f5f591768f732c2d459e3328ed81606fbdbab2eb077092394ee1ce6fb1",
+      "format": "jpeg",
+      "width": 6048,
+      "height": 8064,
+      "setting": "real-use",
+      "flags": [
+        "edited-derivative"
+      ]
+    },
+    {
+      "hash": "6d3c6a14eeaa618469d25e678d0108590646326b9a5e184fc3c6190423b0076e",
+      "workingCopyHash": "304f62d30ab1d6dd0bc018f1fd783f47648d9c83946979d3c35409487aa3ee2c",
+      "format": "jpeg",
+      "width": 5522,
+      "height": 7362,
+      "setting": "real-use",
+      "flags": [
+        "edited-derivative"
+      ]
+    },
+    {
+      "hash": "6fc53e9d0e4b90e0889537e4b6e6873c5bc961c352c71c256b4d51a388dddc95",
+      "workingCopyHash": "9ef3d428fbbeadc8d788fa4914eb556304ab32128b8ab34aba52bd097b679d1e",
+      "format": "jpeg",
+      "width": 5522,
+      "height": 7362,
+      "setting": "real-use",
+      "flags": [
+        "edited-derivative"
+      ]
+    },
+    {
+      "hash": "71061ca0ab90e284fd412000578b67e8199a16600b4280b7c421e61b7b5c7810",
+      "workingCopyHash": "eba30de5ea9720a1bd80f8512cff1d165ab84e4fe152b9da5e896e0654930a24",
+      "format": "jpeg",
+      "width": 5400,
+      "height": 7198,
+      "setting": "real-use",
+      "flags": [
+        "edited-derivative"
+      ]
+    },
+    {
+      "hash": "75d07c6d17c673bb7697cd30554c8ac988aa080d763b33c3f8a2e87a9ee78793",
+      "workingCopyHash": "7f7d0c7d3dce5fc6d9faba1a101522d925240c65f6c486f0574f7de2d4b0d3da",
+      "format": "jpeg",
+      "width": 5912,
+      "height": 7882,
+      "setting": "real-use",
+      "flags": [
+        "edited-derivative"
+      ]
+    },
+    {
+      "hash": "765cfe9009f33458dfdbb8631684c850f90abd0205ae8013c4e9f54e902c8559",
+      "workingCopyHash": "37bd0608709c3b43f9e5e25495157131c4263b357b881cb5666159f2a985be26",
+      "format": "jpeg",
+      "width": 6048,
+      "height": 8064,
+      "setting": "real-use",
+      "flags": [
+        "edited-derivative"
+      ]
+    },
+    {
+      "hash": "80fb8f9f3c8708e8a60ebdec3f421e0ed99d4f5e86f15ea9a17fc23993016f04",
+      "workingCopyHash": "d6feb921018e0eb1e099f419832583e872a3848c633b81c2ad861b063109313c",
+      "format": "jpeg",
+      "width": 5522,
+      "height": 7362,
+      "setting": "real-use",
+      "flags": [
+        "edited-derivative"
+      ]
+    },
+    {
+      "hash": "8a419956ecdd07d98206534a06b7f7f5ff76259d1708aecb791b6d2de6b1c3fa",
+      "workingCopyHash": "8e886f9e20edc6f77777d5f074ec4f44c4065509b2e6a3bbfd46efd7621ad3c5",
+      "format": "jpeg",
+      "width": 5616,
+      "height": 7488,
+      "setting": "real-use",
+      "flags": [
+        "edited-derivative"
+      ]
+    },
+    {
+      "hash": "8b620840146c5cd0079908967ab7348afddf82a796fd8690c817d0cf5f8ffb35",
+      "workingCopyHash": "c58cf724270f9a0e55456933780542fa00f3e1435dd205080a039e260330f194",
+      "format": "jpeg",
+      "width": 8064,
+      "height": 6048,
+      "setting": "real-use"
+    },
+    {
+      "hash": "a567654df1575a436da3b706a8c28de66a62d53bc231e72900507d534e8e05bc",
+      "workingCopyHash": "978ff5e745072b5d13e746ab104c881458895ec7c586a832503bd3d057315dd2",
+      "format": "jpeg",
+      "width": 5522,
+      "height": 7362,
+      "setting": "real-use",
+      "flags": [
+        "edited-derivative"
+      ]
+    },
+    {
+      "hash": "b58bf871c1872a2b1cfbcabbdab9ecc0b5ecaf408db8d6decf962a9c2ce19746",
+      "workingCopyHash": "9e8cefc2680556af112a0fcf68cacfe463ed5fca59de5bb02aab093790f9d6dc",
+      "format": "jpeg",
+      "width": 6048,
+      "height": 8064,
+      "setting": "real-use",
+      "flags": [
+        "edited-derivative"
+      ]
+    },
+    {
+      "hash": "b5c324d166fb8ae8f1cb5551d274dc00c516c11009020275c788a059517d92d5",
+      "workingCopyHash": "c1bf1a52b69b1d187e02013e0d9a6cfa9e3088f463806d24a44266947437fc93",
+      "format": "jpeg",
+      "width": 7488,
+      "height": 5616,
+      "setting": "real-use"
+    },
+    {
+      "hash": "bb3e8326e946cf8ede6f851e1c88efead9ebcfb305d6ecefede03dc0a46f49a5",
+      "workingCopyHash": "9af91ce11ddf9d19b15d874f0ca827fecf05a0715c2b7a10eb6e745a2f172a63",
+      "format": "jpeg",
+      "width": 6048,
+      "height": 8064,
+      "setting": "real-use",
+      "flags": [
+        "edited-derivative"
+      ]
+    },
+    {
+      "hash": "d48c943d1b04ebe84ebef24d9702e9fb3659e6765b8fbbfc3ca96a27950bb021",
+      "workingCopyHash": "cef8ae0e942ba20f8010e9d5eee862cbdd98ed45dbed9a01a89637b0f5721a80",
+      "format": "jpeg",
+      "width": 8064,
+      "height": 6048,
+      "setting": "real-use"
+    },
+    {
+      "hash": "d73d0c596f5e52817c39e944fc272aad4fcc31ef87648906fecc43b659e263e2",
+      "workingCopyHash": "911a7b39785ab6f9862f30f3dc7ecd86594d46077590db42880a1a19e0269468",
+      "format": "jpeg",
+      "width": 8064,
+      "height": 6048,
+      "setting": "real-use"
+    },
+    {
+      "hash": "d78c1eeae0c9390659abddab037d12ffbd66139e8ef255d0c236a1d03c5fc91d",
+      "workingCopyHash": "35189493f4fe5a150f8623cfabd5332eb7ce37db98aa751ed1f87e491f81bec4",
+      "format": "jpeg",
+      "width": 6048,
+      "height": 8064,
+      "setting": "real-use",
+      "flags": [
+        "edited-derivative"
+      ]
+    },
+    {
+      "hash": "de45ba3295540023eb65579aa2ef6400f8cedfdea2bb41798359b94b7394e085",
+      "workingCopyHash": "052b0d596d303a7833f64fb87a4f6b41b9a91952efed9d087d67564539eb1042",
+      "format": "jpeg",
+      "width": 7488,
+      "height": 5616,
+      "setting": "real-use"
+    },
+    {
+      "hash": "e1165f9a3e5581a8098617212f7c89afaef72b56a233baa0d014a4d4377c95f9",
+      "workingCopyHash": "65eb72fca24e5d1ea1b221beeafd800898ba5538c1f07cc4e51ced576b38ee4e",
+      "format": "jpeg",
+      "width": 5522,
+      "height": 7362,
+      "setting": "real-use",
+      "flags": [
+        "edited-derivative"
+      ]
+    },
+    {
+      "hash": "e96845a21e888c3c3f0266d0a3f72b884a6f8082c893a206498ec37c6935b5b8",
+      "workingCopyHash": "e5805a4036884727d734028f34b96878fc1bb10237b312c307fb1301a521b301",
+      "format": "jpeg",
+      "width": 6048,
+      "height": 8064,
+      "setting": "real-use",
+      "flags": [
+        "edited-derivative"
+      ]
+    }
+  ],
+  "rejected": []
+}

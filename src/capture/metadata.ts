@@ -18,6 +18,10 @@ export interface PhotoMeta {
   /** The pixel size the camera recorded in EXIF (not the stored pixels). */
   exifWidth?: number;
   exifHeight?: number;
+  /** Lens model and focal lengths in mm, as recorded; read by exiftool only (private manifest, OC35). */
+  lensModel?: string;
+  focalLengthMm?: number;
+  focalLength35mm?: number;
 }
 
 export interface Probe {
@@ -52,7 +56,7 @@ export function exiftoolReader(): MetadataReader {
     read(path) {
       const out = run([
         "-json", "-n", "-Make", "-Model", "-DateTimeOriginal", "-OffsetTimeOriginal", "-Orientation", "-Software",
-        "-ExifImageWidth", "-ExifImageHeight", path,
+        "-ExifImageWidth", "-ExifImageHeight", "-LensModel", "-FocalLength", "-FocalLengthIn35mmFormat", path,
       ]);
       const r = (JSON.parse(out) as Record<string, unknown>[])[0] ?? {};
       return {
@@ -64,6 +68,9 @@ export function exiftoolReader(): MetadataReader {
         software: text(r.Software),
         exifWidth: num(r.ExifImageWidth),
         exifHeight: num(r.ExifImageHeight),
+        lensModel: text(r.LensModel),
+        focalLengthMm: num(r.FocalLength),
+        focalLength35mm: num(r.FocalLengthIn35mmFormat),
       };
     },
     probe(path) {

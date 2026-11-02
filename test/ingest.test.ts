@@ -2,10 +2,10 @@ import { createHash } from "node:crypto";
 import { chmodSync, copyFileSync, existsSync, mkdirSync, readdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
-import { formatTable, ingest, ingestCommand } from "../src/capture/index.ts";
+import { formatTable, ingest, ingestCommand, privateManifestPath, sessionLedgerPath } from "../src/capture/index.ts";
 import type { IngestResult } from "../src/capture/index.ts";
 import { parseJpegMetadata } from "../src/capture/metadata.ts";
-import { ImageStore, MemoryLedger } from "../src/ledger/index.ts";
+import { ImageStore, MemoryLedger, SqliteLedger } from "../src/ledger/index.ts";
 import { main } from "../src/run/index.ts";
 import { exif, gpsTags, pixelAt, swiftAvailable, toolsAvailable, Workbench } from "./helpers/synth.ts";
 import type { PhotoSpec } from "./helpers/synth.ts";
@@ -284,21 +284,47 @@ describe.skipIf(!toolsAvailable())("ingest (synthetic photos)", () => {
       expect(table).not.toMatch(/2026|GPS|latitude/i);
     });
 
-    it("bookcase ingest writes events as JSON Lines under $BOOKCASE_DATA and exits 0", () => {
-      const s = setup({ "a.jpg": { width: 200, height: 100 }, "b.jpg": { width: 10, height: 10, exif: false } });
+    it("bookcase ingest appends to the session's SQLite ledger and writes the private manifest", () => {
+      const s = setup({ "a.jpg": { width: 200, height: 100, lens: { focalLength: 2.22, focalLength35: 13 } }, "b.jpg": { width: 10, height: 10, exif: false } });
       const map = wb.path("map.json");
       writeFileSync(map, JSON.stringify({ "a.jpg": { setting: "shelf-48", shelfIndex: 1 } }));
       const log = vi.spyOn(console, "log").mockImplementation(() => {});
       try {
         const args = [s.folder, "--session", "cli-session", "--settings", map, "--min-pixels", String(MIN)];
         expect(ingestCommand(args, { BOOKCASE_DATA: s.dataDir })).toBe(0);
-        expect(String(log.mock.calls.at(-2)?.[0] ?? log.mock.calls[0]?.[0])).toContain("ACCEPT");
+        expect(String(log.mock.calls.at(-1)?.[0] ?? "")).toContain("ACCEPT");
       } finally {
         log.mockRestore();
       }
-      const lines = readFileSync(join(s.dataDir, "events", "cli-session.ingest.jsonl"), "utf8").trim().split("\n").map((l) => JSON.parse(l));
-      expect(lines.map((e) => e.type)).toEqual(["ScanSessionOpened", "ImageAssetIngested", "ImageRejected"]);
-      expect(lines[1].payload).toMatchObject({ setting: "shelf-48", shelfIndex: 1 });
+      const ledger = new SqliteLedger(sessionLedgerPath(s.dataDir, "cli-session"), { readOnly: true });
+      try {
+        expect([...ledger.events()].map((e) => e.type)).toEqual(["ScanSessionOpened", "ImageAssetIngested", "ImageRejected"]);
+        expect(ledger.images("cli-session")[0]).toMatchObject({ setting: "shelf-48", shelfIndex: 1 });
+      } finally {
+        ledger.close();
+      }
+      const priv = JSON.parse(readFileSync(privateManifestPath(s.dataDir, "cli-session"), "utf8"));
+      expect(priv.photos[0]).toMatchObject({ fileName: "a.jpg", setting: "shelf-48", capturedAt: "2026-01-02T03:04:05-07:00", lens: { class: "ultra-wide", focalLengthMm: 2.22, focalLength35mm: 13 }, edited: false });
+      expect(priv.rejected).toMatchObject([{ fileName: "b.jpg", reasons: ["below-min-resolution", "no-exif"] }]);
+      expect(statSync(privateManifestPath(s.dataDir, "cli-session")).mode & 0o077).toBe(0);
+    });
+
+    it("refuses to ingest a session twice into the same ledger", () => {
+      const s = setup({ "a.jpg": { width: 200, height: 100 } });
+      const log = vi.spyOn(console, "log").mockImplementation(() => {});
+      const err = vi.spyOn(console, "error").mockImplementation(() => {});
+      try {
+        const args = [s.folder, "--session", "twice", "--min-pixels", String(MIN)];
+        expect(ingestCommand(args, { BOOKCASE_DATA: s.dataDir })).toBe(0);
+        expect(ingestCommand(args, { BOOKCASE_DATA: s.dataDir })).toBe(1);
+        expect(String(err.mock.calls.at(-1)?.[0])).toContain("already holds session twice");
+      } finally {
+        log.mockRestore();
+        err.mockRestore();
+      }
+      const ledger = new SqliteLedger(sessionLedgerPath(s.dataDir, "twice"), { readOnly: true });
+      expect(ledger.images("twice")).toHaveLength(1);
+      ledger.close();
     });
 
     it("usage errors exit 1 without touching anything", () => {

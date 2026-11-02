@@ -10,6 +10,7 @@ contracts/
   event.schema.json         the ledger envelope; maps `type` to a payload schema
   events/<Type>.schema.json one payload schema per event type (29)
   helpers/*.schema.json     JSON Lines records for the detect and OCR helpers (4)
+  fixture-manifest.schema.json  the public fixture manifest, fixtures/<session>/manifest.json (K-3; `docs/ingest.md`)
 test/fixtures/contracts/    synthetic examples: valid ones here, invalid ones under invalid/
 src/ledger/contracts.ts           Zod validators for events
 src/ledger/helper-contracts.ts    Zod validators for helper records

@@ -55,6 +55,24 @@ export interface FileOutcome {
   setting?: PhotoSetting;
   imageHash?: string;
   workingCopyHash?: string;
+  /** Set on accepted files; they feed the private manifest, never the table or the ledger beyond the contract fields. */
+  details?: AcceptedDetails;
+}
+
+export interface AcceptedDetails {
+  format: ImageFormat;
+  /** The working copy's decoded size (the polygon frame). */
+  width: number;
+  height: number;
+  /** The original's stored pixels, before any Orientation tag. */
+  storedWidth: number;
+  storedHeight: number;
+  orientation: number;
+  capturedAt: string;
+  device: string;
+  lensModel?: string;
+  focalLengthMm?: number;
+  focalLength35mm?: number;
 }
 
 export interface IngestResult {
@@ -206,7 +224,29 @@ export function ingest(options: IngestOptions): IngestResult {
         ...(shelfIndex !== undefined ? { shelfIndex } : {}),
         ...(signals.length ? { flags: ["edited-derivative" as const] } : {}),
       });
-      outcomes.push({ fileName, verdict: "accepted", reasons: [], derivativeSignals: signals, megapixels, setting, imageHash, workingCopyHash });
+      outcomes.push({
+        fileName,
+        verdict: "accepted",
+        reasons: [],
+        derivativeSignals: signals,
+        megapixels,
+        setting,
+        imageHash,
+        workingCopyHash,
+        details: {
+          format,
+          width: wc.size.width,
+          height: wc.size.height,
+          storedWidth: stored.width,
+          storedHeight: stored.height,
+          orientation: meta.orientation,
+          capturedAt: capturedAt!,
+          device: `${meta.make} ${meta.model}`,
+          lensModel: meta.lensModel,
+          focalLengthMm: meta.focalLengthMm,
+          focalLength35mm: meta.focalLength35mm,
+        },
+      });
     }
   } finally {
     rmSync(tmpDir, { recursive: true, force: true });

@@ -1,0 +1,45 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/ojfbot/BookcaseDiscovery/blob/main/contracts/fixture-manifest.schema.json",
+  "title": "FixtureManifest",
+  "description": "The public manifest of a fixture, committed as fixtures/<session>/manifest.json: hashes, dimensions, setting and shelf index. It has no capture time, no GPS, no store and no file names (OC9); those live in the private manifest under <data root>/private/fixtures/. Built from the ledger by `bookcase manifest`.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "session", "photos", "rejected"],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "session": { "description": "The scan session name; it is also the folder name.", "type": "string", "pattern": "^[a-z0-9][a-z0-9._-]*$" },
+    "photos": {
+      "description": "Accepted photos, sorted by `hash`.",
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["hash", "workingCopyHash", "format", "width", "height", "setting"],
+        "properties": {
+          "hash": { "description": "SHA-256 of the untouched original.", "type": "string", "pattern": "^[0-9a-f]{64}$" },
+          "workingCopyHash": { "description": "SHA-256 of the GPS-stripped working copy.", "type": "string", "pattern": "^[0-9a-f]{64}$" },
+          "format": { "enum": ["heic", "jpeg"] },
+          "width": { "description": "Working-copy pixels (the polygon frame).", "type": "integer", "minimum": 1 },
+          "height": { "type": "integer", "minimum": 1 },
+          "setting": { "$ref": "common.schema.json#/definitions/PhotoSetting" },
+          "shelfIndex": { "description": "Which shelf a per-shelf photo shows (0 = top). Absent for whole-case and real-use photos.", "type": "integer", "minimum": 0 },
+          "flags": { "type": "array", "minItems": 1, "items": { "enum": ["edited-derivative"] } }
+        }
+      }
+    },
+    "rejected": {
+      "description": "Rejected files, sorted by `hash` (those without one last). Every reject is explained; no file names.",
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["reasons"],
+        "properties": {
+          "hash": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+          "reasons": { "type": "array", "minItems": 1, "items": { "enum": ["below-min-resolution", "no-exif", "unsupported-format", "zero-byte", "icloud-placeholder"] } }
+        }
+      }
+    }
+  }
+}

@@ -63,6 +63,8 @@ export interface PhotoSpec {
   gps?: boolean;
   /** Override the EXIF pixel size (to model a re-rendered derivative). */
   exifSize?: [number, number];
+  /** Lens focal lengths in mm (real, and 35 mm equivalent) for the private manifest's lens class. */
+  lens?: { focalLength: number; focalLength35?: number };
 }
 
 const FAKE_GPS = ["-GPSLatitude=1", "-GPSLatitudeRef=N", "-GPSLongitude=2", "-GPSLongitudeRef=E", "-XMP-exif:GPSLatitude=1,0N"];
@@ -117,6 +119,10 @@ export class Workbench {
       if (e.software) args.push(`-Software=${e.software}`);
       if (spec.orientation && spec.format !== "heic") args.push(`-Orientation#=${spec.orientation}`);
       if (spec.exifSize) args.push(`-ExifImageWidth=${spec.exifSize[0]}`, `-ExifImageHeight=${spec.exifSize[1]}`);
+    }
+    if (spec.lens && spec.exif !== false) {
+      args.push(`-FocalLength=${spec.lens.focalLength}`);
+      if (spec.lens.focalLength35) args.push(`-FocalLengthIn35mmFormat=${spec.lens.focalLength35}`);
     }
     if (spec.gps) args.push(...FAKE_GPS);
     execFileSync("exiftool", [...args, out], { stdio: "pipe" });

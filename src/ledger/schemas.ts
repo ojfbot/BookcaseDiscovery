@@ -25,11 +25,13 @@ export const ajv = new Ajv({ strict: true, allErrors: true });
 for (const file of ["common.schema.json", "event.schema.json"]) ajv.addSchema(readJson(file));
 for (const f of schemaFiles("events")) ajv.addSchema(readJson(`events/${f}`));
 for (const f of schemaFiles("helpers")) ajv.addSchema(readJson(`helpers/${f}`));
+ajv.addSchema(readJson("fixture-manifest.schema.json"));
 
 function compiled(file: string): ValidateFunction {
   return ajv.getSchema(readJson(file).$id) as ValidateFunction;
 }
 
+const validateManifestFn = compiled("fixture-manifest.schema.json");
 const validateEventFn = compiled("event.schema.json");
 const helperValidators = new Map(helperSchemaNames.map((n) => [n, compiled(`helpers/${n}.schema.json`)]));
 
@@ -52,4 +54,10 @@ export function payloadSchemaErrors(type: string, payload: unknown): string[] {
   const validate = ajv.getSchema(readJson(`events/${type}.schema.json`).$id) as ValidateFunction;
   validate(payload);
   return (validate.errors ?? []).map((e) => `${e.instancePath || "/"} ${e.message}`);
+}
+
+/** Validate a public fixture manifest (`contracts/fixture-manifest.schema.json`). Returns the errors, empty when valid. */
+export function fixtureManifestSchemaErrors(value: unknown): string[] {
+  validateManifestFn(value);
+  return (validateManifestFn.errors ?? []).map((e) => `${e.instancePath || "/"} ${e.message}`);
 }

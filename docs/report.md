@@ -14,7 +14,7 @@ Vocabulary: [`CONTEXT.md`](../CONTEXT.md). Code: `src/report/`. Tests: `test/rep
 
 ## Where it reads from
 
-- The **ledger** (`Ledger` interface). The CLI opens `$BOOKCASE_DATA/ledger.sqlite` read-only, or `--ledger <db>`.
+- The **ledger** (`Ledger` interface). The CLI opens `$BOOKCASE_DATA/ledger/<session>.sqlite` (where `bookcase ingest` puts it) if that exists, else `$BOOKCASE_DATA/ledger.sqlite`, read-only; or `--ledger <db>`.
   Tests and `pnpm report:synthetic` use the in-memory ledger. The report consumes the views (`observations`,
   `images`, `workItems`, `recommendations`, `runs`); it re-derives no status or band. It reads the event log
   only for a spine's **status history**, which the views do not keep.
