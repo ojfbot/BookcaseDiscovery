@@ -112,6 +112,9 @@ These are kept apart on purpose: raw evidence is stored separately from interpre
 - **Blind audit slice** — about two shelves of each new fixture the owner labels by hand before any machine output is shown. Never prefilled, never trained on. The only scorecard for machine labelling (OC34).
 - **Machine-first labelling** — detector boxes plus OCR plus catalog lookup propose labels; the owner reviews a ranked queue of the uncertain ones and the gaps (F-0).
 - **PROXY** — a result from a public library-shelf dataset, not the owner's bookcase. Always labelled **PROXY (library shelves)**. Library shelves are not bookstore shelves.
+- **Labelling stack** — the open-weight models that label spines with no owner time (OC36): box producers plus readers, chosen in `docs/models/open-weights.md` (H-0).
+- **Yardstick** — something the labelling stack didn't produce, used to score it (OC36): a public labelled spine dataset (PROXY; local only, never committed, never trained on), the catalog, and optional yes/no taps.
+- **Machine agreement** — how often independent readers and the catalog agree on a spine. Reported for real-use sets that have no taps; never called accuracy (INV-17).
 - **Hypothesis (claim)** — in docs, a number or fact not yet measured is marked *hypothesis* (INV-17). Not to be confused with the identity hypothesis above.
 - **Gate** — an owner decision point, `G-*`. The conductor writes a packet; the owner rules; a gate is never closed silently.
 - **Task card** — one unit of delivery work in `DELIVERY-PLAN.md`, ending in a PR.
