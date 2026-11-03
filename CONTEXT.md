@@ -110,6 +110,9 @@ These are kept apart on purpose: raw evidence is stored separately from interpre
 - **Glass** — what is shown on screen. It changes less often than the ledger: a new label or rank is committed only after a margin held for a dwell time, **hysteresis** (INV-24).
 - **Pixels on demand** — a tracked spine marked `needs-pixels` requests a 48 MP still that runs the batch pipeline on that spine.
 - **Guided sweep** — hold a button and pan across the case; pace cues shape the capture; the result is a scrub-back replay (OC31). The video is discarded once processed; only sparse keyframes, crops, boxes and events persist (INV-22).
+- **Capture coverage** — how well each place on a bookcase has been captured for reading, shown as fill while panning (proposal, Q-0, `docs/capture/coverage.md`). *Not* recognition coverage: a fully captured shelf can still hold `unknown`s whose cause is the catalog.
+- **Coverage segment** — the unit capture coverage colours: a piece of one shelf band about two median spine widths long, anchored to working-copy pixels in a still and to stable tracks live (proposal, Q-0).
+- **Coverage rung** — a spine's or segment's place on the capture ladder: `not-seen` → `seen` → `spine-found` → `text-present` → `text-read` → `matched` → `confirmed`. Filled from `text-read` up; the top two restate bands (proposal, Q-0).
 
 ## Evidence, fixtures and honesty
 
