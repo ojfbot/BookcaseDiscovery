@@ -276,8 +276,11 @@ export function spineFace(outline: readonly Point[], opts: Partial<typeof FACE> 
 // --- crop methods (provenance) ---------------------------------------------------------------------------
 
 export interface CropMethod {
-  /** "fixed": F-0's 90°/270° for every crop; "long-axis": from the polygon's long axis (`longAxisRotations`). */
-  orient: "fixed" | "long-axis";
+  /**
+   * "fixed": F-0's 90°/270° for every crop; "long-axis": from the polygon's long axis (`longAxisRotations`);
+   * "cover": a face-out cover's whole face, read as it stands (`coverRotations`).
+   */
+  orient: "fixed" | "long-axis" | "cover";
   /** Trim a polygon that runs past the photo's edge to the part inside it. */
   clip: boolean;
   /** Read the spine face from the mask outline (`spineFace`) instead of the minimum-area rectangle, when one is known. */
@@ -285,6 +288,18 @@ export interface CropMethod {
   /** Lengthen each end along the long axis by this share (0: off). */
   pad: number;
 }
+
+/**
+ * A face-out cover (F-0c) is read the way it stands: a portrait crop at 0°, with no spine rotations. A landscape crop
+ * is a cover lying on its side (a book lying flat, seen from above), read at 90° and 270°.
+ */
+export function coverRotations(q: readonly Point[]): Rotation[] {
+  const { width, height } = cropSize(q);
+  return height >= width ? [0] : [90, 270];
+}
+
+/** F-0c's cover crop: the mask rectangle's whole face, clipped to the frame as F-0b ships for spines. */
+export const COVER_CROP: CropMethod = { orient: "cover", clip: true, face: false, pad: 0 };
 
 /** F-0 as shipped in #23. Records without a crop string were read this way. */
 export const F0_CROP: CropMethod = { orient: "fixed", clip: false, face: false, pad: 0 };
@@ -317,6 +332,6 @@ export function cropFor(
     if (!c) return null;
     q = c.quad;
   }
-  const rotations = method.orient === "long-axis" ? longAxisRotations(q) : [...FIXED_ROTATIONS];
+  const rotations = method.orient === "long-axis" ? longAxisRotations(q) : method.orient === "cover" ? coverRotations(q) : [...FIXED_ROTATIONS];
   return { polygon: q, rotations, crop: cropName(method) };
 }

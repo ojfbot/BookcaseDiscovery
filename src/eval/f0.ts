@@ -65,6 +65,10 @@ export interface Detection {
   width: number;
   height: number;
   spines: DetectedSpine[];
+  /** F-0c cover pass ("book cover.", post step `covers`): cover-shaped boxes, kinded with `spines` by `kinds` in f0c.ts. */
+  covers?: DetectedSpine[];
+  coverTiles?: number;
+  coverSeconds?: number;
   bands: { polygon: Polygon4; spines: number; span: number; gap: number }[];
   gaps: { bandLength: number; gapLength: number; gapCount: number; medianWidth: number };
   tiles: number;
@@ -314,6 +318,8 @@ export async function pyReaderStage(
   log: (s: string) => void,
   only?: Set<string>,
   method: CropMethod = CROP,
+  /** Qwen's prompt (read.py `--prompt`): `cover` for F-0c's face-out covers. */
+  prompt: "spine" | "cover" = "spine",
 ): Promise<void> {
   const out = join(dir, `${reader}.jsonl`);
   const done = readWith(out, method);
@@ -323,7 +329,7 @@ export async function pyReaderStage(
   const shards: (typeof reqs)[] = Array.from({ length: workers }, () => []);
   const order = [...new Set(reqs.map((r) => r.image))];
   for (const r of reqs) shards[order.indexOf(r.image) % workers]!.push(r);
-  await Promise.all(shards.map((s) => runHelper("read.py", ["--reader", reader], s, out, log)));
+  await Promise.all(shards.map((s) => runHelper("read.py", ["--reader", reader, ...(prompt === "cover" ? ["--prompt", "cover"] : [])], s, out, log)));
 }
 
 /** Each spine's latest reading per reader; with `method`, only readings cut that way. */
@@ -415,6 +421,8 @@ export function buildLabelSet(
   images: InputImage[],
   dets: Map<string, Detection>,
   decisions: Map<string, SpineDecision>,
+  /** F-0c: a box's kind and the rule behind it (`kinds` in f0c.ts); every box is a `spine` without it. */
+  kindOf?: (imageId: string, i: number) => { kind: "spine" | "face-out" | "not-a-book"; why: string },
 ): LabelSet {
   const photos: Photo[] = [];
   for (const img of images) {
@@ -424,6 +432,9 @@ export function buildLabelSet(
     const spines = det.spines.map((s, i) => {
       const d = decisions.get(spineId(img.id, i));
       const a = d?.accepted;
+      const k = kindOf?.(img.id, i);
+      if (k && k.kind !== "spine")
+        return { id: spineId(img.id.slice(0, 12), i), polygon: s.polygon, kind: k.kind, text: { title: "", author: "" }, unreadable: false, catalogId: null, notes: `machine:${k.kind} rule=${k.why}` };
       return {
         id: spineId(img.id.slice(0, 12), i),
         polygon: s.polygon,

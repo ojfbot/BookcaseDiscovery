@@ -1,7 +1,7 @@
 """Spine readers for F-0 (docs/models/open-weights.md §3.2): R3 PP-OCRv5 server det + rec with the textline
 classifier, and R2 Qwen3-VL-4B-Instruct 8-bit (MLX). R1, Apple Vision, is helpers/ocr-vision.
 
-Usage: read.py --reader ppocr|qwen < requests.jsonl > responses.jsonl
+Usage: read.py --reader ppocr|qwen [--prompt spine|cover] < requests.jsonl > responses.jsonl
 Request: {"id", "image", "polygon", "rotations"} as contracts/helpers/ocr-request.schema.json, plus an optional
 "crop" (the runner's crop-method provenance, src/perceive/crop.ts), echoed back.
 Response: {"id", "variants": [{"rotation", "text", "confidence"}], "seconds"} or {"id", "error"}.
@@ -29,6 +29,15 @@ MAX_SIDE = 1600
 QWEN_PROMPT = (
     "This is a photo of one book spine, rotated so the text runs left to right. "
     "Transcribe exactly the words printed on it, title first, then author, one per line. "
+    "Do not guess or complete names from memory. If no text is legible, answer: unreadable"
+)
+# F-0c: a face-out cover, read from its text only (no cover-image matching). Three labelled lines, parsed by
+# src/eval/f0c.ts (`coverText`): title and author go to the catalog, the imprint is kept as a clue.
+QWEN_COVER_PROMPT = (
+    "This is a photo of the front cover of one book. Its lettering may be large, stylised or set over a picture. "
+    "Copy the title, the author's name and the publisher or imprint exactly as printed on the cover, as three lines:\n"
+    "Title: ...\nAuthor: ...\nImprint: ...\n"
+    "Write none for any that is not printed. Ignore quotes, reviews and slogans. "
     "Do not guess or complete names from memory. If no text is legible, answer: unreadable"
 )
 
@@ -88,13 +97,15 @@ class PPOCR:
 class Qwen:
     name = "qwen3-vl-4b-instruct-8bit"
 
-    def __init__(self) -> None:
+    def __init__(self, prompt: str = "spine") -> None:
         from mlx_vlm import generate, load
         from mlx_vlm.prompt_utils import apply_chat_template
 
         path = str(MODELS / "qwen3-vl-4b-8bit")
         self.model, self.processor = load(path)
-        self.prompt = apply_chat_template(self.processor, self.model.config, QWEN_PROMPT, num_images=1)
+        text = QWEN_COVER_PROMPT if prompt == "cover" else QWEN_PROMPT
+        self.prompt = apply_chat_template(self.processor, self.model.config, text, num_images=1)
+        self.max_tokens = 96 if prompt == "cover" else 48  # three labelled lines
         self.generate = generate
 
     def read(self, img: np.ndarray) -> tuple[str, float]:
@@ -105,7 +116,7 @@ class Qwen:
             s = 56 / min(h, w)
             img = cv2.resize(img, (int(w * s) + 1, int(h * s) + 1), interpolation=cv2.INTER_CUBIC)
         pil = Image.fromarray(cv2.cvtColor(img, cv2.COLOR_BGR2RGB))
-        out = self.generate(self.model, self.processor, self.prompt, [pil], max_tokens=48, temperature=0.0,
+        out = self.generate(self.model, self.processor, self.prompt, [pil], max_tokens=self.max_tokens, temperature=0.0,
                             verbose=False)
         # The prompt allows "unreadable"; the model sometimes adds it beside text it did read.
         text = re.sub(r"\bunreadable\b\.?", "", (getattr(out, "text", out) or ""), flags=re.I).strip()
@@ -121,8 +132,9 @@ def crop_of(req: dict) -> dict:
 def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--reader", choices=["ppocr", "qwen"], required=True)
+    ap.add_argument("--prompt", choices=["spine", "cover"], default="spine")  # Qwen only
     args = ap.parse_args()
-    reader = PPOCR() if args.reader == "ppocr" else Qwen()
+    reader = PPOCR() if args.reader == "ppocr" else Qwen(args.prompt)
     log(f"read: {reader.name} loaded")
     cache: tuple[str, np.ndarray] | None = None
     n = 0
