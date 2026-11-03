@@ -1,7 +1,7 @@
 [project]
 name = "bookcase-coverage"
 version = "0.1.0"
-description = "Q-1 capture-quality features: per-spine pixel measurements inside detected polygons, and private overlay renders."
+description = "Capture-quality helpers (Q-1, Q-2): per-spine pixel measurements inside detected polygons, top-edge geometry, and private overlay renders."
 license = "AGPL-3.0-only"
 requires-python = ">=3.12,<3.13"
 dependencies = [
