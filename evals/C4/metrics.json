@@ -1,0 +1,336 @@
+{
+  "runId": "C4",
+  "card": "C-4",
+  "date": "2026-11-03",
+  "code": "005af18dc735",
+  "session": "pilot-000",
+  "population": {
+    "no-catalog-match": 3435,
+    "single-reader": 923,
+    "readers-disagree": 80,
+    "confirmed": 718,
+    "no-text": 1738,
+    "total": 6894
+  },
+  "design": {
+    "seed": 20261103,
+    "sample": {
+      "no-catalog-match": 120,
+      "single-reader": 60,
+      "readers-disagree": 15,
+      "confirmed": 40
+    },
+    "tuningConfirmed": 20,
+    "bootstrapReps": 10000,
+    "resolve": {
+      "minTitleChars": 4,
+      "allTokensUpTo": 3,
+      "longTitleShare": 0.8,
+      "prefixShare": 0.5,
+      "prefixMinChars": 6,
+      "fuzzyMinLength": 5,
+      "minFuzzySurname": 3
+    },
+    "limits": {
+      "records": 10,
+      "olQueriesPerBox": 8,
+      "locQueriesPerBox": 2,
+      "keywordTokens": 10,
+      "recordAuthors": 3
+    },
+    "spacingMs": {
+      "openlibrary": 1100,
+      "loc": 6500
+    }
+  },
+  "estimate": {
+    "shares": {
+      "isfdb.unresolvedExcluded": {
+        "value": 0.5953,
+        "lo": 0.4857,
+        "hi": 0.7122
+      },
+      "isfdb.unresolvedAsNotInIsfdb": {
+        "value": 0.1617,
+        "lo": 0.1262,
+        "hi": 0.1991
+      },
+      "isfdbOrOpenLibrary.unresolvedExcluded": {
+        "value": 0.9591,
+        "lo": 0.8975,
+        "hi": 1
+      },
+      "isfdbOrOpenLibrary.unresolvedAsNotInIsfdb": {
+        "value": 0.2605,
+        "lo": 0.2072,
+        "hi": 0.315
+      },
+      "isfdbOrOpenLibraryOrLoc.unresolvedExcluded": {
+        "value": 1,
+        "lo": 1,
+        "hi": 1
+      },
+      "isfdbOrOpenLibraryOrLoc.unresolvedAsNotInIsfdb": {
+        "value": 0.2716,
+        "lo": 0.2175,
+        "hi": 0.3272
+      },
+      "matchMiss.ofReadable": {
+        "value": 0.2876,
+        "lo": 0.1915,
+        "hi": 0.3874
+      },
+      "notInIsfdb.sf": {
+        "value": 0.1282,
+        "lo": 0,
+        "hi": 0.2917
+      },
+      "notInIsfdb.nonSf": {
+        "value": 0.7343,
+        "lo": 0.5268,
+        "hi": 0.907
+      },
+      "notInIsfdb.noSubjects": {
+        "value": 0.1376,
+        "lo": 0.0108,
+        "hi": 0.3026
+      },
+      "sampledUnknown.inIsfdbMatchMiss": {
+        "value": 0.0907,
+        "lo": 0.0575,
+        "hi": 0.1274
+      },
+      "sampledUnknown.notInIsfdb": {
+        "value": 0.1277,
+        "lo": 0.0796,
+        "hi": 0.1803
+      },
+      "sampledUnknown.unresolved": {
+        "value": 0.7816,
+        "lo": 0.7215,
+        "hi": 0.8399
+      },
+      "confirmedWhole.isfdb.unresolvedExcluded": {
+        "value": 0.6641,
+        "lo": 0.5723,
+        "hi": 0.7648
+      },
+      "confirmedWhole.isfdb.unresolvedAsNotInIsfdb": {
+        "value": 0.2174,
+        "lo": 0.1888,
+        "hi": 0.2489
+      },
+      "no-catalog-match.inIsfdbMatchMiss": {
+        "value": 0.0333,
+        "lo": 0.0083,
+        "hi": 0.0667
+      },
+      "no-catalog-match.notInIsfdb": {
+        "value": 0.15,
+        "lo": 0.0917,
+        "hi": 0.2167
+      },
+      "no-catalog-match.unresolved": {
+        "value": 0.8167,
+        "lo": 0.7417,
+        "hi": 0.8833
+      },
+      "single-reader.inIsfdbMatchMiss": {
+        "value": 0.2833,
+        "lo": 0.1667,
+        "hi": 0.4
+      },
+      "single-reader.notInIsfdb": {
+        "value": 0.05,
+        "lo": 0,
+        "hi": 0.1167
+      },
+      "single-reader.unresolved": {
+        "value": 0.6667,
+        "lo": 0.55,
+        "hi": 0.7833
+      },
+      "readers-disagree.inIsfdbMatchMiss": {
+        "value": 0.3333,
+        "lo": 0.1333,
+        "hi": 0.6
+      },
+      "readers-disagree.notInIsfdb": {
+        "value": 0.0667,
+        "lo": 0,
+        "hi": 0.2
+      },
+      "readers-disagree.unresolved": {
+        "value": 0.6,
+        "lo": 0.3333,
+        "hi": 0.8667
+      },
+      "confirmed.inIsfdb": {
+        "value": 0.6,
+        "lo": 0.45,
+        "hi": 0.75
+      },
+      "confirmed.notInIsfdb": {
+        "value": 0,
+        "lo": 0,
+        "hi": 0
+      },
+      "confirmed.unresolved": {
+        "value": 0.4,
+        "lo": 0.25,
+        "hi": 0.55
+      }
+    },
+    "weighted": {
+      "readableInIsfdb": 833.5,
+      "matchMiss": 402.7,
+      "readableNotInIsfdb": 566.7,
+      "notInIsfdbInOpenLibrary": 509.5,
+      "unresolved": 3755.8
+    },
+    "sample": {
+      "no-catalog-match": {
+        "population": 3435,
+        "sampled": 120,
+        "counts": {
+          "in-isfdb": 4,
+          "not-in-isfdb": 18,
+          "unresolved": 98
+        }
+      },
+      "single-reader": {
+        "population": 923,
+        "sampled": 60,
+        "counts": {
+          "in-isfdb": 17,
+          "not-in-isfdb": 3,
+          "unresolved": 40
+        }
+      },
+      "readers-disagree": {
+        "population": 80,
+        "sampled": 15,
+        "counts": {
+          "in-isfdb": 5,
+          "not-in-isfdb": 1,
+          "unresolved": 9
+        }
+      },
+      "confirmed": {
+        "population": 718,
+        "sampled": 40,
+        "counts": {
+          "in-isfdb": 24,
+          "not-in-isfdb": 0,
+          "unresolved": 16
+        }
+      }
+    }
+  },
+  "confirmedSanity": {
+    "n": 40,
+    "resolved": 24,
+    "inIsfdb": 24,
+    "sameWorkAsF0": 22,
+    "otherIsfdbWork": 2,
+    "notInIsfdb": 0,
+    "resolvedBy": {
+      "openlibrary": 24,
+      "loc": 0
+    },
+    "isfdbBy": {
+      "isbn": 23,
+      "titleAuthor": 1
+    }
+  },
+  "postHoc": {
+    "note": "not pre-registered: added after the sample was drawn (conductor request, Q-2 merged mid-run)",
+    "q2RungNoCatalogMatch": {
+      "rungs": {
+        "text-present": {
+          "population": 1740,
+          "sampled": 63,
+          "counts": {
+            "in-isfdb": 2,
+            "not-in-isfdb": 3,
+            "unresolved": 58
+          },
+          "resolved": {
+            "value": 0.0794,
+            "lo": 0.0159,
+            "hi": 0.1587
+          }
+        },
+        "text-read": {
+          "population": 1695,
+          "sampled": 57,
+          "counts": {
+            "in-isfdb": 2,
+            "not-in-isfdb": 15,
+            "unresolved": 40
+          },
+          "resolved": {
+            "value": 0.2982,
+            "lo": 0.193,
+            "hi": 0.4211
+          }
+        }
+      },
+      "resolvedDifference": {
+        "value": 0.2189,
+        "lo": 0.0835,
+        "hi": 0.3559
+      },
+      "postStratified": {
+        "in-isfdb": {
+          "value": 0.0334,
+          "lo": 0.008,
+          "hi": 0.0674
+        },
+        "not-in-isfdb": {
+          "value": 0.154,
+          "lo": 0.094,
+          "hi": 0.2195
+        },
+        "unresolved": {
+          "value": 0.8126,
+          "lo": 0.7434,
+          "hi": 0.8788
+        }
+      }
+    }
+  },
+  "queries": {
+    "perBoxMean": 5.6,
+    "boxesByStratum": {
+      "no-catalog-match": 120,
+      "single-reader": 60,
+      "readers-disagree": 15,
+      "confirmed": 40
+    }
+  },
+  "resolvedBy": {
+    "openlibrary": 68,
+    "loc": 4
+  },
+  "isfdbBy": {
+    "isbn": 49,
+    "titleAuthor": 1
+  },
+  "network": {
+    "calls": {
+      "openlibrary": 0,
+      "loc": 0
+    },
+    "cacheHits": {
+      "openlibrary": 1024,
+      "loc": 291
+    },
+    "failedQueries": {
+      "openlibrary": 1,
+      "loc": 0
+    },
+    "seconds": 3
+  },
+  "spendUsd": 0
+}
