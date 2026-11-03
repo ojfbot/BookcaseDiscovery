@@ -421,6 +421,8 @@ export function buildLabelSet(
   images: InputImage[],
   dets: Map<string, Detection>,
   decisions: Map<string, SpineDecision>,
+  /** F-0c: a box's kind and the rule behind it (`kinds` in f0c.ts); every box is a `spine` without it. */
+  kindOf?: (imageId: string, i: number) => { kind: "spine" | "face-out" | "not-a-book"; why: string },
 ): LabelSet {
   const photos: Photo[] = [];
   for (const img of images) {
@@ -430,6 +432,9 @@ export function buildLabelSet(
     const spines = det.spines.map((s, i) => {
       const d = decisions.get(spineId(img.id, i));
       const a = d?.accepted;
+      const k = kindOf?.(img.id, i);
+      if (k && k.kind !== "spine")
+        return { id: spineId(img.id.slice(0, 12), i), polygon: s.polygon, kind: k.kind, text: { title: "", author: "" }, unreadable: false, catalogId: null, notes: `machine:${k.kind} rule=${k.why}` };
       return {
         id: spineId(img.id.slice(0, 12), i),
         polygon: s.polygon,

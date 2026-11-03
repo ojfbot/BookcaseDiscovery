@@ -4,6 +4,7 @@
 //
 //   node src/eval/f0c-cli.ts detect <set>     # pilot-000 | yardstick: the cover pass on the set's cached boxes
 //   node src/eval/f0c-cli.ts read <set>       # Vision, PP-OCR and Qwen (cover prompt) on the kept covers
+//   node src/eval/f0c-cli.ts base <set>       # F-0's decisions on the base's cached readings (cached; analyse needs them)
 //   node src/eval/f0c-cli.ts analyse          # evals/F0c/{metrics.json,report.md} tables (aggregates only)
 //   node src/eval/f0c-cli.ts render           # private render page for pilot-000
 //
@@ -17,7 +18,7 @@ import { fileURLToPath } from "node:url";
 import type { Candidate } from "../catalog/retrieve.ts";
 import { openCatalog } from "../catalog/cli.ts";
 import { dataRoot, ImageStore } from "../ledger/images.ts";
-import { COVER_CROP, cropName, cropSize } from "../perceive/crop.ts";
+import { COVER_CROP, cropFor, cropName, cropSize } from "../perceive/crop.ts";
 import { decide, loadReadings, pyReaderStage, readJsonl, visionStage, type Detection, type InputImage, type Reading, type ReaderName, type SpineDecision } from "./f0.ts";
 import { COVER, coverReading, coverText, kinds, NOT_A_BOOK, type Kinds } from "./f0c.ts";
 import { agreementChange, titleDelta, type RungCounts, type Tri } from "./f0e.ts";
@@ -267,7 +268,7 @@ function notABookOn(dets: Map<string, Detection>, covers: Map<string, Detection>
       }
     });
   }
-  return { boxes, removed: flagged, removedByWhy: byWhy, removedConfirmed: flaggedConfirmed, removedTextRead: flaggedTextRead, lying, lyingConfirmed, lyingRemoved: lyingFlagged, lyingRemovedByWhy: lyingByWhy };
+  return { boxCount: boxes, removed: flagged, removedByWhy: byWhy, removedConfirmed: flaggedConfirmed, removedTextRead: flaggedTextRead, lying, lyingConfirmed, lyingRemoved: lyingFlagged, lyingRemovedByWhy: lyingByWhy };
 }
 
 function secondsOf(dir: string, method?: Parameters<typeof loadReadings>[1]) {
@@ -275,8 +276,8 @@ function secondsOf(dir: string, method?: Parameters<typeof loadReadings>[1]) {
   const by = (reader: ReaderName) => [...r.values()].map((x) => x[reader]?.seconds).filter((x): x is number => typeof x === "number");
   return Object.fromEntries((["vision", "ppocr", "qwen"] as ReaderName[]).map((k) => {
     const xs = by(k);
-    return [k, { crops: xs.length, total: Math.round(xs.reduce((a, b) => a + b, 0)), p50: xs.length ? r4(quantile([...xs].sort((a, b) => a - b), 0.5)) : null }];
-  })) as Record<ReaderName, { crops: number; total: number; p50: number | null }>;
+    return [k, { reads: xs.length, total: Math.round(xs.reduce((a, b) => a + b, 0)), p50: xs.length ? r4(quantile([...xs].sort((a, b) => a - b), 0.5)) : null }];
+  })) as Record<ReaderName, { reads: number; total: number; p50: number | null }>;
 }
 
 function analyseSet(set: SetName) {
@@ -467,11 +468,11 @@ export function tablesMd(m: any): string {
     for (const [k, label] of [["defaultBoxes", "default, cover pass off"], ["defaultBoxesWithCovers", "default, with covers"], ["f0Boxes", "F-0's original boxes, with covers"]] as const) {
       const x = s.notABook[k];
       const why = (o: Record<string, number>) => Object.entries(o).map(([a, b]) => `${a} ${b}`).join(", ") || "none";
-      out.push(`| ${label} | ${x.boxes} | ${x.removed} | ${why(x.removedByWhy)} | ${x.removedConfirmed} | ${x.removedTextRead} | ${x.lying} | ${x.lyingRemoved} | ${why(x.lyingRemovedByWhy)} | ${x.lyingConfirmed} |`);
+      out.push(`| ${label} | ${x.boxCount} | ${x.removed} | ${why(x.removedByWhy)} | ${x.removedConfirmed} | ${x.removedTextRead} | ${x.lying} | ${x.lyingRemoved} | ${why(x.lyingRemovedByWhy)} | ${x.lyingConfirmed} |`);
     }
     out.push("");
     const rt = s.runtime;
-    const rd = (o: any) => Object.entries(o).map(([k, v]: [string, any]) => `${k} ${v.total} s / ${v.crops} crops (p50 ${v.p50} s)`).join("; ");
+    const rd = (o: any) => Object.entries(o).map(([k, v]: [string, any]) => `${k} ${v.total} s / ${v.reads} crops (p50 ${v.p50} s)`).join("; ");
     out.push(`Runtime: cover pass p50 ${rt.coverPassSecondsPerPhoto.p50} s a photo (mean ${num(rt.coverPassSecondsPerPhoto.mean, 1)}; ${rt.coverTilesPerPhoto} tiles a photo), against the default's detection p50 ${rt.baseDetectSecondsPerPhoto} s. Cover readers: ${rd(rt.coverReaders)}. The default's readers: ${rd(rt.baseReaders)}.\n`);
   }
   const v = m.verdicts;
@@ -481,11 +482,64 @@ export function tablesMd(m: any): string {
   return out.join("\n") + "\n";
 }
 
+// --- render: the private review page -------------------------------------------------------------------------------
+
+/** Private: per photo, every box with its kind, and each kept cover's crop, reads and decision (pilot-000 only). */
+async function render(set: SetName = "pilot-000"): Promise<void> {
+  const { rows, dets, covers } = photoRows(set);
+  const images = new Map(imagesOf(set).map((i) => [i.id, i.path]));
+  const priv = join(ROOT, "private", "f0c");
+  mkdirSync(priv, { recursive: true });
+  const spec = join(priv, `render-${set}.jsonl`);
+  const lines = rows.map((r, n) => {
+    const d = dets.get(r.imageId)!;
+    const baseWorks = works(r.arms.base);
+    return JSON.stringify({
+      n: n + 1,
+      image: images.get(r.imageId),
+      width: d.width,
+      height: d.height,
+      spines: r.kinds.spines.map((b, i) => ({ polygon: b.polygon, kind: b.kind, why: b.why, confirmed: r.arms.base[i]!.accepted !== null })),
+      dropped: r.kinds.dropped.map((b) => ({ polygon: b.polygon, why: b.why })),
+      covers: r.kinds.covers.map((c) => {
+        const j = c.ref.slice(1);
+        const dec = covers.full.get(`${r.imageId}:c${j}`)!;
+        const reads = covers.readings.get(`${r.imageId}:${j}`) ?? {};
+        const crop = cropFor(d.covers![Number(j)]!, d, COVER_CROP);
+        return {
+          ref: c.ref,
+          polygon: c.polygon,
+          boxScore: c.boxScore,
+          crop: crop && { polygon: crop.polygon, rotations: crop.rotations },
+          absorbed: r.kinds.spines.filter((b) => b.absorbedBy === c.ref).length,
+          reads: Object.fromEntries(
+            Object.entries(reads).map(([k, v]) => [k, v!.error ? `error: ${v!.error}` : v!.variants.map((x) => `${x.rotation}°: ${x.text.replace(/\s+/g, " ").trim()}`).join(" | ")]),
+          ),
+          qwen: reads.qwen ? coverText(reads.qwen.variants[0]?.text ?? "") : null,
+          top: dec.top,
+          confirmed: dec.confirmed,
+          accepted: dec.accepted && { title: dec.accepted.title, authors: dec.accepted.authors, score: dec.accepted.score, agreeing: dec.agreeing },
+          reason: dec.reason,
+          newWork: dec.accepted !== null && !baseWorks.has(dec.accepted.workId),
+        };
+      }),
+    });
+  });
+  writeFileSync(spec, lines.join("\n") + "\n");
+  const helper = join(REPO, "helpers", "label");
+  const out = join(priv, "renders", set);
+  const args = ["run", "--project", helper, "python", "-I", join(helper, "render_f0c.py"), "--spec", spec, "--out", out, "--label", set];
+  await new Promise<void>((resolve, reject) => spawn("uv", args, { stdio: ["ignore", "ignore", "inherit"] }).once("close", (c) => (c === 0 ? resolve() : reject(new Error(`render exited ${c}`)))));
+  log(`render written under the data root's private/f0c/renders/${set}/`);
+}
+
 if (import.meta.url === `file://${process.argv[1]}`) {
   const [cmd, set] = process.argv.slice(2) as [string, SetName];
   if (cmd === "detect") await detect(set);
   else if (cmd === "read") await read(set);
+  else if (cmd === "base") baseDecisions(set);
   else if (cmd === "analyse") analyse();
+  else if (cmd === "render") await render(set ?? "pilot-000");
   else {
     console.error("usage: node src/eval/f0c-cli.ts detect|read <pilot-000|yardstick> | analyse | render");
     process.exit(2);

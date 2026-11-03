@@ -1,0 +1,850 @@
+{
+  "runId": "F0c",
+  "card": "F-0c",
+  "date": "2026-11-03",
+  "rules": {
+    "COVER": {
+      "minShortOverLong": 0.5,
+      "maxShortOverLong": 0.9,
+      "minWidths": 1.5,
+      "maxLongOverSpine": 2,
+      "groupShare": 0.5,
+      "absorb": 0.6
+    },
+    "NOT_A_BOOK": {
+      "flatDeg": 60,
+      "maxFlatOverSpine": 1.5,
+      "minFlatOverSpine": 0.35,
+      "thinWidths": 0.6,
+      "coverRowShare": 0.3
+    }
+  },
+  "coverCrop": "rect;rot=cover;clip=frame",
+  "pilot-000": {
+    "set": "pilot-000",
+    "scope": "real use (OC35): machine agreement, never accuracy (INV-17)",
+    "photos": 31,
+    "spinePathBoxes": 6145,
+    "coverPass": {
+      "prompt": "book cover.",
+      "tiles": "3100/1300 (shelf scale), every photo",
+      "candidates": 798,
+      "dropped": {
+        "cover-group": 420,
+        "cover-shape": 236
+      },
+      "kept": 142,
+      "keptPerPhoto": [
+        4.5806,
+        3.4516,
+        5.7742
+      ],
+      "photosWithCover": 28,
+      "absorbedSpineBoxes": 104,
+      "absorbedConfirmed": 2,
+      "absorbedTextRead": 12
+    },
+    "covers": {
+      "count": 142,
+      "textPresentShare": [
+        0.9789,
+        0.9588,
+        1
+      ],
+      "textReadShare": [
+        0.2887,
+        0.2042,
+        0.3841
+      ],
+      "confirmedShare": [
+        0.0352,
+        0.0126,
+        0.0621
+      ],
+      "confirmed": 5,
+      "byReader": {
+        "vision": {
+          "read": 142,
+          "text": 91,
+          "passes": 9
+        },
+        "ppocr": {
+          "read": 142,
+          "text": 98,
+          "passes": 6
+        },
+        "qwen": {
+          "read": 142,
+          "text": 129,
+          "passes": 35
+        }
+      },
+      "unknownByReason": {
+        "no-catalog-match": 98,
+        "single-reader": 34,
+        "readers-disagree": 2,
+        "no-text": 3
+      },
+      "imprintRead": 57
+    },
+    "newWorks": {
+      "coverWorksPerPhoto": [
+        0.1613,
+        0.0323,
+        0.2903
+      ],
+      "newWorksPerPhoto": [
+        0.1613,
+        0.0323,
+        0.2903
+      ],
+      "newWorksTotal": 5,
+      "photosWithNewWork": 5,
+      "newVsF0Original": [
+        0.1613,
+        0.0323,
+        0.2903
+      ]
+    },
+    "arms": {
+      "filter": {
+        "base": {
+          "boxCount": 6145,
+          "textPresentShare": 0.7779,
+          "textReadShare": 0.27,
+          "confirmedShare": 0.119,
+          "confirmedPerPhoto": 23.5806,
+          "worksPerPhoto": 20.2903
+        },
+        "arm": {
+          "boxCount": 6138,
+          "textPresentShare": 0.7783,
+          "textReadShare": 0.2703,
+          "confirmedShare": 0.1191,
+          "confirmedPerPhoto": 23.5806,
+          "worksPerPhoto": 20.2903
+        },
+        "delta": {
+          "textReadShare": [
+            0.0003,
+            0,
+            0.0007
+          ],
+          "confirmedShare": [
+            0.0001,
+            0,
+            0.0003
+          ],
+          "textReadPerPhoto": [
+            0,
+            0,
+            0
+          ],
+          "confirmedPerPhoto": [
+            0,
+            0,
+            0
+          ],
+          "worksPerPhoto": [
+            0,
+            0,
+            0
+          ],
+          "boxesPerPhoto": [
+            -0.2258,
+            -0.5161,
+            -0.0323
+          ]
+        },
+        "worksLostPerPhoto": [
+          0,
+          0,
+          0
+        ]
+      },
+      "covers": {
+        "base": {
+          "boxCount": 6145,
+          "textPresentShare": 0.7779,
+          "textReadShare": 0.27,
+          "confirmedShare": 0.119,
+          "confirmedPerPhoto": 23.5806,
+          "worksPerPhoto": 20.2903
+        },
+        "arm": {
+          "boxCount": 6183,
+          "textPresentShare": 0.7862,
+          "textReadShare": 0.273,
+          "confirmedShare": 0.1187,
+          "confirmedPerPhoto": 23.6774,
+          "worksPerPhoto": 20.3871
+        },
+        "delta": {
+          "textReadShare": [
+            0.003,
+            0.0007,
+            0.0056
+          ],
+          "confirmedShare": [
+            -0.0002,
+            -0.0011,
+            0.0006
+          ],
+          "textReadPerPhoto": [
+            0.9355,
+            0.4839,
+            1.4516
+          ],
+          "confirmedPerPhoto": [
+            0.0968,
+            -0.0323,
+            0.2258
+          ],
+          "worksPerPhoto": [
+            0.0968,
+            -0.0323,
+            0.2258
+          ],
+          "boxesPerPhoto": [
+            1.2258,
+            0.2581,
+            2.2581
+          ]
+        },
+        "worksLostPerPhoto": [
+          0.0645,
+          0,
+          0.1613
+        ]
+      },
+      "full": {
+        "base": {
+          "boxCount": 6145,
+          "textPresentShare": 0.7779,
+          "textReadShare": 0.27,
+          "confirmedShare": 0.119,
+          "confirmedPerPhoto": 23.5806,
+          "worksPerPhoto": 20.2903
+        },
+        "arm": {
+          "boxCount": 6177,
+          "textPresentShare": 0.7866,
+          "textReadShare": 0.2733,
+          "confirmedShare": 0.1188,
+          "confirmedPerPhoto": 23.6774,
+          "worksPerPhoto": 20.3871
+        },
+        "delta": {
+          "textReadShare": [
+            0.0033,
+            0.0008,
+            0.0061
+          ],
+          "confirmedShare": [
+            -0.0001,
+            -0.001,
+            0.0008
+          ],
+          "textReadPerPhoto": [
+            0.9355,
+            0.4839,
+            1.4516
+          ],
+          "confirmedPerPhoto": [
+            0.0968,
+            -0.0323,
+            0.2258
+          ],
+          "worksPerPhoto": [
+            0.0968,
+            -0.0323,
+            0.2258
+          ],
+          "boxesPerPhoto": [
+            1.0323,
+            0.0323,
+            2.0645
+          ]
+        },
+        "worksLostPerPhoto": [
+          0.0645,
+          0,
+          0.1613
+        ]
+      }
+    },
+    "notABook": {
+      "defaultBoxes": {
+        "boxCount": 6145,
+        "removed": 7,
+        "removedByWhy": {
+          "flat-strip": 2,
+          "spans-books": 5
+        },
+        "removedConfirmed": 0,
+        "removedTextRead": 0,
+        "lying": 102,
+        "lyingConfirmed": 0,
+        "lyingRemoved": 7,
+        "lyingRemovedByWhy": {
+          "flat-strip": 2,
+          "spans-books": 5
+        }
+      },
+      "defaultBoxesWithCovers": {
+        "boxCount": 6145,
+        "removed": 110,
+        "removedByWhy": {
+          "absorbed": 104,
+          "flat-strip": 2,
+          "spans-books": 2,
+          "cover-row": 2
+        },
+        "removedConfirmed": 2,
+        "removedTextRead": 12,
+        "lying": 102,
+        "lyingConfirmed": 0,
+        "lyingRemoved": 33,
+        "lyingRemovedByWhy": {
+          "absorbed": 27,
+          "flat-strip": 2,
+          "spans-books": 2,
+          "cover-row": 2
+        }
+      },
+      "f0Boxes": {
+        "boxCount": 6894,
+        "removed": 198,
+        "removedByWhy": {
+          "absorbed": 158,
+          "spans-books": 32,
+          "flat-strip": 6,
+          "cover-row": 2
+        },
+        "removedConfirmed": 5,
+        "removedTextRead": 27,
+        "lying": 407,
+        "lyingConfirmed": 6,
+        "lyingRemoved": 104,
+        "lyingRemovedByWhy": {
+          "absorbed": 64,
+          "spans-books": 32,
+          "flat-strip": 6,
+          "cover-row": 2
+        }
+      }
+    },
+    "runtime": {
+      "coverPassSecondsPerPhoto": {
+        "p50": 18.01,
+        "mean": [
+          18.8965,
+          16.6615,
+          21.3197
+        ],
+        "total": 586
+      },
+      "coverTilesPerPhoto": 11.8065,
+      "coverReaders": {
+        "vision": {
+          "reads": 142,
+          "total": 82,
+          "p50": 0.1447
+        },
+        "ppocr": {
+          "reads": 142,
+          "total": 437,
+          "p50": 2.1385
+        },
+        "qwen": {
+          "reads": 142,
+          "total": 320,
+          "p50": 1.7755
+        }
+      },
+      "baseDetectSecondsPerPhoto": 69.23,
+      "baseReaders": {
+        "vision": {
+          "reads": 6145,
+          "total": 3089,
+          "p50": 0.2032
+        },
+        "ppocr": {
+          "reads": 6145,
+          "total": 11514,
+          "p50": 1.404
+        },
+        "qwen": {
+          "reads": 1230,
+          "total": 3588,
+          "p50": 2.737
+        }
+      }
+    }
+  },
+  "yardstick": {
+    "set": "yardstick",
+    "scope": "PROXY (library shelves): Library Dataset sample, box arm B2; confirmed = accepted and annotated in the image",
+    "photos": 40,
+    "spinePathBoxes": 1132,
+    "coverPass": {
+      "prompt": "book cover.",
+      "tiles": "3100/1300 (shelf scale), every photo",
+      "candidates": 182,
+      "dropped": {
+        "cover-shape": 97,
+        "cover-group": 64
+      },
+      "kept": 21,
+      "keptPerPhoto": [
+        0.525,
+        0.25,
+        0.85
+      ],
+      "photosWithCover": 11,
+      "absorbedSpineBoxes": 11,
+      "absorbedConfirmed": 0,
+      "absorbedTextRead": 1
+    },
+    "covers": {
+      "count": 21,
+      "textPresentShare": [
+        1,
+        1,
+        1
+      ],
+      "textReadShare": [
+        0.1429,
+        0.0385,
+        0.2632
+      ],
+      "confirmedShare": [
+        0.0476,
+        0,
+        0.125
+      ],
+      "confirmed": 1,
+      "byReader": {
+        "vision": {
+          "read": 21,
+          "text": 6,
+          "passes": 2
+        },
+        "ppocr": {
+          "read": 21,
+          "text": 7,
+          "passes": 0
+        },
+        "qwen": {
+          "read": 21,
+          "text": 20,
+          "passes": 2
+        }
+      },
+      "unknownByReason": {
+        "single-reader": 2,
+        "no-catalog-match": 18
+      },
+      "imprintRead": 16
+    },
+    "newWorks": {
+      "coverWorksPerPhoto": [
+        0.025,
+        0,
+        0.075
+      ],
+      "newWorksPerPhoto": [
+        0.025,
+        0,
+        0.075
+      ],
+      "newWorksTotal": 1,
+      "photosWithNewWork": 1,
+      "newVsF0Original": [
+        0.025,
+        0,
+        0.075
+      ]
+    },
+    "arms": {
+      "filter": {
+        "base": {
+          "boxCount": 1132,
+          "textPresentShare": 0.7438,
+          "textReadShare": 0.3799,
+          "confirmedShare": 0.2376,
+          "confirmedPerPhoto": 6.725,
+          "worksPerPhoto": 6.5
+        },
+        "arm": {
+          "boxCount": 1120,
+          "textPresentShare": 0.75,
+          "textReadShare": 0.3839,
+          "confirmedShare": 0.2402,
+          "confirmedPerPhoto": 6.725,
+          "worksPerPhoto": 6.5
+        },
+        "delta": {
+          "textReadShare": [
+            0.0041,
+            0.0011,
+            0.0077
+          ],
+          "confirmedShare": [
+            0.0025,
+            0.0007,
+            0.005
+          ],
+          "textReadPerPhoto": [
+            0,
+            0,
+            0
+          ],
+          "confirmedPerPhoto": [
+            0,
+            0,
+            0
+          ],
+          "worksPerPhoto": [
+            0,
+            0,
+            0
+          ],
+          "boxesPerPhoto": [
+            -0.3,
+            -0.55,
+            -0.075
+          ]
+        },
+        "worksLostPerPhoto": [
+          0,
+          0,
+          0
+        ]
+      },
+      "covers": {
+        "base": {
+          "boxCount": 1132,
+          "textPresentShare": 0.7438,
+          "textReadShare": 0.3799,
+          "confirmedShare": 0.2376,
+          "confirmedPerPhoto": 6.725,
+          "worksPerPhoto": 6.5
+        },
+        "arm": {
+          "boxCount": 1142,
+          "textPresentShare": 0.7522,
+          "textReadShare": 0.3783,
+          "confirmedShare": 0.2364,
+          "confirmedPerPhoto": 6.75,
+          "worksPerPhoto": 6.525
+        },
+        "delta": {
+          "textReadShare": [
+            -0.0016,
+            -0.0054,
+            0.0022
+          ],
+          "confirmedShare": [
+            -0.0012,
+            -0.0034,
+            0.0013
+          ],
+          "textReadPerPhoto": [
+            0.05,
+            0,
+            0.125
+          ],
+          "confirmedPerPhoto": [
+            0.025,
+            0,
+            0.075
+          ],
+          "worksPerPhoto": [
+            0.025,
+            0,
+            0.075
+          ],
+          "boxesPerPhoto": [
+            0.25,
+            0.0494,
+            0.5
+          ]
+        },
+        "worksLostPerPhoto": [
+          0,
+          0,
+          0
+        ]
+      },
+      "full": {
+        "base": {
+          "boxCount": 1132,
+          "textPresentShare": 0.7438,
+          "textReadShare": 0.3799,
+          "confirmedShare": 0.2376,
+          "confirmedPerPhoto": 6.725,
+          "worksPerPhoto": 6.5
+        },
+        "arm": {
+          "boxCount": 1130,
+          "textPresentShare": 0.7584,
+          "textReadShare": 0.3823,
+          "confirmedShare": 0.2389,
+          "confirmedPerPhoto": 6.75,
+          "worksPerPhoto": 6.525
+        },
+        "delta": {
+          "textReadShare": [
+            0.0024,
+            -0.0027,
+            0.0085
+          ],
+          "confirmedShare": [
+            0.0013,
+            -0.0015,
+            0.0047
+          ],
+          "textReadPerPhoto": [
+            0.05,
+            0,
+            0.125
+          ],
+          "confirmedPerPhoto": [
+            0.025,
+            0,
+            0.075
+          ],
+          "worksPerPhoto": [
+            0.025,
+            0,
+            0.075
+          ],
+          "boxesPerPhoto": [
+            -0.05,
+            -0.4,
+            0.2756
+          ]
+        },
+        "worksLostPerPhoto": [
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    "notABook": {
+      "defaultBoxes": {
+        "boxCount": 1132,
+        "removed": 12,
+        "removedByWhy": {
+          "flat-strip": 8,
+          "spans-books": 4
+        },
+        "removedConfirmed": 0,
+        "removedTextRead": 0,
+        "lying": 66,
+        "lyingConfirmed": 3,
+        "lyingRemoved": 12,
+        "lyingRemovedByWhy": {
+          "flat-strip": 8,
+          "spans-books": 4
+        }
+      },
+      "defaultBoxesWithCovers": {
+        "boxCount": 1132,
+        "removed": 23,
+        "removedByWhy": {
+          "flat-strip": 8,
+          "spans-books": 4,
+          "absorbed": 11
+        },
+        "removedConfirmed": 0,
+        "removedTextRead": 1,
+        "lying": 66,
+        "lyingConfirmed": 3,
+        "lyingRemoved": 18,
+        "lyingRemovedByWhy": {
+          "flat-strip": 8,
+          "spans-books": 4,
+          "absorbed": 6
+        }
+      },
+      "f0Boxes": {
+        "boxCount": 1132,
+        "removed": 23,
+        "removedByWhy": {
+          "flat-strip": 8,
+          "spans-books": 4,
+          "absorbed": 11
+        },
+        "removedConfirmed": 0,
+        "removedTextRead": 1,
+        "lying": 66,
+        "lyingConfirmed": 3,
+        "lyingRemoved": 18,
+        "lyingRemovedByWhy": {
+          "flat-strip": 8,
+          "spans-books": 4,
+          "absorbed": 6
+        }
+      }
+    },
+    "runtime": {
+      "coverPassSecondsPerPhoto": {
+        "p50": 5.335,
+        "mean": [
+          6.1263,
+          5.1231,
+          7.1918
+        ],
+        "total": 245
+      },
+      "coverTilesPerPhoto": 6.4,
+      "coverReaders": {
+        "vision": {
+          "reads": 21,
+          "total": 4,
+          "p50": 0.173
+        },
+        "ppocr": {
+          "reads": 21,
+          "total": 95,
+          "p50": 2.511
+        },
+        "qwen": {
+          "reads": 21,
+          "total": 71,
+          "p50": 2.846
+        }
+      },
+      "baseDetectSecondsPerPhoto": 5.08,
+      "baseReaders": {
+        "vision": {
+          "reads": 1132,
+          "total": 190,
+          "p50": 0.1712
+        },
+        "ppocr": {
+          "reads": 1132,
+          "total": 3401,
+          "p50": 2.5805
+        },
+        "qwen": {
+          "reads": 478,
+          "total": 1285,
+          "p50": 2.4665
+        }
+      }
+    },
+    "yardstickTitles": {
+      "base": {
+        "annotated": 653,
+        "hits": 241,
+        "accepted": 260
+      },
+      "coverOnly": {
+        "annotated": 653,
+        "hits": 1,
+        "accepted": 1,
+        "wrong": 0,
+        "newHits": 1
+      },
+      "arms": {
+        "filter": {
+          "annotated": 653,
+          "hits": 241,
+          "accepted": 260,
+          "delta": {
+            "recall": [
+              0,
+              0,
+              0
+            ],
+            "precision": [
+              0,
+              0,
+              0
+            ]
+          },
+          "hitsPerImage": [
+            0,
+            0,
+            0
+          ],
+          "wrongPerImage": [
+            0,
+            0,
+            0
+          ]
+        },
+        "covers": {
+          "annotated": 653,
+          "hits": 242,
+          "accepted": 261,
+          "delta": {
+            "recall": [
+              0.0015,
+              0,
+              0.0054
+            ],
+            "precision": [
+              0.0003,
+              0,
+              0.0011
+            ]
+          },
+          "hitsPerImage": [
+            0.025,
+            0,
+            0.075
+          ],
+          "wrongPerImage": [
+            0,
+            0,
+            0
+          ]
+        },
+        "full": {
+          "annotated": 653,
+          "hits": 242,
+          "accepted": 261,
+          "delta": {
+            "recall": [
+              0.0015,
+              0,
+              0.0054
+            ],
+            "precision": [
+              0.0003,
+              0,
+              0.0011
+            ]
+          },
+          "hitsPerImage": [
+            0.025,
+            0,
+            0.075
+          ],
+          "wrongPerImage": [
+            0,
+            0,
+            0
+          ]
+        }
+      }
+    }
+  },
+  "verdicts": {
+    "coverPass": {
+      "pilotNewWorks": false,
+      "yardstickUnhurt": true,
+      "ship": false
+    },
+    "notABookFilter": {
+      "pilotWorksNotDown": true,
+      "yardstickUnhurt": true,
+      "ship": true
+    }
+  }
+}

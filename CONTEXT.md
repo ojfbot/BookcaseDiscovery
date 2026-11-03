@@ -12,6 +12,10 @@ The record shapes these words name are in `contracts/` and explained in `docs/co
 - **Shelf band** — the vertical strip of a whole-case photo that belongs to one shelf. Drawn by hand on labelled photos, found by y-clustering when perceiving.
 - **Spine** — the visible edge of one book on a shelf. The thing we detect.
 - **Face-out** — a book shown cover-forward rather than spine-forward. A label kind, not a spine.
+- **Cover pass** — (F-0c) a second detection pass with the prompt `book cover.` on shelf-scale tiles, after the spine path and without changing it. Its cover-shaped boxes become face-out boxes when the kind rules keep them (`kinds` in `src/eval/f0c.ts`).
+- **Absorbed box** — (F-0c) a spine-path box lying mostly inside a kept face-out cover: part of that book (a sliver, a text block), so the cover box stands for it and one book gets one box.
+- **Not-a-book flag** — (F-0c) a spine-path box the kind rules mark `not-a-book` from geometry: lying flat and longer than any book on its shelf (a shelf lip, a row of book ends), a flat thin strip, or a box holding a row of face-out covers.
+- **Cover read** — (F-0c) reading a face-out box from the words printed on it: its whole face as it stands (crop `rect;rot=cover;clip=frame`), by Vision, PP-OCR and Qwen with a cover prompt asking for title, author and imprint. Never by matching the cover image to a catalog's covers.
 - **Ordinal** — a spine's position on its shelf, counted from the left, from 0.
 - **Physical copy** — one book on the shelf. Two copies of the same work are two observations with the same identity; never collapsed (INV-4).
 
