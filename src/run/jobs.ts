@@ -52,6 +52,7 @@ CREATE TRIGGER job_events_no_update BEFORE UPDATE ON job_events
 BEGIN SELECT RAISE(ABORT, 'job_events is append-only: UPDATE refused'); END;
 CREATE TRIGGER job_events_no_delete BEFORE DELETE ON job_events
 BEGIN SELECT RAISE(ABORT, 'job_events is append-only: DELETE refused'); END;
+CREATE INDEX job_events_key ON job_events (key, fence);
 `;
 
 /**
@@ -59,12 +60,17 @@ BEGIN SELECT RAISE(ABORT, 'job_events is append-only: DELETE refused'); END;
  * recorded. v1 rows have neither, so a v1 job can neither run under a v2 handler nor serve as a cache hit
  * with a file to read. Every v1 row is retired: a `retired` event records it, the row leaves `jobs`, and
  * the same work admitted again under v2 starts fresh. Their v1 output files stay on disk, unreferenced.
+ *
+ * A v1 worker may still hold a claim when this runs. Its `retired` event carries that worker, fence and
+ * lease expiry, so the report closes the attempt; and readmission continues the key's fence from its
+ * event history, so the old worker's token can never match a new claim.
  */
 const MIGRATE_1_TO_2 = `
 ALTER TABLE jobs ADD COLUMN inputs TEXT NOT NULL DEFAULT '[]' CHECK (json_valid(inputs));
 ALTER TABLE jobs ADD COLUMN params TEXT NOT NULL DEFAULT '{}' CHECK (json_valid(params));
 ALTER TABLE jobs ADD COLUMN code TEXT;
 ALTER TABLE jobs ADD COLUMN output_file TEXT;
+CREATE INDEX job_events_key ON job_events (key, fence);
 `;
 
 export type JobStatus = "ready" | "claimed" | "done" | "failed";
@@ -202,6 +208,8 @@ export interface WorkerPeriod {
   failed: number;
   released: number;
   leaseExpired: number;
+  /** Attempts ended because a schema upgrade retired their job. */
+  retired: number;
   staleRejected: number;
   machineSeconds: number;
 }
@@ -227,8 +235,15 @@ export class JobStore {
         this.#db.exec(SCHEMA);
       } else if (version === 1) {
         this.#db.exec(MIGRATE_1_TO_2);
-        const rows = this.#db.prepare("SELECT key, status FROM jobs").all() as { key: string; status: JobStatus }[];
-        for (const r of rows) this.#event(r.key, "retired", null, 0, `schema-v1:${r.status}`);
+        const rows = this.#db.prepare("SELECT key, status, worker, fence, lease_expires FROM jobs").all() as {
+          key: string;
+          status: JobStatus;
+          worker: string | null;
+          fence: number;
+          lease_expires: number | null;
+        }[];
+        for (const r of rows)
+          this.#event(r.key, "retired", r.worker, r.fence, `schema-v1:${r.status}${r.lease_expires === null ? "" : `:${r.lease_expires}`}`);
         this.#db.exec("DELETE FROM jobs");
       } else {
         throw new Error(`job table schema ${version}, expected ${JOBS_SCHEMA_VERSION}`);
@@ -241,7 +256,10 @@ export class JobStore {
     this.#db.close();
   }
 
-  /** Admit a job. Idempotent: an existing key (in any state) is left alone and reported as not created. */
+  /**
+   * Admit a job. Idempotent: an existing key (in any state) is left alone and reported as not created. A key
+   * readmitted after retirement continues its fence from the event history, so tokens never repeat per key.
+   */
   enqueue(spec: JobSpec): { key: string; created: boolean } {
     const key = jobKey(spec);
     return this.#tx(() => {
@@ -249,7 +267,7 @@ export class JobStore {
       const res = this.#db
         .prepare(
           `INSERT OR IGNORE INTO jobs (key, kind, inputs, params, code, payload, requires, priority, status, attempts, max_attempts, fence, created, updated)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'ready', 0, ?, 0, ?, ?)`,
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'ready', 0, ?, (SELECT COALESCE(MAX(fence), 0) FROM job_events WHERE key = ?), ?, ?)`,
         )
         .run(
           key,
@@ -261,6 +279,7 @@ export class JobStore {
           JSON.stringify(spec.requires ?? []),
           spec.priority ?? 0,
           spec.maxAttempts ?? 3,
+          key,
           now,
           now,
         );
@@ -392,7 +411,7 @@ export class JobStore {
     const events: JobReport["period"]["events"] = {};
     const byWorker: JobReport["period"]["byWorker"] = {};
     const forWorker = (w: string): WorkerPeriod =>
-      (byWorker[w] ??= { completed: 0, failed: 0, released: 0, leaseExpired: 0, staleRejected: 0, machineSeconds: 0 });
+      (byWorker[w] ??= { completed: 0, failed: 0, released: 0, leaseExpired: 0, retired: 0, staleRejected: 0, machineSeconds: 0 });
     // Leased time inside the window [since, until], never negative (a future `since` gives zero).
     const leased = (start: number, end: number): number => Math.max(0, Math.min(end, until) - Math.max(start, since)) / 1000;
     // Open attempts (`key#fence` → worker and lease start), seeded from claims before the period whose end,
@@ -412,6 +431,7 @@ export class JobStore {
       retry: "failed",
       released: "released",
       "lease-expired": "leaseExpired",
+      retired: "retired",
     };
     for (const e of rows) {
       const attempt = `${e.key}#${e.fence}`;
@@ -432,7 +452,10 @@ export class JobStore {
       const w = forWorker(held.worker);
       w[counter] += 1;
       // An expired lease ended when it ran out (recorded by the sweep), not when the sweep noticed.
-      const end = e.type === "lease-expired" && e.detail !== null && Number.isFinite(Number(e.detail)) ? Math.min(e.ts, Number(e.detail)) : e.ts;
+      // A retired claim ended at retirement or its lease expiry, whichever was first (`schema-v1:claimed:<expiry>`).
+      const expiry =
+        e.detail === null ? NaN : e.type === "lease-expired" ? Number(e.detail) : e.type === "retired" ? Number(e.detail.split(":")[2]) : NaN;
+      const end = Number.isFinite(expiry) ? Math.min(e.ts, expiry) : e.ts;
       w.machineSeconds += leased(held.start, end);
       open.delete(attempt);
     }
@@ -444,8 +467,11 @@ export class JobStore {
       ),
     );
     for (const [attempt, held] of open) forWorker(held.worker).machineSeconds += leased(held.start, leases.get(attempt) ?? until);
-    const enqueued = this.#db.prepare("SELECT COUNT(*) AS n FROM job_events WHERE type = 'enqueued' AND ts >= ?").get(since) as { n: number };
-    if (enqueued.n) events.enqueued = enqueued.n;
+    // Events with no worker (admission, retiring an unclaimed job) are counted here.
+    for (const r of this.#db
+      .prepare("SELECT type, COUNT(*) AS n FROM job_events WHERE worker IS NULL AND ts >= ? GROUP BY type")
+      .all(since) as { type: JobEventType; n: number }[])
+      events[r.type] = (events[r.type] ?? 0) + r.n;
 
     return {
       now: { at: until, byKind, failures, oldestReadyAgeSeconds: oldest.t === null ? null : Math.round((until - oldest.t) / 1000) },

@@ -199,6 +199,43 @@ describe("JobStore", () => {
     expect(store.release(key, c.fence, "w")).toBe(false);
   });
 
+  it("keeps a v1 worker that is mid-claim at the upgrade fenced out, and closes its attempt in the report", () => {
+    store.close();
+    const path = join(dir, "v1-live.sqlite");
+    const key = jobKey(spec(1));
+    const v1 = new DatabaseSync(path); // stays open: the v1 worker's own connection
+    v1.exec(`CREATE TABLE jobs (key TEXT PRIMARY KEY, kind TEXT NOT NULL, payload TEXT NOT NULL, requires TEXT NOT NULL, priority INTEGER NOT NULL,
+      status TEXT NOT NULL, attempts INTEGER NOT NULL, max_attempts INTEGER NOT NULL, fence INTEGER NOT NULL, worker TEXT, lease_expires INTEGER,
+      output TEXT, error TEXT, created INTEGER NOT NULL, updated INTEGER NOT NULL);
+      CREATE TABLE job_events (seq INTEGER PRIMARY KEY AUTOINCREMENT, ts INTEGER NOT NULL, key TEXT NOT NULL, type TEXT NOT NULL, worker TEXT, fence INTEGER, detail TEXT);
+      PRAGMA user_version = 1;`);
+    const claimedAt = clock;
+    v1.prepare("INSERT INTO jobs VALUES (?, 'noop', '{}', '[]', 0, 'claimed', 1, 3, 1, 'w', ?, NULL, NULL, ?, ?)").run(key, claimedAt + LEASE, claimedAt, claimedAt);
+    v1.prepare("INSERT INTO job_events (ts, key, type, worker, fence) VALUES (?, ?, 'claimed', 'w', 1)").run(claimedAt, key);
+    try {
+      clock += 2_000;
+      store = new JobStore(path, { now: () => clock, leaseMs: LEASE }); // upgrade while the v1 claim is live
+      expect(store.enqueue(spec(1)).created).toBe(true); // readmitted
+      const c = store.claim("w", [])!; // same worker id as the v1 holder
+      expect(c.fence).toBe(2);
+      // The v1 worker finishes and runs v1's completion statement with its old token.
+      const v1Complete = v1
+        .prepare("UPDATE jobs SET status = 'done', output = ?, error = NULL, lease_expires = NULL, updated = ? WHERE key = ? AND status = 'claimed' AND fence = ? AND worker = ? AND lease_expires > ?")
+        .run("v1-bytes", clock, key, 1, "w", clock);
+      expect(Number(v1Complete.changes)).toBe(0);
+      expect(store.get(key)).toMatchObject({ status: "claimed", fence: 2 });
+      // The retired v1 attempt counts its 2 s up to retirement, and stops there.
+      clock += 10_000;
+      const w = store.report(claimedAt).period.byWorker.w!;
+      expect(w.retired).toBe(1);
+      expect(w.machineSeconds).toBe(2 + 10); // 2 s retired v1 attempt + 10 s of the running v2 claim
+      clock += 10_000;
+      expect(store.report(claimedAt).period.byWorker.w!.machineSeconds).toBe(2 + 20);
+    } finally {
+      v1.close();
+    }
+  });
+
   it("separates the table's state now from what happened in the period, and clips attempts to it", () => {
     const a = store.enqueue(spec(1)).key;
     const b = store.enqueue(spec(2)).key;
@@ -215,7 +252,7 @@ describe("JobStore", () => {
     const r = store.report(since);
     expect(r.now.byKind.noop).toEqual({ ready: 0, claimed: 1, done: 1, failed: 0 });
     expect(r.period.events).toEqual({ completed: 1, claimed: 2, released: 1 });
-    expect(r.period.byWorker.w).toEqual({ completed: 1, failed: 0, released: 1, leaseExpired: 0, staleRejected: 0, machineSeconds: 10 });
+    expect(r.period.byWorker.w).toEqual({ completed: 1, failed: 0, released: 1, leaseExpired: 0, retired: 0, staleRejected: 0, machineSeconds: 10 });
   });
 
   it("counts leased time only until the lease actually ran out, and nothing for a future window", () => {
