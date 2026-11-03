@@ -6,10 +6,14 @@ directly from the text prompt (no SAM 2.1 step); its masks go through the same p
 F-0e: tiles may be taller than wide ($F0_TILE_H, $F0_OVERLAP_Y) or follow coarse shelf bands ($F0_LAYOUT=bands),
 and post steps run after NMS ($F0_POST: strips, join, extend). `--from detect.jsonl` re-runs only the post steps on
 that file's spines. Each output line names its tiling and post steps in "layout".
+F-0c: the post step "covers" runs a second pass with the prompt "book cover." on shelf-scale tiles and adds the
+cover-shaped boxes it finds as "covers" (face-out books). It never changes "spines": with only that step, `--from`
+copies the cached spines, bands and gaps verbatim. Which box is a spine, a face-out cover or not a book is decided
+from both lists by src/eval/f0c.ts.
 
 JSON Lines in (stdin): {"id": str, "image": path}. One JSON line out per image:
 {"id", "width", "height", "spines": [{"polygon", "boxScore", "maskScore", "aspect"}], "bands": [...],
- "gaps": {...}, "tiles", "seconds"}. stderr carries progress only, never image content.
+ "gaps": {...}, "tiles", "seconds"}, plus "covers" (same box fields), "coverTiles" and "coverSeconds" with "covers". stderr carries progress only, never image content.
 Weights are read from $BOOKCASE_DATA/models/ (never downloaded here).
 """
 
@@ -45,6 +49,7 @@ MODELS = DATA / "models"
 ARM = os.environ.get("F0_ARM", "b2")
 ARMS = {"b1": "sam3", "b2": "grounding-dino-base", "b3": "owlv2-base-patch16-ensemble", "b4": "mm-grounding-dino-large-all"}
 PROMPT = "book spine."
+COVER_PROMPT = "book cover."  # F-0c: the cover pass (post step "covers")
 # Tiling: spines are ~2 % of an ultra-wide frame; the detector shrinks its input to ~800-1333 px.
 TILE = int(os.environ.get("F0_TILE", "1600"))  # the runner sets these per photo scale (src/eval/f0.ts)
 OVERLAP = int(os.environ.get("F0_OVERLAP", "700"))
@@ -71,6 +76,9 @@ MAX_TILE_SHARE = 0.35  # a "spine" box covering more of the tile than this is a 
 EDGE = 6  # px: a box this close to an inner tile edge is cut by the tile
 NMS_IOU = 0.45
 CHAIN_WIDTHS = 8  # a gap wider than this many median spine widths ends a shelf band
+# F-0c: a cover-prompt box is kept for src/eval/f0c.ts only if its long side is under this many times its short side
+# (a portrait cover is 1.25-1.67; the rest is perspective and mask slack). Spine-shaped cover-prompt boxes are spines.
+COVER_MAX_ASPECT = 2.0
 FLAT_DEG = 60  # long side more than this many degrees from vertical: lying flat
 UPRIGHT_DEG = 30  # long side within this many degrees of vertical: an upright spine (as src/eval/f0e.ts)
 TOUCH_WIDTHS = 0.25  # stacked pieces of one spine are at most this many median spine widths apart
@@ -154,11 +162,11 @@ class Detector:
         self.sam = Sam2Model.from_pretrained(sm).to(DEVICE).eval()
 
     @torch.inference_mode()
-    def boxes(self, tile: Image.Image) -> tuple[np.ndarray, np.ndarray]:
+    def boxes(self, tile: Image.Image, prompt: str = PROMPT) -> tuple[np.ndarray, np.ndarray]:
         if ARM == "b3":
             # OWLv2 pads the tile to a square at the bottom and right, so boxes come back in the padded frame.
             side = max(tile.size)
-            inputs = self.gd_proc(text=[[PROMPT.rstrip(".")]], images=tile, return_tensors="pt").to(DEVICE)
+            inputs = self.gd_proc(text=[[prompt.rstrip(".")]], images=tile, return_tensors="pt").to(DEVICE)
             out = self.gd(**inputs)
             res = self.gd_proc.post_process_grounded_object_detection(
                 out, threshold=BOX_THRESHOLD, target_sizes=torch.tensor([[side, side]]),
@@ -167,7 +175,7 @@ class Detector:
             b[:, [0, 2]] = b[:, [0, 2]].clip(0, tile.size[0])
             b[:, [1, 3]] = b[:, [1, 3]].clip(0, tile.size[1])
             return b, res["scores"].float().cpu().numpy()
-        inputs = self.gd_proc(images=tile, text=PROMPT, return_tensors="pt").to(DEVICE)
+        inputs = self.gd_proc(images=tile, text=prompt, return_tensors="pt").to(DEVICE)
         out = self.gd(**inputs)
         res = self.gd_proc.post_process_grounded_object_detection(
             out, inputs.input_ids, threshold=BOX_THRESHOLD, text_threshold=TEXT_THRESHOLD,
@@ -176,9 +184,9 @@ class Detector:
         return res["boxes"].float().cpu().numpy(), res["scores"].float().cpu().numpy()
 
     @torch.inference_mode()
-    def instances(self, tile: Image.Image) -> tuple[np.ndarray, np.ndarray, list[np.ndarray], np.ndarray]:
-        """SAM 3: boxes, scores and masks for every "book spine" instance in one pass (at most 200 queries)."""
-        inputs = self.sam3_proc(images=tile, text=PROMPT.rstrip("."), return_tensors="pt").to(DEVICE)
+    def instances(self, tile: Image.Image, prompt: str = PROMPT) -> tuple[np.ndarray, np.ndarray, list[np.ndarray], np.ndarray]:
+        """SAM 3: boxes, scores and masks for every prompted instance ("book spine") in one pass (at most 200 queries)."""
+        inputs = self.sam3_proc(images=tile, text=prompt.rstrip("."), return_tensors="pt").to(DEVICE)
         out = self.sam3(**inputs)
         res = self.sam3_proc.post_process_instance_segmentation(
             out, threshold=BOX_THRESHOLD, mask_threshold=0.5, target_sizes=inputs["original_sizes"].tolist(),
@@ -201,7 +209,7 @@ class Detector:
             scores.extend(out.iou_scores.float().cpu().numpy().reshape(-1).tolist())
         return masks, np.array(scores)
 
-    def candidates(self, img: Image.Image, grid: list[tuple[int, int, int, int]], sam: bool = True) -> list[tuple]:
+    def candidates(self, img: Image.Image, grid: list[tuple[int, int, int, int]], sam: bool = True, prompt: str = PROMPT) -> list[tuple]:
         """(rect, boxScore, maskScore, cut) for every box on every tile. Without SAM the box itself is the rect."""
         w, h = img.size
         cands = []
@@ -209,9 +217,9 @@ class Detector:
             tile = img.crop((x0, y0, x1, y1))
             tw, th = tile.size
             if ARM == "b1":
-                bx, sc, ms, ious = self.instances(tile)
+                bx, sc, ms, ious = self.instances(tile, prompt)
             else:
-                bx, sc = self.boxes(tile)
+                bx, sc = self.boxes(tile, prompt)
                 ms, ious = [], np.zeros(0)
             keep = [(bx[i][2] - bx[i][0]) * (bx[i][3] - bx[i][1]) <= MAX_TILE_SHARE * tw * th for i in range(len(bx))]
             bx, sc = bx[keep], sc[keep]
@@ -339,10 +347,30 @@ class Detector:
                 out[i] = (m[0], kept[i][1], m[1], False)  # re-masked off the tile grid: no longer cut by a tile
         return nms(out, inside=0.7)
 
+    def covers(self, img: Image.Image) -> tuple[list[dict], int]:
+        """F-0c cover pass: "book cover." on the shelf-scale grid (a cover is several spines wide, so it fits whole
+        in a coarse tile where a fine tile could cut it, and a shelf of only face-out books has no spine band to
+        tile along). Cover-shaped boxes only; duplicates across tiles removed as for spines. Returns (covers, tiles)."""
+        w, h = img.size
+        grid = tiles(w, h, COARSE_TILE, COARSE_OVERLAP, COARSE_TILE, COARSE_OVERLAP)
+        kept = nms([c for c in self.candidates(img, grid, prompt=COVER_PROMPT) if max(c[0][1]) < COVER_MAX_ASPECT * min(c[0][1])])
+        out = []
+        for rect, s, iou, cut in kept:
+            out.append({"polygon": order_corners(cv2.boxPoints(rect)), "boxScore": round(s, 4), "maskScore": round(iou, 4),
+                        "aspect": round(max(rect[1]) / max(min(rect[1]), 1e-6), 2), "cut": bool(cut)})
+        return out, len(grid)
+
     def run(self, path: str, cached: dict | None = None) -> dict:
         t0 = time.time()
         img = Image.open(path).convert("RGB")
         w, h = img.size
+        steps = [p for p in POST if p != "covers"]
+        if cached is not None and not steps:  # --from with the cover pass only: the cached spines stand verbatim
+            covers, cover_tiles = self.covers(img)
+            cover_seconds = round(time.time() - t0, 2)
+            return {**{k: v for k, v in cached.items() if k != "id"}, "covers": covers, "coverTiles": cover_tiles,
+                    "coverSeconds": cover_seconds, "seconds": round(cached["seconds"] + cover_seconds, 2),
+                    "layout": (cached.get("layout") or "") + " +covers"}
         if cached is not None:  # --from: the post steps only, on a previous run's spines
             kept = [(cv2.minAreaRect(np.array(s["polygon"], dtype=np.float32)), s["boxScore"], s["maskScore"], s["cut"])
                     for s in cached["spines"]]
@@ -363,8 +391,13 @@ class Detector:
         bands, gaps = shelf_bands(spines)
         for s in spines:
             s.pop("rect")
+        extra: dict = {}
+        if "covers" in POST:  # after the spine path, which it never touches
+            c0 = time.time()
+            covers, cover_tiles = self.covers(img)
+            extra = {"covers": covers, "coverTiles": cover_tiles, "coverSeconds": round(time.time() - c0, 2)}
         seconds = time.time() - t0 + (cached["seconds"] if cached else 0)
-        return {"width": w, "height": h, "spines": spines, "bands": bands, "gaps": gaps,
+        return {"width": w, "height": h, "spines": spines, "bands": bands, "gaps": gaps, **extra,
                 "tiles": n_tiles, "seconds": round(seconds, 2), "arm": ARM, "device": DEVICE,
                 "layout": provenance(),
                 # Peaks so far in this process (models included): resident set and the MPS driver's allocation.
@@ -543,7 +576,7 @@ def main() -> None:
                 cached[d["id"]] = d
     log(f"detect: arm {ARM} ({ARMS[ARM]}), device {DEVICE}, layout {provenance()}, threshold {BOX_THRESHOLD}"
         + (" (post steps on cached spines)" if src else ""))
-    det = Detector(sam_only=bool(src))
+    det = Detector(sam_only=bool(src) and "covers" not in POST)  # the cover pass needs the box detector
     for line in sys.stdin:
         line = line.strip()
         if not line:

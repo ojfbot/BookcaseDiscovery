@@ -65,6 +65,10 @@ export interface Detection {
   width: number;
   height: number;
   spines: DetectedSpine[];
+  /** F-0c cover pass ("book cover.", post step `covers`): cover-shaped boxes, kinded with `spines` by `kinds` in f0c.ts. */
+  covers?: DetectedSpine[];
+  coverTiles?: number;
+  coverSeconds?: number;
   bands: { polygon: Polygon4; spines: number; span: number; gap: number }[];
   gaps: { bandLength: number; gapLength: number; gapCount: number; medianWidth: number };
   tiles: number;
@@ -314,6 +318,8 @@ export async function pyReaderStage(
   log: (s: string) => void,
   only?: Set<string>,
   method: CropMethod = CROP,
+  /** Qwen's prompt (read.py `--prompt`): `cover` for F-0c's face-out covers. */
+  prompt: "spine" | "cover" = "spine",
 ): Promise<void> {
   const out = join(dir, `${reader}.jsonl`);
   const done = readWith(out, method);
@@ -323,7 +329,7 @@ export async function pyReaderStage(
   const shards: (typeof reqs)[] = Array.from({ length: workers }, () => []);
   const order = [...new Set(reqs.map((r) => r.image))];
   for (const r of reqs) shards[order.indexOf(r.image) % workers]!.push(r);
-  await Promise.all(shards.map((s) => runHelper("read.py", ["--reader", reader], s, out, log)));
+  await Promise.all(shards.map((s) => runHelper("read.py", ["--reader", reader, ...(prompt === "cover" ? ["--prompt", "cover"] : [])], s, out, log)));
 }
 
 /** Each spine's latest reading per reader; with `method`, only readings cut that way. */
