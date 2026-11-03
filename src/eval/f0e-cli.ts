@@ -33,6 +33,7 @@ export const F0E_ARMS: Record<string, { env: Record<string, string>; from?: stri
   extend: { env: { F0_POST: "extend" }, from: "base" },
   strips: { env: { F0_POST: "strips" }, from: "base" },
   "strips+extend": { env: { F0_POST: "strips,extend" }, from: "base" },
+  "bands+strips": { env: { F0_POST: "strips" }, from: "bands" },
   "tall+strips": { env: { F0_POST: "strips" }, from: "tall" },
   "tall+join": { env: { F0_POST: "join" }, from: "tall" },
   "tall+extend": { env: { F0_POST: "extend" }, from: "tall" },
@@ -146,28 +147,37 @@ function publish(): void {
 }
 
 const pc = (t: [number, number, number] | null | undefined): string => (t ? `${(t[0] * 100).toFixed(1)} % (${(t[1] * 100).toFixed(1)}–${(t[2] * 100).toFixed(1)})` : "n/a");
-const x = (t: [number, number, number] | null | undefined): string => (t ? `${t[0].toFixed(2)} (${t[1].toFixed(2)}–${t[2].toFixed(2)})` : "n/a");
+const x = (t: [number, number, number] | null | undefined): string => (t ? `${t[0].toFixed(2)} (${t[1].toFixed(2)} to ${t[2].toFixed(2)})` : "n/a");
 
 /** Markdown tables from the parts: arms per set, never merged (OC35). */
 export function tablesMd(parts: Record<string, any>): string {
   const out: string[] = [];
+  for (const d of Object.values(parts).filter((m: any) => m.byFit) as any[]) {
+    out.push(`### Diagnosis: ${d.set}, F-0's cached B2 boxes (tiles ${d.tiling.tile} px, overlap ${d.tiling.overlap} px)\n`);
+    out.push(`${d.photos} photos, ${d.boxCount} boxes, ${d.uprightInBand} upright boxes in a band with a spine height. Band polygon height p50 ${d.bandHeightPx.p50} px (p90 ${d.bandHeightPx.p90}); band spine height p50 ${d.spineHeightPx.p50} px (p90 ${d.spineHeightPx.p90}, max ${d.spineHeightPx.max}).\n`);
+    out.push("| upright boxes whose band | boxes | cut | partial (band polygon) | partial (band spine height) |\n|---|---:|---:|---:|---:|");
+    for (const f of d.byFit) out.push(`| ${f.bandFitsOneTileRow ? "fits one tile row" : "fits no tile row"} | ${f.boxCount} | ${pc(f.cut)} | ${pc(f.partial)} | ${pc(f.partialSpine)} |`);
+    out.push("\n| band spine height ÷ overlap | boxes | photos | cut | partial (band polygon) | partial (band spine height) | stacked |\n|---|---:|---:|---:|---:|---:|---:|");
+    for (const r of d.byRatio.filter((r: any) => r.boxCount > 0)) out.push(`| ${r.spineHeightOverOverlap[0]}–${r.spineHeightOverOverlap[1] ?? "∞"} | ${r.boxCount} | ${r.photos} | ${pc(r.cut)} | ${pc(r.partial)} | ${pc(r.partialSpine)} | ${pc(r.touching)} |`);
+    out.push(`\nWhere partial-height boxes (band polygon) come from: ${d.partialCauses.map((c: any) => `${c.cause} ${pc(c.share)}`).join("; ")}.\n`);
+  }
   for (const [set, title] of [["pilot-000", "`pilot-000` (real use)"], ["yardstick", "Yardstick (PROXY, library shelves; evaluation only, nothing tuned on it)"]] as const) {
     const arms = Object.values(parts).filter((m: any) => m.set === set && m.pooled);
     if (arms.length === 0) continue;
     arms.sort((a: any, b: any) => (a.arm === "base" ? -1 : b.arm === "base" ? 1 : String(a.arm).localeCompare(String(b.arm))));
     out.push(`### Box measures by arm: ${title}\n`);
     out.push("Pooled shares with 95 % photo-bootstrap intervals; ratios are arm / base on the same photos (median over photos).\n");
-    out.push("| arm | boxes | cut | partial (band polygon) | partial (band spine height) | stacked in a column | inside a larger box | boxes per band ÷ (length ÷ median width), p50 | upright box length vs base | boxes vs base | detect s/photo p50 | detect time vs base |");
-    out.push("|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|");
+    out.push("| arm | boxes | cut | partial (band polygon) | partial (band spine height) | stacked in a column | inside a larger box | boxes per band ÷ (length ÷ median width), p50 | upright box length vs base | boxes vs base | tiles (+ box-only tiles), total | detect s/photo p50 | detect time vs base |");
+    out.push("|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|");
     for (const m of arms as any[]) {
-      out.push(`| ${m.arm} | ${m.boxes} | ${pc(m.pooled.cut)} | ${pc(m.pooled.partial)} | ${pc(m.pooled.partialSpine)} | ${pc(m.pooled.touching)} | ${pc(m.pooled.inside)} | ${x(m.photoMedian.boxesPerBand)} | ${x(m.vsBase?.uprightLong)} | ${x(m.vsBase?.boxes)} | ${m.photoMedian.detectSeconds?.[0] ?? "n/a"} | ${x(m.vsBase?.detectSeconds)} |`);
+      out.push(`| ${m.arm} | ${m.boxCount} | ${pc(m.pooled.cut)} | ${pc(m.pooled.partial)} | ${pc(m.pooled.partialSpine)} | ${pc(m.pooled.touching)} | ${pc(m.pooled.inside)} | ${x(m.photoMedian.boxesPerBand)} | ${x(m.vsBase?.uprightLong)} | ${x(m.vsBase?.boxCount)} | ${m.tiles?.total ?? "n/a"}${m.tiles?.boxOnlyTotal ? ` (+${m.tiles.boxOnlyTotal})` : ""} | ${m.photoMedian.detectSeconds?.[0] ?? "n/a"} | ${x(m.vsBase?.detectSeconds)} |`);
     }
     out.push("");
   }
   for (const t of Object.values(parts).filter((m: any) => m.titleArm) as any[]) {
     out.push(`### Yardstick titles with \`${t.titleArm}\` (PROXY, ${t.images} images, evaluation only)\n`);
     out.push(`| | B2 base | B2 +${t.titleArm} | change (paired image bootstrap, 95 %) |\n|---|---:|---:|---:|`);
-    out.push(`| spine boxes | ${t.base.spines} | ${t.arm.spines} | |`);
+    out.push(`| spine boxes | ${t.base.spineBoxes} | ${t.arm.spineBoxes} | |`);
     out.push(`| accepted labels | ${t.base.accepted} | ${t.arm.accepted} | |`);
     out.push(`| title recall | ${(t.base.recall * 100).toFixed(1)} % | ${(t.arm.recall * 100).toFixed(1)} % | ${pts(t.delta?.recall)} |`);
     out.push(`| title precision | ${(t.base.precision * 100).toFixed(1)} % | ${(t.arm.precision * 100).toFixed(1)} % | ${pts(t.delta?.precision)} |`);
@@ -176,13 +186,13 @@ export function tablesMd(parts: Record<string, any>): string {
   for (const a of Object.values(parts).filter((m: any) => m.delta && m.armName) as any[]) {
     out.push(`### Readers on \`${a.armName}\` against the base boxes: \`${a.set}\` (machine agreement, not accuracy)\n`);
     out.push("| | base | " + a.armName + " | change (paired photo bootstrap, 95 %) |\n|---|---:|---:|---:|");
-    out.push(`| boxes | ${a.base.boxes} | ${a.arm.boxes} | per photo ${x(a.delta.boxesPerPhoto)} |`);
+    out.push(`| boxes | ${a.base.boxCount} | ${a.arm.boxCount} | per photo ${x(a.delta.boxesPerPhoto)} |`);
     out.push(`| share at \`text-present\` | ${(a.base.textPresentShare * 100).toFixed(1)} % | ${(a.arm.textPresentShare * 100).toFixed(1)} % | |`);
     out.push(`| share at \`text-read\` (a reader's top candidate passes the bar) | ${(a.base.textReadShare * 100).toFixed(1)} % | ${(a.arm.textReadShare * 100).toFixed(1)} % | ${pts(a.delta.textReadShare)} |`);
     out.push(`| share \`confirmed\` | ${(a.base.confirmedShare * 100).toFixed(1)} % | ${(a.arm.confirmedShare * 100).toFixed(1)} % | ${pts(a.delta.confirmedShare)} |`);
     out.push(`| \`text-read\` boxes per photo | | | ${x(a.delta.textReadPerPhoto)} |`);
-    out.push(`| \`confirmed\` boxes per photo | ${a.base.confirmedPerPhoto} | ${a.arm.confirmedPerPhoto} | ${x(a.delta.confirmedPerPhoto)} |`);
-    out.push(`| distinct confirmed works per photo | ${a.base.worksPerPhoto} | ${a.arm.worksPerPhoto} | ${x(a.delta.worksPerPhoto)} |`);
+    out.push(`| \`confirmed\` boxes per photo | ${a.base.confirmedPerPhoto.toFixed(1)} | ${a.arm.confirmedPerPhoto.toFixed(1)} | ${x(a.delta.confirmedPerPhoto)} |`);
+    out.push(`| distinct confirmed works per photo | ${a.base.worksPerPhoto.toFixed(1)} | ${a.arm.worksPerPhoto.toFixed(1)} | ${x(a.delta.worksPerPhoto)} |`);
     out.push("");
   }
   return out.join("\n") + "\n";
@@ -249,8 +259,8 @@ if (import.meta.url === `file://${process.argv[1]}`) {
       titleArm: values.label,
       scope: "PROXY (library shelves): title recall and precision against the dataset's own labels",
       images: arm.images,
-      base: { recall: base.title.recall, precision: base.title.precision, accepted: base.author.accepted, spines: base.machine.spineCount },
-      arm: { recall: arm.title.recall, precision: arm.title.precision, accepted: arm.author.accepted, spines: arm.machine.spineCount },
+      base: { recall: base.title.recall, precision: base.title.precision, accepted: base.author.accepted, spineBoxes: base.machine.spineCount },
+      arm: { recall: arm.title.recall, precision: arm.title.precision, accepted: arm.author.accepted, spineBoxes: arm.machine.spineCount },
       delta: titleDelta(base.title.perImageCounts, arm.title.perImageCounts),
     });
   } else if (cmd === "publish") publish();

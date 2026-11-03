@@ -1,4 +1,4 @@
-// F-0e whole-spine boxes: geometry measures of how whole the detector's spine boxes are. Pure functions over
+// F-0e whole-spine boxCount: geometry measures of how whole the detector's spine boxes are. Pure functions over
 // one Detection (F-0's detect.jsonl line), so they run on cached detections of any arm; the runner is
 // f0e-cli.ts. Only aggregates of these leave $BOOKCASE_DATA (evals/F0e/). Spec: docs/machine-labelling.md.
 import { CASE_TILING, type Detection, type SpineDecision } from "./f0.ts";
@@ -182,11 +182,11 @@ export function boxesPerBand(det: Detection): number[] {
 /** Per-photo shares of the three piece measures. */
 export interface PieceShares {
   imageId: string;
-  boxes: number;
+  boxCount: number;
   cut: number | null;
   partial: number | null;
   partialSpine: number | null;
-  /** Median long side of the upright boxes: longer when boxes hold whole spines. */
+  /** Median long side of the upright boxCount: longer when boxes hold whole spines. */
   uprightLong: number | null;
   touching: number | null;
   inside: number | null;
@@ -203,7 +203,7 @@ export function pieceShares(det: Detection): PieceShares {
   const bpb = boxesPerBand(det);
   return {
     imageId: det.id,
-    boxes: rows.length,
+    boxCount: rows.length,
     cut: shareOf(rows, (r) => r.cut),
     partial: shareOf(up.filter((r) => r.band >= 0), (r) => r.partial),
     partialSpine: shareOf(inBand, (r) => r.partialSpine),
@@ -254,7 +254,7 @@ export function diagnose(dets: Detection[], tile = CASE_TILING.tile, overlap = C
     const rs = up.filter((r) => r.ratio! >= lo && r.ratio! < hi);
     return {
       spineHeightOverOverlap: [lo, hi === Infinity ? null : hi],
-      boxes: rs.length,
+      boxCount: rs.length,
       photos: new Set(rs.map((r) => r.imageId)).size,
       cut: tri(clusterBootstrap(rs, rate((r) => r.cut))),
       partial: tri(clusterBootstrap(rs, rate((r) => r.partial))),
@@ -264,7 +264,7 @@ export function diagnose(dets: Detection[], tile = CASE_TILING.tile, overlap = C
   });
   const byFit = [true, false].map((fits) => {
     const rs = up.filter((r) => r.fits === fits);
-    return { bandFitsOneTileRow: fits, boxes: rs.length, cut: tri(clusterBootstrap(rs, rate((r) => r.cut))), partial: tri(clusterBootstrap(rs, rate((r) => r.partial))), partialSpine: tri(clusterBootstrap(rs, rate((r) => r.partialSpine))) };
+    return { bandFitsOneTileRow: fits, boxCount: rs.length, cut: tri(clusterBootstrap(rs, rate((r) => r.cut))), partial: tri(clusterBootstrap(rs, rate((r) => r.partial))), partialSpine: tri(clusterBootstrap(rs, rate((r) => r.partialSpine))) };
   });
   // Where partial-height boxes come from: cut by a tile edge, inside a larger box, stacked on a column
   // neighbour, or alone (a short book, or a piece whose rest was not found).
@@ -274,7 +274,7 @@ export function diagnose(dets: Detection[], tile = CASE_TILING.tile, overlap = C
   const touchingCut = tri(clusterBootstrap(up.filter((r) => r.touching), rate((r) => r.cut)));
   return {
     photos: dets.length,
-    boxes: rows.length,
+    boxCount: rows.length,
     uprightInBand: up.length,
     tiling: { tile, overlap },
     bandHeightPx: quantiles(dets.flatMap((d) => d.bands.map((b) => bandHeight(b.polygon)))),
@@ -326,10 +326,14 @@ export function measure(dets: Detection[], base?: Detection[]) {
     return xs.length ? xs[Math.floor(xs.length / 2)]! : null;
   };
   const photoRows = (f: (p: PieceShares) => number | null) => per.map((p) => ({ imageId: p.imageId, v: f(p) }));
+  // Tiles are the load-free cost (seconds moved with the shared GPU). A shelf-aligned run also has its box-only pass.
+  const coarse = (d: Detection) => (d.layout?.startsWith("bands") ? tileStarts(d.width, 3100, 1300).length * tileStarts(d.height, 3100, 1300).length : 0);
+  const tiles = dets.map((d) => d.tiles).sort((a, b) => a - b);
   return {
     photos: dets.length,
-    boxes: rows.length,
-    boxesPerPhotoP50: perPhoto((p) => p.boxes),
+    boxCount: rows.length,
+    tiles: { total: tiles.reduce((a, b) => a + b, 0), p50: median(tiles), boxOnlyTotal: dets.reduce((a, d) => a + coarse(d), 0) },
+    boxesPerPhotoP50: perPhoto((p) => p.boxCount),
     pooled: {
       cut: tri(clusterBootstrap(rows, rate((r) => r.cut))),
       partial: tri(clusterBootstrap(up.filter((r) => r.band >= 0), rate((r) => r.partial))),
@@ -347,7 +351,7 @@ export function measure(dets: Detection[], base?: Detection[]) {
     },
     vsBase: base && {
       uprightLong: pairedRatio(base.map(pieceShares), per, (p) => p.uprightLong),
-      boxes: pairedRatio(base.map(pieceShares), per, (p) => p.boxes),
+      boxCount: pairedRatio(base.map(pieceShares), per, (p) => p.boxCount),
       detectSeconds: pairedRatio(base.map(pieceShares), per, (p) => p.seconds),
     },
   };
@@ -358,7 +362,7 @@ export function measure(dets: Detection[], base?: Detection[]) {
 /** Per photo: boxes, and boxes at each coverage rung F-0's readers can fill, plus distinct confirmed works. */
 export interface RungCounts {
   imageId: string;
-  boxes: number;
+  boxCount: number;
   textPresent: number;
   textRead: number;
   confirmed: number;
@@ -370,7 +374,7 @@ export function rungCounts(decisions: SpineDecision[]): RungCounts[] {
   for (const d of decisions) by.set(d.imageId, [...(by.get(d.imageId) ?? []), d]);
   return [...by.entries()].map(([imageId, ds]) => ({
     imageId,
-    boxes: ds.length,
+    boxCount: ds.length,
     // `text-present`: some reader produced text. `text-read`: some reader's top candidate passes the catalog bar
     // (the computable half of docs/capture/coverage.md's definition; Q-2 sets the string-agreement half).
     textPresent: ds.filter((d) => d.reason !== "no-text").length,
@@ -396,12 +400,12 @@ export function pairedDelta(base: RungCounts[], arm: RungCounts[], stat: (rs: Ru
   return [r4(value), r4(quantile(draws, 0.025)), r4(quantile(draws, 0.975))];
 }
 
-const pooled = (k: keyof Omit<RungCounts, "imageId" | "boxes">) => (rs: RungCounts[]) => rs.reduce((s, r) => s + r[k], 0) / Math.max(1, rs.reduce((s, r) => s + r.boxes, 0));
+const pooled = (k: keyof Omit<RungCounts, "imageId" | "boxCount">) => (rs: RungCounts[]) => rs.reduce((s, r) => s + r[k], 0) / Math.max(1, rs.reduce((s, r) => s + r.boxCount, 0));
 const perPhoto = (k: keyof Omit<RungCounts, "imageId">) => (rs: RungCounts[]) => rs.reduce((s, r) => s + r[k], 0) / Math.max(1, rs.length);
 
 export function agreementChange(base: RungCounts[], arm: RungCounts[]) {
   const side = (rs: RungCounts[]) => ({
-    boxes: rs.reduce((s, r) => s + r.boxes, 0),
+    boxCount: rs.reduce((s, r) => s + r.boxCount, 0),
     textPresentShare: r4(pooled("textPresent")(rs)),
     textReadShare: r4(pooled("textRead")(rs)),
     confirmedShare: r4(pooled("confirmed")(rs)),
@@ -417,7 +421,7 @@ export function agreementChange(base: RungCounts[], arm: RungCounts[]) {
       textReadPerPhoto: pairedDelta(base, arm, perPhoto("textRead")),
       confirmedPerPhoto: pairedDelta(base, arm, perPhoto("confirmed")),
       worksPerPhoto: pairedDelta(base, arm, perPhoto("works")),
-      boxesPerPhoto: pairedDelta(base, arm, perPhoto("boxes")),
+      boxesPerPhoto: pairedDelta(base, arm, perPhoto("boxCount")),
     },
   };
 }

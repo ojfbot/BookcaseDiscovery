@@ -182,6 +182,11 @@ export interface Tiling {
   /** F-0e: tiles taller than wide, with their own vertical overlap (default: square, `tile` and `overlap`). */
   tileH?: number;
   overlapY?: number;
+  /**
+   * F-0e: `bands` finds the shelf bands first (a box-only pass on SHELF_TILING tiles) and lays one row of tiles
+   * `tile` wide along each band, as tall as the band plus a margin; the grid above is the fallback when it finds none.
+   */
+  layout?: "bands";
   /** F-0e post steps after NMS, in detect.py's order (`strips`, `join`, `extend`). */
   post?: string[];
 }
@@ -190,15 +195,19 @@ export interface Tiling {
 export function tilingName(t: Tiling): string {
   const h = t.tileH ?? t.tile;
   const oy = t.overlapY ?? t.overlap;
-  const grid = h === t.tile && oy === t.overlap ? `${t.tile}/${t.overlap}` : `${t.tile}x${h}/${t.overlap}x${oy}`;
+  // detect.py's COARSE_TILE and COARSE_OVERLAP are SHELF_TILING's values.
+  const grid =
+    t.layout === "bands" ? `bands 3100/1300 -> ${t.tile}w` : h === t.tile && oy === t.overlap ? `${t.tile}/${t.overlap}` : `${t.tile}x${h}/${t.overlap}x${oy}`;
   return grid + (t.post ?? []).map((p) => ` +${p}`).join("");
 }
 /**
- * Whole-case photos (pilot-000): spines are ~2 % of the frame. F-0e: tiles 1600 px wide (the detector's input scale
- * as before) and 2600 px tall with 1900 px vertical overlap, so one tile row holds any shelf band up to 1900 px and
- * its spines are found whole; then `strips` drops flat strips of spine ends that a tile edge cuts. F-0 ran 1600/700.
+ * Whole-case photos (pilot-000): spines are ~2 % of the frame. F-0e: shelf-aligned tiling. A box-only pass on
+ * shelf-scale tiles finds the bands; then one row of 1600 px-wide tiles (the detector's input scale as before) runs
+ * along each band, as tall as the band plus 12 % above and below, so every spine in a found band is whole in a tile;
+ * then `strips` drops flat strips of spine ends that a tile edge cuts. If no band is found, the fallback grid is the
+ * tall one (1600 x 2600 px, 700 x 1900 px overlap). F-0 ran a square 1600/700 grid.
  */
-export const CASE_TILING: Tiling = { tile: 1600, overlap: 700, tileH: 2600, overlapY: 1900, post: ["strips"] };
+export const CASE_TILING: Tiling = { tile: 1600, overlap: 700, tileH: 2600, overlapY: 1900, layout: "bands", post: ["strips"] };
 /** Shelf-scale photos (the yardstick's split images, ~7100 x 3100): one spine is ~2400 px tall, so a tile spans the shelf. */
 export const SHELF_TILING: Tiling = { tile: 3100, overlap: 1300 };
 
@@ -217,6 +226,7 @@ export async function detectStage(images: InputImage[], dir: string, log: (s: st
     F0_TILE_H: String(tiling.tileH ?? tiling.tile),
     F0_OVERLAP_Y: String(tiling.overlapY ?? tiling.overlap),
     F0_POST: (tiling.post ?? []).join(","),
+    F0_LAYOUT: tiling.layout ?? "grid",
   });
   return new Map(readJsonl<Detection>(out).filter((d) => !d.error).map((d) => [d.id, d]));
 }

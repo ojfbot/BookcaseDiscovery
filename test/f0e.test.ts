@@ -124,7 +124,7 @@ describe("piece measures on one synthetic photo", () => {
 
   it("gives per-photo shares", () => {
     const p = pieceShares(d);
-    expect(p.boxes).toBe(7);
+    expect(p.boxCount).toBe(7);
     expect(p.cut).toBeCloseTo(1 / 7);
     expect(p.partial).toBeCloseTo(3 / 6); // upright boxes in a band
     expect(p.touching).toBeCloseTo(2 / 6);
@@ -175,12 +175,12 @@ describe("machine agreement before and after (INV-17: agreement, never accuracy)
       dec("a", 3, { text: true }),
       dec("a", 4, {}),
     ]);
-    expect(rows).toEqual([{ imageId: "a", boxes: 5, textPresent: 4, textRead: 3, confirmed: 2, works: 1 }]);
+    expect(rows).toEqual([{ imageId: "a", boxCount: 5, textPresent: 4, textRead: 3, confirmed: 2, works: 1 }]);
   });
 
   it("reports the arm minus base with a paired photo interval", () => {
-    const base: RungCounts[] = ["a", "b", "c"].map((imageId) => ({ imageId, boxes: 10, textPresent: 6, textRead: 4, confirmed: 2, works: 2 }));
-    const arm: RungCounts[] = base.map((r) => ({ ...r, boxes: 8, confirmed: 3, works: 3 }));
+    const base: RungCounts[] = ["a", "b", "c"].map((imageId) => ({ imageId, boxCount: 10, textPresent: 6, textRead: 4, confirmed: 2, works: 2 }));
+    const arm: RungCounts[] = base.map((r) => ({ ...r, boxCount: 8, confirmed: 3, works: 3 }));
     const c = agreementChange(base, arm);
     expect(c.delta.worksPerPhoto).toEqual([1, 1, 1]);
     expect(c.delta.boxesPerPhoto).toEqual([-2, -2, -2]);
@@ -211,26 +211,27 @@ describe("measure and diagnose: aggregates only", () => {
     const base = [photo("a", true), photo("b", false)];
     const m = measure(base.map(longer), base);
     expect(m.vsBase!.uprightLong).toEqual([2, 2, 2]);
-    expect(m.vsBase!.boxes).toEqual([1, 1, 1]);
+    expect(m.vsBase!.boxCount).toEqual([1, 1, 1]);
     expect(pairedRatio([], [], () => 1)).toBeNull();
   });
 
   it("splits cut and partial shares by whether the band fits one tile row", () => {
     const d = diagnose([{ ...photo("a", true), height: 3000 }], 1600, 700);
-    expect(d.byFit.find((f) => f.bandFitsOneTileRow)!.boxes).toBe(3);
-    expect(d.byFit.find((f) => !f.bandFitsOneTileRow)!.boxes).toBe(0);
+    expect(d.byFit.find((f) => f.bandFitsOneTileRow)!.boxCount).toBe(3);
+    expect(d.byFit.find((f) => !f.bandFitsOneTileRow)!.boxCount).toBe(0);
     expect(d.partialCauses.map((c) => c.cause)).toEqual(["cut", "inside", "stacked", "alone"]);
   });
 });
 
 describe("the shipped whole-case tiling names itself in the provenance", () => {
   it("names tall tiles and post steps as detect.py does, and square grids as before", () => {
-    expect(tilingName(CASE_TILING)).toBe("1600x2600/700x1900 +strips");
+    expect(tilingName(CASE_TILING)).toBe("bands 3100/1300 -> 1600w +strips");
+    expect(tilingName({ tile: 1600, overlap: 700, tileH: 2600, overlapY: 1900 })).toBe("1600x2600/700x1900");
     expect(tilingName(SHELF_TILING)).toBe("3100/1300");
     expect(tilingName({ ...SHELF_TILING, post: ["strips", "extend"] })).toBe("3100/1300 +strips +extend");
   });
 
-  it("holds every pilot-000 band up to 1900 px whole in one tile row", () => {
+  it("falls back to a grid whose rows hold every pilot-000 band up to 1900 px whole", () => {
     const t = CASE_TILING;
     for (const height of [5984, 7362, 7882, 8064]) {
       for (let top = 0; top + 1900 <= height; top += 53) expect(fitsTileRow(top, top + 1900, height, t.tileH!, t.overlapY!)).toBe(true);
@@ -238,7 +239,7 @@ describe("the shipped whole-case tiling names itself in the provenance", () => {
   });
 
   it("puts the tiling in the box producer's provenance for each scope", () => {
-    expect(stackFor("b2", "pilot").boxProducer).toMatch(/; tiling 1600x2600\/700x1900 \+strips$/);
+    expect(stackFor("b2", "pilot").boxProducer).toMatch(/; tiling bands 3100\/1300 -> 1600w \+strips$/);
     expect(stackFor("b2", "yardstick").boxProducer).toMatch(/; tiling 3100\/1300$/);
   });
 });
