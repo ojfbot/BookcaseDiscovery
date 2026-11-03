@@ -125,7 +125,7 @@ async function pilot(session: string, limit: number, qwenCap: number, runId: str
     card: "F-0",
     session,
     scope: "real-use (OC35): machine agreement, never accuracy (INV-17); no V-6 taps exist",
-    date: new Date().toISOString().slice(0, 10),
+    date: new Date().toLocaleDateString("en-CA"), // local date, as in the logs
     stack: STACK,
     accept: ACCEPT,
     rotations: ROTATIONS,
@@ -322,6 +322,7 @@ async function yardstick(limit: number, qwenCap: number, runId: string, arm: Arm
   const { dets, decisions, readings, hardSelected, hardTotal } = await pipeline(images, db, dir, qwenCap, arm, SHELF_TILING);
   let tp = 0, predN = 0, gtN = 0, authorOk = 0, notDetected = 0, notInInv = 0;
   const perImage: { recall: number | null; precision: number | null }[] = [];
+  const perImageCounts: [number, number, number][] = []; // [annotated, hits, accepted] in sample order, for paired arm comparisons
   for (const img of images) {
     const g = gt.get(`${img.id}.jpg`)!;
     const acc = decisions.filter((d) => d.imageId === img.id && d.accepted);
@@ -334,6 +335,7 @@ async function yardstick(limit: number, qwenCap: number, runId: string, arm: Arm
     authorOk += acc.filter((d) => d.accepted!.authors.some((a) => g.authors.has(normalize(a).split(" ").pop()!))).length;
     notDetected += Math.max(0, g.works.size - (dets.get(img.id)?.spines.length ?? 0));
     perImage.push({ recall: g.works.size ? hit / g.works.size : null, precision: pred.size ? hit / pred.size : null });
+    perImageCounts.push([g.works.size, hit, pred.size]);
   }
   const accepted = decisions.filter((d) => d.accepted).length;
   const unknownByReason: Record<string, number> = {};
@@ -346,7 +348,7 @@ async function yardstick(limit: number, qwenCap: number, runId: string, arm: Arm
     boxArm: ARM_NAMES[arm],
     tiling: SHELF_TILING,
     yardstick: "Library Dataset (Llabrés et al. 2024, MIT), split images; titles only. PROXY: library shelves, not bookstore",
-    date: new Date().toISOString().slice(0, 10),
+    date: new Date().toLocaleDateString("en-CA"), // local date, as in the logs
     stack: STACK,
     accept: ACCEPT,
     catalog: "the dataset's own inventory (library_books.csv, closed set), indexed with C-3's build and retrieve",
@@ -360,6 +362,7 @@ async function yardstick(limit: number, qwenCap: number, runId: string, arm: Arm
       precision: predN ? r4(tp / predN) : null,
       perImageRecallP50: median(perImage.map((p) => p.recall)),
       perImagePrecisionP50: median(perImage.map((p) => p.precision)),
+      perImageCounts,
     },
     author: { acceptedWithAuthorInImage: authorOk, accepted, share: accepted ? r4(authorOk / accepted) : null },
     misses: {
@@ -413,22 +416,73 @@ Runtime: detection p50 ${rt.detectPerImage.p50} s per image; PP-OCR p50 ${rt.ppo
 `;
 }
 
+/**
+ * Paired bootstrap over images (fixed seed, 10,000 resamples): 95 % interval of arm − base for pooled recall and
+ * precision. Both arms ran on the same images in the same order, so each resample draws image indices once.
+ */
+function pairedDelta(arm: [number, number, number][], base: [number, number, number][], n = 10_000): { recall: [number, number, number]; precision: [number, number, number] } | null {
+  if (arm.length !== base.length || arm.length === 0) return null;
+  let seed = 0x2f0;
+  const rand = () => ((seed = (seed * 1103515245 + 12345) % 2 ** 31) / 2 ** 31);
+  const stat = (idx: number[]) => {
+    let g = 0, ha = 0, pa = 0, hb = 0, pb = 0;
+    for (const i of idx) {
+      g += arm[i]![0];
+      ha += arm[i]![1];
+      pa += arm[i]![2];
+      hb += base[i]![1];
+      pb += base[i]![2];
+    }
+    return [g ? ha / g - hb / g : 0, (pa ? ha / pa : 0) - (pb ? hb / pb : 0)] as const;
+  };
+  const all = arm.map((_, i) => i);
+  const point = stat(all);
+  const rs: number[] = [], ps: number[] = [];
+  for (let k = 0; k < n; k++) {
+    const [r, p] = stat(all.map(() => Math.floor(rand() * all.length)));
+    rs.push(r);
+    ps.push(p);
+  }
+  const r4 = (x: number) => Math.round(x * 10000) / 10000;
+  const ci = (xs: number[], x: number): [number, number, number] => {
+    xs.sort((a, b) => a - b);
+    return [r4(x), r4(xs[Math.floor(0.025 * n)]!), r4(xs[Math.floor(0.975 * n)]!)];
+  };
+  return { recall: ci(rs, point[0]), precision: ci(ps, point[1]) };
+}
+
+const pp = (d: [number, number, number] | undefined): string =>
+  d ? `${d[0] >= 0 ? "+" : ""}${(d[0] * 100).toFixed(1)} (${(d[1] * 100).toFixed(1)} to ${(d[2] * 100).toFixed(1)})` : "—";
+
 /** One row per box arm, all on the same yardstick sample, scored the same way. */
 function armsTable(metrics: Record<string, any>): string {
   const rows = (["yardstick-b1", "yardstick-b2", "yardstick-b3", "yardstick-b4"] as const).filter((k) => metrics[k]).map((k) => {
     const m = metrics[k];
     const rt = m.machine.runtimeSeconds;
-    return `| ${(m.arm ?? "b2").toUpperCase()} | ${m.boxArm ?? ARM_NAMES.b2} | ${m.images} | ${m.machine.spineCount} | ${m.machine.spinesPerImage.p50} (${m.machine.spinesPerImage.max}) | ${pct(m.title.recall)} | ${pct(m.title.precision)} | ${pct(m.author.share)} | ${pct(m.machine.gaps.gapShare)} | ${rt.detectPerImage.p50} | ${m.machine.memoryMb.detectorPeakRss ?? "n/a"} / ${m.machine.memoryMb.detectorPeakMps ?? "n/a"} | ${m.machine.memoryMb.detectorDevice ?? "mps"} |`;
+    const base = metrics["yardstick-b2"]?.title.perImageCounts;
+    const d = k !== "yardstick-b2" && base && m.title.perImageCounts ? pairedDelta(m.title.perImageCounts, base) : null;
+    if (d) m.vsB2 = d;
+    const stages = Math.round((rt.detectPerImage.total + rt.vision.total + rt.ppocr.total + rt.qwen.total) / m.images);
+    return `| ${(m.arm ?? "b2").toUpperCase()} | ${m.boxArm ?? ARM_NAMES.b2} | ${m.images} | ${m.machine.spineCount} | ${m.machine.spinesPerImage.p50} (${m.machine.spinesPerImage.max}) | ${pct(m.title.recall)} | ${pp(d?.recall)} | ${pct(m.title.precision)} | ${pp(d?.precision)} | ${pct(m.author.share)} | ${stages} | ${pct(m.machine.gaps.gapShare)} | ${rt.detectPerImage.p50} | ${m.machine.memoryMb.detectorPeakRss ?? "n/a"} / ${m.machine.memoryMb.detectorPeakMps ?? "n/a"} | ${m.machine.memoryMb.detectorDevice ?? "mps"} |`;
   });
   if (rows.length < 2) return "";
+  const arms = Object.values(metrics).filter((m: any) => m?.vsB2);
+  const side = (f: "recall" | "precision", up: boolean) =>
+    arms.filter((m: any) => (up ? m.vsB2[f][1] > 0 : m.vsB2[f][2] < 0)).map((m: any) => m.arm.toUpperCase()).join(", ") || "none";
+  const verdict = `Intervals that exclude 0: recall above B2: ${side("recall", true)}; recall below B2: ${side("recall", false)}; precision above B2: ${side("precision", true)}; precision below B2: ${side("precision", false)}.`;
   return `## Box arms on the yardstick (PROXY)
 
-Same ${metrics["yardstick-b2"]?.images ?? ""} held-out images, same prompt (\`book spine\`), tiling, SAM 2.1 masks, readers and acceptance bar; only the box detector
-changes. Box recall and precision stay pending (no box ground truth), so arms are compared through the end-to-end title score.
+Same ${metrics["yardstick-b2"]?.images ?? ""} held-out images, same prompt (\`book spine\`), tiling, readers and acceptance bar; only the box step
+changes (B2–B4 feed SAM 2.1; B1 is SAM 3 alone). Box recall and precision stay pending (no box ground truth), so arms are
+compared through the end-to-end title score. Δ vs B2 is in percentage points with a paired bootstrap 95 % interval over the
+images (10,000 resamples); an interval that spans 0 is not a clear difference. "All stages" is detection plus every reader's
+summed stage time, divided by images (PP-OCR's three CPU workers are summed, not wall clock).
 
-| arm | detector → masks | images | boxes | boxes/image p50 (max) | title recall | title precision | author | gap share | detect s/image p50 | detector peak MB (RSS / MPS) | device |
-|---|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---|
+| arm | box step | images | boxes | boxes/image p50 (max) | title recall | Δ recall vs B2 | title precision | Δ precision vs B2 | author | all stages s/image | gap share | detect s/image p50 | detector peak MB (RSS / MPS) | device |
+|---|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---|
 ${rows.join("\n")}
+
+${verdict} Stage times were taken one arm at a time on one Mac, but other work shared the GPU at times, so compare them loosely.
 
 `;
 }

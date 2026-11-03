@@ -1,0 +1,1631 @@
+{
+  "runId": "F0",
+  "card": "F-0",
+  "yardstick-b1": {
+    "runId": "F0-yardstick",
+    "card": "F-0",
+    "arm": "b1",
+    "boxArm": "sam3 (text prompt, masks direct)",
+    "tiling": {
+      "tile": 3100,
+      "overlap": 1300
+    },
+    "yardstick": "Library Dataset (Llabrés et al. 2024, MIT), split images; titles only. PROXY: library shelves, not bookstore",
+    "date": "2026-11-02",
+    "stack": {
+      "boxProducer": "B2: grounding-dino-base ('book spine.') -> sam2.1-hiera-base-plus, tiled; min-area rect -> 4-point polygon",
+      "boxProducers": 1,
+      "boxAgreement": "unavailable on pilot-000: SAM 3 (B1) arrived mid-card and ran on the yardstick only; B2 confidence and the gap test stand in",
+      "readers": [
+        "R1 apple-vision .accurate (helpers/ocr-vision)",
+        "R2 qwen3-vl-4b-instruct-8bit (mlx), hard crops only",
+        "R3 pp-ocrv5 server det+rec + textline classifier"
+      ],
+      "paidVlm": "skipped: no API key or spend ceiling set (checklist #7)"
+    },
+    "accept": {
+      "minScore": 0.72,
+      "minTitleEvidence": 0.8,
+      "minCoverage": 0.5,
+      "minReaders": 2
+    },
+    "catalog": "the dataset's own inventory (library_books.csv, closed set), indexed with C-3's build and retrieve",
+    "images": 40,
+    "annotatedImagesAvailable": 388,
+    "groundTruth": {
+      "books": 653,
+      "notInInventory": 49
+    },
+    "title": {
+      "truePositives": 263,
+      "predicted": 285,
+      "recall": 0.4028,
+      "precision": 0.9228,
+      "perImageRecallP50": 0.4615,
+      "perImagePrecisionP50": 1,
+      "perImageCounts": [
+        [
+          26,
+          19,
+          21
+        ],
+        [
+          21,
+          16,
+          16
+        ],
+        [
+          14,
+          11,
+          13
+        ],
+        [
+          27,
+          19,
+          20
+        ],
+        [
+          28,
+          11,
+          13
+        ],
+        [
+          31,
+          6,
+          6
+        ],
+        [
+          50,
+          10,
+          12
+        ],
+        [
+          19,
+          11,
+          11
+        ],
+        [
+          16,
+          1,
+          2
+        ],
+        [
+          33,
+          10,
+          12
+        ],
+        [
+          21,
+          11,
+          11
+        ],
+        [
+          40,
+          0,
+          0
+        ],
+        [
+          10,
+          1,
+          1
+        ],
+        [
+          28,
+          13,
+          13
+        ],
+        [
+          2,
+          0,
+          1
+        ],
+        [
+          13,
+          4,
+          4
+        ],
+        [
+          6,
+          1,
+          1
+        ],
+        [
+          9,
+          0,
+          1
+        ],
+        [
+          8,
+          4,
+          4
+        ],
+        [
+          6,
+          4,
+          4
+        ],
+        [
+          4,
+          3,
+          3
+        ],
+        [
+          4,
+          1,
+          1
+        ],
+        [
+          28,
+          5,
+          6
+        ],
+        [
+          26,
+          17,
+          17
+        ],
+        [
+          19,
+          10,
+          10
+        ],
+        [
+          13,
+          9,
+          12
+        ],
+        [
+          15,
+          10,
+          10
+        ],
+        [
+          15,
+          0,
+          0
+        ],
+        [
+          8,
+          3,
+          3
+        ],
+        [
+          12,
+          2,
+          2
+        ],
+        [
+          11,
+          2,
+          2
+        ],
+        [
+          14,
+          9,
+          11
+        ],
+        [
+          10,
+          7,
+          8
+        ],
+        [
+          5,
+          1,
+          1
+        ],
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          4,
+          2,
+          2
+        ],
+        [
+          12,
+          4,
+          4
+        ],
+        [
+          13,
+          6,
+          6
+        ],
+        [
+          12,
+          6,
+          6
+        ],
+        [
+          20,
+          14,
+          15
+        ]
+      ]
+    },
+    "author": {
+      "acceptedWithAuthorInImage": 271,
+      "accepted": 289,
+      "share": 0.9377
+    },
+    "misses": {
+      "total": 390,
+      "notDetectedLowerBound": 0,
+      "acceptedWrong": 22,
+      "unknownSpinesByReason": {
+        "single-reader": 118,
+        "no-catalog-match": 341,
+        "no-text": 756
+      }
+    },
+    "boxMetrics": {
+      "status": "pending",
+      "why": "Zhong/Yang set (figshare file 24026015) returned HTTP 504 on 2026-11-02; Library Dataset geometry is not released"
+    },
+    "hardCrops": {
+      "total": 1304,
+      "sentToQwen": 424
+    },
+    "qwenCapPerImage": 15,
+    "wallSeconds": 67,
+    "machine": {
+      "images": 40,
+      "spineCount": 1504,
+      "spinesPerImage": {
+        "p50": 30,
+        "min": 4,
+        "max": 149
+      },
+      "boxScore": {
+        "p10": 0.337,
+        "p50": 0.767,
+        "p90": 0.945
+      },
+      "catalogConfirmed": {
+        "count": 289,
+        "share": 0.1922
+      },
+      "agreeingReaders": {
+        "two": 289,
+        "three": 0
+      },
+      "unknownByReason": {
+        "single-reader": 118,
+        "no-catalog-match": 341,
+        "no-text": 756
+      },
+      "perReaderConfirmed": {
+        "vision": {
+          "read": 1504,
+          "confirmed": 292
+        },
+        "ppocr": {
+          "read": 1504,
+          "confirmed": 230
+        },
+        "qwen": {
+          "read": 424,
+          "confirmed": 174
+        }
+      },
+      "readerAgreement": {
+        "visionPpocr": {
+          "spinesReadByBoth": 1504,
+          "bothConfirmedSomething": 200,
+          "sameWork": 200,
+          "sameWorkShare": 1
+        },
+        "visionQwen": {
+          "spinesReadByBoth": 424,
+          "bothConfirmedSomething": 66,
+          "sameWork": 66,
+          "sameWorkShare": 1
+        },
+        "ppocrQwen": {
+          "spinesReadByBoth": 424,
+          "bothConfirmedSomething": 23,
+          "sameWork": 23,
+          "sameWorkShare": 1
+        }
+      },
+      "hardCrops": {
+        "count": 1304,
+        "readByQwen": 424,
+        "acceptedAfterQwen": 89
+      },
+      "gaps": {
+        "bandLengthPx": 329525,
+        "gapLengthPx": 63013,
+        "gapShare": 0.1912,
+        "gapCount": 161
+      },
+      "runtimeSeconds": {
+        "detectPerImage": {
+          "p50": 11.03,
+          "max": 31.59,
+          "total": 526
+        },
+        "vision": {
+          "cropCount": 1504,
+          "total": 207,
+          "perCropP50": 0.136
+        },
+        "ppocr": {
+          "cropCount": 1504,
+          "total": 2250,
+          "perCropP50": 1.3
+        },
+        "qwen": {
+          "cropCount": 424,
+          "total": 915,
+          "perCropP50": 2.066
+        }
+      },
+      "memoryMb": {
+        "detectorPeakRss": 12457,
+        "detectorPeakMps": 37446,
+        "detectorDevice": "mps"
+      },
+      "spendPerSpineUsd": 0
+    }
+  },
+  "yardstick-b2": {
+    "runId": "F0-yardstick",
+    "card": "F-0",
+    "arm": "b2",
+    "boxArm": "grounding-dino-base -> sam2.1-hiera-base-plus",
+    "tiling": {
+      "tile": 3100,
+      "overlap": 1300
+    },
+    "yardstick": "Library Dataset (Llabrés et al. 2024, MIT), split images; titles only. PROXY: library shelves, not bookstore",
+    "date": "2026-11-02",
+    "stack": {
+      "boxProducer": "B2: grounding-dino-base ('book spine.') -> sam2.1-hiera-base-plus, tiled; min-area rect -> 4-point polygon",
+      "boxProducers": 1,
+      "boxAgreement": "unavailable on pilot-000: SAM 3 (B1) arrived mid-card and ran on the yardstick only; B2 confidence and the gap test stand in",
+      "readers": [
+        "R1 apple-vision .accurate (helpers/ocr-vision)",
+        "R2 qwen3-vl-4b-instruct-8bit (mlx), hard crops only",
+        "R3 pp-ocrv5 server det+rec + textline classifier"
+      ],
+      "paidVlm": "skipped: no API key or spend ceiling set (checklist #7)"
+    },
+    "accept": {
+      "minScore": 0.72,
+      "minTitleEvidence": 0.8,
+      "minCoverage": 0.5,
+      "minReaders": 2
+    },
+    "catalog": "the dataset's own inventory (library_books.csv, closed set), indexed with C-3's build and retrieve",
+    "images": 40,
+    "annotatedImagesAvailable": 388,
+    "groundTruth": {
+      "books": 653,
+      "notInInventory": 49
+    },
+    "title": {
+      "truePositives": 241,
+      "predicted": 260,
+      "recall": 0.3691,
+      "precision": 0.9269,
+      "perImageRecallP50": 0.3333,
+      "perImagePrecisionP50": 1,
+      "perImageCounts": [
+        [
+          26,
+          8,
+          10
+        ],
+        [
+          21,
+          12,
+          12
+        ],
+        [
+          14,
+          9,
+          9
+        ],
+        [
+          27,
+          17,
+          17
+        ],
+        [
+          28,
+          14,
+          14
+        ],
+        [
+          31,
+          4,
+          4
+        ],
+        [
+          50,
+          18,
+          21
+        ],
+        [
+          19,
+          12,
+          12
+        ],
+        [
+          16,
+          4,
+          4
+        ],
+        [
+          33,
+          7,
+          8
+        ],
+        [
+          21,
+          12,
+          12
+        ],
+        [
+          40,
+          0,
+          1
+        ],
+        [
+          10,
+          1,
+          2
+        ],
+        [
+          28,
+          15,
+          15
+        ],
+        [
+          2,
+          0,
+          1
+        ],
+        [
+          13,
+          3,
+          3
+        ],
+        [
+          6,
+          1,
+          1
+        ],
+        [
+          9,
+          0,
+          2
+        ],
+        [
+          8,
+          4,
+          4
+        ],
+        [
+          6,
+          4,
+          4
+        ],
+        [
+          4,
+          1,
+          1
+        ],
+        [
+          4,
+          1,
+          1
+        ],
+        [
+          28,
+          6,
+          6
+        ],
+        [
+          26,
+          13,
+          13
+        ],
+        [
+          19,
+          9,
+          9
+        ],
+        [
+          13,
+          8,
+          11
+        ],
+        [
+          15,
+          13,
+          13
+        ],
+        [
+          15,
+          4,
+          4
+        ],
+        [
+          8,
+          3,
+          3
+        ],
+        [
+          12,
+          1,
+          1
+        ],
+        [
+          11,
+          1,
+          1
+        ],
+        [
+          14,
+          3,
+          3
+        ],
+        [
+          10,
+          5,
+          6
+        ],
+        [
+          5,
+          3,
+          4
+        ],
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          4,
+          2,
+          4
+        ],
+        [
+          12,
+          3,
+          3
+        ],
+        [
+          13,
+          4,
+          4
+        ],
+        [
+          12,
+          4,
+          4
+        ],
+        [
+          20,
+          12,
+          13
+        ]
+      ]
+    },
+    "author": {
+      "acceptedWithAuthorInImage": 249,
+      "accepted": 269,
+      "share": 0.9257
+    },
+    "misses": {
+      "total": 412,
+      "notDetectedLowerBound": 0,
+      "acceptedWrong": 19,
+      "unknownSpinesByReason": {
+        "single-reader": 160,
+        "no-catalog-match": 412,
+        "no-text": 290,
+        "readers-disagree": 1
+      }
+    },
+    "boxMetrics": {
+      "status": "pending",
+      "why": "Zhong/Yang set (figshare file 24026015) returned HTTP 504 on 2026-11-02; Library Dataset geometry is not released"
+    },
+    "hardCrops": {
+      "total": 963,
+      "sentToQwen": 478
+    },
+    "qwenCapPerImage": 15,
+    "wallSeconds": 95,
+    "machine": {
+      "images": 40,
+      "spineCount": 1132,
+      "spinesPerImage": {
+        "p50": 25,
+        "min": 5,
+        "max": 84
+      },
+      "boxScore": {
+        "p10": 0.172,
+        "p50": 0.284,
+        "p90": 0.389
+      },
+      "catalogConfirmed": {
+        "count": 269,
+        "share": 0.2376
+      },
+      "agreeingReaders": {
+        "two": 269,
+        "three": 0
+      },
+      "unknownByReason": {
+        "single-reader": 160,
+        "no-catalog-match": 412,
+        "no-text": 290,
+        "readers-disagree": 1
+      },
+      "perReaderConfirmed": {
+        "vision": {
+          "read": 1132,
+          "confirmed": 275
+        },
+        "ppocr": {
+          "read": 1132,
+          "confirmed": 197
+        },
+        "qwen": {
+          "read": 478,
+          "confirmed": 228
+        }
+      },
+      "readerAgreement": {
+        "visionPpocr": {
+          "spinesReadByBoth": 1132,
+          "bothConfirmedSomething": 169,
+          "sameWork": 169,
+          "sameWorkShare": 1
+        },
+        "visionQwen": {
+          "spinesReadByBoth": 478,
+          "bothConfirmedSomething": 82,
+          "sameWork": 81,
+          "sameWorkShare": 0.9878
+        },
+        "ppocrQwen": {
+          "spinesReadByBoth": 478,
+          "bothConfirmedSomething": 19,
+          "sameWork": 19,
+          "sameWorkShare": 1
+        }
+      },
+      "hardCrops": {
+        "count": 963,
+        "readByQwen": 478,
+        "acceptedAfterQwen": 100
+      },
+      "gaps": {
+        "bandLengthPx": 356214,
+        "gapLengthPx": 47788,
+        "gapShare": 0.1342,
+        "gapCount": 89
+      },
+      "runtimeSeconds": {
+        "detectPerImage": {
+          "p50": 5.08,
+          "max": 13.82,
+          "total": 230
+        },
+        "vision": {
+          "cropCount": 1132,
+          "total": 190,
+          "perCropP50": 0.171
+        },
+        "ppocr": {
+          "cropCount": 1132,
+          "total": 3401,
+          "perCropP50": 2.582
+        },
+        "qwen": {
+          "cropCount": 478,
+          "total": 1285,
+          "perCropP50": 2.467
+        }
+      },
+      "memoryMb": {
+        "detectorPeakRss": 10988,
+        "detectorPeakMps": 15263,
+        "detectorDevice": "mps"
+      },
+      "spendPerSpineUsd": 0
+    }
+  },
+  "yardstick-b3": {
+    "runId": "F0-yardstick",
+    "card": "F-0",
+    "arm": "b3",
+    "boxArm": "owlv2-base-patch16-ensemble -> sam2.1-hiera-base-plus",
+    "tiling": {
+      "tile": 3100,
+      "overlap": 1300
+    },
+    "yardstick": "Library Dataset (Llabrés et al. 2024, MIT), split images; titles only. PROXY: library shelves, not bookstore",
+    "date": "2026-11-02",
+    "stack": {
+      "boxProducer": "B2: grounding-dino-base ('book spine.') -> sam2.1-hiera-base-plus, tiled; min-area rect -> 4-point polygon",
+      "boxProducers": 1,
+      "boxAgreement": "unavailable on pilot-000: SAM 3 (B1) arrived mid-card and ran on the yardstick only; B2 confidence and the gap test stand in",
+      "readers": [
+        "R1 apple-vision .accurate (helpers/ocr-vision)",
+        "R2 qwen3-vl-4b-instruct-8bit (mlx), hard crops only",
+        "R3 pp-ocrv5 server det+rec + textline classifier"
+      ],
+      "paidVlm": "skipped: no API key or spend ceiling set (checklist #7)"
+    },
+    "accept": {
+      "minScore": 0.72,
+      "minTitleEvidence": 0.8,
+      "minCoverage": 0.5,
+      "minReaders": 2
+    },
+    "catalog": "the dataset's own inventory (library_books.csv, closed set), indexed with C-3's build and retrieve",
+    "images": 40,
+    "annotatedImagesAvailable": 388,
+    "groundTruth": {
+      "books": 653,
+      "notInInventory": 49
+    },
+    "title": {
+      "truePositives": 279,
+      "predicted": 310,
+      "recall": 0.4273,
+      "precision": 0.9,
+      "perImageRecallP50": 0.4375,
+      "perImagePrecisionP50": 0.9474,
+      "perImageCounts": [
+        [
+          26,
+          15,
+          17
+        ],
+        [
+          21,
+          16,
+          16
+        ],
+        [
+          14,
+          10,
+          10
+        ],
+        [
+          27,
+          18,
+          19
+        ],
+        [
+          28,
+          11,
+          13
+        ],
+        [
+          31,
+          7,
+          7
+        ],
+        [
+          50,
+          20,
+          22
+        ],
+        [
+          19,
+          11,
+          11
+        ],
+        [
+          16,
+          7,
+          9
+        ],
+        [
+          33,
+          8,
+          10
+        ],
+        [
+          21,
+          12,
+          12
+        ],
+        [
+          40,
+          3,
+          5
+        ],
+        [
+          10,
+          1,
+          3
+        ],
+        [
+          28,
+          11,
+          12
+        ],
+        [
+          2,
+          0,
+          2
+        ],
+        [
+          13,
+          4,
+          4
+        ],
+        [
+          6,
+          1,
+          1
+        ],
+        [
+          9,
+          0,
+          2
+        ],
+        [
+          8,
+          4,
+          4
+        ],
+        [
+          6,
+          2,
+          2
+        ],
+        [
+          4,
+          3,
+          3
+        ],
+        [
+          4,
+          1,
+          1
+        ],
+        [
+          28,
+          6,
+          7
+        ],
+        [
+          26,
+          17,
+          18
+        ],
+        [
+          19,
+          9,
+          9
+        ],
+        [
+          13,
+          8,
+          11
+        ],
+        [
+          15,
+          12,
+          13
+        ],
+        [
+          15,
+          0,
+          1
+        ],
+        [
+          8,
+          3,
+          3
+        ],
+        [
+          12,
+          4,
+          5
+        ],
+        [
+          11,
+          5,
+          5
+        ],
+        [
+          14,
+          7,
+          8
+        ],
+        [
+          10,
+          9,
+          10
+        ],
+        [
+          5,
+          3,
+          3
+        ],
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          4,
+          2,
+          3
+        ],
+        [
+          12,
+          4,
+          4
+        ],
+        [
+          13,
+          5,
+          5
+        ],
+        [
+          12,
+          7,
+          7
+        ],
+        [
+          20,
+          13,
+          13
+        ]
+      ]
+    },
+    "author": {
+      "acceptedWithAuthorInImage": 329,
+      "accepted": 365,
+      "share": 0.9014
+    },
+    "misses": {
+      "total": 374,
+      "notDetectedLowerBound": 0,
+      "acceptedWrong": 31,
+      "unknownSpinesByReason": {
+        "no-catalog-match": 1211,
+        "single-reader": 171,
+        "no-text": 2641,
+        "readers-disagree": 1
+      }
+    },
+    "boxMetrics": {
+      "status": "pending",
+      "why": "Zhong/Yang set (figshare file 24026015) returned HTTP 504 on 2026-11-02; Library Dataset geometry is not released"
+    },
+    "hardCrops": {
+      "total": 4125,
+      "sentToQwen": 570
+    },
+    "qwenCapPerImage": 15,
+    "wallSeconds": 98,
+    "machine": {
+      "images": 40,
+      "spineCount": 4389,
+      "spinesPerImage": {
+        "p50": 85,
+        "min": 15,
+        "max": 425
+      },
+      "boxScore": {
+        "p10": 0.109,
+        "p50": 0.174,
+        "p90": 0.418
+      },
+      "catalogConfirmed": {
+        "count": 365,
+        "share": 0.0832
+      },
+      "agreeingReaders": {
+        "two": 365,
+        "three": 0
+      },
+      "unknownByReason": {
+        "no-catalog-match": 1211,
+        "single-reader": 171,
+        "no-text": 2641,
+        "readers-disagree": 1
+      },
+      "perReaderConfirmed": {
+        "vision": {
+          "read": 4389,
+          "confirmed": 396
+        },
+        "ppocr": {
+          "read": 4389,
+          "confirmed": 305
+        },
+        "qwen": {
+          "read": 570,
+          "confirmed": 202
+        }
+      },
+      "readerAgreement": {
+        "visionPpocr": {
+          "spinesReadByBoth": 4389,
+          "bothConfirmedSomething": 264,
+          "sameWork": 264,
+          "sameWorkShare": 1
+        },
+        "visionQwen": {
+          "spinesReadByBoth": 570,
+          "bothConfirmedSomething": 74,
+          "sameWork": 74,
+          "sameWorkShare": 1
+        },
+        "ppocrQwen": {
+          "spinesReadByBoth": 570,
+          "bothConfirmedSomething": 28,
+          "sameWork": 27,
+          "sameWorkShare": 0.9643
+        }
+      },
+      "hardCrops": {
+        "count": 4125,
+        "readByQwen": 570,
+        "acceptedAfterQwen": 101
+      },
+      "gaps": {
+        "bandLengthPx": 852091,
+        "gapLengthPx": 163364,
+        "gapShare": 0.1917,
+        "gapCount": 433
+      },
+      "runtimeSeconds": {
+        "detectPerImage": {
+          "p50": 11.11,
+          "max": 44.72,
+          "total": 521
+        },
+        "vision": {
+          "cropCount": 4389,
+          "total": 545,
+          "perCropP50": 0.128
+        },
+        "ppocr": {
+          "cropCount": 4389,
+          "total": 5312,
+          "perCropP50": 0.752
+        },
+        "qwen": {
+          "cropCount": 570,
+          "total": 1156,
+          "perCropP50": 1.98
+        }
+      },
+      "memoryMb": {
+        "detectorPeakRss": 15524,
+        "detectorPeakMps": 13074,
+        "detectorDevice": "mps"
+      },
+      "spendPerSpineUsd": 0
+    }
+  },
+  "yardstick-b4": {
+    "runId": "F0-yardstick",
+    "card": "F-0",
+    "arm": "b4",
+    "boxArm": "mm-grounding-dino-large-all -> sam2.1-hiera-base-plus",
+    "tiling": {
+      "tile": 3100,
+      "overlap": 1300
+    },
+    "yardstick": "Library Dataset (Llabrés et al. 2024, MIT), split images; titles only. PROXY: library shelves, not bookstore",
+    "date": "2026-11-02",
+    "stack": {
+      "boxProducer": "B2: grounding-dino-base ('book spine.') -> sam2.1-hiera-base-plus, tiled; min-area rect -> 4-point polygon",
+      "boxProducers": 1,
+      "boxAgreement": "unavailable on pilot-000: SAM 3 (B1) arrived mid-card and ran on the yardstick only; B2 confidence and the gap test stand in",
+      "readers": [
+        "R1 apple-vision .accurate (helpers/ocr-vision)",
+        "R2 qwen3-vl-4b-instruct-8bit (mlx), hard crops only",
+        "R3 pp-ocrv5 server det+rec + textline classifier"
+      ],
+      "paidVlm": "skipped: no API key or spend ceiling set (checklist #7)"
+    },
+    "accept": {
+      "minScore": 0.72,
+      "minTitleEvidence": 0.8,
+      "minCoverage": 0.5,
+      "minReaders": 2
+    },
+    "catalog": "the dataset's own inventory (library_books.csv, closed set), indexed with C-3's build and retrieve",
+    "images": 40,
+    "annotatedImagesAvailable": 388,
+    "groundTruth": {
+      "books": 653,
+      "notInInventory": 49
+    },
+    "title": {
+      "truePositives": 232,
+      "predicted": 255,
+      "recall": 0.3553,
+      "precision": 0.9098,
+      "perImageRecallP50": 0.3846,
+      "perImagePrecisionP50": 1,
+      "perImageCounts": [
+        [
+          26,
+          10,
+          12
+        ],
+        [
+          21,
+          11,
+          11
+        ],
+        [
+          14,
+          9,
+          10
+        ],
+        [
+          27,
+          18,
+          18
+        ],
+        [
+          28,
+          11,
+          12
+        ],
+        [
+          31,
+          5,
+          5
+        ],
+        [
+          50,
+          17,
+          20
+        ],
+        [
+          19,
+          13,
+          13
+        ],
+        [
+          16,
+          5,
+          6
+        ],
+        [
+          33,
+          6,
+          8
+        ],
+        [
+          21,
+          12,
+          12
+        ],
+        [
+          40,
+          0,
+          1
+        ],
+        [
+          10,
+          1,
+          2
+        ],
+        [
+          28,
+          11,
+          11
+        ],
+        [
+          2,
+          0,
+          1
+        ],
+        [
+          13,
+          4,
+          4
+        ],
+        [
+          6,
+          1,
+          1
+        ],
+        [
+          9,
+          0,
+          2
+        ],
+        [
+          8,
+          4,
+          4
+        ],
+        [
+          6,
+          3,
+          3
+        ],
+        [
+          4,
+          1,
+          1
+        ],
+        [
+          4,
+          1,
+          1
+        ],
+        [
+          28,
+          7,
+          7
+        ],
+        [
+          26,
+          11,
+          11
+        ],
+        [
+          19,
+          8,
+          8
+        ],
+        [
+          13,
+          8,
+          11
+        ],
+        [
+          15,
+          11,
+          11
+        ],
+        [
+          15,
+          0,
+          0
+        ],
+        [
+          8,
+          3,
+          3
+        ],
+        [
+          12,
+          1,
+          1
+        ],
+        [
+          11,
+          2,
+          2
+        ],
+        [
+          14,
+          3,
+          3
+        ],
+        [
+          10,
+          8,
+          9
+        ],
+        [
+          5,
+          3,
+          4
+        ],
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          4,
+          2,
+          4
+        ],
+        [
+          12,
+          2,
+          2
+        ],
+        [
+          13,
+          6,
+          6
+        ],
+        [
+          12,
+          6,
+          6
+        ],
+        [
+          20,
+          8,
+          9
+        ]
+      ]
+    },
+    "author": {
+      "acceptedWithAuthorInImage": 245,
+      "accepted": 260,
+      "share": 0.9423
+    },
+    "misses": {
+      "total": 421,
+      "notDetectedLowerBound": 0,
+      "acceptedWrong": 23,
+      "unknownSpinesByReason": {
+        "no-catalog-match": 399,
+        "single-reader": 139,
+        "no-text": 730,
+        "readers-disagree": 1
+      }
+    },
+    "boxMetrics": {
+      "status": "pending",
+      "why": "Zhong/Yang set (figshare file 24026015) returned HTTP 504 on 2026-11-02; Library Dataset geometry is not released"
+    },
+    "hardCrops": {
+      "total": 1371,
+      "sentToQwen": 474
+    },
+    "qwenCapPerImage": 15,
+    "wallSeconds": 88,
+    "machine": {
+      "images": 40,
+      "spineCount": 1529,
+      "spinesPerImage": {
+        "p50": 29,
+        "min": 4,
+        "max": 222
+      },
+      "boxScore": {
+        "p10": 0.167,
+        "p50": 0.322,
+        "p90": 0.528
+      },
+      "catalogConfirmed": {
+        "count": 260,
+        "share": 0.17
+      },
+      "agreeingReaders": {
+        "two": 260,
+        "three": 0
+      },
+      "unknownByReason": {
+        "no-catalog-match": 399,
+        "single-reader": 139,
+        "no-text": 730,
+        "readers-disagree": 1
+      },
+      "perReaderConfirmed": {
+        "vision": {
+          "read": 1529,
+          "confirmed": 254
+        },
+        "ppocr": {
+          "read": 1529,
+          "confirmed": 193
+        },
+        "qwen": {
+          "read": 474,
+          "confirmed": 214
+        }
+      },
+      "readerAgreement": {
+        "visionPpocr": {
+          "spinesReadByBoth": 1529,
+          "bothConfirmedSomething": 159,
+          "sameWork": 158,
+          "sameWorkShare": 0.9937
+        },
+        "visionQwen": {
+          "spinesReadByBoth": 474,
+          "bothConfirmedSomething": 74,
+          "sameWork": 74,
+          "sameWorkShare": 1
+        },
+        "ppocrQwen": {
+          "spinesReadByBoth": 474,
+          "bothConfirmedSomething": 28,
+          "sameWork": 28,
+          "sameWorkShare": 1
+        }
+      },
+      "hardCrops": {
+        "count": 1371,
+        "readByQwen": 474,
+        "acceptedAfterQwen": 102
+      },
+      "gaps": {
+        "bandLengthPx": 366599,
+        "gapLengthPx": 56832,
+        "gapShare": 0.155,
+        "gapCount": 131
+      },
+      "runtimeSeconds": {
+        "detectPerImage": {
+          "p50": 11.03,
+          "max": 33.51,
+          "total": 520
+        },
+        "vision": {
+          "cropCount": 1529,
+          "total": 215,
+          "perCropP50": 0.149
+        },
+        "ppocr": {
+          "cropCount": 1529,
+          "total": 2999,
+          "perCropP50": 1.718
+        },
+        "qwen": {
+          "cropCount": 474,
+          "total": 1201,
+          "perCropP50": 2.331
+        }
+      },
+      "memoryMb": {
+        "detectorPeakRss": 6721,
+        "detectorPeakMps": 33560,
+        "detectorDevice": "mps"
+      },
+      "spendPerSpineUsd": 0
+    }
+  },
+  "pilot": {
+    "runId": "F0-pilot-000",
+    "card": "F-0",
+    "session": "pilot-000",
+    "scope": "real-use (OC35): machine agreement, never accuracy (INV-17); no V-6 taps exist",
+    "date": "2026-11-02",
+    "stack": {
+      "boxProducer": "B2: grounding-dino-base ('book spine.') -> sam2.1-hiera-base-plus, tiled; min-area rect -> 4-point polygon",
+      "boxProducers": 1,
+      "boxAgreement": "unavailable on pilot-000: SAM 3 (B1) arrived mid-card and ran on the yardstick only; B2 confidence and the gap test stand in",
+      "readers": [
+        "R1 apple-vision .accurate (helpers/ocr-vision)",
+        "R2 qwen3-vl-4b-instruct-8bit (mlx), hard crops only",
+        "R3 pp-ocrv5 server det+rec + textline classifier"
+      ],
+      "paidVlm": "skipped: no API key or spend ceiling set (checklist #7)"
+    },
+    "accept": {
+      "minScore": 0.72,
+      "minTitleEvidence": 0.8,
+      "minCoverage": 0.5,
+      "minReaders": 2
+    },
+    "rotations": [
+      90,
+      270
+    ],
+    "tiling": {
+      "tile": 1600,
+      "overlap": 700
+    },
+    "qwenCapPerImage": 40,
+    "hardSelection": {
+      "total": 6345,
+      "sentToQwen": 1240
+    },
+    "wallSeconds": 751,
+    "images": 31,
+    "spineCount": 6894,
+    "spinesPerImage": {
+      "p50": 222,
+      "min": 69,
+      "max": 377
+    },
+    "boxScore": {
+      "p10": 0.172,
+      "p50": 0.243,
+      "p90": 0.339
+    },
+    "catalogConfirmed": {
+      "count": 718,
+      "share": 0.1041
+    },
+    "agreeingReaders": {
+      "two": 718,
+      "three": 0
+    },
+    "unknownByReason": {
+      "single-reader": 923,
+      "no-text": 1738,
+      "no-catalog-match": 3435,
+      "readers-disagree": 80
+    },
+    "perReaderConfirmed": {
+      "vision": {
+        "read": 6894,
+        "confirmed": 1307
+      },
+      "ppocr": {
+        "read": 6894,
+        "confirmed": 853
+      },
+      "qwen": {
+        "read": 1240,
+        "confirmed": 378
+      }
+    },
+    "readerAgreement": {
+      "visionPpocr": {
+        "spinesReadByBoth": 6894,
+        "bothConfirmedSomething": 612,
+        "sameWork": 549,
+        "sameWorkShare": 0.8971
+      },
+      "visionQwen": {
+        "spinesReadByBoth": 1240,
+        "bothConfirmedSomething": 167,
+        "sameWork": 135,
+        "sameWorkShare": 0.8084
+      },
+      "ppocrQwen": {
+        "spinesReadByBoth": 1240,
+        "bothConfirmedSomething": 57,
+        "sameWork": 34,
+        "sameWorkShare": 0.5965
+      }
+    },
+    "hardCrops": {
+      "count": 6345,
+      "readByQwen": 1240,
+      "acceptedAfterQwen": 169
+    },
+    "gaps": {
+      "bandLengthPx": 1260641,
+      "gapLengthPx": 175699,
+      "gapShare": 0.1394,
+      "gapCount": 471
+    },
+    "runtimeSeconds": {
+      "detectPerImage": {
+        "p50": 78.33,
+        "max": 99.33,
+        "total": 2206
+      },
+      "vision": {
+        "cropCount": 6894,
+        "total": 848,
+        "perCropP50": 0.126
+      },
+      "ppocr": {
+        "cropCount": 6894,
+        "total": 8277,
+        "perCropP50": 1.033
+      },
+      "qwen": {
+        "cropCount": 1240,
+        "total": 1973,
+        "perCropP50": 1.492
+      }
+    },
+    "memoryMb": {
+      "detectorPeakRss": null,
+      "detectorPeakMps": null,
+      "detectorDevice": "mps"
+    },
+    "spendPerSpineUsd": 0
+  }
+}
