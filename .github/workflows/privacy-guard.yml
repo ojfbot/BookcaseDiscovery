@@ -25,3 +25,17 @@ jobs:
         run: node scripts/privacy-guard.mjs
       - name: Scan the full history
         run: node scripts/privacy-guard.mjs --history
+
+  fleet-client:
+    name: Fleet client (synthetic)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm typecheck
+      - run: pnpm exec vitest run test/fleet.test.ts test/jobs.test.ts
