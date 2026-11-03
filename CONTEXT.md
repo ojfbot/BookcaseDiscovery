@@ -114,6 +114,7 @@ These are kept apart on purpose: raw evidence is stored separately from interpre
 - **Capture coverage** — how well each place on a bookcase has been captured for reading, shown as fill while panning (proposal, Q-0, `docs/capture/coverage.md`). *Not* recognition coverage: a fully captured shelf can still hold `unknown`s whose cause is the catalog.
 - **Coverage segment** — the unit capture coverage colours: a piece of one shelf band about two median spine widths long, anchored to working-copy pixels in a still and to stable tracks live (proposal, Q-0).
 - **Coverage rung** — a spine's or segment's place on the capture ladder: `not-seen` → `seen` → `spine-found` → `text-present` → `text-read` → `matched` → `confirmed`. Filled from `text-read` up; the top two restate bands (proposal, Q-0).
+- **Top seam** — where a detected spine's top edge actually sits against its box's top end, measured from pixels as the strongest colour step across the spine. A box that *overshoots* runs past the top edge onto the top face or the shelf, and a box that *cuts* stops short of it (Q-2, `helpers/coverage/geometry.py`).
 
 ## Evidence, fixtures and honesty
 
@@ -130,3 +131,18 @@ These are kept apart on purpose: raw evidence is stored separately from interpre
 - **Hypothesis (claim)** — in docs, a number or fact not yet measured is marked *hypothesis* (INV-17). Not to be confused with the identity hypothesis above.
 - **Gate** — an owner decision point, `G-*`. The conductor writes a packet; the owner rules; a gate is never closed silently.
 - **Task card** — one unit of delivery work in `DELIVERY-PLAN.md`, ending in a PR.
+
+## Compute jobs and shifts
+
+The interim queue in `docs/ops/compute-fleet.md` (cards N-1 to N-3). Core's fleet-runner will take it over; these words name the parts that move with it.
+
+- **Job** — one unit of compute a worker claims: detect one photo, read one batch of crops, render one page, run the test suite at one commit. Not a *run* (a pipeline execution recorded by `RunStarted`); one run can enqueue many jobs. Not a *task card* (delivery work ending in a PR).
+- **Job kind** — what a job does (`detect`, `read-vision`, `read-ppocr`, `read-qwen`, `render`, `test-suite`). Each kind has one handler and declares the capabilities a worker needs (MPS, Apple Vision, MLX).
+- **Job key** — SHA-256 over the canonical JSON of the kind, input content hashes, parameters, model id and revision, and code commit or helper version. Same key, same work: enqueueing twice is a no-op, and a finished key is a cache hit. The payload (where a host keeps the inputs) is not keyed, so a handler executes the keyed parameters and checks the inputs' hashes, never trusting the payload for anything that changes the output.
+- **Host** — one machine that runs workers. Hosts provision themselves (their own model-hub login, lockfiles, a models manifest checked by hash); credentials are never copied between hosts.
+- **Worker** — one process on a host that claims and runs one job at a time. A host runs at most one GPU worker.
+- **Lease** — a worker's time-limited claim on a job, renewed by heartbeat. When it expires (sleep, crash, lost network), the job returns to the queue.
+- **Fencing token** — a per-job counter incremented on every claim. A heartbeat or completion that carries an old token is rejected, and each attempt writes its own output file named by the token. So a worker that wakes after its lease expired can never overwrite a newer attempt's row or bytes.
+- **Day shift / night shift** — the day shift is when the owner is present: admitting work, gates, merges, rulings, review. The night shift runs only admitted jobs that have a deterministic success check and no effect outside the owner's machines.
+- **Admission** — the day-shift act that puts a job plan into the queue for the night shift.
+- **Morning report** — `bookcase jobs report`: aggregates in two labelled scopes, *now* (state per job kind, failures by error code, oldest waiting job) and *period* (attempts per worker by how they ended, and leased machine-hours: valid lease time only, clipped to the period). A query over the job table, never a session's memory.

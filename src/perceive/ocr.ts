@@ -39,6 +39,8 @@ export interface OcrHelperOptions {
   args?: string[];
   /** Kill the helper and reject after this long. Default 120 s: the first Vision call after boot is slow. */
   timeoutMs?: number;
+  /** Kill the helper and reject when this aborts (a job queue worker that lost its lease or was interrupted). */
+  signal?: AbortSignal;
 }
 
 /** The helper could not be run, or broke the JSON Lines contract. Never carries recognised text. */
@@ -57,6 +59,7 @@ export async function runOcr(requests: readonly OcrRequest[], options: OcrHelper
   const ids = new Set(parsed.map((r) => r.id));
   if (ids.size !== parsed.length) throw new OcrHelperError("request ids must be unique within one call");
   if (parsed.length === 0) return [];
+  if (options.signal?.aborted) throw new OcrHelperError("aborted before the helper started");
 
   const binary = options.binary ?? defaultOcrBinary();
   const child = spawn(binary, options.args ?? [], { stdio: ["pipe", "pipe", "pipe"] });
@@ -99,6 +102,8 @@ export async function runOcr(requests: readonly OcrRequest[], options: OcrHelper
 
   const timeoutMs = options.timeoutMs ?? DEFAULT_TIMEOUT_MS;
   const timer = setTimeout(() => fail(`helper did not finish within ${timeoutMs} ms`), timeoutMs);
+  const onAbort = (): void => fail("helper aborted");
+  options.signal?.addEventListener("abort", onAbort, { once: true });
 
   const finished = new Promise<{ code: number | null; signal: NodeJS.Signals | null }>((resolve, reject) => {
     child.once("error", (e: NodeJS.ErrnoException) =>
@@ -120,6 +125,7 @@ export async function runOcr(requests: readonly OcrRequest[], options: OcrHelper
     }
   } finally {
     clearTimeout(timer);
+    options.signal?.removeEventListener("abort", onAbort);
     lines.close();
   }
 

@@ -3,6 +3,7 @@ node_modules/
 data/
 private/
 .venv/
+__pycache__/
 conversations.json
 *.heic
 *.HEIC
