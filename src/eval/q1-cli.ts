@@ -110,7 +110,7 @@ export function parseCsv(text: string): Record<string, string>[] {
 }
 
 /** Annotated works per yardstick image, mapped to inventory work ids the way F-0's yardstick does. */
-function yardstickTruth(): Map<string, Set<string>> {
+export function yardstickTruth(): Map<string, Set<string>> {
   const lib = join(ROOT, "proxy", "library-dataset");
   const cleanTitle = (t: string) => t.replace(/\s+:\s+/g, ": ").replace(/\s+/g, " ").trim(); // as in F-0
   const inv = parseCsv(readFileSync(join(lib, "data", "target_lists", "library_books.csv"), "utf8"));
