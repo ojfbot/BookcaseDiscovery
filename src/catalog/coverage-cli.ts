@@ -4,11 +4,14 @@
 //   bookcase catalog coverage [--run-id C4]          the pre-registered sample; --run-id writes evals/<id>/metrics.json
 //   options: --session <name> (default pilot-000), --offline (cache only: a rerun makes no calls), --db <file>
 //
+// When Q-2's private teacher table exists (`private/q2/table/<session>.jsonl`), the sampled
+// `no-catalog-match` rows are also split by its rung (post hoc, not part of the pre-registered design).
+//
 // Inputs are F-0's cached stages under the data root (`f0/<session>/`). Live responses are cached under the
 // data root's `catalog/coverage/`; the per-box table (reader text, queries, records) goes to its
 // `private/c4/`. Only counts and shares are printed or written to the repo.
 import { execFileSync } from "node:child_process";
-import { mkdirSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { parseArgs } from "node:util";
 import { dataRoot } from "../ledger/images.ts";
@@ -22,6 +25,7 @@ import {
   LiveCache,
   RESOLVE,
   resolveBox,
+  rungSplit,
   SAMPLE,
   SEED,
   SPACING_MS,
@@ -108,6 +112,14 @@ export async function coverageCommand(argv: string[], env: NodeJS.ProcessEnv = p
     return 0;
   }
   const estimate = estimateCoverage(results, population);
+  const q2Path = join(root, "private", "q2", "table", `${session}.jsonl`);
+  let q2Rung: ReturnType<typeof rungSplit> | null = null;
+  if (existsSync(q2Path)) {
+    const rungOf = new Map(readJsonl<{ imageId: string; index: number; rung: string }>(q2Path).map((r) => [`${r.imageId}:${r.index}`, r.rung]));
+    const rungPopulation: Record<string, number> = {};
+    for (const d of decisions) if (d.reason === "no-catalog-match") rungPopulation[rungOf.get(d.id) ?? "none"] = (rungPopulation[rungOf.get(d.id) ?? "none"] ?? 0) + 1;
+    q2Rung = rungSplit(results, rungOf, rungPopulation);
+  }
   const metrics = {
     runId: values["run-id"] ?? "C4-adhoc",
     card: "C-4",
@@ -118,6 +130,7 @@ export async function coverageCommand(argv: string[], env: NodeJS.ProcessEnv = p
     design: { seed: SEED, sample: SAMPLE, tuningConfirmed: TUNING_CONFIRMED, bootstrapReps: BOOTSTRAP_REPS, resolve: RESOLVE, limits: LIMITS, spacingMs: SPACING_MS },
     estimate,
     confirmedSanity: sanity(results),
+    postHoc: { note: "not pre-registered: added after the sample was drawn (conductor request, Q-2 merged mid-run)", q2RungNoCatalogMatch: q2Rung },
     queries: {
       perBoxMean: Math.round((results.reduce((a, r) => a + r.queries.length, 0) / results.length) * 100) / 100,
       boxesByStratum: Object.fromEntries(STRATA.map((s) => [s, results.filter((r) => r.stratum === s).length])),

@@ -18,6 +18,7 @@ import {
   readerTexts,
   resolveBox,
   resolves,
+  rungSplit,
   stratumOf,
   surnameOf,
   titleInReading,
@@ -214,14 +215,23 @@ describe("live cache", () => {
     await expect(offline.get("openlibrary", "https://openlibrary.org/search.json?q=new")).rejects.toThrow(/offline/);
   });
 
-  it("retries a 429 and gives up after three tries without caching", async () => {
+  it("retries an HTTP error three times, then caches the failure so a rerun sees the same", async () => {
     const cdir = mkdtempSync(join(dir, "cache-"));
-    const { f, calls } = mockFetch(() => ({ status: 429, body: "" }));
+    const { f, calls } = mockFetch(() => ({ status: 500, body: "" }));
     const live = new LiveCache(cdir, { fetch: f, sleep: async () => {} });
     expect(await live.get("loc", "http://lx2.loc.gov:210/LCDB?q")).toBeNull();
     expect(calls).toHaveLength(3);
     expect(live.errors.loc).toBe(1);
-    expect(existsSync(live.path("loc", "http://lx2.loc.gov:210/LCDB?q"))).toBe(false);
+    const offline = new LiveCache(cdir, { offline: true });
+    expect(await offline.get("loc", "http://lx2.loc.gov:210/LCDB?q")).toBeNull();
+    expect(offline.errors.loc).toBe(1);
+  });
+
+  it("does not cache a network error", async () => {
+    const cdir = mkdtempSync(join(dir, "cache-"));
+    const live = new LiveCache(cdir, { fetch: async () => { throw new Error("down"); }, sleep: async () => {} });
+    expect(await live.get("openlibrary", "https://openlibrary.org/search.json?q=z")).toBeNull();
+    expect(existsSync(live.path("openlibrary", "https://openlibrary.org/search.json?q=z"))).toBe(false);
   });
 });
 
@@ -276,6 +286,10 @@ describe("estimates", () => {
     expect(e.shares["matchMiss.ofReadable"]!.value).toBeCloseTo(45 / 135, 4);
     expect(e.shares["no-catalog-match.notInIsfdb"]!.value).toBe(0.5);
     expect(e.shares["notInIsfdb.nonSf"]!.value).toBe(1);
+    // F-0 unknown strata only (130 boxes): miss 45, not 50, unresolved 35.
+    expect(e.shares["sampledUnknown.inIsfdbMatchMiss"]!.value).toBeCloseTo(45 / 130, 4);
+    expect(e.shares["sampledUnknown.notInIsfdb"]!.value).toBeCloseTo(50 / 130, 4);
+    expect(e.shares["sampledUnknown.unresolved"]!.value).toBeCloseTo(35 / 130, 4);
     // Counting every confirmed box as in ISFDB: (45 + 40) / (85 + 50).
     expect(e.shares["confirmedWhole.isfdb.unresolvedExcluded"]!.value).toBeCloseTo(85 / 135, 4);
     expect(e.sample["no-catalog-match"]).toEqual({ population: 100, sampled: 4, counts: { "in-isfdb": 1, "not-in-isfdb": 2, unresolved: 1 } });
@@ -286,5 +300,20 @@ describe("estimates", () => {
     expect(i.lo).toBeLessThanOrEqual(i.value);
     expect(i.hi).toBeGreaterThanOrEqual(i.value);
     expect(i.hi - i.lo).toBeGreaterThan(0);
+  });
+});
+
+describe("post-hoc rung split", () => {
+  it("compares resolved shares by rung and post-stratifies by rung population", () => {
+    const r = (id: string, cls: "in-isfdb" | "not-in-isfdb" | "unresolved") => ({ id, stratum: "no-catalog-match" as const, cls });
+    const results = [r("a", "not-in-isfdb"), r("b", "in-isfdb"), r("c", "unresolved"), r("d", "unresolved"), r("e", "unresolved"), r("f", "not-in-isfdb")];
+    const rungOf = new Map([["a", "text-read"], ["b", "text-read"], ["c", "text-read"], ["d", "text-present"], ["e", "text-present"], ["f", "text-present"]]);
+    const s = rungSplit(results, rungOf, { "text-read": 100, "text-present": 300 }, 200, 1);
+    expect(s.rungs["text-read"]).toMatchObject({ sampled: 3, counts: { "in-isfdb": 1, "not-in-isfdb": 1, unresolved: 1 } });
+    expect(s.rungs["text-read"]!.resolved.value).toBeCloseTo(2 / 3, 4);
+    expect(s.resolvedDifference!.value).toBeCloseTo(2 / 3 - 1 / 3, 4);
+    // not-in-isfdb: (100 * 1/3 + 300 * 1/3) / 400
+    expect(s.postStratified["not-in-isfdb"].value).toBeCloseTo(1 / 3, 4);
+    expect(s.postStratified.unresolved.value).toBeCloseTo((100 / 3 + 300 * 2 / 3) / 400, 4);
   });
 });

@@ -450,21 +450,30 @@ export class LiveCache {
     return join(this.dir, source, `${createHash("sha256").update(url).digest("hex")}.json`);
   }
 
-  /** The response body, from the cache or the source. Null when the source failed three times (not cached). */
+  /**
+   * The response body, from the cache or the source. Null when the source failed three times: an HTTP
+   * error on every try is cached as a failure (some queries make Open Library answer 500 every time, and
+   * a rerun must see the same thing); a network error is not cached.
+   */
   async get(source: Source, url: string): Promise<string | null> {
     const p = this.path(source, url);
     if (existsSync(p)) {
       this.hits[source]++;
-      return (JSON.parse(readFileSync(p, "utf8")) as { body: string }).body;
+      const c = JSON.parse(readFileSync(p, "utf8")) as { body: string | null };
+      if (c.body === null) this.errors[source]++;
+      return c.body;
     }
     if (this.opts.offline) throw new Error(`offline: no cached ${source} response for a query (cache key ${p.slice(-69, -5)})`);
+    let status: number | null = null;
     for (let attempt = 1; attempt <= 3; attempt++) {
+      status = null;
       const wait = this.last[source] + SPACING_MS[source] - this.now();
       if (wait > 0) await this.sleep(wait);
       this.last[source] = this.now();
       this.calls[source]++;
       try {
         const res = await this.fetchImpl(url, { headers: { "User-Agent": USER_AGENT, Accept: source === "loc" ? "application/xml" : "application/json" } });
+        status = res.status;
         if (res.status === 200) {
           const body = await res.text();
           mkdirSync(join(this.dir, source), { recursive: true });
@@ -478,6 +487,10 @@ export class LiveCache {
       await this.sleep(attempt * (source === "loc" ? 30000 : 10000));
     }
     this.errors[source]++;
+    if (status !== null) {
+      mkdirSync(join(this.dir, source), { recursive: true });
+      writeFileSync(p, JSON.stringify({ url, status, fetchedAt: new Date(this.now()).toISOString(), body: null }));
+    }
     return null;
   }
 }
@@ -579,6 +592,9 @@ interface Totals {
   notIn: number;
   notInOpenLibrary: number;
   unresolved: number;
+  /** The same two, within F-0's `unknown` strata only. */
+  unknownNotIn: number;
+  unknownUnresolved: number;
   genre: Record<Genre, number>;
   byStratum: Record<string, Record<BoxClass, number>>;
 }
@@ -588,7 +604,7 @@ interface Totals {
  * sampled rows (the sensitivity variant; the primary estimate measures confirmed boxes like the rest).
  */
 function totals(rows: Row[], population: Record<Stratum, number>, confirmedWhole: boolean): Totals {
-  const t: Totals = { inIsfdb: confirmedWhole ? population.confirmed : 0, missIn: 0, notIn: 0, notInOpenLibrary: 0, unresolved: 0, genre: { sf: 0, "non-sf": 0, "no-subjects": 0 }, byStratum: {} };
+  const t: Totals = { inIsfdb: confirmedWhole ? population.confirmed : 0, missIn: 0, notIn: 0, notInOpenLibrary: 0, unresolved: 0, unknownNotIn: 0, unknownUnresolved: 0, genre: { sf: 0, "non-sf": 0, "no-subjects": 0 }, byStratum: {} };
   for (const s of confirmedWhole ? UNKNOWN : STRATA) {
     const rs = rows.filter((r) => r.stratum === s);
     const share: Record<BoxClass, number> = { "in-isfdb": 0, "not-in-isfdb": 0, unresolved: 0 };
@@ -605,9 +621,13 @@ function totals(rows: Row[], population: Record<Stratum, number>, confirmedWhole
       }
       else if (r.cls === "not-in-isfdb") {
         t.notIn += w;
+        if (s !== "confirmed") t.unknownNotIn += w;
         if (r.inOpenLibrary) t.notInOpenLibrary += w;
         t.genre[r.genre ?? "no-subjects"] += w;
-      } else t.unresolved += w;
+      } else {
+        t.unresolved += w;
+        if (s !== "confirmed") t.unknownUnresolved += w;
+      }
     }
     t.byStratum[s] = share;
   }
@@ -634,8 +654,8 @@ function shares(rows: Row[], population: Record<Stratum, number>): Record<string
     "notInIsfdb.nonSf": t.genre["non-sf"] / t.notIn,
     "notInIsfdb.noSubjects": t.genre["no-subjects"] / t.notIn,
     "sampledUnknown.inIsfdbMatchMiss": t.missIn / unknown,
-    "sampledUnknown.notInIsfdb": t.notIn / unknown,
-    "sampledUnknown.unresolved": t.unresolved / unknown,
+    "sampledUnknown.notInIsfdb": t.unknownNotIn / unknown,
+    "sampledUnknown.unresolved": t.unknownUnresolved / unknown,
     "confirmedWhole.isfdb.unresolvedExcluded": whole.inIsfdb / (whole.inIsfdb + whole.notIn),
     "confirmedWhole.isfdb.unresolvedAsNotInIsfdb": whole.inIsfdb / (whole.inIsfdb + whole.notIn + whole.unresolved),
   };
@@ -698,5 +718,70 @@ export function estimateCoverage(results: Row[], population: Record<Stratum, num
       unresolved: r1(point.unresolved),
     },
     sample,
+  };
+}
+
+// ---------------------------------------------------------------------------------------------
+// Post-hoc: does Q-2's reader-agreement rung predict "readable"? (not pre-registered; secondary)
+// ---------------------------------------------------------------------------------------------
+
+export interface RungSplit {
+  /** Per rung, among the sampled `no-catalog-match` rows: sampled boxes, class counts, resolved share. */
+  rungs: Record<string, { population: number; sampled: number; counts: Record<BoxClass, number>; resolved: Interval }>;
+  /** Resolved share in `text-read` minus in `text-present`, with a bootstrap interval. */
+  resolvedDifference: Interval | null;
+  /** `no-catalog-match` class shares re-weighted by rung population (post-stratified), with intervals. */
+  postStratified: Record<BoxClass, Interval>;
+}
+
+/**
+ * Splits the sampled `no-catalog-match` rows by a per-box rung (Q-2's `text-read` = readers agree,
+ * `text-present` = they do not). The sample was not stratified by rung, so this is post-stratification
+ * on a fixed sample: per-rung counts are whatever the draw gave.
+ */
+export function rungSplit(results: Pick<BoxResult, "id" | "stratum" | "cls">[], rungOf: Map<string, string>, rungPopulation: Record<string, number>, reps = BOOTSTRAP_REPS, seed = SEED): RungSplit {
+  const rows = results.filter((r) => r.stratum === "no-catalog-match");
+  const rungs = Object.keys(rungPopulation);
+  const by = new Map(rungs.map((g) => [g, rows.filter((r) => rungOf.get(r.id) === g)]));
+  const resolvedShare = (rs: { cls: BoxClass }[]) => (rs.length ? rs.filter((r) => r.cls !== "unresolved").length / rs.length : NaN);
+  const post = (m: Map<string, { cls: BoxClass }[]>): Record<BoxClass, number> => {
+    const out: Record<BoxClass, number> = { "in-isfdb": 0, "not-in-isfdb": 0, unresolved: 0 };
+    const total = rungs.reduce((a, g) => a + (m.get(g)!.length ? rungPopulation[g]! : 0), 0);
+    for (const g of rungs) {
+      const rs = m.get(g)!;
+      for (const r of rs) out[r.cls] += rungPopulation[g]! / rs.length / total;
+    }
+    return out;
+  };
+  const diff = (m: Map<string, { cls: BoxClass }[]>) => resolvedShare(m.get("text-read") ?? []) - resolvedShare(m.get("text-present") ?? []);
+  const rand = rng(seed);
+  const draws = { diff: [] as number[], rung: new Map(rungs.map((g) => [g, [] as number[]])), post: { "in-isfdb": [] as number[], "not-in-isfdb": [] as number[], unresolved: [] as number[] } };
+  for (let i = 0; i < reps; i++) {
+    const m = new Map([...by].map(([g, rs]) => [g, rs.map(() => rs[Math.floor(rand() * rs.length)]!)]));
+    const d = diff(m);
+    if (Number.isFinite(d)) draws.diff.push(d);
+    for (const g of rungs) {
+      const v = resolvedShare(m.get(g)!);
+      if (Number.isFinite(v)) draws.rung.get(g)!.push(v);
+    }
+    for (const [k, v] of Object.entries(post(m)) as [BoxClass, number][]) draws.post[k].push(v);
+  }
+  const r4 = (x: number) => Math.round(x * 10000) / 10000;
+  const iv = (value: number, d: number[]): Interval => {
+    const s = [...d].sort((a, b) => a - b);
+    return { value: r4(value), lo: r4(quantile(s, 0.025)), hi: r4(quantile(s, 0.975)) };
+  };
+  const d0 = diff(by);
+  return {
+    rungs: Object.fromEntries(
+      rungs.map((g) => {
+        const rs = by.get(g)!;
+        const counts: Record<BoxClass, number> = { "in-isfdb": 0, "not-in-isfdb": 0, unresolved: 0 };
+        for (const r of rs) counts[r.cls]++;
+        return [g, { population: rungPopulation[g]!, sampled: rs.length, counts, resolved: iv(resolvedShare(rs), draws.rung.get(g)!) }];
+      }),
+    ),
+    resolvedDifference: Number.isFinite(d0) ? iv(d0, draws.diff) : null,
+    postStratified: Object.fromEntries((Object.entries(post(by)) as [BoxClass, number][]).map(([k, v]) => [k, iv(v, draws.post[k])])) as Record<BoxClass, Interval>,
   };
 }
