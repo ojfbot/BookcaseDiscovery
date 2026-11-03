@@ -13,9 +13,9 @@
     "yardstick": "Library Dataset (Llabrés et al. 2024, MIT), split images; titles only. PROXY: library shelves, not bookstore",
     "date": "2026-11-02",
     "stack": {
-      "boxProducer": "B2: grounding-dino-base ('book spine.') -> sam2.1-hiera-base-plus, tiled; min-area rect -> 4-point polygon",
+      "boxProducer": "B1: sam3 (text prompt 'book spine', instance score >= 0.3), masks direct, tiled; min-area rect -> 4-point polygon",
       "boxProducers": 1,
-      "boxAgreement": "unavailable on pilot-000: SAM 3 (B1) arrived mid-card and ran on the yardstick only; B2 confidence and the gap test stand in",
+      "boxAgreement": "not computed: one box arm per run (B1); arms are compared by the end-to-end title score",
       "readers": [
         "R1 apple-vision .accurate (helpers/ocr-vision)",
         "R2 qwen3-vl-4b-instruct-8bit (mlx), hard crops only",
@@ -386,7 +386,7 @@
     "stack": {
       "boxProducer": "B2: grounding-dino-base ('book spine.') -> sam2.1-hiera-base-plus, tiled; min-area rect -> 4-point polygon",
       "boxProducers": 1,
-      "boxAgreement": "unavailable on pilot-000: SAM 3 (B1) arrived mid-card and ran on the yardstick only; B2 confidence and the gap test stand in",
+      "boxAgreement": "not computed: one box arm per run (B2); arms are compared by the end-to-end title score",
       "readers": [
         "R1 apple-vision .accurate (helpers/ocr-vision)",
         "R2 qwen3-vl-4b-instruct-8bit (mlx), hard crops only",
@@ -757,9 +757,9 @@
     "yardstick": "Library Dataset (Llabrés et al. 2024, MIT), split images; titles only. PROXY: library shelves, not bookstore",
     "date": "2026-11-02",
     "stack": {
-      "boxProducer": "B2: grounding-dino-base ('book spine.') -> sam2.1-hiera-base-plus, tiled; min-area rect -> 4-point polygon",
+      "boxProducer": "B3: owlv2-base-patch16-ensemble ('book spine', box threshold 0.1) -> sam2.1-hiera-base-plus, tiled; min-area rect -> 4-point polygon",
       "boxProducers": 1,
-      "boxAgreement": "unavailable on pilot-000: SAM 3 (B1) arrived mid-card and ran on the yardstick only; B2 confidence and the gap test stand in",
+      "boxAgreement": "not computed: one box arm per run (B3); arms are compared by the end-to-end title score",
       "readers": [
         "R1 apple-vision .accurate (helpers/ocr-vision)",
         "R2 qwen3-vl-4b-instruct-8bit (mlx), hard crops only",
@@ -1130,9 +1130,9 @@
     "yardstick": "Library Dataset (Llabrés et al. 2024, MIT), split images; titles only. PROXY: library shelves, not bookstore",
     "date": "2026-11-02",
     "stack": {
-      "boxProducer": "B2: grounding-dino-base ('book spine.') -> sam2.1-hiera-base-plus, tiled; min-area rect -> 4-point polygon",
+      "boxProducer": "B4: mm-grounding-dino-large-all ('book spine.') -> sam2.1-hiera-base-plus, tiled; min-area rect -> 4-point polygon",
       "boxProducers": 1,
-      "boxAgreement": "unavailable on pilot-000: SAM 3 (B1) arrived mid-card and ran on the yardstick only; B2 confidence and the gap test stand in",
+      "boxAgreement": "not computed: one box arm per run (B4); arms are compared by the end-to-end title score",
       "readers": [
         "R1 apple-vision .accurate (helpers/ocr-vision)",
         "R2 qwen3-vl-4b-instruct-8bit (mlx), hard crops only",
@@ -1388,7 +1388,7 @@
       "sentToQwen": 474
     },
     "qwenCapPerImage": 15,
-    "wallSeconds": 88,
+    "wallSeconds": 89,
     "machine": {
       "images": 40,
       "spineCount": 1529,

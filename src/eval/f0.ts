@@ -141,9 +141,37 @@ function runHelper(script: string, args: string[], requests: object[], out: stri
 
 const spineId = (imageId: string, i: number): string => `${imageId}:${i}`;
 
-/** Box arms (docs/models/open-weights.md): b2 Grounding DINO base, b3 OWLv2, b4 MM Grounding DINO large; all -> SAM 2.1. */
+/** Box arms (docs/models/open-weights.md): b1 SAM 3 alone; b2 Grounding DINO base, b3 OWLv2, b4 MM Grounding DINO large, each -> SAM 2.1. */
 export const ARMS = ["b1", "b2", "b3", "b4"] as const;
 export type Arm = (typeof ARMS)[number];
+
+export const ARM_NAMES: Record<Arm, string> = {
+  b1: "sam3 (text prompt, masks direct)",
+  b2: "grounding-dino-base -> sam2.1-hiera-base-plus",
+  b3: "owlv2-base-patch16-ensemble -> sam2.1-hiera-base-plus",
+  b4: "mm-grounding-dino-large-all -> sam2.1-hiera-base-plus",
+};
+
+const BOX_PRODUCER: Record<Arm, string> = {
+  b1: "B1: sam3 (text prompt 'book spine', instance score >= 0.3), masks direct, tiled; min-area rect -> 4-point polygon",
+  b2: "B2: grounding-dino-base ('book spine.') -> sam2.1-hiera-base-plus, tiled; min-area rect -> 4-point polygon",
+  b3: "B3: owlv2-base-patch16-ensemble ('book spine', box threshold 0.1) -> sam2.1-hiera-base-plus, tiled; min-area rect -> 4-point polygon",
+  b4: "B4: mm-grounding-dino-large-all ('book spine.') -> sam2.1-hiera-base-plus, tiled; min-area rect -> 4-point polygon",
+};
+
+/** Provenance of one run: the box step it actually used, its readers, and why there is no box agreement. */
+export function stackFor(arm: Arm, scope: "pilot" | "yardstick") {
+  return {
+    boxProducer: BOX_PRODUCER[arm],
+    boxProducers: 1,
+    boxAgreement:
+      scope === "pilot"
+        ? "unavailable on pilot-000: SAM 3 (B1) arrived mid-card and ran on the yardstick only; B2 confidence and the gap test stand in"
+        : `not computed: one box arm per run (${arm.toUpperCase()}); arms are compared by the end-to-end title score`,
+    readers: ["R1 apple-vision .accurate (helpers/ocr-vision)", "R2 qwen3-vl-4b-instruct-8bit (mlx), hard crops only", "R3 pp-ocrv5 server det+rec + textline classifier"],
+    paidVlm: "skipped: no API key or spend ceiling set (checklist #7)",
+  };
+}
 
 /** Tile size and overlap in working-copy pixels; the detector shrinks each tile to about 800-1333 px. */
 export interface Tiling {

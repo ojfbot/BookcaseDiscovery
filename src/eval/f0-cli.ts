@@ -22,9 +22,11 @@ import {
   machineAgreement,
   pyReaderStage,
   ROTATIONS,
+  stackFor,
   stageDir,
   visionStage,
   ARMS,
+  ARM_NAMES,
   CASE_TILING,
   SHELF_TILING,
   type Arm,
@@ -126,7 +128,7 @@ async function pilot(session: string, limit: number, qwenCap: number, runId: str
     session,
     scope: "real-use (OC35): machine agreement, never accuracy (INV-17); no V-6 taps exist",
     date: new Date().toLocaleDateString("en-CA"), // local date, as in the logs
-    stack: STACK,
+    stack: stackFor("b2", "pilot"),
     accept: ACCEPT,
     rotations: ROTATIONS,
     tiling: CASE_TILING,
@@ -139,21 +141,6 @@ async function pilot(session: string, limit: number, qwenCap: number, runId: str
   log(`labels: ${set.photos.length} photos, ${decisions.length} spines -> $BOOKCASE_DATA/labels/${session}.machine.json`);
   log(`aggregates -> ${dir2}`);
 }
-
-const ARM_NAMES: Record<Arm, string> = {
-  b1: "sam3 (text prompt, masks direct)",
-  b2: "grounding-dino-base -> sam2.1-hiera-base-plus",
-  b3: "owlv2-base-patch16-ensemble -> sam2.1-hiera-base-plus",
-  b4: "mm-grounding-dino-large-all -> sam2.1-hiera-base-plus",
-};
-
-const STACK = {
-  boxProducer: "B2: grounding-dino-base ('book spine.') -> sam2.1-hiera-base-plus, tiled; min-area rect -> 4-point polygon",
-  boxProducers: 1,
-  boxAgreement: "unavailable on pilot-000: SAM 3 (B1) arrived mid-card and ran on the yardstick only; B2 confidence and the gap test stand in",
-  readers: ["R1 apple-vision .accurate (helpers/ocr-vision)", "R2 qwen3-vl-4b-instruct-8bit (mlx), hard crops only", "R3 pp-ocrv5 server det+rec + textline classifier"],
-  paidVlm: "skipped: no API key or spend ceiling set (checklist #7)",
-};
 
 type PilotMetrics = ReturnType<typeof machineAgreement> & { session: string; runId: string; date: string; qwenCapPerImage: number; hardSelection: { total: number; sentToQwen: number }; wallSeconds: number };
 
@@ -349,7 +336,7 @@ async function yardstick(limit: number, qwenCap: number, runId: string, arm: Arm
     tiling: SHELF_TILING,
     yardstick: "Library Dataset (Llabrés et al. 2024, MIT), split images; titles only. PROXY: library shelves, not bookstore",
     date: new Date().toLocaleDateString("en-CA"), // local date, as in the logs
-    stack: STACK,
+    stack: stackFor(arm, "yardstick"),
     accept: ACCEPT,
     catalog: "the dataset's own inventory (library_books.csv, closed set), indexed with C-3's build and retrieve",
     images: images.length,

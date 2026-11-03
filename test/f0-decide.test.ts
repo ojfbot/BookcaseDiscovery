@@ -1,11 +1,11 @@
-import { mkdtempSync, rmSync } from "node:fs";
+import { existsSync, mkdtempSync, readFileSync, rmSync } from "node:fs";
 import { DatabaseSync } from "node:sqlite";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { buildCatalog } from "../src/catalog/build.ts";
 import type { Candidate } from "../src/catalog/retrieve.ts";
-import { buildLabelSet, decide, machineAgreement, variantsOf, type Detection, type Reading } from "../src/eval/f0.ts";
+import { ARM_NAMES, ARMS, buildLabelSet, decide, machineAgreement, stackFor, variantsOf, type Detection, type Reading } from "../src/eval/f0.ts";
 import { LabelSet } from "../src/eval/labels.ts";
 import { makeMiniStaging } from "./helpers/mini-staging.ts";
 
@@ -86,5 +86,33 @@ describe("buildLabelSet", () => {
     const m = machineAgreement(new Map([["img", det]]), [accepted, { ...unknown, id: "img:1" }], new Map());
     expect(m.catalogConfirmed).toEqual({ count: 1, share: 0.5 });
     expect(m.unknownByReason).toEqual({ "no-text": 1 });
+  });
+});
+
+describe("per-arm provenance", () => {
+  const producerArm = (p: string) => p.split(":")[0]!.toLowerCase();
+  const detector = (arm: (typeof ARMS)[number]) => ARM_NAMES[arm].split(" ")[0]!;
+
+  it("names the box step each arm actually used", () => {
+    for (const arm of ARMS) {
+      const { boxProducer, boxAgreement } = stackFor(arm, "yardstick");
+      expect(producerArm(boxProducer)).toBe(arm);
+      expect(boxProducer).toContain(detector(arm));
+      expect(boxAgreement).toContain(arm.toUpperCase());
+    }
+    expect(stackFor("b1", "yardstick").boxProducer).not.toContain("sam2.1");
+  });
+
+  it("every published yardstick record's stack matches its arm", () => {
+    const path = join(import.meta.dirname, "..", "evals", "F0", "metrics.json");
+    if (!existsSync(path)) return;
+    const metrics = JSON.parse(readFileSync(path, "utf8")) as Record<string, { arm?: string; boxArm?: string; stack?: { boxProducer: string } }>;
+    const records = Object.entries(metrics).filter(([k]) => k.startsWith("yardstick-"));
+    expect(records.length).toBeGreaterThan(0);
+    for (const [key, m] of records) {
+      expect(key).toBe(`yardstick-${m.arm}`);
+      expect(producerArm(m.stack!.boxProducer)).toBe(m.arm);
+      expect(m.stack!.boxProducer).toContain(m.boxArm!.split(" ")[0]);
+    }
   });
 });
