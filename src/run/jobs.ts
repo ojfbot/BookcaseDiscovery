@@ -54,7 +54,12 @@ CREATE TRIGGER job_events_no_delete BEFORE DELETE ON job_events
 BEGIN SELECT RAISE(ABORT, 'job_events is append-only: DELETE refused'); END;
 `;
 
-/** v1 → v2: the key's basis travels with the claim (handlers verify it), and the accepted output file is recorded. */
+/**
+ * v1 → v2: the key's basis travels with the claim (handlers verify it), and the accepted output file is
+ * recorded. v1 rows have neither, so a v1 job can neither run under a v2 handler nor serve as a cache hit
+ * with a file to read. Every v1 row is retired: a `retired` event records it, the row leaves `jobs`, and
+ * the same work admitted again under v2 starts fresh. Their v1 output files stay on disk, unreferenced.
+ */
 const MIGRATE_1_TO_2 = `
 ALTER TABLE jobs ADD COLUMN inputs TEXT NOT NULL DEFAULT '[]' CHECK (json_valid(inputs));
 ALTER TABLE jobs ADD COLUMN params TEXT NOT NULL DEFAULT '{}' CHECK (json_valid(params));
@@ -71,7 +76,8 @@ export type JobEventType =
   | "failed"
   | "retry"
   | "released"
-  | "lease-expired";
+  | "lease-expired"
+  | "retired";
 
 /** What a client admits. The key is derived from everything that determines the output. */
 export interface JobSpec {
@@ -184,7 +190,8 @@ export interface JobReport {
     events: Partial<Record<JobEventType, number>>;
     /**
      * Per worker, attempts that ended in the period by how they ended, plus `machineSeconds`: the time its
-     * attempts held a lease inside the period, clipped to it at both ends, including attempts still running.
+     * attempts held a valid lease inside the period. Each attempt counts from its claim to its end or to its
+     * lease's actual expiry, whichever is first, clipped to the period at both ends; running attempts included.
      */
     byWorker: Record<string, WorkerPeriod>;
   };
@@ -210,16 +217,24 @@ export class JobStore {
     this.#now = options.now ?? Date.now;
     this.#leaseMs = options.leaseMs ?? 5 * 60_000;
     this.#db.exec("PRAGMA journal_mode = WAL; PRAGMA busy_timeout = 5000;");
-    const version = (this.#db.prepare("PRAGMA user_version").get() as { user_version: number }).user_version;
-    if (version === 0) {
-      this.#db.exec(SCHEMA);
+    // Read the version and write the new one in the same write transaction as the schema change, so two
+    // processes opening a new or old table at once cannot both create or migrate it, and an interrupted
+    // upgrade rolls back whole and is retried on the next open.
+    this.#tx(() => {
+      const version = (this.#db.prepare("PRAGMA user_version").get() as { user_version: number }).user_version;
+      if (version === JOBS_SCHEMA_VERSION) return;
+      if (version === 0) {
+        this.#db.exec(SCHEMA);
+      } else if (version === 1) {
+        this.#db.exec(MIGRATE_1_TO_2);
+        const rows = this.#db.prepare("SELECT key, status FROM jobs").all() as { key: string; status: JobStatus }[];
+        for (const r of rows) this.#event(r.key, "retired", null, 0, `schema-v1:${r.status}`);
+        this.#db.exec("DELETE FROM jobs");
+      } else {
+        throw new Error(`job table schema ${version}, expected ${JOBS_SCHEMA_VERSION}`);
+      }
       this.#db.exec(`PRAGMA user_version = ${JOBS_SCHEMA_VERSION}`);
-    } else if (version === 1) {
-      this.#tx(() => this.#db.exec(MIGRATE_1_TO_2));
-      this.#db.exec(`PRAGMA user_version = ${JOBS_SCHEMA_VERSION}`);
-    } else if (version !== JOBS_SCHEMA_VERSION) {
-      throw new Error(`job table schema ${version}, expected ${JOBS_SCHEMA_VERSION}`);
-    }
+    });
   }
 
   close(): void {
@@ -378,15 +393,18 @@ export class JobStore {
     const byWorker: JobReport["period"]["byWorker"] = {};
     const forWorker = (w: string): WorkerPeriod =>
       (byWorker[w] ??= { completed: 0, failed: 0, released: 0, leaseExpired: 0, staleRejected: 0, machineSeconds: 0 });
+    // Leased time inside the window [since, until], never negative (a future `since` gives zero).
+    const leased = (start: number, end: number): number => Math.max(0, Math.min(end, until) - Math.max(start, since)) / 1000;
     // Open attempts (`key#fence` → worker and lease start), seeded from claims before the period whose end,
     // if any, falls inside it: an attempt that crosses `since` counts from `since`.
     const open = new Map<string, { worker: string; start: number }>();
-    const rows = this.#db.prepare("SELECT ts, key, type, worker, fence FROM job_events WHERE worker IS NOT NULL ORDER BY seq").all() as {
+    const rows = this.#db.prepare("SELECT ts, key, type, worker, fence, detail FROM job_events WHERE worker IS NOT NULL ORDER BY seq").all() as {
       ts: number;
       key: string;
       type: JobEventType;
       worker: string;
       fence: number;
+      detail: string | null;
     }[];
     const ends: Partial<Record<JobEventType, keyof WorkerPeriod>> = {
       completed: "completed",
@@ -413,10 +431,19 @@ export class JobStore {
       if (!counter || !held) continue;
       const w = forWorker(held.worker);
       w[counter] += 1;
-      w.machineSeconds += (e.ts - Math.max(held.start, since)) / 1000;
+      // An expired lease ended when it ran out (recorded by the sweep), not when the sweep noticed.
+      const end = e.type === "lease-expired" && e.detail !== null && Number.isFinite(Number(e.detail)) ? Math.min(e.ts, Number(e.detail)) : e.ts;
+      w.machineSeconds += leased(held.start, end);
       open.delete(attempt);
     }
-    for (const held of open.values()) forWorker(held.worker).machineSeconds += (until - Math.max(held.start, since)) / 1000;
+    // Attempts still claimed count up to now or their current lease expiry, whichever is first: an expired
+    // lease that no sweep has noticed yet stops counting when it ran out.
+    const leases = new Map(
+      (this.#db.prepare("SELECT key, fence, lease_expires FROM jobs WHERE status = 'claimed'").all() as { key: string; fence: number; lease_expires: number }[]).map(
+        (r) => [`${r.key}#${r.fence}`, r.lease_expires],
+      ),
+    );
+    for (const [attempt, held] of open) forWorker(held.worker).machineSeconds += leased(held.start, leases.get(attempt) ?? until);
     const enqueued = this.#db.prepare("SELECT COUNT(*) AS n FROM job_events WHERE type = 'enqueued' AND ts >= ?").get(since) as { n: number };
     if (enqueued.n) events.enqueued = enqueued.n;
 
@@ -435,14 +462,15 @@ export class JobStore {
   #sweep(): number {
     const now = this.#now();
     const expired = this.#db
-      .prepare("SELECT key, worker, fence, attempts, max_attempts FROM jobs WHERE status = 'claimed' AND lease_expires <= ?")
-      .all(now) as { key: string; worker: string; fence: number; attempts: number; max_attempts: number }[];
+      .prepare("SELECT key, worker, fence, attempts, max_attempts, lease_expires FROM jobs WHERE status = 'claimed' AND lease_expires <= ?")
+      .all(now) as { key: string; worker: string; fence: number; attempts: number; max_attempts: number; lease_expires: number }[];
     for (const r of expired) {
       const again = r.attempts < r.max_attempts;
       this.#db
         .prepare("UPDATE jobs SET status = ?, error = ?, worker = NULL, lease_expires = NULL, updated = ? WHERE key = ?")
         .run(again ? "ready" : "failed", again ? null : "lease-expired", now, r.key);
-      this.#event(r.key, "lease-expired", r.worker, r.fence);
+      // The detail is when the lease actually ran out, which the report uses, not when the sweep noticed.
+      this.#event(r.key, "lease-expired", r.worker, r.fence, String(r.lease_expires));
     }
     return expired.length;
   }

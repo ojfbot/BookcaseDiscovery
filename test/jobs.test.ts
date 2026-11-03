@@ -1,12 +1,12 @@
 import { spawn } from "node:child_process";
 import { createHash } from "node:crypto";
-import { existsSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { chmodSync, existsSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { DatabaseSync } from "node:sqlite";
 import { fileURLToPath } from "node:url";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import { readVisionHandler, readVisionJob } from "../src/run/job-kinds.ts";
+import { ocrHelperId, readVisionHandler, readVisionJob } from "../src/run/job-kinds.ts";
 import { JobError, JobStore, canonicalJson, jobKey, runWorker, writeOutput } from "../src/run/jobs.ts";
 import type { JobHandler, JobOutput, JobSpec } from "../src/run/jobs.ts";
 import type { ReadVisionItem } from "../src/run/job-kinds.ts";
@@ -163,10 +163,20 @@ describe("JobStore", () => {
       output TEXT, error TEXT, created INTEGER NOT NULL, updated INTEGER NOT NULL);
       CREATE TABLE job_events (seq INTEGER PRIMARY KEY AUTOINCREMENT, ts INTEGER NOT NULL, key TEXT NOT NULL, type TEXT NOT NULL, worker TEXT, fence INTEGER, detail TEXT);
       INSERT INTO jobs VALUES ('old', 'noop', '{}', '[]', 0, 'done', 1, 3, 1, NULL, NULL, 'h', NULL, 1, 1);
+      INSERT INTO jobs VALUES ('waiting', 'noop', '{}', '[]', 0, 'ready', 0, 3, 0, NULL, NULL, NULL, NULL, 1, 1);
       PRAGMA user_version = 1;`);
     db.close();
     store = new JobStore(path, { now: () => clock, leaseMs: LEASE });
-    expect(store.get("old")).toMatchObject({ status: "done", output: "h", outputFile: null });
+    // v1 rows cannot run (no keyed basis) or serve as cache hits (no accepted file): all are retired.
+    expect(store.get("old")).toBeUndefined();
+    expect(store.get("waiting")).toBeUndefined();
+    const retired = new DatabaseSync(path);
+    expect(retired.prepare("SELECT key, detail FROM job_events WHERE type = 'retired' ORDER BY key").all()).toEqual([
+      { key: "old", detail: "schema-v1:done" },
+      { key: "waiting", detail: "schema-v1:ready" },
+    ]);
+    expect(retired.prepare("PRAGMA user_version").get()).toEqual({ user_version: 2 });
+    retired.close();
     expect(store.enqueue(spec(1)).created).toBe(true);
   });
 
@@ -206,6 +216,19 @@ describe("JobStore", () => {
     expect(r.now.byKind.noop).toEqual({ ready: 0, claimed: 1, done: 1, failed: 0 });
     expect(r.period.events).toEqual({ completed: 1, claimed: 2, released: 1 });
     expect(r.period.byWorker.w).toEqual({ completed: 1, failed: 0, released: 1, leaseExpired: 0, staleRejected: 0, machineSeconds: 10 });
+  });
+
+  it("counts leased time only until the lease actually ran out, and nothing for a future window", () => {
+    const a = store.enqueue(spec(1)).key;
+    const c = store.claim("sleepy", [])!;
+    const start = clock;
+    clock += LEASE + 30_000; // slept well past the lease; nobody has swept yet
+    expect(store.report(start).period.byWorker.sleepy?.machineSeconds).toBe(LEASE / 1000);
+    store.sweep(); // noticed 30 s late
+    const after = store.report(start).period;
+    expect(after.byWorker.sleepy).toMatchObject({ leaseExpired: 1, machineSeconds: LEASE / 1000 });
+    expect(store.report(clock + 60_000).period.byWorker).toEqual({});
+    expect(store.complete(a, c.fence, "sleepy", out("late"))).toBe(false);
   });
 
   it("keeps job events append-only", () => {
@@ -303,6 +326,25 @@ describe("read-vision job kind", () => {
     writeFileSync(image, "a different photo at the same path");
     await runWorker(store, { worker: "w", caps: ["apple-vision"], handlers: helper("echo"), outDir: join(dir, "out") });
     expect(store.get(changed)).toMatchObject({ status: "failed", error: "input-mismatch" });
+  });
+
+  it("hashes the helper on every attempt and runs a verified copy, so a rebuild at the same path cannot run under the old pin", async () => {
+    const script = join(dir, "ocr-vision");
+    const writeHelper = (mode: string): void => {
+      writeFileSync(script, `#!/bin/sh\nexec "${process.execPath}" "${fake}" ${mode}\n`);
+      chmodSync(script, 0o755);
+    };
+    writeHelper("echo");
+    const pin = ocrHelperId(script);
+    const handlers = { "read-vision": readVisionHandler({ binary: script }) };
+    const first = store.enqueue(readVisionJob(image, [item("a")], pin)).key;
+    expect((await runWorker(store, { worker: "w", caps: ["apple-vision"], handlers, outDir: join(dir, "out") })).completed).toBe(1);
+    expect(store.get(first)?.status).toBe("done");
+    expect(readdirSync(join(dir, "staged", "helpers"))).toEqual([`ocr-vision-${pin.split(":").pop()}`]);
+    writeHelper("garbage"); // rebuilt in place
+    const second = store.enqueue(readVisionJob(image, [item("b")], pin)).key;
+    await runWorker(store, { worker: "w", caps: ["apple-vision"], handlers, outDir: join(dir, "out") });
+    expect(store.get(second)).toMatchObject({ status: "failed", error: "helper-mismatch" });
   });
 
   it("fails retryably with an error code when the helper breaks its contract", async () => {
