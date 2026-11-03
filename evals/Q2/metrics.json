@@ -1,0 +1,1881 @@
+{
+ "runId": "Q2",
+ "card": "Q-2",
+ "date": "2026-11-03",
+ "question": "per detected box, the teacher's coverage rung; can cheap still-tier signals predict rung >= text-read (the fill line); does the owner's top-edge observation hold",
+ "inputs": "F-0 cached stage outputs (B2 boxes, three readers, decisions) for pilot-000 (31 photos) and yardstick-library B2 (40 Library Dataset images, PROXY); Q-1 private per-box features",
+ "labels": "teacher rungs are machine agreement, not accuracy (INV-17); pilot-000 and the yardstick are reported separately, never pooled (OC35); the student is trained on pilot-000 only and scored on the yardstick unchanged (H-0 §4.3)",
+ "bootstrap": {
+  "unit": "photo (cluster), paired across models",
+  "reps": 1000,
+  "interval": "95 % percentile"
+ },
+ "teacher": {
+  "tau": 0.71,
+  "tauRule": "smallest τ on a 0.01 grid at which at most 1 % of null pairs (reader A on one box, reader B on a different box of the same photo) agree; set on pilot-000 only",
+  "similarity": "1 - (edit distance from the shorter squashed reading to its closest substring of the longer) / its length; readings shorter than 5 normalised characters never agree; best over reader pairs and variants",
+  "tauStudy": {
+   "pilot-000": {
+    "nullPairs": 5056,
+    "sweep": [
+     {
+      "tau": 0.6,
+      "nullPass": 0.038,
+      "acceptedPass": 0.9234,
+      "noCatalogMatchPass": 0.6009
+     },
+     {
+      "tau": 0.7,
+      "nullPass": 0.0101,
+      "acceptedPass": 0.8398,
+      "noCatalogMatchPass": 0.5036
+     },
+     {
+      "tau": 0.71,
+      "nullPass": 0.0091,
+      "acceptedPass": 0.8148,
+      "noCatalogMatchPass": 0.4934
+     },
+     {
+      "tau": 0.75,
+      "nullPass": 0.0087,
+      "acceptedPass": 0.7855,
+      "noCatalogMatchPass": 0.4611
+     },
+     {
+      "tau": 0.8,
+      "nullPass": 0.0075,
+      "acceptedPass": 0.7326,
+      "noCatalogMatchPass": 0.4079
+     },
+     {
+      "tau": 0.85,
+      "nullPass": 0.0044,
+      "acceptedPass": 0.6866,
+      "noCatalogMatchPass": 0.3403
+     },
+     {
+      "tau": 0.9,
+      "nullPass": 0.0036,
+      "acceptedPass": 0.6351,
+      "noCatalogMatchPass": 0.2844
+     },
+     {
+      "tau": 0.95,
+      "nullPass": 0.0034,
+      "acceptedPass": 0.5209,
+      "noCatalogMatchPass": 0.2195
+     },
+     {
+      "tau": 1,
+      "nullPass": 0.003,
+      "acceptedPass": 0.422,
+      "noCatalogMatchPass": 0.1901
+     }
+    ]
+   },
+   "yardstick-library-b2": {
+    "nullPairs": 841,
+    "sweep": [
+     {
+      "tau": 0.6,
+      "nullPass": 0.1023,
+      "acceptedPass": 0.9665,
+      "noCatalogMatchPass": 0.8447
+     },
+     {
+      "tau": 0.7,
+      "nullPass": 0.0523,
+      "acceptedPass": 0.8885,
+      "noCatalogMatchPass": 0.7694
+     },
+     {
+      "tau": 0.71,
+      "nullPass": 0.0511,
+      "acceptedPass": 0.881,
+      "noCatalogMatchPass": 0.7597
+     },
+     {
+      "tau": 0.75,
+      "nullPass": 0.0369,
+      "acceptedPass": 0.8513,
+      "noCatalogMatchPass": 0.7257
+     },
+     {
+      "tau": 0.8,
+      "nullPass": 0.0273,
+      "acceptedPass": 0.8104,
+      "noCatalogMatchPass": 0.6796
+     },
+     {
+      "tau": 0.85,
+      "nullPass": 0.0202,
+      "acceptedPass": 0.7398,
+      "noCatalogMatchPass": 0.5971
+     },
+     {
+      "tau": 0.9,
+      "nullPass": 0.0155,
+      "acceptedPass": 0.6617,
+      "noCatalogMatchPass": 0.5243
+     },
+     {
+      "tau": 0.95,
+      "nullPass": 0.0119,
+      "acceptedPass": 0.5576,
+      "noCatalogMatchPass": 0.449
+     },
+     {
+      "tau": 1,
+      "nullPass": 0.0083,
+      "acceptedPass": 0.4461,
+      "noCatalogMatchPass": 0.3835
+     }
+    ]
+   }
+  },
+  "floor": 0.225,
+  "floorRule": "Q-1's H3 cut (B2 box score), kept: the go-rule result moves little across 0.20-0.30 (sensitivity)",
+  "population": "box score >= floor, long axis not horizontal (F-0's reader cannot read lying boxes; Q-1 finding 3), the five student features measurable",
+  "sets": {
+   "pilot-000": {
+    "photos": 31,
+    "detected": {
+     "n": 6894,
+     "rungs": {
+      "spine-found": 1738,
+      "text-present": 1740,
+      "text-read": 1695,
+      "matched": 1003,
+      "confirmed": 718
+     }
+    },
+    "belowFloor": {
+     "n": 2741,
+     "rungs": {
+      "spine-found": 989,
+      "text-present": 777,
+      "text-read": 494,
+      "matched": 356,
+      "confirmed": 125
+     }
+    },
+    "lyingAtOrAboveFloor": {
+     "n": 195,
+     "rungs": {
+      "spine-found": 95,
+      "text-present": 44,
+      "text-read": 44,
+      "matched": 9,
+      "confirmed": 3
+     }
+    },
+    "incompleteFeatures": 0,
+    "population": {
+     "n": 3958,
+     "rungs": {
+      "spine-found": 654,
+      "text-present": 919,
+      "text-read": 1157,
+      "matched": 638,
+      "confirmed": 590
+     }
+    },
+    "populationFilled": [0.6026,0.5487,0.6511],
+    "acceptedNotInAnnotations": null
+   },
+   "yardstick-library-b2": {
+    "photos": 40,
+    "detected": {
+     "n": 1132,
+     "rungs": {
+      "spine-found": 290,
+      "text-present": 99,
+      "text-read": 313,
+      "matched": 161,
+      "confirmed": 269
+     }
+    },
+    "belowFloor": {
+     "n": 320,
+     "rungs": {
+      "spine-found": 194,
+      "text-present": 38,
+      "text-read": 54,
+      "matched": 12,
+      "confirmed": 22
+     }
+    },
+    "lyingAtOrAboveFloor": {
+     "n": 19,
+     "rungs": {
+      "spine-found": 11,
+      "text-present": 5,
+      "text-read": 0,
+      "matched": 1,
+      "confirmed": 2
+     }
+    },
+    "incompleteFeatures": 0,
+    "population": {
+     "n": 793,
+     "rungs": {
+      "spine-found": 85,
+      "text-present": 56,
+      "text-read": 259,
+      "matched": 148,
+      "confirmed": 245
+     }
+    },
+    "populationFilled": [0.8222,0.7711,0.8664],
+    "acceptedNotInAnnotations": 22
+   }
+  }
+ },
+ "student": {
+  "label": "teacher rung >= text-read (1) vs spine-found or text-present (0)",
+  "folds": "pilot-000: leave one photo out (31 fits per model); yardstick: one fit on all of pilot-000, applied unchanged",
+  "features": {
+   "logCropWidthPx": "+ (more is more readable)",
+   "logDetail": "+ (more is more readable)",
+   "glareShare": "- (more is less readable)",
+   "lumaOffMid": "- (more is less readable)",
+   "tiltDeg": "- (more is less readable)",
+   "heightOffBand": "- (more is less readable)",
+   "topSeamOff": "- (more is less readable)",
+   "topBelowCentre": "- (more is less readable)"
+  },
+  "baseline": "crop width alone (log short side), direction learned per fold",
+  "monotone": "active-set: a feature whose standardised weight comes out against its declared sign is dropped and the model refit",
+  "fullFitWeights": {
+   "baseline": {
+    "weights": {
+     "logCropWidthPx": -0.0701
+    },
+    "intercept": 0.4167,
+    "dropped": []
+   },
+   "student": {
+    "weights": {
+     "logCropWidthPx": 0,
+     "logDetail": 0.9509,
+     "glareShare": 0,
+     "lumaOffMid": 0,
+     "tiltDeg": -0.2952
+    },
+    "intercept": 0.4687,
+    "dropped": ["logCropWidthPx","lumaOffMid","glareShare"]
+   },
+   "student-logCropWidthPx": {
+    "weights": {
+     "logDetail": 0.9509,
+     "glareShare": 0,
+     "lumaOffMid": 0,
+     "tiltDeg": -0.2952
+    },
+    "intercept": 0.4687,
+    "dropped": ["lumaOffMid","glareShare"]
+   },
+   "student-logDetail": {
+    "weights": {
+     "logCropWidthPx": 0,
+     "glareShare": 0,
+     "lumaOffMid": 0,
+     "tiltDeg": -0.2249
+    },
+    "intercept": 0.4193,
+    "dropped": ["glareShare","lumaOffMid","logCropWidthPx"]
+   },
+   "student-glareShare": {
+    "weights": {
+     "logCropWidthPx": 0,
+     "logDetail": 0.9509,
+     "lumaOffMid": 0,
+     "tiltDeg": -0.2952
+    },
+    "intercept": 0.4687,
+    "dropped": ["logCropWidthPx","lumaOffMid"]
+   },
+   "student-lumaOffMid": {
+    "weights": {
+     "logCropWidthPx": 0,
+     "logDetail": 0.9509,
+     "glareShare": 0,
+     "tiltDeg": -0.2952
+    },
+    "intercept": 0.4687,
+    "dropped": ["logCropWidthPx","glareShare"]
+   },
+   "student-tiltDeg": {
+    "weights": {
+     "logCropWidthPx": 0,
+     "logDetail": 0.9268,
+     "glareShare": 0,
+     "lumaOffMid": 0
+    },
+    "intercept": 0.4603,
+    "dropped": ["logCropWidthPx","lumaOffMid","glareShare"]
+   },
+   "student+heightOffBand": {
+    "weights": {
+     "logCropWidthPx": 0,
+     "logDetail": 0.9522,
+     "glareShare": 0,
+     "lumaOffMid": 0,
+     "tiltDeg": -0.2942,
+     "heightOffBand": -0.1097
+    },
+    "intercept": 0.4689,
+    "dropped": ["logCropWidthPx","lumaOffMid","glareShare"]
+   },
+   "student+topSeamOff": {
+    "weights": {
+     "logCropWidthPx": 0,
+     "logDetail": 0.9596,
+     "glareShare": 0,
+     "lumaOffMid": 0,
+     "tiltDeg": -0.2752,
+     "topSeamOff": -0.2558
+    },
+    "intercept": 0.4746,
+    "dropped": ["logCropWidthPx","lumaOffMid","glareShare"]
+   },
+   "student+geometry": {
+    "weights": {
+     "logCropWidthPx": 0,
+     "logDetail": 0.9608,
+     "glareShare": 0,
+     "lumaOffMid": 0,
+     "tiltDeg": -0.2743,
+     "heightOffBand": -0.102,
+     "topSeamOff": -0.2528
+    },
+    "intercept": 0.4747,
+    "dropped": ["logCropWidthPx","lumaOffMid","glareShare"]
+   },
+   "diag:signFree": {
+    "weights": {
+     "logCropWidthPx": -0.4034,
+     "logDetail": 1.12,
+     "glareShare": -0.0115,
+     "lumaOffMid": 0.1288,
+     "tiltDeg": -0.2225
+    },
+    "intercept": 0.4775,
+    "dropped": []
+   },
+   "diag:student+viewElevation": {
+    "weights": {
+     "logCropWidthPx": 0,
+     "logDetail": 0.9542,
+     "glareShare": 0,
+     "lumaOffMid": 0,
+     "tiltDeg": -0.2414,
+     "topBelowCentre": -0.3385
+    },
+    "intercept": 0.4785,
+    "dropped": ["logCropWidthPx","lumaOffMid","glareShare"]
+   }
+  },
+  "foldsDropping": {
+   "baseline": {
+    "logCropWidthPx": 0
+   },
+   "student": {
+    "logCropWidthPx": 31,
+    "logDetail": 0,
+    "glareShare": 31,
+    "lumaOffMid": 31,
+    "tiltDeg": 0
+   },
+   "student-logCropWidthPx": {
+    "logDetail": 0,
+    "glareShare": 31,
+    "lumaOffMid": 31,
+    "tiltDeg": 0
+   },
+   "student-logDetail": {
+    "logCropWidthPx": 31,
+    "glareShare": 31,
+    "lumaOffMid": 31,
+    "tiltDeg": 0
+   },
+   "student-glareShare": {
+    "logCropWidthPx": 31,
+    "logDetail": 0,
+    "lumaOffMid": 31,
+    "tiltDeg": 0
+   },
+   "student-lumaOffMid": {
+    "logCropWidthPx": 31,
+    "logDetail": 0,
+    "glareShare": 31,
+    "tiltDeg": 0
+   },
+   "student-tiltDeg": {
+    "logCropWidthPx": 31,
+    "logDetail": 0,
+    "glareShare": 31,
+    "lumaOffMid": 31
+   },
+   "student+heightOffBand": {
+    "logCropWidthPx": 31,
+    "logDetail": 0,
+    "glareShare": 31,
+    "lumaOffMid": 31,
+    "tiltDeg": 0,
+    "heightOffBand": 0
+   },
+   "student+topSeamOff": {
+    "logCropWidthPx": 31,
+    "logDetail": 0,
+    "glareShare": 31,
+    "lumaOffMid": 31,
+    "tiltDeg": 0,
+    "topSeamOff": 0
+   },
+   "student+geometry": {
+    "logCropWidthPx": 31,
+    "logDetail": 0,
+    "glareShare": 31,
+    "lumaOffMid": 31,
+    "tiltDeg": 0,
+    "heightOffBand": 0,
+    "topSeamOff": 0
+   },
+   "diag:signFree": {
+    "logCropWidthPx": 0,
+    "logDetail": 0,
+    "glareShare": 0,
+    "lumaOffMid": 0,
+    "tiltDeg": 0
+   },
+   "diag:student+viewElevation": {
+    "logCropWidthPx": 31,
+    "logDetail": 0,
+    "glareShare": 16,
+    "lumaOffMid": 31,
+    "tiltDeg": 0,
+    "topBelowCentre": 0
+   }
+  },
+  "scores": {
+   "pilot-000": {
+    "n": 3958,
+    "photos": 31,
+    "filledShare": [0.6026,0.5428,0.6506],
+    "models": {
+     "baseline": {
+      "auc": [0.4527,0.4181,0.4865],
+      "ece": [0.0414,0.0223,0.0724],
+      "brier": [0.2412,0.2309,0.2541]
+     },
+     "student": {
+      "auc": [0.7291,0.6917,0.7615],
+      "ece": [0.0277,0.0217,0.054],
+      "brier": [0.1988,0.1871,0.2112],
+      "dBaseline": [0.2764,0.2119,0.3359]
+     },
+     "student-logCropWidthPx": {
+      "auc": [0.7291,0.6917,0.7615],
+      "ece": [0.0277,0.0217,0.054],
+      "brier": [0.1988,0.1871,0.2112],
+      "dBaseline": [0.2764,0.2119,0.3359],
+      "dStudent": [0,0,0]
+     },
+     "student-logDetail": {
+      "auc": [0.5273,0.4908,0.5593],
+      "ece": [0.0068,0.0087,0.0667],
+      "brier": [0.2386,0.2283,0.2516],
+      "dBaseline": [0.0746,0.0244,0.1259],
+      "dStudent": [-0.2018,-0.2566,-0.1555]
+     },
+     "student-glareShare": {
+      "auc": [0.7291,0.6917,0.7615],
+      "ece": [0.0277,0.0217,0.054],
+      "brier": [0.1988,0.1871,0.2112],
+      "dBaseline": [0.2764,0.2119,0.3359],
+      "dStudent": [0,0,0]
+     },
+     "student-lumaOffMid": {
+      "auc": [0.7291,0.6917,0.7615],
+      "ece": [0.0277,0.0217,0.054],
+      "brier": [0.1988,0.1871,0.2112],
+      "dBaseline": [0.2764,0.2119,0.3359],
+      "dStudent": [0,0,0]
+     },
+     "student-tiltDeg": {
+      "auc": [0.7171,0.6832,0.7479],
+      "ece": [0.0269,0.0204,0.0557],
+      "brier": [0.2024,0.1915,0.214],
+      "dBaseline": [0.2644,0.2011,0.3211],
+      "dStudent": [-0.0121,-0.0194,-0.0031]
+     },
+     "student+heightOffBand": {
+      "auc": [0.7304,0.6928,0.7628],
+      "ece": [0.0257,0.0195,0.0513],
+      "brier": [0.1986,0.1866,0.2113],
+      "dBaseline": [0.2777,0.2124,0.337],
+      "dStudent": [0.0013,-0.002,0.0037]
+     },
+     "student+topSeamOff": {
+      "auc": [0.7365,0.6995,0.7678],
+      "ece": [0.026,0.0225,0.0528],
+      "brier": [0.1962,0.184,0.2095],
+      "dBaseline": [0.2838,0.2198,0.3409],
+      "dStudent": [0.0073,0.0015,0.0133]
+     },
+     "student+geometry": {
+      "auc": [0.7378,0.7002,0.7691],
+      "ece": [0.0231,0.0187,0.049],
+      "brier": [0.196,0.1834,0.2096],
+      "dBaseline": [0.285,0.2194,0.343],
+      "dStudent": [0.0086,0.0024,0.0144]
+     },
+     "diag:signFree": {
+      "auc": [0.7491,0.714,0.7806],
+      "ece": [0.0191,0.0168,0.0454],
+      "brier": [0.1927,0.1799,0.2054],
+      "dBaseline": [0.2964,0.2317,0.3528],
+      "dStudent": [0.0199,0.0083,0.0286]
+     },
+     "diag:student+viewElevation": {
+      "auc": [0.7413,0.7115,0.7703],
+      "ece": [0.0361,0.0266,0.0601],
+      "brier": [0.1942,0.1817,0.2065],
+      "dBaseline": [0.2886,0.2303,0.343],
+      "dStudent": [0.0121,0,0.0234]
+     }
+    }
+   },
+   "yardstick-library-b2": {
+    "n": 793,
+    "photos": 40,
+    "filledShare": [0.8222,0.772,0.8641],
+    "models": {
+     "baseline": {
+      "auc": [0.4476,0.3886,0.5029],
+      "ece": [0.2462,0.1943,0.289],
+      "brier": [0.2084,0.2018,0.2159]
+     },
+     "student": {
+      "auc": [0.8031,0.7469,0.8689],
+      "ece": [0.281,0.2361,0.3235],
+      "brier": [0.1878,0.1729,0.2053],
+      "dBaseline": [0.3555,0.2654,0.4593]
+     },
+     "student-logCropWidthPx": {
+      "auc": [0.8031,0.7469,0.8689],
+      "ece": [0.281,0.2361,0.3235],
+      "brier": [0.1878,0.1729,0.2053],
+      "dBaseline": [0.3555,0.2654,0.4593],
+      "dStudent": [0,0,0]
+     },
+     "student-logDetail": {
+      "auc": [0.4984,0.41,0.5674],
+      "ece": [0.1996,0.1512,0.2424],
+      "brier": [0.1853,0.1757,0.1966],
+      "dBaseline": [0.0508,-0.0392,0.1263],
+      "dStudent": [-0.3047,-0.4127,-0.2233]
+     },
+     "student-glareShare": {
+      "auc": [0.8031,0.7469,0.8689],
+      "ece": [0.281,0.2361,0.3235],
+      "brier": [0.1878,0.1729,0.2053],
+      "dBaseline": [0.3555,0.2654,0.4593],
+      "dStudent": [0,0,0]
+     },
+     "student-lumaOffMid": {
+      "auc": [0.8031,0.7469,0.8689],
+      "ece": [0.281,0.2361,0.3235],
+      "brier": [0.1878,0.1729,0.2053],
+      "dBaseline": [0.3555,0.2654,0.4593],
+      "dStudent": [0,0,0]
+     },
+     "student-tiltDeg": {
+      "auc": [0.8001,0.7434,0.8702],
+      "ece": [0.3022,0.2572,0.3448],
+      "brier": [0.2022,0.1878,0.2201],
+      "dBaseline": [0.3525,0.2584,0.4592],
+      "dStudent": [-0.0031,-0.0108,0.0046]
+     },
+     "student+heightOffBand": {
+      "auc": [0.8084,0.7528,0.874],
+      "ece": [0.2815,0.2353,0.3253],
+      "brier": [0.1877,0.1718,0.2078],
+      "dBaseline": [0.3608,0.272,0.464],
+      "dStudent": [0.0052,-0.0018,0.0124]
+     },
+     "student+topSeamOff": {
+      "auc": [0.8126,0.7617,0.8718],
+      "ece": [0.2737,0.2324,0.3158],
+      "brier": [0.1835,0.1674,0.2026],
+      "dBaseline": [0.365,0.2739,0.463],
+      "dStudent": [0.0095,-0.0054,0.0236]
+     },
+     "student+geometry": {
+      "auc": [0.8184,0.7693,0.8758],
+      "ece": [0.2755,0.2338,0.318],
+      "brier": [0.1831,0.1667,0.2041],
+      "dBaseline": [0.3708,0.2853,0.4686],
+      "dStudent": [0.0153,0.0018,0.0273]
+     },
+     "diag:signFree": {
+      "auc": [0.8181,0.7662,0.8807],
+      "ece": [0.4365,0.3863,0.4853],
+      "brier": [0.3094,0.2816,0.3413],
+      "dBaseline": [0.3705,0.2913,0.4627],
+      "dStudent": [0.015,-0.0046,0.0363]
+     },
+     "diag:student+viewElevation": {
+      "auc": [0.804,0.7487,0.8651],
+      "ece": [0.238,0.1961,0.2794],
+      "brier": [0.1626,0.1482,0.179],
+      "dBaseline": [0.3564,0.2635,0.4531],
+      "dStudent": [0.0009,-0.0161,0.0163]
+     }
+    }
+   }
+  },
+  "calibration": {
+   "pilot-000": {
+    "student": [
+     {
+      "lo": 0,
+      "hi": 0.1,
+      "n": 46,
+      "meanP": 0.0695,
+      "observed": 0
+     },
+     {
+      "lo": 0.1,
+      "hi": 0.2,
+      "n": 134,
+      "meanP": 0.1555,
+      "observed": 0.0896
+     },
+     {
+      "lo": 0.2,
+      "hi": 0.3,
+      "n": 218,
+      "meanP": 0.2525,
+      "observed": 0.2385
+     },
+     {
+      "lo": 0.3,
+      "hi": 0.4,
+      "n": 326,
+      "meanP": 0.3505,
+      "observed": 0.365
+     },
+     {
+      "lo": 0.4,
+      "hi": 0.5,
+      "n": 433,
+      "meanP": 0.4511,
+      "observed": 0.4503
+     },
+     {
+      "lo": 0.5,
+      "hi": 0.6,
+      "n": 528,
+      "meanP": 0.5514,
+      "observed": 0.5758
+     },
+     {
+      "lo": 0.6,
+      "hi": 0.7,
+      "n": 715,
+      "meanP": 0.6531,
+      "observed": 0.6881
+     },
+     {
+      "lo": 0.7,
+      "hi": 0.8,
+      "n": 863,
+      "meanP": 0.7504,
+      "observed": 0.7659
+     },
+     {
+      "lo": 0.8,
+      "hi": 0.9,
+      "n": 646,
+      "meanP": 0.8416,
+      "observed": 0.7926
+     },
+     {
+      "lo": 0.9,
+      "hi": 1,
+      "n": 49,
+      "meanP": 0.9116,
+      "observed": 0.7755
+     }
+    ],
+    "baseline": [
+     {
+      "lo": 0,
+      "hi": 0.1,
+      "n": 0,
+      "meanP": null,
+      "observed": null
+     },
+     {
+      "lo": 0.1,
+      "hi": 0.2,
+      "n": 0,
+      "meanP": null,
+      "observed": null
+     },
+     {
+      "lo": 0.2,
+      "hi": 0.3,
+      "n": 0,
+      "meanP": null,
+      "observed": null
+     },
+     {
+      "lo": 0.3,
+      "hi": 0.4,
+      "n": 0,
+      "meanP": null,
+      "observed": null
+     },
+     {
+      "lo": 0.4,
+      "hi": 0.5,
+      "n": 0,
+      "meanP": null,
+      "observed": null
+     },
+     {
+      "lo": 0.5,
+      "hi": 0.6,
+      "n": 1857,
+      "meanP": 0.5868,
+      "observed": 0.6327
+     },
+     {
+      "lo": 0.6,
+      "hi": 0.7,
+      "n": 2101,
+      "meanP": 0.6133,
+      "observed": 0.5759
+     },
+     {
+      "lo": 0.7,
+      "hi": 0.8,
+      "n": 0,
+      "meanP": null,
+      "observed": null
+     },
+     {
+      "lo": 0.8,
+      "hi": 0.9,
+      "n": 0,
+      "meanP": null,
+      "observed": null
+     },
+     {
+      "lo": 0.9,
+      "hi": 1,
+      "n": 0,
+      "meanP": null,
+      "observed": null
+     }
+    ]
+   },
+   "yardstick-library-b2": {
+    "student": [
+     {
+      "lo": 0,
+      "hi": 0.1,
+      "n": 20,
+      "meanP": 0.063,
+      "observed": 0
+     },
+     {
+      "lo": 0.1,
+      "hi": 0.2,
+      "n": 40,
+      "meanP": 0.1421,
+      "observed": 0.25
+     },
+     {
+      "lo": 0.2,
+      "hi": 0.3,
+      "n": 47,
+      "meanP": 0.2517,
+      "observed": 0.5745
+     },
+     {
+      "lo": 0.3,
+      "hi": 0.4,
+      "n": 56,
+      "meanP": 0.3515,
+      "observed": 0.7143
+     },
+     {
+      "lo": 0.4,
+      "hi": 0.5,
+      "n": 95,
+      "meanP": 0.4469,
+      "observed": 0.8526
+     },
+     {
+      "lo": 0.5,
+      "hi": 0.6,
+      "n": 170,
+      "meanP": 0.555,
+      "observed": 0.9
+     },
+     {
+      "lo": 0.6,
+      "hi": 0.7,
+      "n": 196,
+      "meanP": 0.6509,
+      "observed": 0.9286
+     },
+     {
+      "lo": 0.7,
+      "hi": 0.8,
+      "n": 132,
+      "meanP": 0.7434,
+      "observed": 0.9394
+     },
+     {
+      "lo": 0.8,
+      "hi": 0.9,
+      "n": 37,
+      "meanP": 0.8298,
+      "observed": 0.9459
+     },
+     {
+      "lo": 0.9,
+      "hi": 1,
+      "n": 0,
+      "meanP": null,
+      "observed": null
+     }
+    ],
+    "baseline": [
+     {
+      "lo": 0,
+      "hi": 0.1,
+      "n": 0,
+      "meanP": null,
+      "observed": null
+     },
+     {
+      "lo": 0.1,
+      "hi": 0.2,
+      "n": 0,
+      "meanP": null,
+      "observed": null
+     },
+     {
+      "lo": 0.2,
+      "hi": 0.3,
+      "n": 0,
+      "meanP": null,
+      "observed": null
+     },
+     {
+      "lo": 0.3,
+      "hi": 0.4,
+      "n": 0,
+      "meanP": null,
+      "observed": null
+     },
+     {
+      "lo": 0.4,
+      "hi": 0.5,
+      "n": 0,
+      "meanP": null,
+      "observed": null
+     },
+     {
+      "lo": 0.5,
+      "hi": 0.6,
+      "n": 697,
+      "meanP": 0.5716,
+      "observed": 0.825
+     },
+     {
+      "lo": 0.6,
+      "hi": 0.7,
+      "n": 96,
+      "meanP": 0.608,
+      "observed": 0.8021
+     },
+     {
+      "lo": 0.7,
+      "hi": 0.8,
+      "n": 0,
+      "meanP": null,
+      "observed": null
+     },
+     {
+      "lo": 0.8,
+      "hi": 0.9,
+      "n": 0,
+      "meanP": null,
+      "observed": null
+     },
+     {
+      "lo": 0.9,
+      "hi": 1,
+      "n": 0,
+      "meanP": null,
+      "observed": null
+     }
+    ]
+   }
+  },
+  "goRule": {
+   "rule": "student AUC >= 0.75 on pilot-000 (leave-one-image-out), and its gain over the crop-width baseline has a 95 % interval excluding 0",
+   "studentAuc": [0.7291,0.6917,0.7615],
+   "gainOverBaseline": [0.2764,0.2119,0.3359],
+   "go": false,
+   "robustness": {
+    "pilot-000": {
+     "oracleWidthAuc": [0.5246,0.5012,0.5531],
+     "gainOverOracleWidth": [0.2045,0.1588,0.248],
+     "studentVsSpineFound": [0.8635,0.8419,0.8839],
+     "studentVsTextPresent": [0.6335,0.5971,0.6735],
+     "studentInSample": [0.7329,0.6982,0.7659]
+    },
+    "yardstick-library-b2": {
+     "oracleWidthAuc": [0.5524,0.5058,0.6045],
+     "gainOverOracleWidth": [0.2507,0.1929,0.3147],
+     "studentVsSpineFound": [0.9351,0.8956,0.9665],
+     "studentVsTextPresent": [0.6029,0.5084,0.7224],
+     "studentInSample": [0.8031,0.7489,0.8635]
+    }
+   },
+   "signFree": {
+    "auc": [0.7491,0.714,0.7806],
+    "gainOverBaseline": [0.2964,0.2317,0.3528],
+    "passes": false
+   }
+  },
+  "operatingPoint": {
+   "rule": "FILL_P = the lowest score at which at least 90 % of predicted fills are measured >= text-read on pilot-000 (leave-one-image-out); if none does, Q-0's starting value 0.7",
+   "fillP": 0.7,
+   "targetMet": false,
+   "bestPrecision": 0.8249,
+   "atFillP": {
+    "pilot-000": {
+     "filledShare": [0.3936,0.3258,0.4514],
+     "precision": [0.7773,0.7316,0.8193],
+     "recall": [0.5078,0.4514,0.5546]
+    },
+    "yardstick-library-b2": {
+     "filledShare": [0.2131,0.1664,0.2618],
+     "precision": [0.9408,0.8958,0.9815],
+     "recall": [0.2439,0.1914,0.3002]
+    }
+   },
+   "curve": {
+    "pilot-000": [
+     {
+      "fillP": 0.3,
+      "filledShare": 0.8994,
+      "precision": 0.652,
+      "recall": 0.9732
+     },
+     {
+      "fillP": 0.35,
+      "filledShare": 0.8598,
+      "precision": 0.665,
+      "recall": 0.9488
+     },
+     {
+      "fillP": 0.4,
+      "filledShare": 0.8171,
+      "precision": 0.6809,
+      "recall": 0.9233
+     },
+     {
+      "fillP": 0.45,
+      "filledShare": 0.7655,
+      "precision": 0.6977,
+      "recall": 0.8864
+     },
+     {
+      "fillP": 0.5,
+      "filledShare": 0.7077,
+      "precision": 0.7165,
+      "recall": 0.8415
+     },
+     {
+      "fillP": 0.55,
+      "filledShare": 0.6445,
+      "precision": 0.7342,
+      "recall": 0.7853
+     },
+     {
+      "fillP": 0.6,
+      "filledShare": 0.5743,
+      "precision": 0.7492,
+      "recall": 0.714
+     },
+     {
+      "fillP": 0.65,
+      "filledShare": 0.4924,
+      "precision": 0.7604,
+      "recall": 0.6214
+     },
+     {
+      "fillP": 0.7,
+      "filledShare": 0.3936,
+      "precision": 0.7773,
+      "recall": 0.5078
+     },
+     {
+      "fillP": 0.75,
+      "filledShare": 0.2847,
+      "precision": 0.7906,
+      "recall": 0.3736
+     },
+     {
+      "fillP": 0.8,
+      "filledShare": 0.1756,
+      "precision": 0.7914,
+      "recall": 0.2306
+     },
+     {
+      "fillP": 0.85,
+      "filledShare": 0.075,
+      "precision": 0.8249,
+      "recall": 0.1027
+     },
+     {
+      "fillP": 0.9,
+      "filledShare": 0.0124,
+      "precision": 0.7755,
+      "recall": 0.0159
+     },
+     {
+      "fillP": 0.95,
+      "filledShare": 0,
+      "precision": null,
+      "recall": 0
+     }
+    ],
+    "yardstick-library-b2": [
+     {
+      "fillP": 0.3,
+      "filledShare": 0.8651,
+      "precision": 0.8965,
+      "recall": 0.9433
+     },
+     {
+      "fillP": 0.35,
+      "filledShare": 0.831,
+      "precision": 0.909,
+      "recall": 0.9187
+     },
+     {
+      "fillP": 0.4,
+      "filledShare": 0.7945,
+      "precision": 0.9127,
+      "recall": 0.8819
+     },
+     {
+      "fillP": 0.45,
+      "filledShare": 0.7339,
+      "precision": 0.9141,
+      "recall": 0.816
+     },
+     {
+      "fillP": 0.5,
+      "filledShare": 0.6747,
+      "precision": 0.9234,
+      "recall": 0.7577
+     },
+     {
+      "fillP": 0.55,
+      "filledShare": 0.5763,
+      "precision": 0.9344,
+      "recall": 0.6549
+     },
+     {
+      "fillP": 0.6,
+      "filledShare": 0.4603,
+      "precision": 0.9342,
+      "recall": 0.523
+     },
+     {
+      "fillP": 0.65,
+      "filledShare": 0.3367,
+      "precision": 0.9438,
+      "recall": 0.3865
+     },
+     {
+      "fillP": 0.7,
+      "filledShare": 0.2131,
+      "precision": 0.9408,
+      "recall": 0.2439
+     },
+     {
+      "fillP": 0.75,
+      "filledShare": 0.1135,
+      "precision": 0.9333,
+      "recall": 0.1288
+     },
+     {
+      "fillP": 0.8,
+      "filledShare": 0.0467,
+      "precision": 0.9459,
+      "recall": 0.0537
+     },
+     {
+      "fillP": 0.85,
+      "filledShare": 0.0139,
+      "precision": 1,
+      "recall": 0.0169
+     },
+     {
+      "fillP": 0.9,
+      "filledShare": 0,
+      "precision": null,
+      "recall": 0
+     },
+     {
+      "fillP": 0.95,
+      "filledShare": 0,
+      "precision": null,
+      "recall": 0
+     }
+    ]
+   }
+  },
+  "sensitivity": {
+   "noFloor": {
+    "floor": 0,
+    "lying": false,
+    "pilot-000": {
+     "n": 6487,
+     "student": [0.7503,0.7201,0.7783],
+     "baseline": [0.4244,0.3842,0.478],
+     "gain": [0.3259,0.2574,0.3857],
+     "filled": [0.5112,0.4465,0.5693]
+    },
+    "yardstick-library-b2": {
+     "n": 1066,
+     "student": [0.8534,0.8123,0.8959],
+     "baseline": [0.6424,0.5897,0.6919],
+     "gain": [0.211,0.1525,0.2669],
+     "filled": [0.6904,0.611,0.7575]
+    }
+   },
+   "floor0.20": {
+    "floor": 0.2,
+    "lying": false,
+    "pilot-000": {
+     "n": 4879,
+     "student": [0.7359,0.7026,0.767],
+     "baseline": [0.4124,0.366,0.4574],
+     "gain": [0.3235,0.2497,0.3958],
+     "filled": [0.5718,0.5124,0.6223]
+    },
+    "yardstick-library-b2": {
+     "n": 871,
+     "student": [0.8177,0.7728,0.8681],
+     "baseline": [0.439,0.3865,0.4913],
+     "gain": [0.3786,0.3022,0.4629],
+     "filled": [0.7819,0.7195,0.8284]
+    }
+   },
+   "floor0.225": {
+    "floor": 0.225,
+    "lying": false,
+    "pilot-000": {
+     "n": 3958,
+     "student": [0.7291,0.6913,0.7638],
+     "baseline": [0.4527,0.4148,0.4905],
+     "gain": [0.2764,0.2087,0.3418],
+     "filled": [0.6026,0.5446,0.6536]
+    },
+    "yardstick-library-b2": {
+     "n": 793,
+     "student": [0.8031,0.75,0.8645],
+     "baseline": [0.4476,0.3919,0.5013],
+     "gain": [0.3555,0.268,0.4496],
+     "filled": [0.8222,0.7695,0.8658]
+    }
+   },
+   "floor0.25": {
+    "floor": 0.25,
+    "lying": false,
+    "pilot-000": {
+     "n": 3047,
+     "student": [0.7208,0.6834,0.7557],
+     "baseline": [0.4425,0.4047,0.4801],
+     "gain": [0.2783,0.2114,0.3476],
+     "filled": [0.6479,0.5924,0.6958]
+    },
+    "yardstick-library-b2": {
+     "n": 703,
+     "student": [0.7759,0.7023,0.8589],
+     "baseline": [0.4809,0.4147,0.5496],
+     "gain": [0.295,0.1829,0.4115],
+     "filled": [0.8506,0.8064,0.8893]
+    }
+   },
+   "floor0.30": {
+    "floor": 0.3,
+    "lying": false,
+    "pilot-000": {
+     "n": 1438,
+     "student": [0.7248,0.6693,0.7737],
+     "baseline": [0.5242,0.4689,0.5788],
+     "gain": [0.2006,0.1164,0.2839],
+     "filled": [0.7191,0.6605,0.7735]
+    },
+    "yardstick-library-b2": {
+     "n": 490,
+     "student": [0.7152,0.5692,0.8591],
+     "baseline": [0.4608,0.3627,0.584],
+     "gain": [0.2544,0.024,0.4501],
+     "filled": [0.9143,0.875,0.9491]
+    }
+   },
+   "floor0.225+lying": {
+    "floor": 0.225,
+    "lying": true,
+    "pilot-000": {
+     "n": 4153,
+     "student": [0.7332,0.6989,0.7653],
+     "baseline": [0.4848,0.4473,0.521],
+     "gain": [0.2483,0.1876,0.3095],
+     "filled": [0.5878,0.5305,0.6367]
+    },
+    "yardstick-library-b2": {
+     "n": 812,
+     "student": [0.7849,0.7197,0.8481],
+     "baseline": [0.4604,0.402,0.5178],
+     "gain": [0.3244,0.2397,0.4173],
+     "filled": [0.8067,0.7536,0.8502]
+    }
+   }
+  }
+ },
+ "ownerHypothesis": {
+  "ownerSaid": "top edges are missed at frame edges and in oblique views where a book's top face shows beside its spine",
+  "features": {
+   "heightOffBand": "|log(box long side / median long side of the boxes in its shelf band)|; 0 when the band has fewer than 3 boxes",
+   "topSeamOff": "|offset| of the strongest colour step across the spine near its top (helpers/coverage/geometry.py), as a share of the long side; > 0.05 inside = overshoot, < -0.05 = cut"
+  },
+  "cells": {
+   "edge": "radial > 0.5612 (Q-1 H2)",
+   "topInView": "top end below 0.6 of the frame height (camera looks down onto the top: a geometric proxy, not a detector)"
+  },
+  "sets": {
+   "pilot-000": {
+    "breakdown": {
+     "all": {
+      "n": 3958,
+      "photos": 31,
+      "filled": [0.6026,0.5366,0.6527],
+      "byTop": {
+       "clean": {
+        "n": 1841,
+        "share": 0.4651,
+        "filled": [0.6583,0.586,0.7184]
+       },
+       "overshoot": {
+        "n": 1405,
+        "share": 0.355,
+        "filled": [0.5459,0.4837,0.601]
+       },
+       "cut": {
+        "n": 667,
+        "share": 0.1685,
+        "filled": [0.5877,0.5194,0.6404]
+       },
+       "none": {
+        "n": 45,
+        "share": 0.0114,
+        "filled": [0.3111,0.125,0.4828]
+       }
+      },
+      "aucStudent": [0.7291,0.6883,0.7595],
+      "aucGeometry": [0.7378,0.6984,0.7687],
+      "dAuc": [0.0086,0.0023,0.0149]
+     },
+     "centre": {
+      "n": 2381,
+      "photos": 31,
+      "filled": [0.6984,0.6398,0.7461],
+      "byTop": {
+       "clean": {
+        "n": 1258,
+        "share": 0.5283,
+        "filled": [0.7178,0.6542,0.7748]
+       },
+       "overshoot": {
+        "n": 707,
+        "share": 0.2969,
+        "filled": [0.6832,0.627,0.7382]
+       },
+       "cut": {
+        "n": 416,
+        "share": 0.1747,
+        "filled": [0.6659,0.5793,0.7428]
+       },
+       "none": {
+        "n": 0,
+        "share": 0,
+        "filled": null
+       }
+      },
+      "aucStudent": [0.7022,0.6525,0.743],
+      "aucGeometry": [0.7098,0.6607,0.749],
+      "dAuc": [0.0076,0.0009,0.0147]
+     },
+     "edge": {
+      "n": 1577,
+      "photos": 31,
+      "filled": [0.4578,0.3946,0.5162],
+      "byTop": {
+       "clean": {
+        "n": 583,
+        "share": 0.3697,
+        "filled": [0.53,0.4331,0.6212]
+       },
+       "overshoot": {
+        "n": 698,
+        "share": 0.4426,
+        "filled": [0.4069,0.3394,0.4748]
+       },
+       "cut": {
+        "n": 251,
+        "share": 0.1592,
+        "filled": [0.4582,0.3959,0.5218]
+       },
+       "none": {
+        "n": 45,
+        "share": 0.0285,
+        "filled": [0.3111,0.125,0.4904]
+       }
+      },
+      "aucStudent": [0.7165,0.6779,0.7489],
+      "aucGeometry": [0.724,0.6834,0.7565],
+      "dAuc": [0.0075,-0.005,0.0184]
+     },
+     "topNotInView": {
+      "n": 2652,
+      "photos": 31,
+      "filled": [0.6802,0.6183,0.7304],
+      "byTop": {
+       "clean": {
+        "n": 1526,
+        "share": 0.5754,
+        "filled": [0.711,0.6368,0.7731]
+       },
+       "overshoot": {
+        "n": 754,
+        "share": 0.2843,
+        "filled": [0.6127,0.5403,0.6784]
+       },
+       "cut": {
+        "n": 344,
+        "share": 0.1297,
+        "filled": [0.7267,0.6488,0.7844]
+       },
+       "none": {
+        "n": 28,
+        "share": 0.0106,
+        "filled": [0.25,0.1052,0.4244]
+       }
+      },
+      "aucStudent": [0.7054,0.6529,0.7536],
+      "aucGeometry": [0.7181,0.6694,0.7651],
+      "dAuc": [0.0127,0.0032,0.0232]
+     },
+     "topInView": {
+      "n": 1306,
+      "photos": 31,
+      "filled": [0.4449,0.3824,0.4982],
+      "byTop": {
+       "clean": {
+        "n": 315,
+        "share": 0.2412,
+        "filled": [0.4032,0.3223,0.4908]
+       },
+       "overshoot": {
+        "n": 651,
+        "share": 0.4985,
+        "filled": [0.4685,0.4009,0.5369]
+       },
+       "cut": {
+        "n": 323,
+        "share": 0.2473,
+        "filled": [0.4396,0.3521,0.503]
+       },
+       "none": {
+        "n": 17,
+        "share": 0.013,
+        "filled": [0.4118,0.0833,0.6843]
+       }
+      },
+      "aucStudent": [0.7301,0.6961,0.7619],
+      "aucGeometry": [0.7179,0.678,0.7554],
+      "dAuc": [-0.0122,-0.0263,0.0012]
+     },
+     "centreTopNotInView": {
+      "n": 1793,
+      "photos": 31,
+      "filled": [0.7401,0.6892,0.7842],
+      "byTop": {
+       "clean": {
+        "n": 1132,
+        "share": 0.6313,
+        "filled": [0.735,0.6697,0.7882]
+       },
+       "overshoot": {
+        "n": 390,
+        "share": 0.2175,
+        "filled": [0.7487,0.6916,0.8016]
+       },
+       "cut": {
+        "n": 271,
+        "share": 0.1511,
+        "filled": [0.7491,0.6706,0.811]
+       },
+       "none": {
+        "n": 0,
+        "share": 0,
+        "filled": null
+       }
+      },
+      "aucStudent": [0.6726,0.6122,0.7319],
+      "aucGeometry": [0.6813,0.6219,0.7367],
+      "dAuc": [0.0087,-0.0006,0.0188]
+     },
+     "centreTopInView": {
+      "n": 588,
+      "photos": 30,
+      "filled": [0.5714,0.4768,0.6524],
+      "byTop": {
+       "clean": {
+        "n": 126,
+        "share": 0.2143,
+        "filled": [0.5635,0.4455,0.6774]
+       },
+       "overshoot": {
+        "n": 317,
+        "share": 0.5391,
+        "filled": [0.6025,0.5167,0.6767]
+       },
+       "cut": {
+        "n": 145,
+        "share": 0.2466,
+        "filled": [0.5103,0.3691,0.6336]
+       },
+       "none": {
+        "n": 0,
+        "share": 0,
+        "filled": null
+       }
+      },
+      "aucStudent": [0.736,0.6851,0.7751],
+      "aucGeometry": [0.7304,0.6745,0.7752],
+      "dAuc": [-0.0055,-0.0239,0.0113]
+     },
+     "edgeTopNotInView": {
+      "n": 859,
+      "photos": 31,
+      "filled": [0.5553,0.4742,0.6369],
+      "byTop": {
+       "clean": {
+        "n": 394,
+        "share": 0.4587,
+        "filled": [0.6421,0.5168,0.7459]
+       },
+       "overshoot": {
+        "n": 364,
+        "share": 0.4237,
+        "filled": [0.467,0.3848,0.5574]
+       },
+       "cut": {
+        "n": 73,
+        "share": 0.085,
+        "filled": [0.6438,0.5143,0.7765]
+       },
+       "none": {
+        "n": 28,
+        "share": 0.0326,
+        "filled": [0.25,0.0999,0.4231]
+       }
+      },
+      "aucStudent": [0.7146,0.6521,0.7631],
+      "aucGeometry": [0.7339,0.6726,0.7844],
+      "dAuc": [0.0193,0.0033,0.0335]
+     },
+     "edgeTopInView": {
+      "n": 718,
+      "photos": 31,
+      "filled": [0.3412,0.2813,0.4],
+      "byTop": {
+       "clean": {
+        "n": 189,
+        "share": 0.2632,
+        "filled": [0.2963,0.2196,0.3803]
+       },
+       "overshoot": {
+        "n": 334,
+        "share": 0.4652,
+        "filled": [0.3413,0.2553,0.4277]
+       },
+       "cut": {
+        "n": 178,
+        "share": 0.2479,
+        "filled": [0.382,0.3129,0.4417]
+       },
+       "none": {
+        "n": 17,
+        "share": 0.0237,
+        "filled": [0.4118,0.0833,0.6801]
+       }
+      },
+      "aucStudent": [0.7031,0.6489,0.7533],
+      "aucGeometry": [0.6861,0.6286,0.7376],
+      "dAuc": [-0.017,-0.0341,0]
+     }
+    },
+    "separation": {
+     "heightOffBand": {
+      "n": 3947,
+      "auc": [0.4529,0.4306,0.478]
+     },
+     "heightOffBandSigned": {
+      "n": 3947,
+      "auc": [0.5086,0.4788,0.5378]
+     },
+     "topSeamOff": {
+      "n": 3913,
+      "auc": [0.4171,0.3898,0.4443]
+     },
+     "topSeamSigned": {
+      "n": 3913,
+      "auc": [0.4459,0.4209,0.4719]
+     },
+     "topY": {
+      "n": 3958,
+      "auc": [0.4031,0.3692,0.4349]
+     }
+    },
+    "topClassShareAllDetected": {
+     "clean": 0.4301,
+     "overshoot": 0.3725,
+     "cut": 0.1813,
+     "none": 0.0161
+    }
+   },
+   "yardstick-library-b2": {
+    "breakdown": {
+     "all": {
+      "n": 793,
+      "photos": 40,
+      "filled": [0.8222,0.7758,0.866],
+      "byTop": {
+       "clean": {
+        "n": 396,
+        "share": 0.4994,
+        "filled": [0.8535,0.8156,0.8881]
+       },
+       "overshoot": {
+        "n": 269,
+        "share": 0.3392,
+        "filled": [0.7955,0.7217,0.8764]
+       },
+       "cut": {
+        "n": 126,
+        "share": 0.1589,
+        "filled": [0.7857,0.6526,0.8992]
+       },
+       "none": {
+        "n": 2,
+        "share": 0.0025,
+        "filled": [0.5,0,1]
+       }
+      },
+      "aucStudent": [0.8031,0.7478,0.8652],
+      "aucGeometry": [0.8184,0.7671,0.8746],
+      "dAuc": [0.0153,0.0023,0.0274]
+     },
+     "centre": {
+      "n": 643,
+      "photos": 40,
+      "filled": [0.8709,0.8293,0.9077],
+      "byTop": {
+       "clean": {
+        "n": 316,
+        "share": 0.4914,
+        "filled": [0.8987,0.8597,0.9309]
+       },
+       "overshoot": {
+        "n": 224,
+        "share": 0.3484,
+        "filled": [0.8571,0.7931,0.9128]
+       },
+       "cut": {
+        "n": 103,
+        "share": 0.1602,
+        "filled": [0.8155,0.699,0.9182]
+       },
+       "none": {
+        "n": 0,
+        "share": 0,
+        "filled": null
+       }
+      },
+      "aucStudent": [0.7927,0.7045,0.8669],
+      "aucGeometry": [0.8102,0.7316,0.8802],
+      "dAuc": [0.0175,0.0044,0.0329]
+     },
+     "edge": {
+      "n": 150,
+      "photos": 37,
+      "filled": [0.6133,0.5029,0.7339],
+      "byTop": {
+       "clean": {
+        "n": 80,
+        "share": 0.5333,
+        "filled": [0.675,0.5797,0.7971]
+       },
+       "overshoot": {
+        "n": 45,
+        "share": 0.3,
+        "filled": [0.4889,0.3226,0.7334]
+       },
+       "cut": {
+        "n": 23,
+        "share": 0.1533,
+        "filled": [0.6522,0.4231,0.875]
+       },
+       "none": {
+        "n": 2,
+        "share": 0.0133,
+        "filled": [0.5,0,1]
+       }
+      },
+      "aucStudent": [0.7877,0.7055,0.8975],
+      "aucGeometry": [0.8128,0.7336,0.9046],
+      "dAuc": [0.0251,-0.0045,0.0456]
+     },
+     "topNotInView": {
+      "n": 763,
+      "photos": 40,
+      "filled": [0.8375,0.7979,0.8725],
+      "byTop": {
+       "clean": {
+        "n": 388,
+        "share": 0.5085,
+        "filled": [0.8608,0.8279,0.8954]
+       },
+       "overshoot": {
+        "n": 253,
+        "share": 0.3316,
+        "filled": [0.8142,0.7354,0.8819]
+       },
+       "cut": {
+        "n": 120,
+        "share": 0.1573,
+        "filled": [0.8167,0.7009,0.9231]
+       },
+       "none": {
+        "n": 2,
+        "share": 0.0026,
+        "filled": [0.5,0,1]
+       }
+      },
+      "aucStudent": [0.7914,0.7102,0.8633],
+      "aucGeometry": [0.8084,0.7398,0.8735],
+      "dAuc": [0.017,0.0028,0.0327]
+     },
+     "topInView": {
+      "n": 30,
+      "photos": 6,
+      "filled": [0.4333,0.2609,0.7778],
+      "byTop": {
+       "clean": {
+        "n": 8,
+        "share": 0.2667,
+        "filled": [0.5,0.125,0.8571]
+       },
+       "overshoot": {
+        "n": 16,
+        "share": 0.5333,
+        "filled": [0.5,0,0.75]
+       },
+       "cut": {
+        "n": 6,
+        "share": 0.2,
+        "filled": [0.1667,0,1]
+       },
+       "none": {
+        "n": 0,
+        "share": 0,
+        "filled": null
+       }
+      },
+      "aucStudent": [0.905,0.76,1],
+      "aucGeometry": [0.8824,0.625,1],
+      "dAuc": [-0.0226,-0.15,0.0167]
+     },
+     "centreTopNotInView": {
+      "n": 626,
+      "photos": 40,
+      "filled": [0.8786,0.8379,0.9143],
+      "byTop": {
+       "clean": {
+        "n": 313,
+        "share": 0.5,
+        "filled": [0.901,0.8606,0.9366]
+       },
+       "overshoot": {
+        "n": 212,
+        "share": 0.3387,
+        "filled": [0.8679,0.8,0.9222]
+       },
+       "cut": {
+        "n": 101,
+        "share": 0.1613,
+        "filled": [0.8317,0.713,0.9327]
+       },
+       "none": {
+        "n": 0,
+        "share": 0,
+        "filled": null
+       }
+      },
+      "aucStudent": [0.7738,0.6693,0.8629],
+      "aucGeometry": [0.7933,0.6972,0.8737],
+      "dAuc": [0.0195,0.0039,0.0365]
+     },
+     "centreTopInView": {
+      "n": 17,
+      "photos": 5,
+      "filled": [0.5882,0.4,1],
+      "byTop": {
+       "clean": {
+        "n": 3,
+        "share": 0.1765,
+        "filled": [0.6667,0,1]
+       },
+       "overshoot": {
+        "n": 12,
+        "share": 0.7059,
+        "filled": [0.6667,0.5556,1]
+       },
+       "cut": {
+        "n": 2,
+        "share": 0.1176,
+        "filled": [0,0,0]
+       },
+       "none": {
+        "n": 0,
+        "share": 0,
+        "filled": null
+       }
+      },
+      "aucStudent": [1,1,1],
+      "aucGeometry": [1,1,1],
+      "dAuc": [0,0,0]
+     },
+     "edgeTopNotInView": {
+      "n": 137,
+      "photos": 37,
+      "filled": [0.6496,0.5581,0.7414],
+      "byTop": {
+       "clean": {
+        "n": 75,
+        "share": 0.5474,
+        "filled": [0.6933,0.5915,0.7963]
+       },
+       "overshoot": {
+        "n": 41,
+        "share": 0.2993,
+        "filled": [0.5366,0.3333,0.7858]
+       },
+       "cut": {
+        "n": 19,
+        "share": 0.1387,
+        "filled": [0.7368,0.5294,0.9333]
+       },
+       "none": {
+        "n": 2,
+        "share": 0.0146,
+        "filled": [0.5,0,1]
+       }
+      },
+      "aucStudent": [0.7931,0.705,0.8992],
+      "aucGeometry": [0.8205,0.7406,0.9085],
+      "dAuc": [0.0274,-0.0067,0.0538]
+     },
+     "edgeTopInView": {
+      "n": 13,
+      "photos": 3,
+      "filled": [0.2308,0,0.6],
+      "byTop": {
+       "clean": {
+        "n": 5,
+        "share": 0.3846,
+        "filled": [0.4,0,0.6667]
+       },
+       "overshoot": {
+        "n": 4,
+        "share": 0.3077,
+        "filled": [0,0,0]
+       },
+       "cut": {
+        "n": 4,
+        "share": 0.3077,
+        "filled": [0.25,0,1]
+       },
+       "none": {
+        "n": 0,
+        "share": 0,
+        "filled": null
+       }
+      },
+      "aucStudent": [0.7,0.5,0.75],
+      "aucGeometry": [0.7,0.5,0.75],
+      "dAuc": [0,0,0]
+     }
+    },
+    "separation": {
+     "heightOffBand": {
+      "n": 790,
+      "auc": [0.3875,0.3082,0.4667]
+     },
+     "heightOffBandSigned": {
+      "n": 790,
+      "auc": [0.6228,0.5516,0.7029]
+     },
+     "topSeamOff": {
+      "n": 791,
+      "auc": [0.4371,0.3932,0.49]
+     },
+     "topSeamSigned": {
+      "n": 791,
+      "auc": [0.4674,0.3956,0.5481]
+     },
+     "topY": {
+      "n": 793,
+      "auc": [0.4015,0.3143,0.5058]
+     }
+    },
+    "topClassShareAllDetected": {
+     "clean": 0.5159,
+     "overshoot": 0.3242,
+     "cut": 0.1555,
+     "none": 0.0044
+    }
+   }
+  }
+ }
+}
