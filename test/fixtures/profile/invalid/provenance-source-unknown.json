@@ -1,0 +1,114 @@
+{
+  "schemaVersion": 1,
+  "entries": [
+    {
+      "id": "seed-a-read",
+      "subject": {
+        "kind": "author",
+        "name": "Author A"
+      },
+      "relation": "read",
+      "scope": "all-works",
+      "provenance": {
+        "source": "a-friend",
+        "ref": "invented example",
+        "date": "2026-01-01"
+      }
+    },
+    {
+      "id": "seed-a-read:isfdb:1",
+      "subject": {
+        "kind": "work",
+        "name": "A Book",
+        "id": "isfdb:1"
+      },
+      "relation": "read",
+      "scope": "one-work",
+      "expanded": true,
+      "expandedFrom": "seed-a-read",
+      "provenance": {
+        "source": "owner-statement",
+        "ref": "invented example",
+        "date": "2026-01-01"
+      }
+    },
+    {
+      "id": "seed-b-liked",
+      "subject": {
+        "kind": "author",
+        "name": "Author B"
+      },
+      "relation": "liked",
+      "scope": "all-works",
+      "provenance": {
+        "source": "owner-correction",
+        "ref": "invented example",
+        "date": "2026-01-02"
+      }
+    }
+  ],
+  "nodes": [
+    {
+      "id": "node-city",
+      "kind": "topos",
+      "termId": "topos:city-as-system",
+      "stance": "pull",
+      "status": "asserted",
+      "evidence": "ASSERTED",
+      "support": [
+        {
+          "type": "seed",
+          "id": "seed-a-read"
+        },
+        {
+          "type": "asserted-event",
+          "id": "taste-asserted-1"
+        }
+      ],
+      "qualifiers": [
+        "more hopeful"
+      ],
+      "provenance": {
+        "source": "owner-statement",
+        "ref": "invented example",
+        "date": "2026-01-03"
+      }
+    },
+    {
+      "id": "node-comic",
+      "kind": "style",
+      "termId": "style:comic-satirical",
+      "stance": "push",
+      "status": "hypothesis",
+      "evidence": "SYNTH",
+      "support": [
+        {
+          "type": "seed",
+          "id": "seed-b-liked"
+        }
+      ],
+      "qualifiers": [],
+      "provenance": {
+        "source": "taste-tree",
+        "ref": "invented example",
+        "date": "2026-01-03"
+      }
+    },
+    {
+      "id": "node-q",
+      "kind": "open-question",
+      "about": "seed-b-liked",
+      "options": [
+        "style:comic-satirical",
+        "style:technology-explained-in-full"
+      ],
+      "status": "open",
+      "evidence": "SYNTH",
+      "provenance": {
+        "source": "taste-tree",
+        "ref": "invented example",
+        "date": "2026-01-03"
+      }
+    }
+  ]
+}

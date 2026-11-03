@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 1,
+  "entries": [
+    {
+      "id": "ov-lem-inferred",
+      "subject": { "kind": "author", "name": "Author C" },
+      "relation": "inferred-interest",
+      "scope": "all-works",
+      "provenance": { "source": "taste-tree", "ref": "invented example", "date": "2026-01-04" }
+    },
+    {
+      "id": "ov-tag-unknown",
+      "subject": { "kind": "tag", "name": "an invented tag" },
+      "relation": "unknown",
+      "provenance": { "source": "taste-tree", "ref": "invented example", "date": "2026-01-04" }
+    }
+  ],
+  "nodes": [
+    {
+      "id": "ov-node-accepted",
+      "kind": "subtheme",
+      "termId": "theme:climate-institutions",
+      "stance": "pull",
+      "status": "asserted",
+      "evidence": "SYNTH",
+      "support": [{ "type": "seed", "id": "seed-a-read" }],
+      "qualifiers": [],
+      "provenance": { "source": "taste-tree", "ref": "invented example", "date": "2026-01-05" }
+    }
+  ]
+}

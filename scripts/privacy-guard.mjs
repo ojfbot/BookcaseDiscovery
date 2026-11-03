@@ -360,6 +360,34 @@ function checkFile(path, buf, cache, oid) {
     if (bad.length) add('fixture-manifest', `public fixture manifest carries forbidden field(s): ${bad.join(', ')}`);
   }
 
+  // --- public seeds (OC9; taste-tree ruling Q4) ------------------------------------------------------
+  // Only owner statements may be public: every provenance is "owner-statement", no expanded entries,
+  // and every taste node is ASSERTED. The R-1 writer enforces the same; this catches a hand edit.
+  if (path === 'profile/seeds.json') {
+    let doc;
+    try {
+      doc = JSON.parse(buf.toString('utf8'));
+    } catch {
+      add('public-seeds', 'not valid JSON');
+    }
+    if (doc !== undefined) {
+      const bad = new Set();
+      const walk = (n) => {
+        if (Array.isArray(n)) return n.forEach(walk);
+        if (!n || typeof n !== 'object') return;
+        if ('provenance' in n) {
+          const src = typeof n.provenance === 'string' ? n.provenance : n.provenance?.source;
+          if (src !== 'owner-statement') bad.add('provenance other than owner-statement');
+        }
+        if (n.expanded === true) bad.add('expanded entry');
+        if ('evidence' in n && n.evidence !== 'ASSERTED') bad.add('taste node that is not ASSERTED');
+        Object.values(n).forEach(walk);
+      };
+      walk(doc);
+      for (const b of bad) add('public-seeds', `public seeds carry a ${b}`);
+    }
+  }
+
   return v;
 }
 

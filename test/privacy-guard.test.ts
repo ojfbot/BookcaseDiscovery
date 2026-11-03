@@ -227,6 +227,23 @@ describe("rule: ChatGPT exports", () => {
   });
 });
 
+describe("rule: public seeds hold owner statements only", () => {
+  const owner = { source: "owner-statement", ref: "r", date: "2026-10-31" };
+  const cases: [string, unknown][] = [
+    ["taste-tree provenance", { entries: [{ id: "a", relation: "liked", provenance: { source: "taste-tree", ref: "r" } }] }],
+    ["an expanded entry", { entries: [{ id: "a", relation: "read", expanded: true, provenance: owner }] }],
+    ["a SYNTH node", { entries: [], nodes: [{ id: "n", evidence: "SYNTH", provenance: owner }] }],
+  ];
+  it.each(cases)("rejects %s", (_n, doc) => {
+    expect(rulesOf(repoWith({ "profile/seeds.json": JSON.stringify(doc) }))).toContain("public-seeds");
+  });
+
+  it("allows owner statements and ASSERTED nodes", () => {
+    const doc = { entries: [{ id: "a", relation: "liked", provenance: owner }], nodes: [{ id: "n", evidence: "ASSERTED", provenance: owner }] };
+    expect(guard(repoWith({ "profile/seeds.json": JSON.stringify(doc) })).violations).toEqual([]);
+  });
+});
+
 describe("rule: provenance chatgpt-export or selfco", () => {
   const entries: [string, string, string][] = [
     ["string provenance", "profile/seeds.json", JSON.stringify({ entries: [{ title: "x", provenance: "chatgpt-export" }] })],

@@ -1,0 +1,100 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/ojfbot/BookcaseDiscovery/blob/main/contracts/profile.schema.json",
+  "title": "ProfileFile",
+  "description": "A reading-profile file (card R-1): the public profile/seeds.json, and the private overlay <data root>/private/profile-overlay.json. Same shape; what each may hold is policy, enforced in code (src/recommend/profile.ts: assertPublishable for the seeds, mergeOverlay for the overlay) and, for the seeds, by the privacy guard (INV-19). Entries are what the owner has said of authors, works, series and tags; nodes are taste in terms of the vocabulary (taste-model.md §2.3). Read, liked and inferred stay separate (INV-18).",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "entries", "nodes"],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "entries": { "type": "array", "items": { "$ref": "#/definitions/Entry" } },
+    "nodes": { "type": "array", "items": { "$ref": "#/definitions/Node" } }
+  },
+  "definitions": {
+    "Id": { "description": "Unique within the file; seeds and overlay never share one.", "type": "string", "pattern": "^[a-z0-9][a-z0-9._:-]*$" },
+    "Date": { "type": "string", "pattern": "^\\d{4}-\\d{2}-\\d{2}$" },
+    "TermId": { "type": "string", "pattern": "^(theme|topos|idea|question|style|pattern|form|author):[a-z0-9]+(-[a-z0-9]+)*$" },
+    "Relation": { "enum": ["read", "liked", "cooler", "not-for-me", "inferred-interest", "unknown"] },
+    "Origin": {
+      "description": "Where a claim came from. `source` is an allow-list: owner-statement, owner-correction and owner-preference may be public; taste-tree, chatgpt-export and selfco are private, always (OC9, INV-19).",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["source", "ref", "date"],
+      "properties": {
+        "source": { "enum": ["owner-statement", "owner-correction", "owner-preference", "taste-tree", "chatgpt-export", "selfco"] },
+        "ref": { "description": "A short human-readable citation, never a path to private data.", "type": "string", "minLength": 1 },
+        "date": { "$ref": "#/definitions/Date" }
+      }
+    },
+    "Subject": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "name"],
+      "properties": {
+        "kind": { "enum": ["author", "work", "series", "tag"] },
+        "name": { "type": "string", "minLength": 1 },
+        "id": { "description": "The catalog's id for a work (`isfdb:<title_id>`); absent for an author named in a seed.", "type": "string", "minLength": 1 }
+      }
+    },
+    "Entry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "subject", "relation", "provenance"],
+      "properties": {
+        "id": { "$ref": "#/definitions/Id" },
+        "subject": { "$ref": "#/definitions/Subject" },
+        "relation": { "$ref": "#/definitions/Relation" },
+        "scope": { "description": "`all-works`: the statement covers every work of the author or series. `one-work`: one work.", "enum": ["all-works", "one-work"] },
+        "expanded": { "description": "Generated from a compact seed against the catalog. Never written to profile/seeds.json. `expandedFrom` is the id of the seed it came from.", "const": true },
+        "expandedFrom": { "$ref": "#/definitions/Id" },
+        "provenance": { "$ref": "#/definitions/Origin" }
+      }
+    },
+    "Support": {
+      "description": "What a node rests on: a seed's id, or an event the owner asserted. Nothing else may back a node (DERIVED catalog evidence and SYNTH output can inform a hypothesis but never support one).",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "id"],
+      "properties": {
+        "type": { "enum": ["seed", "asserted-event"] },
+        "id": { "type": "string", "minLength": 1 }
+      }
+    },
+    "Node": {
+      "oneOf": [{ "$ref": "#/definitions/TermNode" }, { "$ref": "#/definitions/OpenQuestion" }]
+    },
+    "TermNode": {
+      "description": "One taste-tree node: a term on a facet, pulled toward or pushed away from.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "kind", "termId", "stance", "status", "evidence", "support", "qualifiers", "provenance"],
+      "properties": {
+        "id": { "$ref": "#/definitions/Id" },
+        "kind": { "enum": ["theme", "subtheme", "topos", "idea", "question", "style", "pattern"] },
+        "termId": { "$ref": "#/definitions/TermId" },
+        "stance": { "enum": ["pull", "push"] },
+        "status": { "enum": ["hypothesis", "asserted", "rejected"] },
+        "evidence": { "description": "ASSERTED: the owner stated it. SYNTH: a model proposed it; accepting it sets `status` to asserted but never turns it into ASSERTED, and it stays private.", "enum": ["SYNTH", "ASSERTED"] },
+        "support": { "type": "array", "minItems": 1, "items": { "$ref": "#/definitions/Support" } },
+        "qualifiers": { "type": "array", "items": { "type": "string", "minLength": 1 } },
+        "provenance": { "$ref": "#/definitions/Origin" }
+      }
+    },
+    "OpenQuestion": {
+      "description": "A reader-side unknown ('What cools Neal Stephenson for you?'); `about` is the id of the seed it asks about. It carries no weight until the owner answers it (taste-model.md §9).",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "kind", "about", "options", "status", "evidence", "provenance"],
+      "properties": {
+        "id": { "$ref": "#/definitions/Id" },
+        "kind": { "const": "open-question" },
+        "about": { "$ref": "#/definitions/Id" },
+        "options": { "type": "array", "minItems": 1, "items": { "$ref": "#/definitions/TermId" } },
+        "status": { "const": "open" },
+        "evidence": { "const": "SYNTH" },
+        "provenance": { "$ref": "#/definitions/Origin" }
+      }
+    }
+  }
+}

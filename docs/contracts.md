@@ -141,6 +141,17 @@ OCR semantics (card P-1; details in [`helpers/ocr-vision/README.md`](../helpers/
 
 `append` refuses (throws `LedgerError`, leaving the ledger unchanged) an event that fails its contract, carries a `seq`, names an observation, work item, recommendation, run, track, card or adjudication request the ledger has not seen, breaks one of the live rules above, reuses an existing `observationId`, `workItemId`, `recommendationId` or run, breaks the status machine, or (`AdjudicationRecorded`) spends a run's budget past its cap. Results are copies; mutating one never changes the ledger.
 
+## Recommend contracts (R-1)
+
+Two single-document contracts, outside the ledger, with the same rule: the schema is the source of truth (OC13), Zod mirrors it, and a test mutates every node of the examples and requires them to agree (`test/support/mutants.ts`).
+
+| File | Describes | Zod and Ajv |
+|---|---|---|
+| `profile.schema.json` | a profile file: `profile/seeds.json` and the private overlay (entries, taste nodes, open questions, provenance) | `src/recommend/profile.ts`, `schemas.ts` |
+| `vocabulary.schema.json` | `src/recommend/vocabulary.json`: facets, terms, crosswalk, drop list | `src/recommend/vocabulary.ts`, `schemas.ts` |
+
+What a schema cannot say is checked in code: `checkProfileFile` (unique ids, a seed reference names a seed, a node's kind sits on its facet), `checkVocabulary` (unique terms, parent on the same facet, depth at most 3, no rule maps a dropped value) and `publishProblems` (what may be public). Examples: `test/fixtures/profile/`. `docs/profile.md` has the rules.
+
 ## Changing a contract
 
 1. Edit the schema in `contracts/`, and its validator in `src/ledger/`.
