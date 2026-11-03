@@ -152,6 +152,6 @@ Single-host times assume a quiet GPU (F-0's figures). Two-host times assume an e
 
 ## 10. Open questions for the owner
 
-1. **NAS timing.** Until it exists, Yojimbo holds the data and the job table. Is Yojimbo acceptable as the interim control host for N-1 and N-2?
+1. ~~NAS timing~~. **Ruled 2026-11-03:** Yojimbo is the interim control host for N-1 and N-2, pending the NAS.
 2. **Idle and power policy for the laptop:** how many minutes idle before it claims work, the night window, and whether GPU jobs may run on battery at all.
 3. **Owner setup steps for N-2:** enable Remote Login on the laptop, authorise one SSH key in each direction between the hosts, confirm FileVault, and log in to Hugging Face on the laptop as the owner's own account. Agents don't do these.
