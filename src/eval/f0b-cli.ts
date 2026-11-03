@@ -47,8 +47,8 @@ const PAD = 0.04;
 const log = (s: string): void => console.error(`[f0b] ${s}`);
 const r4 = (x: number) => Math.round(x * 10000) / 10000;
 
-type SetName = "pilot-000" | "yardstick-library-b2";
-const SETS: Record<SetName, { scope: string; qwenCap: number; catalog: string }> = {
+export type SetName = "pilot-000" | "yardstick-library-b2";
+export const SETS: Record<SetName, { scope: string; qwenCap: number; catalog: string }> = {
   "pilot-000": { scope: "real use (OC35): machine agreement, never accuracy (INV-17)", qwenCap: 40, catalog: join(ROOT, "catalog", "catalog.sqlite") },
   "yardstick-library-b2": {
     scope: "PROXY: Library Dataset sample, box arm B2; confirmed = accepted and annotated in the image",
@@ -59,7 +59,7 @@ const SETS: Record<SetName, { scope: string; qwenCap: number; catalog: string }>
 
 // --- inputs ----------------------------------------------------------------------------------------------
 
-function loadSet(set: SetName) {
+export function loadSet(set: SetName) {
   const dets = new Map(readJsonl<Detection>(join(ROOT, "f0", set, "detect.jsonl")).filter((d) => !d.error).map((d) => [d.id, d]));
   const outlines = new Map(
     readJsonl<{ id: string; outline?: Point[] }>(join(PRIV, set, "outline.jsonl")).filter((o) => o.outline).map((o) => [o.id, o.outline!]),
@@ -76,7 +76,7 @@ function loadSet(set: SetName) {
 }
 
 /** What the geometry says about one cached box; decides which variant touches it. */
-interface Geo {
+export interface Geo {
   id: string;
   imageId: string;
   boxScore: number;
@@ -104,7 +104,7 @@ function inQuad(p: Point, q: readonly Point[]): boolean {
   });
 }
 
-function geometry(dets: Map<string, Detection>): Geo[] {
+export function geometry(dets: Map<string, Detection>): Geo[] {
   return [...dets.values()].flatMap((d) =>
     d.spines.map((s, i) => {
       const { width, height } = cropSize(s.polygon);
