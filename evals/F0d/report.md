@@ -12,6 +12,29 @@ never accuracy**, INV-17) and the **yardstick (PROXY)**, F-0's 40-image Library 
 labels (OC36); nothing was trained or tuned on the yardstick. Aggregates only: per-box reads and the review page
 stay in the data root's `private/f0d/`.
 
+## Answer first
+
+- **The tie-break does not ship (off).** It changed no outcome on either set: confirmed +0 points (0 to 0) on the 32
+  `pilot-000` boxes it could act on, and the yardstick has **no** such box, so wrong accepts cannot rise there.
+  The keep rule's first clause fails.
+- **Why nothing moved:** the rule can only choose between candidates two readers already pass, and F-0's bar
+  leaves almost no such ambiguity. Only **32 of 6,894** `pilot-000` boxes (0.5 %) and **0 of 1,132** yardstick boxes
+  are *reorderable*. Five of the 32 got an imprint; on all five it named a house **none** of the passing candidates'
+  editions carry, so it could not separate them. Even a perfect imprint reader would change at most those 32
+  `pilot-000` boxes.
+- **The imprint itself is a real clue.** Imprint read rate on `pilot-000`: **18.3 %** (14.9–21.5) of read boxes,
+  19.5 % (13.9–23.7) on confirmed ones. Precision on confirmed boxes, against any edition's house: **39.5 %**
+  (20.7–54.4; 15/38), against a chance level of 7.8 %. Logos are **27.3 %** of imprint reads; logo precision 46.2 %
+  (6/13), text 36.0 % (9/25). Where it matches, the imprint keeps a median 44 % of the work's editions: it narrows
+  the edition, not the work.
+- **Invented imprints are rare:** 1 of 60 `pilot-000` and 0 of 40 yardstick boxes with no text got one.
+- **C-4's not-in-ISFDB books:** **8 of 22** carry a readable imprint, so publisher data from Open Library could be
+  used as evidence for them once it is imported.
+- **Logo detector: not recommended.** Logos are common (27 % ≥ 25 %) and as precise as text, so two of the three
+  pre-registered conditions hold. But the reader's misses cannot be counted without labels, and the binding limit is
+  not the reader: the tie-break has 32 boxes to act on. A detector would raise a read rate that today buys nothing.
+  Revisit if imprint evidence enters retrieval or adjudication itself (below).
+
 ## Method (pre-registered)
 
 This section was committed before the first imprint read. Constants live in `src/eval/f0d-cli.ts` (`SELECT`,
@@ -100,3 +123,142 @@ at least two readers, uniquely, and the accepted work must itself carry the impr
   useful (logo precision not below text precision by more than 10 points, and above its chance level), and the
   reader evidently misses them; otherwise not. Misses cannot be counted without labels, so this is judged from the
   read rate on confirmed boxes and stated as such.
+## Findings
+
+1. **The tie-break has almost nothing to break.** F-0 accepts on two readers agreeing; a box it leaves unknown is
+   nearly always unknown because readers do not both pass *any* common work, not because two works tie. Among
+   `pilot-000`'s unknown boxes only 32 have a work that two readers both pass in their top three; 14 whole, 18 cut
+   or partial. On the yardstick's closed 15,229-book inventory there are none. That ceiling was visible before any
+   read (the selection step) and was not used to change the rule.
+2. **Read rate is modest and position-independent.** About one box in five yields an imprint on `pilot-000`
+   (single-reader 20.3 %, readers-disagree 10.6 %, confirmed 19.5 %). Boxes at the frame's edge or partly out of it
+   read about as often as boxes further in (16.7 % against 19.1 %, descriptive), so the owner's Tor-at-the-edge case
+   is not a special failure. Rotations disagreed on 62 of 761 boxes, which the pre-registered rule counts as no
+   imprint.
+3. **Precision is well above chance but lenient.** On `pilot-000`, a match means the read house appears among any
+   of the confirmed work's editions; popular works have many, which is why the chance level (imprints shuffled
+   among the same boxes) is 7.8 % and not near 0. 39.5 % against 7.8 % says the reader mostly reads a real mark,
+   not a guess from the title. Interval widths reflect 38 boxes.
+4. **The yardstick is a poor test of imprints.** Its spines carry the library's shelf-mark sticker, and the reader
+   reports it as an imprint: post hoc, 44 of its 109 imprint reads are a shelf mark of a book in the same image. Its
+   inventory has no publisher, and the ISBN-registrant mapping through ISFDB covers only 24 of the 200 sampled
+   accepted boxes, so precision rests on 10 boxes (1/10; chance 1.2 %). Treat the yardstick's imprint figures as
+   uninformative, not as a failure.
+5. **Cost.** Qwen imprint calls p50 1.33 s on `pilot-000` (1,522 calls, 35 min) and 3.65 s on the yardstick's
+   larger crops (802 calls, 50 min), one process, with the GPU shared with F-0e. Spend $0.
+
+## What to try next
+
+1. **Use the imprint as evidence, not only as a tie-break.** It narrows a confirmed work to about half its editions
+   (median 44 %), which is what edition-level identity needs, and it could be one more evidence kind in retrieval or
+   in the expensive pass's adjudication (an imprint matching a candidate's edition house). Either is a new
+   pre-registration, since it would let the imprint move scores rather than only reorder passing candidates.
+2. **Open Library publishers for C-4's gap.** 8 of 22 not-in-ISFDB books show a readable imprint; once the Open
+   Library import (backlog #4) carries publishers, the same alias rules apply.
+3. **Re-run after F-0e.** Whole-spine boxes show both ends of a spine, where imprints usually sit; 4 of the 5
+   reorderable boxes with an imprint were cut or partial.
+
+## Private outputs
+
+Per-box imprint reads, the selection and the recomputed F-0 state are under the data root's
+`private/f0d/<set>/`; the review page (crop at both rotations, context, read imprint and source, each reader's
+candidates with whether their editions carry it, before and after) is `private/f0d/renders/<set>/index.html`. The
+imprint table built from the catalog is `catalog/imprint-table.json` there. Nothing per box or per photo is in the
+repository.
+
+## Limits
+
+- Machine agreement only on `pilot-000` (INV-17): "confirmed" is two readers agreeing, and a confirmed box can be
+  the wrong book (C-4).
+- Precision on `pilot-000` is against any edition of the work, not the copy on the shelf.
+- The yardstick's publishers come from ISBN prefixes as ISFDB records them; most Spanish and Catalan registrants
+  are absent from ISFDB.
+- Misses (an imprint visible but not read) are not counted; there are no labels for them.
+
+<!-- generated by src/eval/f0d-cli.ts analyse: edit above this line -->
+
+## pilot-000 (real use (OC35): machine agreement, never accuracy (INV-17))
+
+6894 boxes; F-0's decision recomputed from its cached readings differs on 0. Qwen imprint calls 1522, p50 1.326 s, p90 1.631 s per call (one crop at one rotation), 2110 s in all.
+
+**Imprint read rate** (box has one imprint across its rotations; 95 % photo-bootstrap interval):
+
+| boxes | selected | read | imprint read | logo share of reads | conflicting rotations |
+|---|---:|---:|---|---:|---:|
+| reorderable | 32 | 32 | 15.6 % (0–30); 5/32 | 20 % | 5 |
+| confirmed | 200 | 200 | 19.5 % (13.9–23.7); 39/200 | 33.3 % | 17 |
+| no-text | 60 | 60 | 1.7 % (0–5.8); 1/60 | 100 % | 0 |
+| c4-not-in-isfdb | 22 | 22 | 36.4 % (17.6–56); 8/22 | 12.5 % | 2 |
+| readers-disagree | 47 | 47 | 10.6 % (2.5–22); 5/47 | 20 % | 5 |
+| single-reader | 400 | 400 | 20.3 % (16–25.2); 81/400 | 25.9 % | 33 |
+| *at the frame's edge or partly out of it* (descriptive) | | 264 | 16.7 % (11.4–22.9); 44/264 | | |
+| *further in* (descriptive) | | 497 | 19.1 % (16–21.9); 95/497 | | |
+| **all read** | 761 | 761 | 18.3 % (14.9–21.5); 139/761 | 27.3 % | 62 |
+
+**Precision** on accepted boxes: the read imprint names a house of one of the work's editions. Chance level: the same boxes with their imprints shuffled.
+
+| imprint from | precision | chance level |
+|---|---|---:|
+| text or logo | 39.5 % (20.7–54.4); 15/38 | 7.8 % |
+| text | 36 % (12.5–56.3); 9/25 | 9.9 % |
+| logo | 46.2 % (22.2–69.2); 6/13 | 9.2 % |
+
+Where the imprint matches, it keeps a median 44.4 % of the work's editions (p90 75 %; 15 boxes).
+
+**Tie-break** on the 32 boxes it could change (F-0 left them unknown, and some passing candidate would be accepted if it alone carried the imprint). Shares in % before → after (Δ points; 95 % paired photo-bootstrap interval).
+
+| boxes | read | with imprint | fired | reader switched | outcome changed | confirmed |
+|---|---:|---:|---:|---:|---:|---|
+| all | 32 | 5 | 0 | 0 | 0 | 0 → 0 (+0; 0 to 0) |
+| whole boxes | 14 | 1 | 0 | 0 | 0 | 0 → 0 (+0; 0 to 0) |
+| cut or partial boxes | 18 | 4 | 0 | 0 | 0 | 0 → 0 (+0; 0 to 0) |
+
+Over the whole set: 0 confirmed added among 6894 boxes.
+
+**C-4's not-in-ISFDB books:** 8 of 22 carry a readable imprint.
+
+**No-text control** (no reader read any text): an imprint was reported on 1 of 60.
+
+## yardstick-library-b2 (PROXY: Library Dataset sample, box arm B2; confirmed = accepted and annotated in the image)
+
+1132 boxes; F-0's decision recomputed from its cached readings differs on 0. Qwen imprint calls 802, p50 3.647 s, p90 4.995 s per call (one crop at one rotation), 3005 s in all.
+
+**Imprint read rate** (box has one imprint across its rotations; 95 % photo-bootstrap interval):
+
+| boxes | selected | read | imprint read | logo share of reads | conflicting rotations |
+|---|---:|---:|---|---:|---:|
+| readers-disagree | 1 | 1 | 100 % (100–100); 1/1 | 0 % | 0 |
+| single-reader | 160 | 160 | 28.8 % (19.1–39.4); 46/160 | 10.9 % | 18 |
+| confirmed | 200 | 200 | 31 % (24.4–37.6); 62/200 | 8.1 % | 10 |
+| no-text | 40 | 40 | 0 % (0–0); 0/40 | — % | 0 |
+| *at the frame's edge or partly out of it* (descriptive) | | 85 | 28.2 % (16.7–38.6); 24/85 | | |
+| *further in* (descriptive) | | 316 | 26.9 % (21.3–32.3); 85/316 | | |
+| **all read** | 401 | 401 | 27.2 % (21.5–32.6); 109/401 | 9.2 % | 28 |
+
+*Post hoc:* 44 of the 109 imprint reads are the library's own shelf-mark sticker (the annotation's `tag` for a book in the same image), not a publisher.
+
+**Precision** on confirmed (accepted and annotated) boxes whose ISBN registrant names a publisher: the read imprint names a house of the book's ISBN registrant. Chance level: the same boxes with their imprints shuffled.
+
+| imprint from | precision | chance level |
+|---|---|---:|
+| text or logo | 10 % (0–37.5); 1/10 | 1.2 % |
+| text | 10 % (0–33.3); 1/10 | 1.2 % |
+| logo | — | — % |
+
+**Tie-break** on the 0 boxes it could change (F-0 left them unknown, and some passing candidate would be accepted if it alone carried the imprint). Shares in % before → after (Δ points; 95 % paired photo-bootstrap interval).
+
+| boxes | read | with imprint | fired | reader switched | outcome changed | confirmed | wrong |
+|---|---:|---:|---:|---:|---:|---|---|
+| all | 0 | 0 | 0 | 0 | 0 | — | — |
+| whole boxes | 0 | 0 | 0 | 0 | 0 | — | — |
+| cut or partial boxes | 0 | 0 | 0 | 0 | 0 | — | — |
+
+Over the whole set: 0 confirmed and 0 wrong accepts added among 1132 boxes.
+
+**No-text control** (no reader read any text): an imprint was reported on 0 of 40.
+
+## Verdict
+
+| pilot-000 confirmed interval excludes 0 upward | yardstick wrong accepts not up | keep |
+|---|---|---|
+| no | yes | **off** |

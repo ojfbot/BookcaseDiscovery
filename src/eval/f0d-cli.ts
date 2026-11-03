@@ -344,6 +344,8 @@ interface Row {
   imageId: string;
   role: Role;
   piece: boolean;
+  /** At the frame's edge (F-0b's radial cut) or partly out of it: the owner's Tor-at-the-edge case. */
+  edge: boolean;
   key: string | null;
   from: "text" | "logo" | null;
   conflict: boolean;
@@ -414,7 +416,7 @@ function analyseSet(set: SetName, table: ImprintTable) {
     const bi = boxImprint(r);
     const t = tieBreak(b, s.lists.get(id)!, carries(s.keysOf, bi.key));
     rows.push({
-      id, imageId: g.imageId, role, piece: g.piece, key: bi.key, from: bi.from, conflict: bi.conflict,
+      id, imageId: g.imageId, role, piece: g.piece, edge: g.edge || !g.inFrame, key: bi.key, from: bi.from, conflict: bi.conflict,
       parsed: r.variants.every((v) => v.parsed), calls: r.variants.length, seconds: r.seconds,
       work: b.accepted?.workId ?? null, before: outcome(b, g.imageId), after: outcome(t.decision, g.imageId), fired: t.fired, switched: t.switched.length,
     });
@@ -428,6 +430,9 @@ function analyseSet(set: SetName, table: ImprintTable) {
     }),
   );
   const all = shareCi(rows, keyed, 90);
+  // Post hoc (not pre-registered): on the yardstick, a read "imprint" that is the library's own shelf-mark sticker.
+  const marks = yard ? shelfMarks() : null;
+  const isMark = (r: Row) => Boolean(marks && r.key && (marks.get(r.imageId) ?? []).some((m) => m === r.key || m.startsWith(r.key!) || r.key!.startsWith(m)));
   const imprinted = rows.filter(keyed);
   // Precision: on accepted boxes (yardstick: confirmed, i.e. annotated), does the read imprint name a house of the work's editions?
   const matches = (key: string, work: string) => imprintMatches(key, s.keysOf(work));
@@ -450,11 +455,11 @@ function analyseSet(set: SetName, table: ImprintTable) {
           if (eds.length) kept.push(eds.filter((e) => imprintMatches(r.key, editionKeysOf(table, e.publisher))).length / eds.length);
         }
         db.close();
-        return { boxes: kept.length, editionsKeptP50: q(kept, 0.5), editionsKeptP90: q(kept, 0.9) };
+        return { boxCount: kept.length, editionsKeptP50: q(kept, 0.5), editionsKeptP90: q(kept, 0.9) };
       })();
   const reorder = rows.filter((r) => r.role === "reorderable");
   const tb = (rs: Row[], seed: number) => ({
-    boxes: rs.length,
+    boxCount: rs.length,
     photos: new Set(rs.map((r) => r.imageId)).size,
     withImprint: rs.filter(keyed).length,
     fired: rs.filter((r) => r.fired).length,
@@ -471,19 +476,30 @@ function analyseSet(set: SetName, table: ImprintTable) {
     recomputeDrift: s.drift,
     yardstickPublisherKnown: yard ? confirmedRows.filter(known).length : undefined,
     selection: Object.fromEntries([...new Set(sel.map((x) => x.role))].map((role) => [role, { selected: sel.filter((x) => x.role === role).length, read: rows.filter((r) => r.role === role).length }])),
-    imprintRead: { all, byRole, conflicts: rows.filter((r) => r.conflict).length, unparsed: rows.filter((r) => !r.parsed).length, logoShare: imprinted.length ? pts(imprinted.filter((r) => r.from === "logo").length / imprinted.length) : null },
+    imprintRead: { all, byRole, byPosition: { edge: shareCi(rows.filter((r) => r.edge), keyed, 95), inner: shareCi(rows.filter((r) => !r.edge), keyed, 96) }, shelfMark: marks ? rows.filter(isMark).length : undefined, conflicts: rows.filter((r) => r.conflict).length, unparsed: rows.filter((r) => !r.parsed).length, logoShare: imprinted.length ? pts(imprinted.filter((r) => r.from === "logo").length / imprinted.length) : null },
     precision,
     narrowing,
     tieBreak: {
       reorderableBoxes: reorderableAll,
       all: tb(reorder, 300),
       byBox: { whole: tb(reorder.filter((r) => !r.piece), 310), cutOrPartial: tb(reorder.filter((r) => r.piece), 320) },
-      wholeSet: { boxes: s.geo.length, confirmedAdded: reorder.filter((r) => r.after === "confirmed" && r.before !== "confirmed").length, wrongAdded: reorder.filter((r) => r.after === "rejected/wrong" && r.before !== "rejected/wrong").length },
+      wholeSet: { boxCount: s.geo.length, confirmedAdded: reorder.filter((r) => r.after === "confirmed" && r.before !== "confirmed").length, wrongAdded: reorder.filter((r) => r.after === "rejected/wrong" && r.before !== "rejected/wrong").length },
     },
     c4NotInIsfdb: yard ? undefined : byRole["c4-not-in-isfdb"] ?? null,
     noTextControl: byRole["no-text"] ?? null,
     runtime: { calls: secs.length, perCallP50: q(secs, 0.5), perCallP90: q(secs, 0.9), totalSeconds: Math.round(secs.reduce((a, b) => a + b, 0)) },
   };
+}
+
+/** The yardstick's library shelf marks per image (the annotation's `tag`, e.g. "001 Bel"), as imprint keys. */
+function shelfMarks(): Map<string, string[]> {
+  const lib = join(ROOT, "proxy", "library-dataset");
+  const out = new Map<string, string[]>();
+  for (const a of parseCsv(readFileSync(join(lib, "data", "annotations", "library_books_annotations.csv"), "utf8"))) {
+    const id = a.image_name!.replace(/\.jpg$/i, ""), k = imprintKey(a.tag);
+    if (k) out.set(id, [...(out.get(id) ?? []), k]);
+  }
+  return out;
 }
 
 const editionKeysOf = (table: ImprintTable, publisher: string | null) => publisherKeys(publisher).flatMap((k) => [k, ...(table.parents.get(k) ?? [])]);
@@ -528,7 +544,9 @@ function tables(m: { verdict: Record<string, boolean>; sets: Record<string, Retu
     out.push(`${s.boxCount} boxes; F-0's decision recomputed from its cached readings differs on ${s.recomputeDrift}. Qwen imprint calls ${s.runtime.calls}, p50 ${s.runtime.perCallP50} s, p90 ${s.runtime.perCallP90} s per call (one crop at one rotation), ${s.runtime.totalSeconds} s in all.`, "");
     out.push("**Imprint read rate** (box has one imprint across its rotations; 95 % photo-bootstrap interval):", "", "| boxes | selected | read | imprint read | logo share of reads | conflicting rotations |", "|---|---:|---:|---|---:|---:|");
     for (const [role, r] of Object.entries(s.imprintRead.byRole)) out.push(`| ${role} | ${s.selection[role]?.selected ?? "—"} | ${r.read} | ${sh(r.imprint)} | ${r.logoOfImprint ?? "—"} % | ${r.conflicts} |`);
+    out.push(`| *at the frame's edge or partly out of it* (descriptive) | | ${s.imprintRead.byPosition.edge.n} | ${sh(s.imprintRead.byPosition.edge)} | | |`, `| *further in* (descriptive) | | ${s.imprintRead.byPosition.inner.n} | ${sh(s.imprintRead.byPosition.inner)} | | |`);
     out.push(`| **all read** | ${Object.values(s.selection).reduce((a, x) => a + x.selected, 0)} | ${s.imprintRead.all.n} | ${sh(s.imprintRead.all)} | ${s.imprintRead.logoShare ?? "—"} % | ${s.imprintRead.conflicts} |`, "");
+    if (s.imprintRead.shelfMark !== undefined) out.push(`*Post hoc:* ${s.imprintRead.shelfMark} of the ${s.imprintRead.all.k} imprint reads are the library's own shelf-mark sticker (the annotation's \`tag\` for a book in the same image), not a publisher.`, "");
     out.push(
       `**Precision** on ${yard ? "confirmed (accepted and annotated) boxes whose ISBN registrant names a publisher" : "accepted boxes"}: the read imprint names a house of ${yard ? "the book's ISBN registrant" : "one of the work's editions"}. Chance level: the same boxes with their imprints shuffled.`,
       "",
@@ -539,7 +557,7 @@ function tables(m: { verdict: Record<string, boolean>; sets: Record<string, Retu
       `| logo | ${sh(s.precision.logo)} | ${s.precision.logo.nullMatch ?? "—"} % |`,
       "",
     );
-    if (s.narrowing) out.push(`Where the imprint matches, it keeps a median ${s.narrowing.editionsKeptP50 === null ? "—" : pts(s.narrowing.editionsKeptP50)} % of the work's editions (p90 ${s.narrowing.editionsKeptP90 === null ? "—" : pts(s.narrowing.editionsKeptP90)} %; ${s.narrowing.boxes} boxes).`, "");
+    if (s.narrowing) out.push(`Where the imprint matches, it keeps a median ${s.narrowing.editionsKeptP50 === null ? "—" : pts(s.narrowing.editionsKeptP50)} % of the work's editions (p90 ${s.narrowing.editionsKeptP90 === null ? "—" : pts(s.narrowing.editionsKeptP90)} %; ${s.narrowing.boxCount} boxes).`, "");
     const t = s.tieBreak;
     out.push(
       `**Tie-break** on the ${t.reorderableBoxes} boxes it could change (F-0 left them unknown, and some passing candidate would be accepted if it alone carried the imprint). Shares in % before → after (Δ points; 95 % paired photo-bootstrap interval).`,
@@ -547,9 +565,9 @@ function tables(m: { verdict: Record<string, boolean>; sets: Record<string, Retu
       `| boxes | read | with imprint | fired | reader switched | outcome changed | confirmed |${yard ? " wrong |" : ""}`,
       `|---|---:|---:|---:|---:|---:|---|${yard ? "---|" : ""}`,
     );
-    const row = (label: string, x: any) => `| ${label} | ${x.boxes} | ${x.withImprint} | ${x.fired} | ${x.switched} | ${x.newlyAccepted} | ${fmt(x.confirmed)} |${yard ? ` ${fmt(x.wrong)} |` : ""}`;
+    const row = (label: string, x: any) => `| ${label} | ${x.boxCount} | ${x.withImprint} | ${x.fired} | ${x.switched} | ${x.newlyAccepted} | ${fmt(x.confirmed)} |${yard ? ` ${fmt(x.wrong)} |` : ""}`;
     out.push(row("all", t.all), row("whole boxes", t.byBox.whole), row("cut or partial boxes", t.byBox.cutOrPartial), "");
-    out.push(`Over the whole set: ${t.wholeSet.confirmedAdded} confirmed${yard ? ` and ${t.wholeSet.wrongAdded} wrong accepts` : ""} added among ${t.wholeSet.boxes} boxes.`, "");
+    out.push(`Over the whole set: ${t.wholeSet.confirmedAdded} confirmed${yard ? ` and ${t.wholeSet.wrongAdded} wrong accepts` : ""} added among ${t.wholeSet.boxCount} boxes.`, "");
     if (s.c4NotInIsfdb) out.push(`**C-4's not-in-ISFDB books:** ${s.c4NotInIsfdb.imprint.k} of ${s.c4NotInIsfdb.read} carry a readable imprint.`, "");
     if (s.noTextControl) out.push(`**No-text control** (no reader read any text): an imprint was reported on ${s.noTextControl.imprint.k} of ${s.noTextControl.read}.`, "");
   }
