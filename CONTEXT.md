@@ -34,6 +34,7 @@ These are kept apart on purpose: raw evidence is stored separately from interpre
 
 - **Observation** — what the system saw in a photo: a spine's polygon plus the OCR readings from it (`SpineObserved`, `TextObserved`). Carries the detector and OCR versions that produced it, so a re-run is reproducible (INV-14).
 - **Text variant** — one OCR reading of one spine at one rotation with language correction off or on (`TextObserved`; 0/90/270° x two flags).
+- **Crop method** — how a spine's polygon is cut and turned before a reader sees it: which quad (the detector's rectangle, or the spine face from the mask), trimmed to the frame or not, and which rotations (`src/perceive/crop.ts`). Every machine-labelling reading names its crop method (`crop`, e.g. `rect;rot=fixed;clip=frame`), so readings cut differently are never mixed (F-0b).
 - **Hypothesis** — an interpretation of an observation: a ranked list of candidates **plus the explicit `unknown`**, each with evidence (`HypothesesProposed`). Never an observation.
 - **Candidate** — one Work (optionally one Edition) a spine might be.
 - **`unknown`** — the none-of-the-above hypothesis. Present for every observation, so no match is forced (INV-5). An honest output, but every `unknown` is a defect with a reason (OC32).

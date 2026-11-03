@@ -10,14 +10,18 @@ import { createInterface } from "node:readline";
 import { fileURLToPath } from "node:url";
 import type { DatabaseSync } from "node:sqlite";
 import { retrieve, type Candidate } from "../catalog/retrieve.ts";
+import { cropFor, cropName, F0_CROP, type CropMethod } from "../perceive/crop.ts";
 import { OcrHelperError, runOcr, type OcrRequest, type OcrResponse } from "../perceive/ocr.ts";
 import { assignShelves, type LabelSet, type Photo, type Polygon4 } from "./labels.ts";
 
 const REPO_ROOT = fileURLToPath(new URL("../../", import.meta.url));
 const HELPER = join(REPO_ROOT, "helpers", "label");
 
-/** Crops are turned to horizontal both ways; no label says which is right, so the catalog decides (H-0 §3.2). */
-export const ROTATIONS = [90, 270] as const;
+/**
+ * How each spine is cut and turned for the readers (src/perceive/crop.ts; measured in evals/F0b/). Every reading
+ * record names it (`crop`); records without one were read with F-0's original method (`F0_CROP`).
+ */
+export const CROP: CropMethod = { ...F0_CROP, clip: true };
 
 /** Acceptance thresholds (OC36 yardstick 2). Conservative; see docs/machine-labelling.md. */
 export const ACCEPT = {
@@ -52,6 +56,8 @@ export interface DetectedSpine {
   maskScore: number;
   aspect: number;
   cut: boolean;
+  /** The mask's simplified outer contour (working-copy pixels), when the detector kept it: the crop's spine face. */
+  outline?: [number, number][];
 }
 
 export interface Detection {
@@ -80,6 +86,8 @@ interface ReadVariant {
 export interface Reading {
   id: string;
   reader: ReaderName;
+  /** Crop method provenance (`cropName`); absent on F-0's original records. */
+  crop?: string;
   variants: ReadVariant[];
   seconds: number;
   error?: string;
@@ -168,6 +176,7 @@ export function stackFor(arm: Arm, scope: "pilot" | "yardstick") {
       scope === "pilot"
         ? "unavailable on pilot-000: SAM 3 (B1) arrived mid-card and ran on the yardstick only; B2 confidence and the gap test stand in"
         : `not computed: one box arm per run (${arm.toUpperCase()}); arms are compared by the end-to-end title score`,
+    cropMethod: cropName(CROP),
     readers: ["R1 apple-vision .accurate (helpers/ocr-vision)", "R2 qwen3-vl-4b-instruct-8bit (mlx), hard crops only", "R3 pp-ocrv5 server det+rec + textline classifier"],
     paidVlm: "skipped: no API key or spend ceiling set (checklist #7)",
   };
@@ -194,12 +203,23 @@ export async function detectStage(images: InputImage[], dir: string, log: (s: st
   return new Map(readJsonl<Detection>(out).filter((d) => !d.error).map((d) => [d.id, d]));
 }
 
-function spineRequests(images: InputImage[], dets: Map<string, Detection>, only?: Set<string>) {
-  return images.flatMap((img) =>
-    (dets.get(img.id)?.spines ?? [])
-      .map((s, i) => ({ id: spineId(img.id, i), image: img.path, polygon: s.polygon, rotations: [...ROTATIONS] }))
-      .filter((r) => !only || only.has(r.id)),
-  );
+/** One reader request per spine, cut by `method`; a spine with nothing inside the frame is not read. */
+export function spineRequests(images: InputImage[], dets: Map<string, Detection>, method: CropMethod, only?: Set<string>) {
+  return images.flatMap((img) => {
+    const det = dets.get(img.id);
+    return (det?.spines ?? []).flatMap((s, i) => {
+      const id = spineId(img.id, i);
+      if (only && !only.has(id)) return [];
+      const c = cropFor(s, det!, method);
+      return c ? [{ id, image: img.path, polygon: c.polygon, rotations: c.rotations, crop: c.crop }] : [];
+    });
+  });
+}
+
+/** Ids already read with `method` (older records without a crop string count as F-0's method). */
+function readWith(path: string, method: CropMethod): Set<string> {
+  const name = cropName(method);
+  return new Set(readJsonl<{ id: string; crop?: string }>(path).filter((r) => (r.crop ?? cropName(F0_CROP)) === name).map((r) => r.id));
 }
 
 type VisionResult = OcrResponse | { id: string; error: { code: string } };
@@ -217,11 +237,21 @@ async function visionBatch(reqs: OcrRequest[], log: (s: string) => void): Promis
   }
 }
 
-export async function visionStage(images: InputImage[], dets: Map<string, Detection>, dir: string, log: (s: string) => void): Promise<void> {
+export async function visionStage(
+  images: InputImage[],
+  dets: Map<string, Detection>,
+  dir: string,
+  log: (s: string) => void,
+  method: CropMethod = CROP,
+  only?: Set<string>,
+): Promise<void> {
   const out = join(dir, "vision.jsonl");
-  const done = new Set(readJsonl<Reading>(out).map((r) => r.id));
+  const done = readWith(out, method);
+  const crop = cropName(method);
   for (const img of images) {
-    const reqs = spineRequests([img], dets).filter((r) => !done.has(r.id));
+    const reqs = spineRequests([img], dets, method, only)
+      .filter((r) => !done.has(r.id))
+      .map(({ id, image, polygon, rotations }): OcrRequest => ({ id, image, polygon, rotations }));
     if (reqs.length === 0) continue;
     const t0 = Date.now();
     // Batches keep one helper call well inside its timeout when the GPU is shared with detection.
@@ -231,8 +261,8 @@ export async function visionStage(images: InputImage[], dets: Map<string, Detect
     for (const r of res) {
       const line: Reading =
         "error" in r
-          ? { id: r.id, reader: "vision", variants: [], seconds: per, error: r.error.code }
-          : { id: r.id, reader: "vision", variants: r.variants.map((v) => ({ rotation: v.rotation, text: v.text, confidence: v.confidence })), seconds: per };
+          ? { id: r.id, reader: "vision", crop, variants: [], seconds: per, error: r.error.code }
+          : { id: r.id, reader: "vision", crop, variants: r.variants.map((v) => ({ rotation: v.rotation, text: v.text, confidence: v.confidence })), seconds: per };
       appendFileSync(out, `${JSON.stringify(line)}\n`);
     }
     log(`vision: ${img.id.slice(0, 12)} ${reqs.length} spines ${((Date.now() - t0) / 1000).toFixed(1)} s`);
@@ -246,10 +276,11 @@ export async function pyReaderStage(
   dir: string,
   log: (s: string) => void,
   only?: Set<string>,
+  method: CropMethod = CROP,
 ): Promise<void> {
   const out = join(dir, `${reader}.jsonl`);
-  const done = new Set(readJsonl<{ id: string }>(out).map((r) => r.id));
-  const reqs = spineRequests(images, dets, only).filter((r) => !done.has(r.id));
+  const done = readWith(out, method);
+  const reqs = spineRequests(images, dets, method, only).filter((r) => !done.has(r.id));
   // PP-OCR runs on the CPU, about 1 s a crop: split by image across workers (each loads the models once).
   const workers = reader === "ppocr" ? Math.max(1, Number(process.env.F0_PPOCR_WORKERS ?? 3)) : 1;
   const shards: (typeof reqs)[] = Array.from({ length: workers }, () => []);
@@ -258,10 +289,13 @@ export async function pyReaderStage(
   await Promise.all(shards.map((s) => runHelper("read.py", ["--reader", reader], s, out, log)));
 }
 
-export function loadReadings(dir: string): Map<string, Partial<Record<ReaderName, Reading>>> {
+/** Each spine's latest reading per reader; with `method`, only readings cut that way. */
+export function loadReadings(dir: string, method?: CropMethod): Map<string, Partial<Record<ReaderName, Reading>>> {
   const byId = new Map<string, Partial<Record<ReaderName, Reading>>>();
+  const name = method && cropName(method);
   for (const reader of READERS) {
     for (const r of readJsonl<Reading & { reader: string }>(join(dir, `${reader}.jsonl`))) {
+      if (name && (r.crop ?? cropName(F0_CROP)) !== name) continue;
       const entry = byId.get(r.id) ?? {};
       entry[reader] = { ...r, reader };
       byId.set(r.id, entry);
