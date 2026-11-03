@@ -375,6 +375,19 @@
     },
     "intercept": 0.4785,
     "dropped": ["logCropWidthPx","lumaOffMid","glareShare"]
+   },
+   "diag:student+fragment": {
+    "weights": {
+     "logCropWidthPx": 0,
+     "logDetail": 0.9494,
+     "glareShare": 0,
+     "lumaOffMid": 0,
+     "tiltDeg": -0.2955,
+     "cutByTile": 0,
+     "heightOverBand": 0.0148
+    },
+    "intercept": 0.4686,
+    "dropped": ["logCropWidthPx","cutByTile","lumaOffMid","glareShare"]
    }
   },
   "foldsDropping": {
@@ -457,6 +470,15 @@
     "lumaOffMid": 31,
     "tiltDeg": 0,
     "topBelowCentre": 0
+   },
+   "diag:student+fragment": {
+    "logCropWidthPx": 31,
+    "logDetail": 0,
+    "glareShare": 31,
+    "lumaOffMid": 31,
+    "tiltDeg": 0,
+    "cutByTile": 31,
+    "heightOverBand": 3
    }
   },
   "scores": {
@@ -545,6 +567,13 @@
       "brier": [0.1942,0.1817,0.2065],
       "dBaseline": [0.2886,0.2303,0.343],
       "dStudent": [0.0121,0,0.0234]
+     },
+     "diag:student+fragment": {
+      "auc": [0.7281,0.6904,0.7606],
+      "ece": [0.026,0.021,0.0534],
+      "brier": [0.1991,0.1873,0.2116],
+      "dBaseline": [0.2754,0.2102,0.335],
+      "dStudent": [-0.0011,-0.0018,-0.0005]
      }
     }
    },
@@ -633,6 +662,13 @@
       "brier": [0.1626,0.1482,0.179],
       "dBaseline": [0.3564,0.2635,0.4531],
       "dStudent": [0.0009,-0.0161,0.0163]
+     },
+     "diag:student+fragment": {
+      "auc": [0.8029,0.7463,0.8689],
+      "ece": [0.2788,0.2336,0.3214],
+      "brier": [0.1864,0.1715,0.2038],
+      "dBaseline": [0.3553,0.265,0.4588],
+      "dStudent": [-0.0002,-0.0016,0.0009]
      }
     }
    }
@@ -1257,6 +1293,93 @@
      "baseline": [0.4604,0.402,0.5178],
      "gain": [0.3244,0.2397,0.4173],
      "filled": [0.8067,0.7536,0.8502]
+    }
+   },
+   "floor0.225, whole only (no cut or partial)": {
+    "floor": 0.225,
+    "lying": false,
+    "pilot-000": {
+     "n": 1854,
+     "student": [0.7234,0.6768,0.7654],
+     "baseline": [0.5362,0.4979,0.574],
+     "gain": [0.1873,0.1218,0.2477],
+     "filled": [0.5728,0.4838,0.6421]
+    },
+    "yardstick-library-b2": {
+     "n": 645,
+     "student": [0.7253,0.6345,0.8255],
+     "baseline": [0.4629,0.3935,0.5355],
+     "gain": [0.2624,0.1309,0.3992],
+     "filled": [0.8698,0.8175,0.9137]
+    }
+   }
+  }
+ },
+ "fragments": {
+  "why": "many pilot-000 boxes are pieces of a spine (a detector tile edge cut them, or they are much shorter than their band); F-0e is fixing the detector, so these results may shift once it lands",
+  "definitions": {
+   "cut": "F-0's per-box flag: cut by a detector tile edge",
+   "partial": "not cut, box long side < 0.55 of its shelf band's height",
+   "whole": "neither"
+  },
+  "features": "diag:student+fragment adds cutByTile (-) and heightOverBand (+, capped at 1.5, missing = 1) to the student",
+  "sets": {
+   "pilot-000": {
+    "perPhotoMedian": {
+     "cutByTile": 0.2887,
+     "partialOfUpright": 0.1056
+    },
+    "population": {
+     "whole": {
+      "n": 1854,
+      "share": 0.4684,
+      "filled": [0.5728,0.4875,0.6421],
+      "aucStudent": [0.7275,0.6855,0.7699],
+      "aucStudentFragment": [0.7259,0.684,0.7689]
+     },
+     "cut": {
+      "n": 1485,
+      "share": 0.3752,
+      "filled": [0.6909,0.638,0.7384],
+      "aucStudent": [0.6824,0.6314,0.7328],
+      "aucStudentFragment": [0.6824,0.6312,0.732]
+     },
+     "partial": {
+      "n": 619,
+      "share": 0.1564,
+      "filled": [0.4798,0.328,0.6008],
+      "aucStudent": [0.795,0.7212,0.8331],
+      "aucStudentFragment": [0.7945,0.7201,0.8328]
+     }
+    }
+   },
+   "yardstick-library-b2": {
+    "perPhotoMedian": {
+     "cutByTile": 0.006,
+     "partialOfUpright": 0.1253
+    },
+    "population": {
+     "whole": {
+      "n": 645,
+      "share": 0.8134,
+      "filled": [0.8698,0.8149,0.9099],
+      "aucStudent": [0.7251,0.6266,0.8371],
+      "aucStudentFragment": [0.7238,0.6247,0.8349]
+     },
+     "cut": {
+      "n": 59,
+      "share": 0.0744,
+      "filled": [0.8136,0.7231,0.9112],
+      "aucStudent": [0.8523,0.6366,0.9608],
+      "aucStudentFragment": [0.8542,0.6383,0.9618]
+     },
+     "partial": {
+      "n": 89,
+      "share": 0.1122,
+      "filled": [0.4831,0.3058,0.6352],
+      "aucStudent": [0.9206,0.8448,0.9714],
+      "aucStudentFragment": [0.9211,0.8451,0.9714]
+     }
     }
    }
   }

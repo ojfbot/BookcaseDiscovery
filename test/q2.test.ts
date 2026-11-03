@@ -28,6 +28,7 @@ import {
   topClass,
 } from "../src/eval/q2.ts";
 import type { Feature, Scored } from "../src/eval/q2.ts";
+import { fragmentOf, shortSide } from "../src/eval/q2-cli.ts";
 import { png } from "./helpers/synth.ts";
 
 describe("teacher rung", () => {
@@ -191,6 +192,20 @@ describe("top-edge geometry", () => {
     expect(h.get(rows[2]!)).toBeCloseTo(Math.log(2));
     expect(h.get(rows[3]!)).toBeNull();
     expect(h.get(rows[4]!)).toBeNull();
+  });
+});
+
+describe("detector fragments", () => {
+  it("calls a box cut first, then partial under 0.55 of its band's height, else whole", () => {
+    expect(fragmentOf(true, 1)).toBe("cut");
+    expect(fragmentOf(false, 0.5)).toBe("partial");
+    expect(fragmentOf(false, 0.55)).toBe("whole");
+    expect(fragmentOf(false, null)).toBe("whole");
+  });
+
+  it("takes a band's height as its polygon's short side, whatever the corner order", () => {
+    expect(shortSide([[0, 0], [100, 0], [100, 20], [0, 20]])).toBe(20);
+    expect(shortSide([[0, 0], [0, 20], [100, 20], [100, 0]])).toBe(20);
   });
 });
 

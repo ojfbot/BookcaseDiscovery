@@ -21,6 +21,10 @@ The gain half of the rule passes easily: **+0.28 (0.21 to 0.34)** over crop widt
 over crop width ranked in its best direction with hindsight. The shortfall is not a fold artefact either: the
 in-sample AUC is also 0.73.
 
+The verdict holds on whole boxes alone, leaving out detector fragments: 0.72 (0.68–0.77). **These results may shift
+once F-0e lands.** Many `pilot-000` boxes are pieces of a spine, not whole spines (finding 8), and F-0e is fixing
+the detector.
+
 Per §5, the live layer shows `seen` only, and the fill waits for measured outcomes. **FILL_P = 0.70**, Q-0's start,
 is kept because no score reaches the 90 % precision target (best 82 %). At 0.70 the student fills 39 % of
 `pilot-000` boxes, and 78 % (73–82) of those fills are measured at `text-read` or above.
@@ -81,6 +85,22 @@ is kept because no score reaches the 90 % precision target (best 82 %). At 0.70 
      labels.
    - **Yardstick:** its shelf-scale strips have only 30 boxes with the top in view, so it cannot test the oblique
      half.
+
+8. **Detector fragments do not drive the result, but they are common.** A fragment is a box F-0 flagged as cut by
+   a detector tile edge, or one that is not cut but is shorter than 0.55 of its shelf band's height (the band
+   polygon's short side).
+   - **How many:** per photo, a median 29 % of `pilot-000` boxes are cut by a tile edge, against 1 % on the
+     yardstick. Of the student's `pilot-000` population, 38 % are cut and 16 % partial; whole boxes are 47 %.
+     (Counting cut boxes too, 41 % of upright boxes per photo fall under 0.55, against the conductor's 64 % from
+     the same cache. The band-height definitions differ; both say "many".)
+   - **How they read:** cut boxes read *more* often than whole ones (69 % against 57 % filled), so the cut flag
+     comes out against its sign and is dropped. Partial boxes read less (48 %), which is the "small means
+     unreadable" risk.
+   - **Effect on the student:** trained and scored on whole boxes only, it gives AUC 0.72 (0.68–0.77), gain +0.19
+     (0.12 to 0.25): the same NO-GO. Adding the cut flag and height over band as features changes nothing (ΔAUC
+     −0.001). The student does not lean on fragment size, because crop width was already dropped.
+   - **After F-0e:** rerun with `node src/eval/q2-cli.ts all` once F-0e's boxes replace the cache. The teacher's
+     rungs will move most, because whole spines give the readers whole titles.
 
 ## What Q-3, Q-4 and Q-5 should take from this
 
@@ -181,26 +201,28 @@ pilot-000 scores are leave-one-image-out; the yardstick is scored by one fit on 
 | student+geometry | 0.74 (0.70–0.77) | +0.285 (0.219 to 0.343) | +0.009 (0.002 to 0.014) | 0.023 (0.019–0.049) | 0.196 (0.183–0.210) | 0.82 (0.77–0.88) | +0.371 (0.285 to 0.469) | +0.015 (0.002 to 0.027) | 0.276 (0.234–0.318) | 0.183 (0.167–0.204) |
 | diag:signFree | 0.75 (0.71–0.78) | +0.296 (0.232 to 0.353) | +0.020 (0.008 to 0.029) | 0.019 (0.017–0.045) | 0.193 (0.180–0.205) | 0.82 (0.77–0.88) | +0.370 (0.291 to 0.463) | +0.015 (-0.005 to 0.036) | 0.436 (0.386–0.485) | 0.309 (0.282–0.341) |
 | diag:student+viewElevation | 0.74 (0.71–0.77) | +0.289 (0.230 to 0.343) | +0.012 (0.000 to 0.023) | 0.036 (0.027–0.060) | 0.194 (0.182–0.206) | 0.80 (0.75–0.87) | +0.356 (0.264 to 0.453) | +0.001 (-0.016 to 0.016) | 0.238 (0.196–0.279) | 0.163 (0.148–0.179) |
+| diag:student+fragment | 0.73 (0.69–0.76) | +0.275 (0.210 to 0.335) | -0.001 (-0.002 to -0.001) | 0.026 (0.021–0.053) | 0.199 (0.187–0.212) | 0.80 (0.75–0.87) | +0.355 (0.265 to 0.459) | -0.000 (-0.002 to 0.001) | 0.279 (0.234–0.321) | 0.186 (0.172–0.204) |
 
 - pilot-000: n = 3958 boxes in 31 photos, filled share 60 % (54–65).
 - yardstick B2: n = 793 boxes in 40 photos, filled share 82 % (77–86).
 
 Weights of the full pilot-000 fit, on standardised features (0 = dropped by the monotone rule). Folds dropping: of 31 leave-one-out fits, how many dropped the feature.
 
-| model | logCropWidthPx | logDetail | glareShare | lumaOffMid | tiltDeg | heightOffBand | topSeamOff | topBelowCentre | dropped (full fit) |
-|---|---:|---:|---:|---:|---:|---:|---:|---:|---|
-| baseline | -0.07 |  |  |  |  |  |  |  | – |
-| student | 0.00 (31/31) | 0.95 | 0.00 (31/31) | 0.00 (31/31) | -0.30 |  |  |  | logCropWidthPx, lumaOffMid, glareShare |
-| student-logCropWidthPx |  | 0.95 | 0.00 (31/31) | 0.00 (31/31) | -0.30 |  |  |  | lumaOffMid, glareShare |
-| student-logDetail | 0.00 (31/31) |  | 0.00 (31/31) | 0.00 (31/31) | -0.22 |  |  |  | glareShare, lumaOffMid, logCropWidthPx |
-| student-glareShare | 0.00 (31/31) | 0.95 |  | 0.00 (31/31) | -0.30 |  |  |  | logCropWidthPx, lumaOffMid |
-| student-lumaOffMid | 0.00 (31/31) | 0.95 | 0.00 (31/31) |  | -0.30 |  |  |  | logCropWidthPx, glareShare |
-| student-tiltDeg | 0.00 (31/31) | 0.93 | 0.00 (31/31) | 0.00 (31/31) |  |  |  |  | logCropWidthPx, lumaOffMid, glareShare |
-| student+heightOffBand | 0.00 (31/31) | 0.95 | 0.00 (31/31) | 0.00 (31/31) | -0.29 | -0.11 |  |  | logCropWidthPx, lumaOffMid, glareShare |
-| student+topSeamOff | 0.00 (31/31) | 0.96 | 0.00 (31/31) | 0.00 (31/31) | -0.28 |  | -0.26 |  | logCropWidthPx, lumaOffMid, glareShare |
-| student+geometry | 0.00 (31/31) | 0.96 | 0.00 (31/31) | 0.00 (31/31) | -0.27 | -0.10 | -0.25 |  | logCropWidthPx, lumaOffMid, glareShare |
-| diag:signFree | -0.40 | 1.12 | -0.01 | 0.13 | -0.22 |  |  |  | – |
-| diag:student+viewElevation | 0.00 (31/31) | 0.95 | 0.00 (16/31) | 0.00 (31/31) | -0.24 |  |  | -0.34 | logCropWidthPx, lumaOffMid, glareShare |
+| model | logCropWidthPx | logDetail | glareShare | lumaOffMid | tiltDeg | heightOffBand | topSeamOff | topBelowCentre | cutByTile | heightOverBand | dropped (full fit) |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---|
+| baseline | -0.07 |  |  |  |  |  |  |  |  |  | – |
+| student | 0.00 (31/31) | 0.95 | 0.00 (31/31) | 0.00 (31/31) | -0.30 |  |  |  |  |  | logCropWidthPx, lumaOffMid, glareShare |
+| student-logCropWidthPx |  | 0.95 | 0.00 (31/31) | 0.00 (31/31) | -0.30 |  |  |  |  |  | lumaOffMid, glareShare |
+| student-logDetail | 0.00 (31/31) |  | 0.00 (31/31) | 0.00 (31/31) | -0.22 |  |  |  |  |  | glareShare, lumaOffMid, logCropWidthPx |
+| student-glareShare | 0.00 (31/31) | 0.95 |  | 0.00 (31/31) | -0.30 |  |  |  |  |  | logCropWidthPx, lumaOffMid |
+| student-lumaOffMid | 0.00 (31/31) | 0.95 | 0.00 (31/31) |  | -0.30 |  |  |  |  |  | logCropWidthPx, glareShare |
+| student-tiltDeg | 0.00 (31/31) | 0.93 | 0.00 (31/31) | 0.00 (31/31) |  |  |  |  |  |  | logCropWidthPx, lumaOffMid, glareShare |
+| student+heightOffBand | 0.00 (31/31) | 0.95 | 0.00 (31/31) | 0.00 (31/31) | -0.29 | -0.11 |  |  |  |  | logCropWidthPx, lumaOffMid, glareShare |
+| student+topSeamOff | 0.00 (31/31) | 0.96 | 0.00 (31/31) | 0.00 (31/31) | -0.28 |  | -0.26 |  |  |  | logCropWidthPx, lumaOffMid, glareShare |
+| student+geometry | 0.00 (31/31) | 0.96 | 0.00 (31/31) | 0.00 (31/31) | -0.27 | -0.10 | -0.25 |  |  |  | logCropWidthPx, lumaOffMid, glareShare |
+| diag:signFree | -0.40 | 1.12 | -0.01 | 0.13 | -0.22 |  |  |  |  |  | – |
+| diag:student+viewElevation | 0.00 (31/31) | 0.95 | 0.00 (16/31) | 0.00 (31/31) | -0.24 |  |  | -0.34 |  |  | logCropWidthPx, lumaOffMid, glareShare |
+| diag:student+fragment | 0.00 (31/31) | 0.95 | 0.00 (31/31) | 0.00 (31/31) | -0.30 |  |  |  | 0.00 (31/31) | 0.01 (3/31) | logCropWidthPx, cutByTile, lumaOffMid, glareShare |
 
 ### Reliability (student; 10 equal-width bins of the predicted score)
 
@@ -258,7 +280,7 @@ No score reaches the precision target on pilot-000 (best 82 % where at least 5 %
 | 0.90 | 1 % | 78 % | 2 % | 0 % | – | 0 % |
 | 0.95 | 0 % | – | 0 % | 0 % | – | 0 % |
 
-## Sensitivity: box-score floor and lying boxes
+## Sensitivity: box-score floor, lying boxes, detector fragments
 
 | population | pilot-000 n | student AUC | baseline AUC | gain | filled | yardstick B2 n | student AUC | baseline AUC | gain | filled |
 |---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
@@ -268,6 +290,23 @@ No score reaches the precision target on pilot-000 (best 82 % where at least 5 %
 | floor0.25 | 3047 | 0.72 (0.68–0.76) | 0.44 (0.40–0.48) | +0.278 (0.211 to 0.348) | 65 % (59–70) | 703 | 0.78 (0.70–0.86) | 0.48 (0.41–0.55) | +0.295 (0.183 to 0.411) | 85 % (81–89) |
 | floor0.30 | 1438 | 0.72 (0.67–0.77) | 0.52 (0.47–0.58) | +0.201 (0.116 to 0.284) | 72 % (66–77) | 490 | 0.72 (0.57–0.86) | 0.46 (0.36–0.58) | +0.254 (0.024 to 0.450) | 91 % (88–95) |
 | floor0.225+lying | 4153 | 0.73 (0.70–0.77) | 0.48 (0.45–0.52) | +0.248 (0.188 to 0.309) | 59 % (53–64) | 812 | 0.78 (0.72–0.85) | 0.46 (0.40–0.52) | +0.324 (0.240 to 0.417) | 81 % (75–85) |
+| floor0.225, whole only (no cut or partial) | 1854 | 0.72 (0.68–0.77) | 0.54 (0.50–0.57) | +0.187 (0.122 to 0.248) | 57 % (48–64) | 645 | 0.73 (0.63–0.83) | 0.46 (0.39–0.54) | +0.262 (0.131 to 0.399) | 87 % (82–91) |
+
+## Detector fragments (F-0e pending)
+
+Cut: F-0 flagged the box as cut by a detector tile edge. Partial: not cut, but shorter than 0.55 of its shelf band's height. Per-photo medians over all detected boxes (partial: over upright boxes). The student columns score the go-rule student on each kind; +fragment adds the cut flag and height over band (a separate row, outside the go rule). These results may shift once F-0e lands.
+
+| set | kind | n | share of population | filled | student AUC | student+fragment AUC |
+|---|---|---:|---:|---:|---:|---:|
+| pilot-000 | whole | 1854 | 47 % | 57 % (49–64) | 0.73 (0.69–0.77) | 0.73 (0.68–0.77) |
+| pilot-000 | cut | 1485 | 38 % | 69 % (64–74) | 0.68 (0.63–0.73) | 0.68 (0.63–0.73) |
+| pilot-000 | partial | 619 | 16 % | 48 % (33–60) | 0.80 (0.72–0.83) | 0.79 (0.72–0.83) |
+| yardstick B2 | whole | 645 | 81 % | 87 % (81–91) | 0.73 (0.63–0.84) | 0.72 (0.62–0.83) |
+| yardstick B2 | cut | 59 | 7 % | 81 % (72–91) | 0.85 (0.64–0.96) | 0.85 (0.64–0.96) |
+| yardstick B2 | partial | 89 | 11 % | 48 % (31–64) | 0.92 (0.84–0.97) | 0.92 (0.85–0.97) |
+
+- pilot-000: per photo, median 29 % of boxes cut by a tile edge and 11 % of upright boxes partial.
+- yardstick B2: per photo, median 1 % of boxes cut by a tile edge and 13 % of upright boxes partial.
 
 ## Owner hypothesis: top edges at frame edges and in oblique views
 

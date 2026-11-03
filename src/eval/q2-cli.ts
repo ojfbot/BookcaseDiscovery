@@ -14,7 +14,7 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { dataRoot } from "../ledger/images.ts";
 import { compactJson } from "./q1-cli.ts";
-import { byImage, clusterBootstrap, rate, rng } from "./q1.ts";
+import { byImage, clusterBootstrap, quantile, rate, rng } from "./q1.ts";
 import type { Outcome } from "./q1.ts";
 import {
   RUNGS,
@@ -65,6 +65,8 @@ const Q0_FILL_P = 0.7;
 const EDGE_RADIAL = 0.5612;
 /** Top end this far below the frame's centre line (0 top, 1 bottom) counts as "camera looks down onto the top". */
 const TOP_IN_VIEW_Y = 0.6;
+/** An upright box shorter than this share of its shelf band's height is called a partial piece of a spine (conductor, F-0e). */
+const PARTIAL_BAND = 0.55;
 
 const log = (s: string) => process.stderr.write(`q2: ${s}\n`);
 const readJsonl = <T>(p: string): T[] => readFileSync(p, "utf8").split("\n").filter((l) => l.trim()).map((l) => JSON.parse(l) as T);
@@ -118,6 +120,22 @@ export interface Box {
   top: TopClass;
   edge: boolean;
   topInView: boolean;
+  /** F-0's flag: the box was cut by a detector tile edge. */
+  cut: boolean;
+  /** Box long side over its shelf band's height (the band polygon's short side); null outside a band. */
+  heightOverBand: number | null;
+  /** whole, or a likely fragment of a spine: cut by a tile edge, or under PARTIAL_BAND of the band's height. */
+  fragment: Fragment;
+}
+
+export type Fragment = "whole" | "cut" | "partial";
+export const fragmentOf = (cut: boolean, heightOverBand: number | null): Fragment =>
+  cut ? "cut" : heightOverBand !== null && heightOverBand < PARTIAL_BAND ? "partial" : "whole";
+
+/** Short side of a 4-point polygon: a shelf band's height across the shelf. */
+export function shortSide(p: number[][]): number {
+  const d = (a: number[], b: number[]) => Math.hypot(a[0]! - b[0]!, a[1]! - b[1]!);
+  return Math.min((d(p[0]!, p[1]!) + d(p[2]!, p[3]!)) / 2, (d(p[1]!, p[2]!) + d(p[3]!, p[0]!)) / 2);
 }
 
 /** Each box's readings, squashed, as F-0 counts them (a variant needs two characters after trimming). */
@@ -157,7 +175,9 @@ function agreements(set: string, reads: Map<string, Readings>, decisions: Decisi
 
 function boxesFor(set: string, tau: number, real: Map<string, number | null>, decisions: Decision[]): Box[] {
   const q1 = new Map(readJsonl<Q1Row>(join(Q1, "table", `${set}.jsonl`)).map((r) => [r.id, r]));
-  const band = new Map(readJsonl<{ id: string; band: number | null }>(join(Q1, "features", `${set}.jsonl`)).map((r) => [r.id, r.band]));
+  const feat = new Map(readJsonl<{ id: string; band: number | null; cut: boolean | null }>(join(Q1, "features", `${set}.jsonl`)).map((r) => [r.id, r]));
+  const band = new Map([...feat].map(([id, r]) => [id, r.band]));
+  const bandHeight = new Map(readJsonl<{ id: string; bands: { polygon: number[][] }[] }>(join(ROOT, "f0", set, "detect.jsonl")).map((d) => [d.id, d.bands.map((b) => shortSide(b.polygon))]));
   const geo = new Map(readJsonl<Geo>(join(PRIV, "geometry", `${set}.jsonl`)).map((r) => [r.id, r]));
   const boxes = decisions.map((d): Box => {
     const q = q1.get(d.id), g = geo.get(d.id);
@@ -182,10 +202,18 @@ function boxesFor(set: string, tau: number, real: Map<string, number | null>, de
       top: topClass(g.topSeam),
       edge: (q.f.radial ?? 0) > EDGE_RADIAL,
       topInView: g.topY > TOP_IN_VIEW_Y,
+      cut: feat.get(d.id)?.cut === true,
+      heightOverBand: null,
+      fragment: "whole",
     };
   });
   const h = heightOffBand(boxes);
-  for (const b of boxes) b.heightOff = h.get(b) ?? null;
+  for (const b of boxes) {
+    b.heightOff = h.get(b) ?? null;
+    const bh = b.band === null ? undefined : bandHeight.get(b.imageId)?.[b.band];
+    b.heightOverBand = bh && b.longPx ? b.longPx / bh : null;
+    b.fragment = fragmentOf(b.cut, b.heightOverBand);
+  }
   return boxes;
 }
 
@@ -211,6 +239,11 @@ const GEOM: Feature<Box>[] = [
 ];
 /** How far below the frame's centre line the box's top end sits: the camera looks down onto lower tops. */
 const VIEW: Feature<Box> = { name: "topBelowCentre", sign: -1, of: (b) => b.topY - 0.5 };
+/** Detector fragments (conductor's F-0e note): a tile-cut flag, and box height over band height (capped; missing = 1). */
+const FRAG: Feature<Box>[] = [
+  { name: "cutByTile", sign: -1, of: (b) => (b.cut ? 1 : 0) },
+  { name: "heightOverBand", sign: 1, of: (b) => Math.min(1.5, b.heightOverBand ?? 1) },
+];
 const NEEDED = ["shortPx", "lapVarNorm", "highlightFrac", "mean", "offAxisDeg"];
 
 const complete = (b: Box) => NEEDED.every((k) => b.f[k] !== null && b.f[k] !== undefined && Number.isFinite(b.f[k]!));
@@ -227,6 +260,8 @@ const CONFIGS: Config[] = [
   // Diagnostics, outside the go rule: every direction learned, and the vertical viewing position of the top.
   { name: "diag:signFree", feats: BASE.map((f) => ({ ...f, sign: 0 as const })) },
   { name: "diag:student+viewElevation", feats: [...BASE, VIEW] },
+  // Detector fragments, a separate row too: these measure F-0's boxes, not the capture (F-0e is fixing them).
+  { name: "diag:student+fragment", feats: [...BASE, ...FRAG] },
 ];
 
 interface Fitted { pilot: Scored[]; yard: Scored[]; full: Record<string, Monotone>; folds: Record<string, Monotone[]> }
@@ -416,8 +451,10 @@ function analyse(): void {
   // Sensitivity: the floor, and lying boxes let back in.
   log("sensitivity");
   const sens: Record<string, unknown> = {};
-  for (const [label, floor, lying] of [["noFloor", 0, false], ["floor0.20", 0.2, false], [`floor${FLOOR}`, FLOOR, false], ["floor0.25", 0.25, false], ["floor0.30", 0.3, false], [`floor${FLOOR}+lying`, FLOOR, true]] as const) {
-    const p = boxes[PILOT]!.filter(inPopulation(floor, lying)), y = boxes[YARD]!.filter(inPopulation(floor, lying));
+  const whole = (b: Box) => b.fragment === "whole";
+  for (const [label, floor, lying, only] of [["noFloor", 0, false, null], ["floor0.20", 0.2, false, null], [`floor${FLOOR}`, FLOOR, false, null], ["floor0.25", 0.25, false, null], ["floor0.30", 0.3, false, null], [`floor${FLOOR}+lying`, FLOOR, true, null], [`floor${FLOOR}, whole only (no cut or partial)`, FLOOR, false, whole]] as const) {
+    const pick = (b: Box) => inPopulation(floor, lying)(b) && (!only || only(b));
+    const p = boxes[PILOT]!.filter(pick), y = boxes[YARD]!.filter(pick);
     const f = label === `floor${FLOOR}` ? fit : fitAll(p, y, CONFIGS.slice(0, 2));
     const s = (rows: Scored[], seed: number) => {
       const b = pairedBootstrap(rows, { student: (r) => aucOf(r, "student"), baseline: (r) => aucOf(r, "baseline"), gain: (r) => { const a = aucOf(r, "student"), c = aucOf(r, "baseline"); return a === null || c === null ? null : a - c; }, filled: rate((r: Scored) => r.y === 1) }, REPS, seed);
@@ -434,6 +471,32 @@ function analyse(): void {
     topClassShareAllDetected: Object.fromEntries(TOPS.map((c) => [c, r4(boxes[set]!.filter((b) => b.top === c).length / boxes[set]!.length)])),
   }]));
 
+  // Detector fragments (F-0e): how many, how they read, and how the student does on each kind.
+  const FRAGS: Fragment[] = ["whole", "cut", "partial"];
+  const fragments = Object.fromEntries(SETS.map((set, k) => {
+    const all = boxes[set]!, bs = set === PILOT ? pilot : yard, sc = set === PILOT ? fit.pilot : fit.yard;
+    const perPhoto = (pred: (b: Box) => boolean, of: (b: Box) => boolean) => {
+      const v = byImage(all).map((g) => g.filter(of)).filter((g) => g.length).map((g) => g.filter(pred).length / g.length).sort((a, b) => a - b);
+      return v.length ? r4(quantile(v, 0.5)) : null;
+    };
+    const t = (x: ReturnType<typeof clusterBootstrap>): Interval | null => (x ? [r4(x.value), r4(x.lo), r4(x.hi)] : null);
+    return [set, {
+      perPhotoMedian: { cutByTile: perPhoto((b) => b.cut, () => true), partialOfUpright: perPhoto((b) => !b.cut && b.fragment === "partial", (b) => !b.lying) },
+      population: Object.fromEntries(FRAGS.map((c, j) => {
+        const idx = bs.map((b, i) => (b.fragment === c ? i : -1)).filter((i) => i >= 0);
+        const rows = idx.map((i) => sc[i]!);
+        const a = rows.some((r) => r.y) && rows.some((r) => !r.y)
+          ? pairedBootstrap(rows, { student: (r) => aucOf(r, "student"), fragment: (r) => aucOf(r, "diag:student+fragment") }, REPS, 400 + 10 * k + j)
+          : null;
+        return [c, {
+          n: idx.length, share: bs.length ? r4(idx.length / bs.length) : null,
+          filled: t(clusterBootstrap(bs, rate((b: Box) => b.y === 1, (b: Box) => b.fragment === c), REPS, 410 + 10 * k + j)),
+          aucStudent: a?.student ?? null, aucStudentFragment: a?.fragment ?? null,
+        }];
+      })),
+    }];
+  }));
+
   // Private per-box table for the renders: scores, rungs and geometry, never in the repo.
   mkdirSync(join(PRIV, "table"), { recursive: true });
   for (const set of SETS) {
@@ -445,6 +508,7 @@ function analyse(): void {
         id: b.id, imageId: b.imageId, index: b.index, rung: b.rung, filled: b.y, inPopulation: !!s,
         why: s ? null : b.boxScore < FLOOR ? "below-floor" : b.lying ? "lying" : "incomplete",
         pStudent: s ? r4(s.s.student!) : null, pBaseline: s ? r4(s.s.baseline!) : null, pGeometry: s ? r4(s.s["student+geometry"]!) : null,
+        fragment: b.fragment, heightOverBand: b.heightOverBand === null ? null : r4(b.heightOverBand),
         topSeam: b.topSeam, topClass: b.top, topY: b.topY, heightOff: b.heightOff === null ? null : r4(b.heightOff), edge: b.edge, topInView: b.topInView,
       });
     }).join("\n") + "\n");
@@ -494,6 +558,12 @@ function analyse(): void {
       },
       sensitivity: sens,
     },
+    fragments: {
+      why: "many pilot-000 boxes are pieces of a spine (a detector tile edge cut them, or they are much shorter than their band); F-0e is fixing the detector, so these results may shift once it lands",
+      definitions: { cut: "F-0's per-box flag: cut by a detector tile edge", partial: `not cut, box long side < ${PARTIAL_BAND} of its shelf band's height`, whole: "neither" },
+      features: "diag:student+fragment adds cutByTile (-) and heightOverBand (+, capped at 1.5, missing = 1) to the student",
+      sets: fragments,
+    },
     ownerHypothesis: {
       ownerSaid: "top edges are missed at frame edges and in oblique views where a book's top face shows beside its spine",
       features: {
@@ -529,6 +599,7 @@ interface Metrics {
     operatingPoint: { fillP: number; targetMet: boolean; bestPrecision: number; atFillP: Record<string, Record<string, Tri> | null>; curve: Record<string, { fillP: number; filledShare: number; precision: number | null; recall: number | null }[]> };
     sensitivity: Record<string, Record<string, unknown>>;
   };
+  fragments: { sets: Record<string, { perPhotoMedian: { cutByTile: number | null; partialOfUpright: number | null }; population: Record<string, { n: number; share: number | null; filled: Tri; aucStudent: Tri; aucStudentFragment: Tri }> }> };
   ownerHypothesis: { sets: Record<string, { breakdown: Record<string, Cell>; separation: Record<string, { n: number; auc: Tri }>; topClassShareAllDetected: Record<string, number> }> };
 }
 
@@ -601,11 +672,19 @@ export function tables(m: Metrics): string {
     const c = Object.values(op.curve).map((x) => x[i]!);
     out.push(`| ${c[0]!.fillP.toFixed(2)} | ` + c.map((x) => `${pct(x.filledShare)} | ${pct(x.precision)} | ${pct(x.recall)}`).join(" | ") + " |");
   }
-  out.push("\n## Sensitivity: box-score floor and lying boxes\n");
+  out.push("\n## Sensitivity: box-score floor, lying boxes, detector fragments\n");
   out.push("| population | " + SETS.map((k) => `${short(k)} n | student AUC | baseline AUC | gain | filled`).join(" | ") + " |", "|---|" + SETS.map(() => "---:|---:|---:|---:|---:").join("|") + "|");
   for (const [label, v] of Object.entries(s.sensitivity)) {
     out.push(`| ${label} | ` + SETS.map((k) => { const x = v[k] as { n: number; student: Tri; baseline: Tri; gain: Tri; filled: Tri }; return `${x.n} | ${triNum(x.student)} | ${triNum(x.baseline)} | ${triSigned(x.gain)} | ${triPct(x.filled)}`; }).join(" | ") + " |");
   }
+  out.push("\n## Detector fragments (F-0e pending)\n");
+  out.push(`Cut: F-0 flagged the box as cut by a detector tile edge. Partial: not cut, but shorter than ${PARTIAL_BAND} of its shelf band's height. Per-photo medians over all detected boxes (partial: over upright boxes). The student columns score the go-rule student on each kind; +fragment adds the cut flag and height over band (a separate row, outside the go rule). These results may shift once F-0e lands.\n`);
+  out.push("| set | kind | n | share of population | filled | student AUC | student+fragment AUC |", "|---|---|---:|---:|---:|---:|---:|");
+  for (const [set, v] of Object.entries(m.fragments.sets)) {
+    for (const [c, x] of Object.entries(v.population)) out.push(`| ${short(set)} | ${c} | ${x.n} | ${pct(x.share)} | ${triPct(x.filled)} | ${triNum(x.aucStudent)} | ${triNum(x.aucStudentFragment)} |`);
+  }
+  out.push("");
+  for (const [set, v] of Object.entries(m.fragments.sets)) out.push(`- ${short(set)}: per photo, median ${pct(v.perPhotoMedian.cutByTile)} of boxes cut by a tile edge and ${pct(v.perPhotoMedian.partialOfUpright)} of upright boxes partial.`);
   out.push("\n## Owner hypothesis: top edges at frame edges and in oblique views\n");
   out.push("Single-feature separation of filled from not filled (AUC > 0.5: larger values go with filled).\n");
   const sep = (k: string) => Object.values(m.ownerHypothesis.sets).map((x) => triNum(x.separation[k]?.auc ?? null)).join(" | ");
