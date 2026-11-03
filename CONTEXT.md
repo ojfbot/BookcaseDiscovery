@@ -130,3 +130,18 @@ These are kept apart on purpose: raw evidence is stored separately from interpre
 - **Hypothesis (claim)** — in docs, a number or fact not yet measured is marked *hypothesis* (INV-17). Not to be confused with the identity hypothesis above.
 - **Gate** — an owner decision point, `G-*`. The conductor writes a packet; the owner rules; a gate is never closed silently.
 - **Task card** — one unit of delivery work in `DELIVERY-PLAN.md`, ending in a PR.
+
+## Compute jobs and shifts
+
+The interim queue in `docs/ops/compute-fleet.md` (cards N-1 to N-3). Core's fleet-runner will take it over; these words name the parts that move with it.
+
+- **Job** — one unit of compute a worker claims: detect one photo, read one batch of crops, render one page, run the test suite at one commit. Not a *run* (a pipeline execution recorded by `RunStarted`); one run can enqueue many jobs. Not a *task card* (delivery work ending in a PR).
+- **Job kind** — what a job does (`detect`, `read-vision`, `read-ppocr`, `read-qwen`, `render`, `test-suite`). Each kind has one handler and declares the capabilities a worker needs (MPS, Apple Vision, MLX).
+- **Job key** — SHA-256 over the canonical JSON of the kind, input content hashes, parameters, model id and revision, and code commit or helper version. Same key, same work: enqueueing twice is a no-op, and a finished key is a cache hit.
+- **Host** — one machine that runs workers. Hosts provision themselves (their own model-hub login, lockfiles, a models manifest checked by hash); credentials are never copied between hosts.
+- **Worker** — one process on a host that claims and runs one job at a time. A host runs at most one GPU worker.
+- **Lease** — a worker's time-limited claim on a job, renewed by heartbeat. When it expires (sleep, crash, lost network), the job returns to the queue.
+- **Fencing token** — a per-job counter incremented on every claim. A heartbeat or completion that carries an old token is rejected, so a worker that wakes after its lease expired can never overwrite a newer attempt.
+- **Day shift / night shift** — the day shift is when the owner is present: admitting work, gates, merges, rulings, review. The night shift runs only admitted jobs that have a deterministic success check and no effect outside the owner's machines.
+- **Admission** — the day-shift act that puts a job plan into the queue for the night shift.
+- **Morning report** — `bookcase jobs report`: aggregates per job kind and host (done, failed, stale-rejected, still waiting), error codes and machine-hours. A query over the job table, never a session's memory.
