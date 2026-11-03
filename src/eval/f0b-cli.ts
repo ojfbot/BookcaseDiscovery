@@ -18,6 +18,7 @@ import { dataRoot, ImageStore } from "../ledger/images.ts";
 import {
   AMBIGUOUS_ASPECT,
   F0_CROP,
+  canonical,
   clipToFrame,
   cropFor,
   cropName,
@@ -87,6 +88,20 @@ interface Geo {
   edge: boolean;
   face: SpineFace | null;
   oblique: boolean;
+  /** Cut by a tile edge (the detector's flag), or its long side under `PARTIAL_BAND` of its shelf band's height. */
+  piece: boolean;
+}
+
+/** The conductor's cut for a broken piece of a spine (F-0e): long side under this share of the band's height. */
+const PARTIAL_BAND = 0.55;
+
+/** Is `p` inside the convex quad `q` (canonical, clockwise on screen)? */
+function inQuad(p: Point, q: readonly Point[]): boolean {
+  const c = canonical(q);
+  return c.every((a, k) => {
+    const b = c[(k + 1) % 4]!;
+    return (b[0] - a[0]) * (p[1] - a[1]) - (b[1] - a[1]) * (p[0] - a[0]) >= 0;
+  });
 }
 
 function geometry(dets: Map<string, Detection>): Geo[] {
@@ -98,6 +113,9 @@ function geometry(dets: Map<string, Detection>): Geo[] {
       const rot = longAxisRotations(s.polygon);
       const c = clipToFrame(s.polygon, d.width, d.height);
       const face = s.outline ? spineFace(s.outline) : null;
+      const centre: Point = [cx * d.width, cy * d.height];
+      const band = d.bands.find((b) => inQuad(centre, b.polygon));
+      const bandHeight = band ? Math.min(cropSize(band.polygon).width, cropSize(band.polygon).height) : null;
       return {
         id: `${d.id}:${i}`,
         imageId: d.id,
@@ -110,6 +128,7 @@ function geometry(dets: Map<string, Detection>): Geo[] {
         edge: radial > EDGE_RADIAL,
         face,
         oblique: face?.oblique ?? false,
+        piece: s.cut || (bandHeight !== null && Math.max(width, height) < PARTIAL_BAND * bandHeight),
       };
     }),
   );
@@ -281,6 +300,7 @@ function analyse(): void {
         oblique: geo.filter((g) => g.oblique).length,
         topFaceTrimmed: geo.filter((g) => g.face && (g.face.trim[0] > 0 || g.face.trim[1] > 0)).length,
         flagged: geo.filter(flagged).length,
+        cutOrPartial: geo.filter((g) => g.piece).length,
       },
       variants: {} as Record<string, unknown>,
     };
@@ -317,6 +337,8 @@ function analyse(): void {
         cropChanged: changed,
         all: summary(pairs(() => true), 11),
         strata: Object.fromEntries(Object.entries(v.strata).map(([k, f], i) => [k, summary(pairs(f), 21 + 3 * i)])),
+        // Split for F-0e, which re-tiles detection so fewer boxes are pieces: lifts on whole boxes are the ones that carry over.
+        byBox: { whole: summary(pairs((g) => !g.piece), 51), cutOrPartial: summary(pairs((g) => g.piece), 54) },
         ...(name === "face" || name === "pad" || name === "remask"
           ? after.clip ? { outOfFrameVsClip: summary(pairs((g) => !g.inFrame, after.clip), 41) } : {}
           : {}),
@@ -372,7 +394,7 @@ function tables(m: { verdicts: Record<string, any>; sets: Record<string, any> })
     out.push(`## ${set} (${s.scope})`, "");
     const g = s.geometry;
     out.push(
-      `${s.boxCount} boxes in ${s.photos} photos; mask outlines for ${s.outlines}. Lying ${g.lying}, squat upright ${g.squatUpright}, partly out of frame ${g.partlyOutOfFrame}, at the frame's edge ${g.edge}, oblique by the mask ${g.oblique} (a second plane trimmed: ${g.topFaceTrimmed}); flagged for the face and pad tests ${g.flagged}.`,
+      `${s.boxCount} boxes in ${s.photos} photos; mask outlines for ${s.outlines}. Lying ${g.lying}, squat upright ${g.squatUpright}, partly out of frame ${g.partlyOutOfFrame}, at the frame's edge ${g.edge}, oblique by the mask ${g.oblique} (a second plane trimmed: ${g.topFaceTrimmed}); flagged for the face and pad tests ${g.flagged}; cut by a tile edge or under ${Math.round(PARTIAL_BAND * 100)} % of their band\'s height ${g.cutOrPartial}.`,
       "",
       `Shares in % of the boxes in each row, before → after (Δ points; 95 % paired photo-bootstrap interval). ${yard ? "Confirmed = accepted and annotated in the image; wrong = accepted, not annotated." : "Machine agreement, never accuracy (INV-17)."}`,
       "",
@@ -383,6 +405,7 @@ function tables(m: { verdicts: Record<string, any>; sets: Record<string, any> })
       const row = (label: string, x: any, changed = "") => `| ${label} | ${x.boxCount} | ${x.photos} | ${changed} | ${fmt(x.textRead)} | ${fmt(x.confirmed)} |${yard ? ` ${fmt(x.wrong)} |` : ""}`;
       out.push(row(`**${name}**`, v.all, String(v.cropChanged)));
       for (const [k, x] of Object.entries<any>(v.strata)) if (Object.keys(v.strata).length > 1) out.push(row(`  ${name}: ${k}`, x));
+      out.push(row(`  ${name}: whole boxes`, v.byBox.whole), row(`  ${name}: cut or partial boxes`, v.byBox.cutOrPartial));
       if (v.outOfFrameVsClip) out.push(row(`  ${name}: out of frame, vs clip`, v.outOfFrameVsClip));
     }
     out.push("", "Cost on the same boxes, before → after: reader calls (one crop at one rotation) and summed reader seconds.", "", "| variant | Vision calls | Vision s | PP-OCR calls | PP-OCR s | Qwen calls | Qwen s |", "|---|---:|---:|---:|---:|---:|---:|");

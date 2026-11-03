@@ -52,7 +52,8 @@
     "edge": 2776,
     "oblique": 3274,
     "topFaceTrimmed": 2144,
-    "flagged": 4146
+    "flagged": 4146,
+    "cutOrPartial": 3825
    },
    "variants": {
     "orient": {
@@ -112,6 +113,44 @@
         "delta": 1.5,
         "lo": 0,
         "hi": 3.3
+       }
+      }
+     },
+     "byBox": {
+      "whole": {
+       "boxCount": 69,
+       "photos": 19,
+       "textRead": {
+        "before": 39.1,
+        "after": 44.9,
+        "delta": 5.8,
+        "lo": -3.1,
+        "hi": 15.4
+       },
+       "confirmed": {
+        "before": 0,
+        "after": 1.4,
+        "delta": 1.4,
+        "lo": 0,
+        "hi": 4.3
+       }
+      },
+      "cutOrPartial": {
+       "boxCount": 470,
+       "photos": 31,
+       "textRead": {
+        "before": 48.9,
+        "after": 49.6,
+        "delta": 0.6,
+        "lo": -1.6,
+        "hi": 2.8
+       },
+       "confirmed": {
+        "before": 2.1,
+        "after": 1.9,
+        "delta": -0.2,
+        "lo": -1.5,
+        "hi": 0.9
        }
       }
      },
@@ -185,6 +224,44 @@
         "delta": 1.1,
         "lo": 0.2,
         "hi": 2
+       }
+      }
+     },
+     "byBox": {
+      "whole": {
+       "boxCount": 417,
+       "photos": 31,
+       "textRead": {
+        "before": 61.4,
+        "after": 62.8,
+        "delta": 1.4,
+        "lo": -1.4,
+        "hi": 4.7
+       },
+       "confirmed": {
+        "before": 1.2,
+        "after": 2.4,
+        "delta": 1.2,
+        "lo": 0,
+        "hi": 2.6
+       }
+      },
+      "cutOrPartial": {
+       "boxCount": 197,
+       "photos": 30,
+       "textRead": {
+        "before": 46.2,
+        "after": 46.7,
+        "delta": 0.5,
+        "lo": -3.7,
+        "hi": 4.1
+       },
+       "confirmed": {
+        "before": 1.5,
+        "after": 2.5,
+        "delta": 1,
+        "lo": -1,
+        "hi": 2.7
        }
       }
      },
@@ -276,6 +353,44 @@
         "delta": 1.5,
         "lo": 0.3,
         "hi": 2.6
+       }
+      }
+     },
+     "byBox": {
+      "whole": {
+       "boxCount": 2086,
+       "photos": 31,
+       "textRead": {
+        "before": 75.6,
+        "after": 73.3,
+        "delta": -2.3,
+        "lo": -3.3,
+        "hi": -1.4
+       },
+       "confirmed": {
+        "before": 8,
+        "after": 8.7,
+        "delta": 0.7,
+        "lo": -0.3,
+        "hi": 1.7
+       }
+      },
+      "cutOrPartial": {
+       "boxCount": 2060,
+       "photos": 31,
+       "textRead": {
+        "before": 66.6,
+        "after": 63.9,
+        "delta": -2.7,
+        "lo": -4.2,
+        "hi": -1.3
+       },
+       "confirmed": {
+        "before": 8.3,
+        "after": 9.1,
+        "delta": 0.8,
+        "lo": 0,
+        "hi": 1.6
        }
       }
      },
@@ -385,6 +500,44 @@
         "delta": 1.3,
         "lo": 0.2,
         "hi": 2.3
+       }
+      }
+     },
+     "byBox": {
+      "whole": {
+       "boxCount": 2086,
+       "photos": 31,
+       "textRead": {
+        "before": 75.6,
+        "after": 76.1,
+        "delta": 0.5,
+        "lo": -0.6,
+        "hi": 1.4
+       },
+       "confirmed": {
+        "before": 8,
+        "after": 8.2,
+        "delta": 0.3,
+        "lo": -0.6,
+        "hi": 1.3
+       }
+      },
+      "cutOrPartial": {
+       "boxCount": 2060,
+       "photos": 31,
+       "textRead": {
+        "before": 66.6,
+        "after": 67.5,
+        "delta": 0.9,
+        "lo": 0.2,
+        "hi": 1.8
+       },
+       "confirmed": {
+        "before": 8.3,
+        "after": 8.5,
+        "delta": 0.2,
+        "lo": -0.4,
+        "hi": 0.7
        }
       }
      },
@@ -498,6 +651,44 @@
        }
       }
      },
+     "byBox": {
+      "whole": {
+       "boxCount": 2086,
+       "photos": 31,
+       "textRead": {
+        "before": 75.6,
+        "after": 75.9,
+        "delta": 0.3,
+        "lo": -1.1,
+        "hi": 1.9
+       },
+       "confirmed": {
+        "before": 8,
+        "after": 8.3,
+        "delta": 0.3,
+        "lo": -0.6,
+        "hi": 1.2
+       }
+      },
+      "cutOrPartial": {
+       "boxCount": 2060,
+       "photos": 31,
+       "textRead": {
+        "before": 66.6,
+        "after": 68,
+        "delta": 1.4,
+        "lo": 0.1,
+        "hi": 2.7
+       },
+       "confirmed": {
+        "before": 8.3,
+        "after": 9.1,
+        "delta": 0.8,
+        "lo": -0.1,
+        "hi": 1.8
+       }
+      }
+     },
      "outOfFrameVsClip": {
       "boxCount": 614,
       "photos": 31,
@@ -561,7 +752,8 @@
     "edge": 273,
     "oblique": 456,
     "topFaceTrimmed": 328,
-    "flagged": 557
+    "flagged": 557,
+    "cutOrPartial": 363
    },
    "variants": {
     "orient": {
@@ -632,6 +824,58 @@
        "confirmed": {
         "before": 0,
         "after": 0,
+        "delta": 0,
+        "lo": 0,
+        "hi": 0
+       },
+       "wrong": {
+        "before": 0,
+        "after": 0,
+        "delta": 0,
+        "lo": 0,
+        "hi": 0
+       }
+      }
+     },
+     "byBox": {
+      "whole": {
+       "boxCount": 19,
+       "photos": 11,
+       "textRead": {
+        "before": 21.1,
+        "after": 15.8,
+        "delta": -5.3,
+        "lo": -13.6,
+        "hi": 0
+       },
+       "confirmed": {
+        "before": 0,
+        "after": 0,
+        "delta": 0,
+        "lo": 0,
+        "hi": 0
+       },
+       "wrong": {
+        "before": 10.5,
+        "after": 10.5,
+        "delta": 0,
+        "lo": 0,
+        "hi": 0
+       }
+      },
+      "cutOrPartial": {
+       "boxCount": 78,
+       "photos": 23,
+       "textRead": {
+        "before": 30.8,
+        "after": 33.3,
+        "delta": 2.6,
+        "lo": 0,
+        "hi": 5.2
+       },
+       "confirmed": {
+        "before": 1.3,
+        "after": 1.3,
         "delta": 0,
         "lo": 0,
         "hi": 0
@@ -722,6 +966,58 @@
         "delta": 10,
         "lo": 3.3,
         "hi": 15.6
+       },
+       "wrong": {
+        "before": 0,
+        "after": 0,
+        "delta": 0,
+        "lo": 0,
+        "hi": 0
+       }
+      }
+     },
+     "byBox": {
+      "whole": {
+       "boxCount": 58,
+       "photos": 17,
+       "textRead": {
+        "before": 86.2,
+        "after": 86.2,
+        "delta": 0,
+        "lo": 0,
+        "hi": 0
+       },
+       "confirmed": {
+        "before": 20.7,
+        "after": 31,
+        "delta": 10.3,
+        "lo": 2.2,
+        "hi": 16.9
+       },
+       "wrong": {
+        "before": 0,
+        "after": 0,
+        "delta": 0,
+        "lo": 0,
+        "hi": 0
+       }
+      },
+      "cutOrPartial": {
+       "boxCount": 12,
+       "photos": 8,
+       "textRead": {
+        "before": 41.7,
+        "after": 50,
+        "delta": 8.3,
+        "lo": 0,
+        "hi": 30
+       },
+       "confirmed": {
+        "before": 0,
+        "after": 8.3,
+        "delta": 8.3,
+        "lo": 0,
+        "hi": 30
        },
        "wrong": {
         "before": 0,
@@ -841,6 +1137,58 @@
         "delta": 0,
         "lo": 0,
         "hi": 0
+       }
+      }
+     },
+     "byBox": {
+      "whole": {
+       "boxCount": 385,
+       "photos": 40,
+       "textRead": {
+        "before": 87.3,
+        "after": 85.7,
+        "delta": -1.6,
+        "lo": -3.4,
+        "hi": 0
+       },
+       "confirmed": {
+        "before": 22.6,
+        "after": 34,
+        "delta": 11.4,
+        "lo": 5.8,
+        "hi": 18
+       },
+       "wrong": {
+        "before": 1.3,
+        "after": 2.9,
+        "delta": 1.6,
+        "lo": 0.5,
+        "hi": 2.8
+       }
+      },
+      "cutOrPartial": {
+       "boxCount": 172,
+       "photos": 30,
+       "textRead": {
+        "before": 40.1,
+        "after": 31.4,
+        "delta": -8.7,
+        "lo": -12.4,
+        "hi": -5.5
+       },
+       "confirmed": {
+        "before": 6.4,
+        "after": 4.7,
+        "delta": -1.7,
+        "lo": -5.8,
+        "hi": 3
+       },
+       "wrong": {
+        "before": 0,
+        "after": 0.6,
+        "delta": 0.6,
+        "lo": 0,
+        "hi": 1.7
        }
       }
      },
@@ -981,6 +1329,58 @@
        }
       }
      },
+     "byBox": {
+      "whole": {
+       "boxCount": 385,
+       "photos": 40,
+       "textRead": {
+        "before": 87.3,
+        "after": 87.3,
+        "delta": 0,
+        "lo": -0.7,
+        "hi": 0.8
+       },
+       "confirmed": {
+        "before": 22.6,
+        "after": 23.1,
+        "delta": 0.5,
+        "lo": -1.7,
+        "hi": 2.9
+       },
+       "wrong": {
+        "before": 1.3,
+        "after": 1.3,
+        "delta": 0,
+        "lo": -0.9,
+        "hi": 0.7
+       }
+      },
+      "cutOrPartial": {
+       "boxCount": 172,
+       "photos": 30,
+       "textRead": {
+        "before": 40.1,
+        "after": 40.1,
+        "delta": 0,
+        "lo": -1.7,
+        "hi": 1.8
+       },
+       "confirmed": {
+        "before": 6.4,
+        "after": 6.4,
+        "delta": 0,
+        "lo": -2,
+        "hi": 2.6
+       },
+       "wrong": {
+        "before": 0,
+        "after": 0,
+        "delta": 0,
+        "lo": 0,
+        "hi": 0
+       }
+      }
+     },
      "outOfFrameVsClip": {
       "boxCount": 70,
       "photos": 20,
@@ -1116,6 +1516,58 @@
         "delta": 1.4,
         "lo": 0,
         "hi": 3.3
+       }
+      }
+     },
+     "byBox": {
+      "whole": {
+       "boxCount": 385,
+       "photos": 40,
+       "textRead": {
+        "before": 87.3,
+        "after": 86.8,
+        "delta": -0.5,
+        "lo": -1.8,
+        "hi": 0.5
+       },
+       "confirmed": {
+        "before": 22.6,
+        "after": 22.9,
+        "delta": 0.3,
+        "lo": -2.6,
+        "hi": 3.7
+       },
+       "wrong": {
+        "before": 1.3,
+        "after": 1.8,
+        "delta": 0.5,
+        "lo": -0.5,
+        "hi": 1.4
+       }
+      },
+      "cutOrPartial": {
+       "boxCount": 172,
+       "photos": 30,
+       "textRead": {
+        "before": 40.1,
+        "after": 39,
+        "delta": -1.2,
+        "lo": -4.4,
+        "hi": 2.1
+       },
+       "confirmed": {
+        "before": 6.4,
+        "after": 7,
+        "delta": 0.6,
+        "lo": -2.3,
+        "hi": 3.8
+       },
+       "wrong": {
+        "before": 0,
+        "after": 0,
+        "delta": 0,
+        "lo": 0,
+        "hi": 0
        }
       }
      },
