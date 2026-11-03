@@ -65,6 +65,8 @@ export interface Detection {
   seconds: number;
   /** Box arm (b2, b3, b4) and the detector process's memory peaks so far, in MB. */
   arm?: string;
+  /** Tiling and post steps (F-0e; absent before), as `tilingName`. */
+  layout?: string;
   device?: string;
   peakRssMb?: number;
   mpsPeakMb?: number;
@@ -160,9 +162,9 @@ const BOX_PRODUCER: Record<Arm, string> = {
 };
 
 /** Provenance of one run: the box step it actually used, its readers, and why there is no box agreement. */
-export function stackFor(arm: Arm, scope: "pilot" | "yardstick") {
+export function stackFor(arm: Arm, scope: "pilot" | "yardstick", tiling: Tiling = scope === "pilot" ? CASE_TILING : SHELF_TILING) {
   return {
-    boxProducer: BOX_PRODUCER[arm],
+    boxProducer: `${BOX_PRODUCER[arm]}; tiling ${tilingName(tiling)}`,
     boxProducers: 1,
     boxAgreement:
       scope === "pilot"
@@ -177,19 +179,44 @@ export function stackFor(arm: Arm, scope: "pilot" | "yardstick") {
 export interface Tiling {
   tile: number;
   overlap: number;
+  /** F-0e: tiles taller than wide, with their own vertical overlap (default: square, `tile` and `overlap`). */
+  tileH?: number;
+  overlapY?: number;
+  /** F-0e post steps after NMS, in detect.py's order (`strips`, `join`, `extend`). */
+  post?: string[];
 }
-/** Whole-case photos (pilot-000): spines are ~2 % of the frame. */
-export const CASE_TILING: Tiling = { tile: 1600, overlap: 700 };
+
+/** The tiling as detect.py names it in each detection's `layout` and the runs' provenance: "1600x2600/700x1900 +strips". */
+export function tilingName(t: Tiling): string {
+  const h = t.tileH ?? t.tile;
+  const oy = t.overlapY ?? t.overlap;
+  const grid = h === t.tile && oy === t.overlap ? `${t.tile}/${t.overlap}` : `${t.tile}x${h}/${t.overlap}x${oy}`;
+  return grid + (t.post ?? []).map((p) => ` +${p}`).join("");
+}
+/**
+ * Whole-case photos (pilot-000): spines are ~2 % of the frame. F-0e: tiles 1600 px wide (the detector's input scale
+ * as before) and 2600 px tall with 1900 px vertical overlap, so one tile row holds any shelf band up to 1900 px and
+ * its spines are found whole; then `strips` drops flat strips of spine ends that a tile edge cuts. F-0 ran 1600/700.
+ */
+export const CASE_TILING: Tiling = { tile: 1600, overlap: 700, tileH: 2600, overlapY: 1900, post: ["strips"] };
 /** Shelf-scale photos (the yardstick's split images, ~7100 x 3100): one spine is ~2400 px tall, so a tile spans the shelf. */
 export const SHELF_TILING: Tiling = { tile: 3100, overlap: 1300 };
 
 export async function detectStage(images: InputImage[], dir: string, log: (s: string) => void, arm: Arm = "b2", tiling: Tiling = CASE_TILING): Promise<Map<string, Detection>> {
   const out = join(dir, "detect.jsonl");
-  const done = new Set(readJsonl<Detection>(out).filter((d) => !d.error).map((d) => d.id));
+  const cached = readJsonl<Detection>(out).filter((d) => !d.error);
+  // Spine ids are positions in a detection, so readings cached beside boxes from another tiling would be misread
+  // as this one's. Runs before F-0e carry no `layout`: they used the square 1600/700 or 3100/1300 grid.
+  const stale = cached.find((d) => (d.layout ?? `${tiling.tile}/${tiling.overlap}`) !== tilingName(tiling));
+  if (stale) throw new Error(`${out} holds detections made with tiling ${stale.layout ?? "1600/700"}, not ${tilingName(tiling)}: use a fresh stage folder`);
+  const done = new Set(cached.map((d) => d.id));
   await runHelper("detect.py", [], images.filter((i) => !done.has(i.id)).map((i) => ({ id: i.id, image: i.path })), out, log, {
     F0_ARM: arm,
     F0_TILE: String(tiling.tile),
     F0_OVERLAP: String(tiling.overlap),
+    F0_TILE_H: String(tiling.tileH ?? tiling.tile),
+    F0_OVERLAP_Y: String(tiling.overlapY ?? tiling.overlap),
+    F0_POST: (tiling.post ?? []).join(","),
   });
   return new Map(readJsonl<Detection>(out).filter((d) => !d.error).map((d) => [d.id, d]));
 }
