@@ -6,7 +6,7 @@
 ## Answer first
 
 - **The work is already job-shaped.** Every expensive stage (detect, three readers, renders, the test suite) runs per photo or per crop batch from content-addressed inputs, and its output can be checked. What's missing is a shared queue, leases, and a job key that includes the model and code version (§4).
-- **The first win is scheduling, not a second machine.** Detection on `pilot-000` took 78 s a photo (median) in F-0 with the GPU to itself, and 200–340 s a photo on 2026-11-03 with three card sessions sharing it. That's 3–4× lost to contention. A queue that runs one GPU job per host recovers most of it before the laptop joins.
+- **The first win is scheduling, not a second machine.** Detection on `pilot-000` took 78 s a photo (median) in F-0 with the GPU to itself, and 200–340 s a photo on 2026-11-03 with three card sessions sharing it. That's about 2.6–4.3× lost to contention (an observation from F-0e's private logs, not yet a committed measurement: N-1's morning report records it). A queue that runs one GPU job per host recovers most of it before the laptop joins.
 - **A second Mac roughly halves a night's photo work** (§8). Pilot rereads, a new detector arm, or a 100-photo set go from "one night, maybe" to "one night, comfortably". API-bound work (C-4's lookups) gains nothing, and must not be split across hosts.
 - **BookcaseDiscovery doesn't build a platform.** The authority for fleet work is core's fleet-runner (#307), which has no runnable iteration yet. The owner ruled that this workload must not block on it. So this repo builds a **small interim queue** for compute jobs only (cards N-1, N-2), shaped like fleet-runner's P2 command and evidence contract so the move is a transport swap (card N-3). The interim queue dispatches no coding sessions and holds no authority over development work.
 - **Night shift runs only admitted, checkable jobs.** Gates, merges and rulings stay in the day shift (§7). The morning report is a query over the job table, not anyone's memory.
@@ -31,7 +31,7 @@ Owner rulings:
 
 ## 3. Inventory of today's work as job kinds
 
-Numbers are from `evals/F0/metrics.json` (F-0, quiet GPU) and F-0e's logs (contended GPU). "Per unit" is per photo for detection, per crop for readers.
+Numbers are from `evals/F0/metrics.json` (F-0, quiet GPU), except the contended detection times, which come from F-0e's private run logs and have no committed aggregate yet. Peak memory for `detect` was measured on the yardstick; `pilot-000` memory is unmeasured. "Per unit" is per photo for detection, per crop for readers.
 
 | Job kind | Bound | Peak memory | Per unit | `pilot-000` total (31 photos, 6,894 crops) | Inputs | Output | Host constraint |
 |---|---|---|---|---|---|---|---|
@@ -53,7 +53,8 @@ Findings that shape the design:
 ## 4. Job key and outputs
 
 - **Job key** = SHA-256 over the canonical JSON of `{kind, inputs: [content hashes], params, model: {id, revision}, code: {commit, helper version}}`. Same key means same work, so enqueueing twice is a no-op and a finished key is a cache hit.
-- **Outputs are content-addressed and written atomically**: written to a temporary file, then renamed into place by hash. A worker that crashes mid-write leaves nothing a reader could mistake for a result.
+- **Outputs are per attempt, immutable, and selected by the fenced completion.** Each attempt writes `<key>.<fence>.<ext>`: to a temporary file first, then hard-linked into place, which fails rather than overwrite. Completion records the accepted file and its SHA-256 only if the worker still holds the lease under that token. Consumers read the file the job row names. A worker that crashes mid-write leaves nothing a reader could mistake for a result, and a worker that wakes after losing its lease writes an orphan, never the accepted bytes. (An earlier draft renamed every attempt onto `<key>.<ext>`, so a stale worker could replace accepted bytes after the row said otherwise. Found in independent review.)
+- **The handler executes the keyed params, not the payload.** The payload only says where this host keeps the inputs. Everything that changes the output (polygons, rotations, order) is in `params`, and the helper build is pinned in `code`. Before running, the handler checks that the file it found hashes to the keyed input and that its helper matches the pin. A mismatch fails the job without retrying.
 - **The job table holds keys, states, hashes and error codes only.** No OCR text, titles or image content. It is private either way (it names photo hashes), and lives under `$BOOKCASE_DATA/jobs/`.
 
 ## 5. The interim queue (N-1, N-2)
@@ -62,8 +63,8 @@ Smallest design that is correct under interruption, with the parts fleet-runner'
 
 - **State:** one SQLite file (`node:sqlite`, as the ledger uses) on the host that holds the data. Tables: `jobs` (current state) and `job_events` (append-only: enqueued, claimed, heartbeat-lost, completed, rejected-stale, failed, lease-expired, released). SQLite is never opened over a network share: its locking is unreliable there.
 - **Claim:** in one immediate transaction, sweep expired leases, then take the highest-priority `ready` job whose required capabilities the worker has. Mark it `claimed` with the worker id, a lease expiry, and a **fencing token** (a per-job counter incremented on every claim).
-- **Heartbeat:** extends the lease only if the token still matches. A `false` reply means the worker has lost the job and must stop.
-- **Complete:** accepted only if the job is still `claimed` under the same token. A worker that slept past its lease and wakes up gets its result **rejected as stale**, so it can never overwrite a newer attempt. The rejection is recorded.
+- **Heartbeat:** extends the lease only if the token still matches. The clock is read after the write lock is taken, so waiting for the lock never stretches a lease that has already run out. A `false` reply means the worker has lost the job and must stop, and the helper process is killed.
+- **Complete:** accepted only if the job is still `claimed` under the same token, and it is what makes that attempt's file the accepted output. A worker that slept past its lease and wakes up gets its result **rejected as stale**. Its file is never the one consumers read (§4). The rejection is recorded.
 - **Fail:** retryable errors go back to `ready` until `max_attempts`, then `failed`, with an error code. Interruption (SIGTERM, user activity) **releases** the job explicitly; sleep or a lost network just lets the lease expire.
 - **Capacity:** one worker process runs one job at a time. A host runs one GPU worker plus N CPU workers. This replaces OPERATING-MODEL's "one heavy-compute card at a time" convention with an enforced limit per host.
 - **Remote workers (N-2):** the laptop reaches the table **through the same CLI over SSH** (`ssh <host> bookcase jobs claim --json …`), authenticated by an SSH key the owner installs. Inputs and outputs move by `rsync` over SSH, by content hash. No new network service, no open port beyond SSH, and no cloud. When the NAS arrives, files move there. When fleet-runner can host compute jobs, the transport becomes its API (N-3); job kinds, keys and handlers stay.
@@ -91,24 +92,43 @@ The worker logs job keys, kinds, durations and error codes only. A job's payload
 
 **Admission** is the day-shift act that puts a job plan into the queue. A plan is admissible at night only if every job has a deterministic success check (output hash, schema, a pre-registered rule) and no job has an effect outside the owner's machines. In the proposed fleet-runner gate tiers, night jobs are I0–I1, R0, V0–V1: deterministic or machine-decided, never agent- or human-decided overnight.
 
-**Morning report** (`bookcase jobs report --since <time>`): per kind, counts done, failed, stale-rejected and still ready; failures with error codes; machine-hours per host; the oldest waiting job; which outputs are ready for review. Aggregates only, so it can be pasted into the conductor log.
+**Morning report** (`bookcase jobs report --since <time>`) has two labelled scopes that are never mixed:
+
+- **Now:** per kind, counts ready, running, done and failed; failed jobs by error code; the oldest waiting job.
+- **Period** (`since` to the report time): jobs admitted and attempts started. Per worker, attempts that ended by completion, failure, release or lease expiry, plus stale rejections. Leased machine-hours are clipped to the period at both ends, so attempts that cross `since` or are still running count only their time inside it.
+
+Aggregates only, so it can be pasted into the conductor log.
 
 **Conductor fit:** the conductor (or any client) admits job plans and reads the report. Cards consume outputs by job key. The conductor stays the reviewer and merger it is today (OPERATING-MODEL §4). It is not the queue's owner, and the queue keeps working if the conductor session ends.
 
 ## 8. Scenarios: what a second Mac buys
 
-Single-host times assume a quiet GPU (F-0's figures). Two-host times assume an even split and the laptop as fast as Yojimbo. Its M3 Max has more GPU cores and the same class of CPU, so this is a hypothesis N-2 measures, not a claim.
+Single-host times are arithmetic on F-0's `pilot-000` totals (below), not measurements of these scenarios. Two-host times assume an even split and the laptop as fast as Yojimbo. Its M3 Max has more GPU cores and the same class of CPU, so this is a hypothesis N-2 measures, not a claim.
 
 | Scenario | One host, quiet | Two hosts | Notes |
 |---|---|---|---|
 | **Q-2 rerun after F-0e** (pilot reread: detect + 3 readers, then the student fit) | ≈ 2.2 h | ≈ 1.1–1.3 h | The student fit is minutes and stays on one host. The larger saving is avoiding contention, which costs 3–4× today. |
 | **U-4 renders** (display modes on `pilot-000`) | minutes | same | Not worth distributing. |
 | **Open Library import** (if C-4's rule fires) | ≈ 12 GB download + a streaming filter, I/O-bound | same | Run at night on the data host. Splitting gains nothing. |
-| **A model swap** (a new detector arm on 4 yardstick sets + `pilot-000`) | ≈ 4.5–6 h | ≈ 2.5–3 h, or two arms in one night | SAM 3's 37 GB MPS peak fits the 64 GB host with room to spare; run B1 there and another arm on Yojimbo. |
+| **A model swap** (one new detector arm on the 40-photo yardstick + `pilot-000`) | ≈ 5 h | ≈ 2.5–3 h, or two arms in one night | SAM 3's 37 GB MPS peak fits the 64 GB host with room to spare; run B1 there and another arm on Yojimbo. |
 | **A new 100-photo set** | ≈ 7 h | ≈ 3.5–4 h | The difference between "starts late, finishes late morning" and "done by breakfast". |
 | **Q-6 live clips** | unmeasured (no clips yet) | ≈ 2× expected | Clip windows are independent. Measure when T-1 clips exist. |
 | **C-4-style catalog lookups** | ≈ 1 h | **same: do not split** | Rate limits are per client and IP. Both hosts share one public IP. |
 | **Full test suite** | 72 s | same | The gain is reliability: run it on an idle host so ingest tests don't time out. |
+
+**Arithmetic.** Stage totals on `pilot-000` (31 photos, `evals/F0/metrics.json` `runtimeSeconds`):
+
+| Stage | Total | Per photo (mean) | Assumption |
+|---|---|---|---|
+| Detect (B2) | 2,206 s | 71.2 s | Quiet GPU, one job at a time |
+| Apple Vision | 848 s | 27.4 s | |
+| PP-OCRv5 | 8,277 CPU-s → 2,759 s | 89.0 s | Scales ideally across 3 CPU workers |
+| Qwen3-VL (hard crops only) | 1,973 s | 63.6 s | Same hard-crop share as `pilot-000` (1,240 of 6,894) |
+| **Sum, stages run one after another** | **7,786 s ≈ 2.16 h** | **≈ 251 s** | |
+
+- **Q-2 rerun:** 2.16 h plus a student fit of minutes. Halving every stage across two hosts gives 1.08 h; 1.1–1.3 h allows for uneven splits and `rsync`.
+- **Model swap:** 71 photos × 251 s ≈ 4.9 h, if the new arm detects at B2's speed and yardstick photos cost what pilot photos cost. That second assumption is unmeasured: `metrics.json` has no per-stage yardstick runtimes. A faster arm (SAM 3 at ≈ 11 s an image) brings it down a lot.
+- **100-photo set:** 100 × 251 s ≈ 7.0 h on one host, ≈ 3.5 h halved, 3.5–4 h with overhead.
 
 ## 9. Proposed cards
 

@@ -1,18 +1,24 @@
-import { existsSync, mkdtempSync, readdirSync, readFileSync, rmSync } from "node:fs";
+import { spawn } from "node:child_process";
+import { createHash } from "node:crypto";
+import { existsSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { DatabaseSync } from "node:sqlite";
 import { fileURLToPath } from "node:url";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import { readVisionHandler } from "../src/run/job-kinds.ts";
+import { readVisionHandler, readVisionJob } from "../src/run/job-kinds.ts";
 import { JobError, JobStore, canonicalJson, jobKey, runWorker, writeOutput } from "../src/run/jobs.ts";
-import type { JobHandler, JobSpec } from "../src/run/jobs.ts";
+import type { JobHandler, JobOutput, JobSpec } from "../src/run/jobs.ts";
+import type { ReadVisionItem } from "../src/run/job-kinds.ts";
 import { main } from "../src/run/index.ts";
 
 const LEASE = 60_000;
 let dir: string;
 let clock: number;
 let store: JobStore;
+
+const out = (sha256: string): JobOutput => ({ file: `${sha256}.jsonl`, sha256 });
+const sha = (data: string | Buffer): string => createHash("sha256").update(data).digest("hex");
 
 const spec = (n: number, extra: Partial<JobSpec> = {}): JobSpec => ({
   kind: "noop",
@@ -42,13 +48,25 @@ describe("job key", () => {
     expect(jobKey(a)).not.toBe(jobKey({ ...a, code: "c2" }));
     expect(jobKey(a)).not.toBe(jobKey({ ...a, params: { tile: 3100 } }));
   });
+
+  it("keys what a read-vision job executes, and not where this host keeps the image", () => {
+    const img = join(dir, "wc.jpg");
+    writeFileSync(img, "synthetic working copy");
+    const items: ReadVisionItem[] = [{ id: "a", polygon: [[0, 0], [9, 0], [9, 9], [0, 9]], rotations: [0] }];
+    const base = readVisionJob(img, items, "helper@1");
+    const moved = readVisionJob(img, items, "helper@1", { payload: { image: "/elsewhere/wc.jpg" } });
+    expect(jobKey(moved)).toBe(jobKey(base));
+    expect(base.inputs).toEqual([sha("synthetic working copy")]);
+    expect(jobKey(readVisionJob(img, [{ ...items[0]!, rotations: [90] }], "helper@1"))).not.toBe(jobKey(base));
+    expect(jobKey(readVisionJob(img, items, "helper@2"))).not.toBe(jobKey(base));
+  });
 });
 
 describe("JobStore", () => {
   it("admits a key once", () => {
     expect(store.enqueue(spec(1)).created).toBe(true);
     expect(store.enqueue(spec(1)).created).toBe(false);
-    expect(store.report().byKind.noop).toEqual({ ready: 1, claimed: 0, done: 0, failed: 0 });
+    expect(store.report().now.byKind.noop).toEqual({ ready: 1, claimed: 0, done: 0, failed: 0 });
   });
 
   it("claims by priority, and only jobs whose capabilities and kind the worker has", () => {
@@ -72,13 +90,84 @@ describe("JobStore", () => {
     const second = store.claim("awake", [])!;
     expect(second.key).toBe(key);
     expect(second.fence).toBe(first.fence + 1);
-    expect(store.complete(key, first.fence, "sleepy", "old")).toBe(false);
-    expect(store.complete(key, second.fence, "awake", "new")).toBe(true);
-    expect(store.get(key)).toMatchObject({ status: "done", output: "new", attempts: 2 });
-    const r = store.report();
-    expect(r.events["lease-expired"]).toBe(1);
-    expect(r.byWorker.sleepy?.staleRejected).toBe(1);
-    expect(r.byWorker.awake?.completed).toBe(1);
+    expect(store.complete(key, first.fence, "sleepy", out("old"))).toBe(false);
+    expect(store.complete(key, second.fence, "awake", out("new"))).toBe(true);
+    expect(store.get(key)).toMatchObject({ status: "done", output: "new", outputFile: "new.jsonl", attempts: 2 });
+    const { period } = store.report();
+    expect(period.events["lease-expired"]).toBe(1);
+    expect(period.byWorker.sleepy).toMatchObject({ leaseExpired: 1, staleRejected: 1 });
+    expect(period.byWorker.awake?.completed).toBe(1);
+  });
+
+  it("keeps the accepted artifact when a stale worker writes after losing its lease (two connections)", () => {
+    const { key } = store.enqueue(spec(1));
+    const other = new JobStore(join(dir, "jobs.sqlite"), { now: () => clock, leaseMs: LEASE });
+    try {
+      const a = store.claim("a", [])!;
+      clock += LEASE + 1; // A sleeps through its lease
+      const b = other.claim("b", [])!;
+      const bOut = writeOutput(join(dir, "out"), b, "bytes from B\n");
+      expect(other.complete(key, b.fence, "b", bOut)).toBe(true);
+      // A wakes, writes its bytes and tries to complete.
+      const aOut = writeOutput(join(dir, "out"), a, "bytes from A\n");
+      expect(aOut.file).not.toBe(bOut.file);
+      expect(store.complete(key, a.fence, "a", aOut)).toBe(false);
+      const row = other.get(key)!;
+      const accepted = readFileSync(join(dir, "out", row.outputFile!));
+      expect(sha(accepted)).toBe(row.output);
+      expect(accepted.toString()).toBe("bytes from B\n");
+    } finally {
+      other.close();
+    }
+  });
+
+  it("never overwrites an attempt's output file", () => {
+    const job = { key: "k", fence: 1 };
+    writeOutput(join(dir, "out"), job, "first");
+    expect(() => writeOutput(join(dir, "out"), job, "second")).toThrow(/EEXIST/);
+    expect(readFileSync(join(dir, "out", "k.1.jsonl"), "utf8")).toBe("first");
+    expect(readdirSync(join(dir, "out"))).toEqual(["k.1.jsonl"]);
+  });
+
+  it("reads the clock for a heartbeat after taking the write lock", async () => {
+    store.close();
+    store = new JobStore(join(dir, "jobs.sqlite"), { leaseMs: 1000 }); // real clock
+    const { key } = store.enqueue(spec(1));
+    const c = store.claim("w", [])!;
+    // Another process holds the write lock for 1.2 s, past this 1 s lease.
+    const holder = spawn(
+      process.execPath,
+      [
+        "-e",
+        `const { DatabaseSync } = require("node:sqlite");
+         const db = new DatabaseSync(process.argv[1]);
+         db.exec("BEGIN IMMEDIATE");
+         process.stdout.write("locked\\n");
+         Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, 1200);
+         db.exec("COMMIT");`,
+        join(dir, "jobs.sqlite"),
+      ],
+      { stdio: ["ignore", "pipe", "inherit"] },
+    );
+    await new Promise<void>((resolve) => holder.stdout.once("data", () => resolve()));
+    expect(store.heartbeat(key, c.fence, "w")).toBe(false); // blocks on the lock, then sees the lease expired
+    await new Promise((resolve) => holder.once("close", resolve));
+  });
+
+  it("upgrades a v1 table in place", () => {
+    store.close();
+    const path = join(dir, "v1.sqlite");
+    const db = new DatabaseSync(path);
+    db.exec(`CREATE TABLE jobs (key TEXT PRIMARY KEY, kind TEXT NOT NULL, payload TEXT NOT NULL, requires TEXT NOT NULL, priority INTEGER NOT NULL,
+      status TEXT NOT NULL, attempts INTEGER NOT NULL, max_attempts INTEGER NOT NULL, fence INTEGER NOT NULL, worker TEXT, lease_expires INTEGER,
+      output TEXT, error TEXT, created INTEGER NOT NULL, updated INTEGER NOT NULL);
+      CREATE TABLE job_events (seq INTEGER PRIMARY KEY AUTOINCREMENT, ts INTEGER NOT NULL, key TEXT NOT NULL, type TEXT NOT NULL, worker TEXT, fence INTEGER, detail TEXT);
+      INSERT INTO jobs VALUES ('old', 'noop', '{}', '[]', 0, 'done', 1, 3, 1, NULL, NULL, 'h', NULL, 1, 1);
+      PRAGMA user_version = 1;`);
+    db.close();
+    store = new JobStore(path, { now: () => clock, leaseMs: LEASE });
+    expect(store.get("old")).toMatchObject({ status: "done", output: "h", outputFile: null });
+    expect(store.enqueue(spec(1)).created).toBe(true);
   });
 
   it("retries a retryable failure until max attempts, then fails it with its code", () => {
@@ -89,7 +178,7 @@ describe("JobStore", () => {
     c = store.claim("w", [])!;
     store.fail(key, c.fence, "w", "ocr-helper", true);
     expect(store.get(key)).toMatchObject({ status: "failed", error: "ocr-helper" });
-    expect(store.report().failures).toEqual([{ kind: "noop", error: "ocr-helper", count: 1 }]);
+    expect(store.report().now.failures).toEqual([{ kind: "noop", error: "ocr-helper", count: 1 }]);
   });
 
   it("releases an interrupted job without spending an attempt", () => {
@@ -98,6 +187,25 @@ describe("JobStore", () => {
     expect(store.release(key, c.fence, "w")).toBe(true);
     expect(store.get(key)).toMatchObject({ status: "ready", attempts: 0 });
     expect(store.release(key, c.fence, "w")).toBe(false);
+  });
+
+  it("separates the table's state now from what happened in the period, and clips attempts to it", () => {
+    const a = store.enqueue(spec(1)).key;
+    const b = store.enqueue(spec(2)).key;
+    const ca = store.claim("w", [])!; // starts before the period
+    clock += 10_000;
+    const since = clock;
+    clock += 5_000;
+    expect(store.complete(a, ca.fence, "w", out("x"))).toBe(true); // 5 s inside the period
+    const cb = store.claim("w", [])!;
+    clock += 3_000;
+    expect(store.release(b, cb.fence, "w")).toBe(true); // released: 3 s
+    store.claim("w", []);
+    clock += 2_000; // still running at report time: 2 s
+    const r = store.report(since);
+    expect(r.now.byKind.noop).toEqual({ ready: 0, claimed: 1, done: 1, failed: 0 });
+    expect(r.period.events).toEqual({ completed: 1, claimed: 2, released: 1 });
+    expect(r.period.byWorker.w).toEqual({ completed: 1, failed: 0, released: 1, leaseExpired: 0, staleRejected: 0, machineSeconds: 10 });
   });
 
   it("keeps job events append-only", () => {
@@ -109,14 +217,14 @@ describe("JobStore", () => {
 });
 
 describe("runWorker", () => {
-  const out = () => join(dir, "out");
-  const echo: JobHandler = async (job, ctx) => writeOutput(ctx.outDir, job.key, JSON.stringify(job.payload));
+  const outDir = () => join(dir, "out");
+  const echo: JobHandler = async (job, ctx) => writeOutput(ctx.outDir, job, JSON.stringify(job.payload));
 
   it("runs every runnable job and writes outputs atomically", async () => {
     for (const n of [1, 2, 3]) store.enqueue(spec(n));
-    const s = await runWorker(store, { worker: "w", caps: [], handlers: { noop: echo }, outDir: out() });
+    const s = await runWorker(store, { worker: "w", caps: [], handlers: { noop: echo }, outDir: outDir() });
     expect(s).toEqual({ completed: 3, failed: 0, staleRejected: 0, released: 0 });
-    const files = readdirSync(out());
+    const files = readdirSync(outDir());
     expect(files).toHaveLength(3);
     expect(files.some((f) => f.endsWith(".tmp"))).toBe(false);
   });
@@ -126,7 +234,7 @@ describe("runWorker", () => {
     const bad: JobHandler = async () => {
       throw new JobError("image-unreadable", false);
     };
-    const s = await runWorker(store, { worker: "w", caps: [], handlers: { noop: bad }, outDir: out() });
+    const s = await runWorker(store, { worker: "w", caps: [], handlers: { noop: bad }, outDir: outDir() });
     expect(s.failed).toBe(1);
     expect(store.get(key)).toMatchObject({ status: "failed", error: "image-unreadable" });
   });
@@ -137,9 +245,9 @@ describe("runWorker", () => {
     const slow: JobHandler = async (_job, { signal }) => {
       ac.abort();
       if (signal.aborted) throw new JobError("interrupted", true);
-      return "never";
+      return out("never");
     };
-    const s = await runWorker(store, { worker: "w", caps: [], handlers: { noop: slow }, outDir: out(), signal: ac.signal });
+    const s = await runWorker(store, { worker: "w", caps: [], handlers: { noop: slow }, outDir: outDir(), signal: ac.signal });
     expect(s.released).toBe(1);
     expect(store.get(key)).toMatchObject({ status: "ready", attempts: 0 });
   });
@@ -148,9 +256,9 @@ describe("runWorker", () => {
     const { key } = store.enqueue(spec(1));
     const stalls: JobHandler = async () => {
       clock += LEASE + 1; // the host slept through its lease
-      return "late";
+      return out("late");
     };
-    const s = await runWorker(store, { worker: "w", caps: [], handlers: { noop: stalls }, outDir: out(), maxJobs: 1 });
+    const s = await runWorker(store, { worker: "w", caps: [], handlers: { noop: stalls }, outDir: outDir(), maxJobs: 1 });
     expect(s.staleRejected).toBe(1);
     expect(store.get(key)?.status).not.toBe("done");
   });
@@ -158,39 +266,73 @@ describe("runWorker", () => {
 
 describe("read-vision job kind", () => {
   const fake = fileURLToPath(new URL("./support/fake-ocr-helper.mjs", import.meta.url));
-  const request = (id: string) => ({
+  const item = (id: string): ReadVisionItem => ({
     id,
-    image: "/synthetic/working-copy.jpg",
     polygon: [
       [10, 10],
       [50, 10],
       [50, 200],
       [10, 200],
-    ] as [number, number][],
-    rotations: [0] as (0 | 90 | 180 | 270)[],
+    ],
+    rotations: [0],
+  });
+  const helper = (mode: string, helperId = "fake@1") => ({ "read-vision": readVisionHandler({ binary: process.execPath, args: [fake, mode], helperId }) });
+  let image: string;
+  beforeEach(() => {
+    image = join(dir, "working-copy.jpg");
+    writeFileSync(image, "synthetic working copy");
   });
 
-  it("writes the helper's responses under the job key", async () => {
-    const { key } = store.enqueue({ kind: "read-vision", inputs: ["sha-wc"], payload: { requests: [request("a"), request("b")] }, requires: ["apple-vision"] });
-    const handlers = { "read-vision": readVisionHandler({ binary: process.execPath, args: [fake, "echo"] }) };
-    expect((await runWorker(store, { worker: "w", caps: [], handlers, outDir: join(dir, "out") })).completed).toBe(0);
-    const s = await runWorker(store, { worker: "w", caps: ["apple-vision"], handlers, outDir: join(dir, "out") });
+  it("writes the helper's responses as this attempt's file, and only on a host with the capability", async () => {
+    const { key } = store.enqueue(readVisionJob(image, [item("a"), item("b")], "fake@1"));
+    expect((await runWorker(store, { worker: "w", caps: [], handlers: helper("echo"), outDir: join(dir, "out") })).completed).toBe(0);
+    const s = await runWorker(store, { worker: "w", caps: ["apple-vision"], handlers: helper("echo"), outDir: join(dir, "out") });
     expect(s.completed).toBe(1);
-    const lines = readFileSync(join(dir, "out", `${key}.jsonl`), "utf8").trim().split("\n").map((l) => JSON.parse(l));
-    expect(lines.map((l) => l.id)).toEqual(["a", "b"]);
+    const row = store.get(key)!;
+    expect(row.outputFile).toBe(`${key}.1.jsonl`);
+    const bytes = readFileSync(join(dir, "out", row.outputFile!));
+    expect(sha(bytes)).toBe(row.output);
+    expect(bytes.toString().trim().split("\n").map((l) => JSON.parse(l).id)).toEqual(["a", "b"]);
+  });
+
+  it("refuses a job pinned to another helper build, or whose working copy changed", async () => {
+    const pinned = store.enqueue(readVisionJob(image, [item("a")], "fake@0")).key;
+    await runWorker(store, { worker: "w", caps: ["apple-vision"], handlers: helper("echo"), outDir: join(dir, "out") });
+    expect(store.get(pinned)).toMatchObject({ status: "failed", error: "helper-mismatch" });
+    const changed = store.enqueue(readVisionJob(image, [item("b")], "fake@1")).key;
+    writeFileSync(image, "a different photo at the same path");
+    await runWorker(store, { worker: "w", caps: ["apple-vision"], handlers: helper("echo"), outDir: join(dir, "out") });
+    expect(store.get(changed)).toMatchObject({ status: "failed", error: "input-mismatch" });
   });
 
   it("fails retryably with an error code when the helper breaks its contract", async () => {
-    const { key } = store.enqueue({ kind: "read-vision", inputs: ["sha-wc"], payload: { requests: [request("a")] }, maxAttempts: 1 });
-    const handlers = { "read-vision": readVisionHandler({ binary: process.execPath, args: [fake, "garbage"] }) };
-    await runWorker(store, { worker: "w", caps: [], handlers, outDir: join(dir, "out") });
+    const { key } = store.enqueue(readVisionJob(image, [item("a")], "fake@1", { maxAttempts: 1 }));
+    await runWorker(store, { worker: "w", caps: ["apple-vision"], handlers: helper("garbage"), outDir: join(dir, "out") });
     expect(store.get(key)).toMatchObject({ status: "failed", error: "ocr-helper" });
-    expect(existsSync(join(dir, "out", `${key}.jsonl`))).toBe(false);
+    expect(existsSync(join(dir, "out"))).toBe(false);
   });
 });
 
 describe("bookcase jobs", () => {
   it("is routed and prints usage", async () => {
     expect(await main(["jobs", "--help"])).toBe(0);
+  });
+
+  it("rejects a malformed spec by line number and code, without echoing its text", async () => {
+    const specs = join(dir, "specs.jsonl");
+    writeFileSync(specs, `${JSON.stringify(spec(1))}\n{"kind": "noop", "payload": "MARKER-PRIVATE-PATH"\n`);
+    const errors: string[] = [];
+    const original = console.error;
+    console.error = (...a: unknown[]) => void errors.push(a.join(" "));
+    try {
+      expect(await main(["jobs", "enqueue", specs, "--db", join(dir, "cli.sqlite")])).toBe(1);
+    } finally {
+      console.error = original;
+    }
+    expect(errors.join("\n")).toMatch(/line 2: bad-json/);
+    expect(errors.join("\n")).not.toMatch(/MARKER/);
+    const cli = new JobStore(join(dir, "cli.sqlite"));
+    expect(cli.report().now.byKind).toEqual({}); // nothing admitted from a file with a bad line
+    cli.close();
   });
 });

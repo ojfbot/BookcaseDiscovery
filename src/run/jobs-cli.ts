@@ -24,7 +24,26 @@ options:
   --since <iso>     report: count events from this time (default: last 24 h)
   --json            report: print JSON
 
-Outputs go to $BOOKCASE_DATA/jobs/out/<job key>.<ext>. The table and outputs are private: never committed.`;
+Each attempt writes $BOOKCASE_DATA/jobs/out/<job key>.<fence>.<ext>; the job table names the accepted one.
+The table and outputs are private: never committed.`;
+
+/** Shape check at admission. Kind-specific checks run in the handler, where the host's inputs are. */
+function isJobSpec(v: unknown): v is JobSpec {
+  if (!v || typeof v !== "object" || Array.isArray(v)) return false;
+  const s = v as Record<string, unknown>;
+  const strings = (a: unknown): boolean => Array.isArray(a) && a.every((x) => typeof x === "string");
+  return (
+    typeof s.kind === "string" &&
+    s.kind.length > 0 &&
+    strings(s.inputs) &&
+    "payload" in s &&
+    (s.params === undefined || (typeof s.params === "object" && s.params !== null && !Array.isArray(s.params))) &&
+    (s.code === undefined || typeof s.code === "string") &&
+    (s.requires === undefined || strings(s.requires)) &&
+    (s.priority === undefined || Number.isInteger(s.priority)) &&
+    (s.maxAttempts === undefined || (Number.isInteger(s.maxAttempts) && (s.maxAttempts as number) > 0))
+  );
+}
 
 export async function jobsCommand(argv: string[], env: NodeJS.ProcessEnv = process.env): Promise<number> {
   let parsed;
@@ -60,11 +79,29 @@ export async function jobsCommand(argv: string[], env: NodeJS.ProcessEnv = proce
         console.error(jobsUsage);
         return 1;
       }
+      // Validate every line before admitting any. Errors name the line and a fixed code, never the line's
+      // text: a spec's payload may name a private path.
+      const specs: JobSpec[] = [];
+      const lines = readFileSync(rest[0]!, "utf8").split("\n");
+      for (const [i, line] of lines.entries()) {
+        if (!line.trim()) continue;
+        let value: unknown;
+        try {
+          value = JSON.parse(line);
+        } catch {
+          console.error(`bookcase jobs: ${rest[0]} line ${i + 1}: bad-json`);
+          return 1;
+        }
+        if (!isJobSpec(value)) {
+          console.error(`bookcase jobs: ${rest[0]} line ${i + 1}: bad-spec`);
+          return 1;
+        }
+        specs.push(value);
+      }
       let created = 0;
       let existing = 0;
-      for (const line of readFileSync(rest[0]!, "utf8").split("\n")) {
-        if (!line.trim()) continue;
-        if (store.enqueue(JSON.parse(line) as JobSpec).created) created += 1;
+      for (const spec of specs) {
+        if (store.enqueue(spec).created) created += 1;
         else existing += 1;
       }
       console.log(`${created} job${created === 1 ? "" : "s"} admitted, ${existing} already known`);
@@ -105,18 +142,26 @@ export async function jobsCommand(argv: string[], env: NodeJS.ProcessEnv = proce
         console.log(JSON.stringify(r, null, 2));
         return 0;
       }
-      console.log(`since ${new Date(r.since).toISOString()}`);
-      for (const [kind, c] of Object.entries(r.byKind)) console.log(`  ${kind}: ${c.done} done, ${c.failed} failed, ${c.claimed} running, ${c.ready} waiting`);
-      for (const [w, c] of Object.entries(r.byWorker))
-        console.log(`  worker ${w}: ${c.completed} completed, ${c.failed} failed, ${c.staleRejected} stale-rejected, ${(c.machineSeconds / 3600).toFixed(2)} machine-h`);
-      for (const f of r.failures) console.log(`  failed ${f.kind} × ${f.count}: ${f.error}`);
-      if (r.oldestReadyAgeSeconds !== null) console.log(`  oldest waiting job: ${Math.round(r.oldestReadyAgeSeconds / 60)} min`);
+      const { now, period } = r;
+      console.log(`now (${new Date(now.at).toISOString()}):`);
+      for (const [kind, c] of Object.entries(now.byKind)) console.log(`  ${kind}: ${c.done} done, ${c.failed} failed, ${c.claimed} running, ${c.ready} waiting`);
+      for (const f of now.failures) console.log(`  failed ${f.kind} × ${f.count}: ${f.error}`);
+      if (now.oldestReadyAgeSeconds !== null) console.log(`  oldest waiting job: ${Math.round(now.oldestReadyAgeSeconds / 60)} min`);
+      console.log(`period ${new Date(period.since).toISOString()} to ${new Date(period.until).toISOString()}:`);
+      const ev = period.events;
+      console.log(`  ${ev.enqueued ?? 0} admitted, ${ev.claimed ?? 0} attempts started, ${ev.completed ?? 0} completed, ${ev["lease-expired"] ?? 0} leases expired`);
+      for (const [w, c] of Object.entries(period.byWorker))
+        console.log(
+          `  worker ${w}: ${c.completed} completed, ${c.failed} failed, ${c.released} released, ${c.leaseExpired} lease-expired, ${c.staleRejected} stale-rejected, ${(c.machineSeconds / 3600).toFixed(2)} leased machine-h`,
+        );
       return 0;
     }
     console.error(`bookcase jobs: unknown command "${sub}"\n\n${jobsUsage}`);
     return 1;
   } catch (e) {
-    console.error(`bookcase jobs: ${e instanceof Error ? e.message : e}`);
+    // A code, not the message: SQLite and file errors can quote values, and values can name private paths.
+    const code = e && typeof e === "object" && "code" in e ? String((e as { code: unknown }).code) : e instanceof Error ? e.name : "error";
+    console.error(`bookcase jobs: ${sub} failed (${code})`);
     return 1;
   } finally {
     store.close();
