@@ -1,7 +1,8 @@
 """Spine boxes for F-0 (docs/models/open-weights.md): an open-vocabulary detector finds "book spine" boxes on
 overlapping tiles, SAM 2.1 base-plus turns each box into a mask, and the mask's minimum-area rotated rectangle
 becomes the contract's 4-point polygon (working-copy pixels). $F0_ARM picks the detector: b2 Grounding DINO base
-(default), b3 OWLv2 base patch16 ensemble, b4 MM Grounding DINO large.
+(default), b3 OWLv2 base patch16 ensemble, b4 MM Grounding DINO large. b1 SAM 3 segments "book spine" instances
+directly from the text prompt (no SAM 2.1 step); its masks go through the same polygon, filter and merge steps.
 
 JSON Lines in (stdin): {"id": str, "image": path}. One JSON line out per image:
 {"id", "width", "height", "spines": [{"polygon", "boxScore", "maskScore", "aspect"}], "bands": [...],
@@ -30,6 +31,8 @@ from transformers import (
     Owlv2Processor,
     Sam2Model,
     Sam2Processor,
+    Sam3Model,
+    Sam3Processor,
 )
 
 Image.MAX_IMAGE_PIXELS = None
@@ -37,13 +40,14 @@ Image.MAX_IMAGE_PIXELS = None
 DATA = Path(os.environ.get("BOOKCASE_DATA", Path.home() / "data" / "bookcase-discovery"))
 MODELS = DATA / "models"
 ARM = os.environ.get("F0_ARM", "b2")
-ARMS = {"b2": "grounding-dino-base", "b3": "owlv2-base-patch16-ensemble", "b4": "mm-grounding-dino-large-all"}
+ARMS = {"b1": "sam3", "b2": "grounding-dino-base", "b3": "owlv2-base-patch16-ensemble", "b4": "mm-grounding-dino-large-all"}
 PROMPT = "book spine."
 # Tiling: spines are ~2 % of an ultra-wide frame; the detector shrinks its input to ~800-1333 px.
 TILE = int(os.environ.get("F0_TILE", "1600"))  # the runner sets these per photo scale (src/eval/f0.ts)
 OVERLAP = int(os.environ.get("F0_OVERLAP", "700"))
-# OWLv2's scores run lower than Grounding DINO's; 0.1 is its usual open-vocabulary threshold.
-BOX_THRESHOLD = float(os.environ.get("F0_BOX_THRESHOLD", "0.1" if ARM == "b3" else "0.15"))
+# OWLv2's scores run lower than Grounding DINO's; 0.1 is its usual open-vocabulary threshold. SAM 3 keeps the
+# transformers default for its instance score (0.3).
+BOX_THRESHOLD = float(os.environ.get("F0_BOX_THRESHOLD", {"b1": "0.3", "b3": "0.1"}.get(ARM, "0.15")))
 TEXT_THRESHOLD = 0.15
 MAX_WIDTH_RATIO = 2.5  # a box this many median spine widths across holds several books
 MIN_ASPECT = 1.5  # long side / short side; face-out covers and whole-shelf boxes fall below or above
@@ -52,7 +56,7 @@ EDGE = 6  # px: a box this close to an inner tile edge is cut by the tile
 NMS_IOU = 0.45
 CHAIN_WIDTHS = 8  # a gap wider than this many median spine widths ends a shelf band
 
-DEVICE = "mps" if torch.backends.mps.is_available() else "cpu"
+DEVICE = os.environ.get("F0_DEVICE") or ("mps" if torch.backends.mps.is_available() else "cpu")
 
 
 def log(msg: str) -> None:
@@ -95,13 +99,17 @@ class Detector:
     def __init__(self) -> None:
         gd = MODELS / ARMS[ARM]
         sm = MODELS / "sam2.1-hiera-base-plus"
+        self.mps_peak = 0
+        if ARM == "b1":
+            self.sam3_proc = Sam3Processor.from_pretrained(gd)
+            self.sam3 = Sam3Model.from_pretrained(gd).to(DEVICE).eval()
+            return
         if ARM == "b3":
             self.gd_proc = Owlv2Processor.from_pretrained(gd)
             self.gd = Owlv2ForObjectDetection.from_pretrained(gd).to(DEVICE).eval()
         else:
             self.gd_proc = AutoProcessor.from_pretrained(gd)
             self.gd = AutoModelForZeroShotObjectDetection.from_pretrained(gd).to(DEVICE).eval()
-        self.mps_peak = 0
         self.sam_proc = Sam2Processor.from_pretrained(sm)
         self.sam = Sam2Model.from_pretrained(sm).to(DEVICE).eval()
 
@@ -128,6 +136,19 @@ class Detector:
         return res["boxes"].float().cpu().numpy(), res["scores"].float().cpu().numpy()
 
     @torch.inference_mode()
+    def instances(self, tile: Image.Image) -> tuple[np.ndarray, np.ndarray, list[np.ndarray], np.ndarray]:
+        """SAM 3: boxes, scores and masks for every "book spine" instance in one pass (at most 200 queries)."""
+        inputs = self.sam3_proc(images=tile, text=PROMPT.rstrip("."), return_tensors="pt").to(DEVICE)
+        out = self.sam3(**inputs)
+        res = self.sam3_proc.post_process_instance_segmentation(
+            out, threshold=BOX_THRESHOLD, mask_threshold=0.5, target_sizes=inputs["original_sizes"].tolist(),
+        )[0]
+        sc = res["scores"].float().cpu().numpy()
+        masks = list(res["masks"].cpu().numpy().astype(np.uint8))
+        # SAM 3 has no separate mask-quality head here: the instance score stands in for both.
+        return res["boxes"].float().cpu().numpy(), sc, masks, sc
+
+    @torch.inference_mode()
     def masks(self, tile: Image.Image, boxes: np.ndarray) -> tuple[list[np.ndarray], np.ndarray]:
         masks: list[np.ndarray] = []
         scores: list[float] = []
@@ -149,12 +170,19 @@ class Detector:
         for x0, y0, x1, y1 in grid:
             tile = img.crop((x0, y0, x1, y1))
             tw, th = tile.size
-            bx, sc = self.boxes(tile)
+            if ARM == "b1":
+                bx, sc, ms, ious = self.instances(tile)
+            else:
+                bx, sc = self.boxes(tile)
+                ms, ious = [], np.zeros(0)
             keep = [(bx[i][2] - bx[i][0]) * (bx[i][3] - bx[i][1]) <= MAX_TILE_SHARE * tw * th for i in range(len(bx))]
             bx, sc = bx[keep], sc[keep]
+            if ARM == "b1":
+                ms, ious = [m for m, k in zip(ms, keep) if k], ious[keep]
             if len(bx) == 0:
                 continue
-            ms, ious = self.masks(tile, bx)
+            if ARM != "b1":
+                ms, ious = self.masks(tile, bx)
             if DEVICE == "mps":
                 self.mps_peak = max(self.mps_peak, torch.mps.driver_allocated_memory())
             for b, s, m, iou in zip(bx, sc, ms, ious):
@@ -193,7 +221,7 @@ class Detector:
         for s in spines:
             s.pop("rect")
         return {"width": w, "height": h, "spines": spines, "bands": bands, "gaps": gaps,
-                "tiles": len(grid), "seconds": round(time.time() - t0, 2), "arm": ARM,
+                "tiles": len(grid), "seconds": round(time.time() - t0, 2), "arm": ARM, "device": DEVICE,
                 # Peaks so far in this process (models included): resident set and the MPS driver's allocation.
                 "peakRssMb": round(resource.getrusage(resource.RUSAGE_SELF).ru_maxrss / 2**20),
                 "mpsPeakMb": round(self.mps_peak / 2**20)}

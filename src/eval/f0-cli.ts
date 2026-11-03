@@ -82,7 +82,7 @@ function writeEval(part: string, metrics: object, report: string): string {
 
 function publish(runId: string): void {
   const dir = join(dataRoot(), "f0", "parts");
-  const parts = ["yardstick-b2", "yardstick-b3", "yardstick-b4", "pilot"].filter((p) => existsSync(join(dir, `${p}.json`)));
+  const parts = ["yardstick-b1", "yardstick-b2", "yardstick-b3", "yardstick-b4", "pilot"].filter((p) => existsSync(join(dir, `${p}.json`)));
   const metrics = Object.fromEntries(parts.map((p) => [p, JSON.parse(readFileSync(join(dir, `${p}.json`), "utf8"))]));
   const out = join(REPO_ROOT, "evals", runId);
   mkdirSync(out, { recursive: true });
@@ -141,6 +141,7 @@ async function pilot(session: string, limit: number, qwenCap: number, runId: str
 }
 
 const ARM_NAMES: Record<Arm, string> = {
+  b1: "sam3 (text prompt, masks direct)",
   b2: "grounding-dino-base -> sam2.1-hiera-base-plus",
   b3: "owlv2-base-patch16-ensemble -> sam2.1-hiera-base-plus",
   b4: "mm-grounding-dino-large-all -> sam2.1-hiera-base-plus",
@@ -149,7 +150,7 @@ const ARM_NAMES: Record<Arm, string> = {
 const STACK = {
   boxProducer: "B2: grounding-dino-base ('book spine.') -> sam2.1-hiera-base-plus, tiled; min-area rect -> 4-point polygon",
   boxProducers: 1,
-  boxAgreement: "unavailable: SAM 3 (B1) not downloaded yet; B2 confidence and the gap test only",
+  boxAgreement: "unavailable on pilot-000: SAM 3 (B1) arrived mid-card and ran on the yardstick only; B2 confidence and the gap test stand in",
   readers: ["R1 apple-vision .accurate (helpers/ocr-vision)", "R2 qwen3-vl-4b-instruct-8bit (mlx), hard crops only", "R3 pp-ocrv5 server det+rec + textline classifier"],
   paidVlm: "skipped: no API key or spend ceiling set (checklist #7)",
 };
@@ -166,8 +167,8 @@ function pilotReport(m: PilotMetrics): string {
 Run ${m.date}. **Real-use data (OC35). Every figure is machine agreement, not accuracy (INV-17)**: no person checked
 any of it, and no V-6 taps exist yet. Aggregates only; labels stay in \`$BOOKCASE_DATA/labels/${m.session}.machine.json\`.
 
-Stack: one box producer (Grounding DINO base → SAM 2.1 base-plus, tiled). SAM 3 is not downloaded, so box agreement
-between two producers is unavailable. Readers: Apple Vision, PP-OCRv5 server, and Qwen3-VL-4B (8-bit, local) on hard
+Stack: one box producer (Grounding DINO base → SAM 2.1 base-plus, tiled). SAM 3 (B1) arrived mid-card and was run on
+the yardstick only, so box agreement between two producers is unavailable here. Readers: Apple Vision, PP-OCRv5 server, and Qwen3-VL-4B (8-bit, local) on hard
 crops only (at most ${m.qwenCapPerImage} per image). No paid calls: **spend per spine $0**.
 
 | | value |
@@ -414,10 +415,10 @@ Runtime: detection p50 ${rt.detectPerImage.p50} s per image; PP-OCR p50 ${rt.ppo
 
 /** One row per box arm, all on the same yardstick sample, scored the same way. */
 function armsTable(metrics: Record<string, any>): string {
-  const rows = (["yardstick-b2", "yardstick-b3", "yardstick-b4"] as const).filter((k) => metrics[k]).map((k) => {
+  const rows = (["yardstick-b1", "yardstick-b2", "yardstick-b3", "yardstick-b4"] as const).filter((k) => metrics[k]).map((k) => {
     const m = metrics[k];
     const rt = m.machine.runtimeSeconds;
-    return `| ${(m.arm ?? "b2").toUpperCase()} | ${m.boxArm ?? ARM_NAMES.b2} | ${m.images} | ${m.machine.spineCount} | ${pct(m.title.recall)} | ${pct(m.title.precision)} | ${pct(m.author.share)} | ${pct(m.machine.gaps.gapShare)} | ${rt.detectPerImage.p50} | ${m.machine.memoryMb.detectorPeakRss ?? "n/a"} / ${m.machine.memoryMb.detectorPeakMps ?? "n/a"} |`;
+    return `| ${(m.arm ?? "b2").toUpperCase()} | ${m.boxArm ?? ARM_NAMES.b2} | ${m.images} | ${m.machine.spineCount} | ${m.machine.spinesPerImage.p50} (${m.machine.spinesPerImage.max}) | ${pct(m.title.recall)} | ${pct(m.title.precision)} | ${pct(m.author.share)} | ${pct(m.machine.gaps.gapShare)} | ${rt.detectPerImage.p50} | ${m.machine.memoryMb.detectorPeakRss ?? "n/a"} / ${m.machine.memoryMb.detectorPeakMps ?? "n/a"} | ${m.machine.memoryMb.detectorDevice ?? "mps"} |`;
   });
   if (rows.length < 2) return "";
   return `## Box arms on the yardstick (PROXY)
@@ -425,8 +426,8 @@ function armsTable(metrics: Record<string, any>): string {
 Same ${metrics["yardstick-b2"]?.images ?? ""} held-out images, same prompt (\`book spine\`), tiling, SAM 2.1 masks, readers and acceptance bar; only the box detector
 changes. Box recall and precision stay pending (no box ground truth), so arms are compared through the end-to-end title score.
 
-| arm | detector → masks | images | boxes | title recall | title precision | author | gap share | detect s/image p50 | detector peak MB (RSS / MPS) |
-|---|---|---:|---:|---:|---:|---:|---:|---:|---:|
+| arm | detector → masks | images | boxes | boxes/image p50 (max) | title recall | title precision | author | gap share | detect s/image p50 | detector peak MB (RSS / MPS) | device |
+|---|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---|
 ${rows.join("\n")}
 
 `;

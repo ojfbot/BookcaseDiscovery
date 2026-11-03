@@ -5,7 +5,7 @@ Card F-0 (OC34 as amended by OC36): open-weight models label every spine with no
 ```
 cd helpers/label && uv sync                          # torch, transformers, mlx-vlm, paddleocr (weights are never fetched here)
 cd helpers/ocr-vision && swift build -c release      # R1
-node src/eval/f0-cli.ts yardstick --arm b2 --limit 40 # PROXY: Library Dataset sample (also --arm b3, b4)
+node src/eval/f0-cli.ts yardstick --arm b2 --limit 40 # PROXY: Library Dataset sample (also --arm b1, b3, b4)
 node src/eval/f0-cli.ts pilot                        # real use: every pilot-000 photo
 node src/eval/f0-cli.ts publish                      # join both aggregates into evals/F0/
 ```
@@ -14,7 +14,7 @@ Weights are read from `$BOOKCASE_DATA/models/`; nothing is downloaded by the cod
 
 ## Pipeline
 
-1. **Boxes (B2 by default).** Grounding DINO base, prompt `book spine.`, on overlapping tiles (box threshold 0.15), because every detector shrinks its input. Tiling depends on photo scale: whole-case photos (`pilot-000`, a spine about 2 % of the frame) use 1600 px tiles with 700 px overlap; shelf-scale photos (the yardstick, a spine about 2400 px tall) use 3100 px tiles with 1300 px overlap, so a spine fits in one tile. Each box goes to SAM 2.1 base-plus; the mask's minimum-area rotated rectangle is the 4-point polygon in working-copy pixels. Boxes over 35 % of a tile (a shelf), boxes wider than 2.5 median spine widths (a group of books), and boxes under aspect 1.5 (face-out covers) are dropped. Duplicates across tiles are removed by rotated-rectangle IoU, keeping boxes not cut by a tile edge first. SAM 3 (B1) is not downloaded, so each run has **one** box producer and no box agreement; the box score and the gap test stand in. Two more arms swap only the detector (`--arm`, added by the owner): **B3** OWLv2 base patch16 ensemble (threshold 0.1) and **B4** MM Grounding DINO large; both feed SAM 2.1 the same way. They are compared on the yardstick, where `evals/F0/report.md` has the per-arm table.
+1. **Boxes (B2 by default).** Grounding DINO base, prompt `book spine.`, on overlapping tiles (box threshold 0.15), because every detector shrinks its input. Tiling depends on photo scale: whole-case photos (`pilot-000`, a spine about 2 % of the frame) use 1600 px tiles with 700 px overlap; shelf-scale photos (the yardstick, a spine about 2400 px tall) use 3100 px tiles with 1300 px overlap, so a spine fits in one tile. Each box goes to SAM 2.1 base-plus; the mask's minimum-area rotated rectangle is the 4-point polygon in working-copy pixels. Boxes over 35 % of a tile (a shelf), boxes wider than 2.5 median spine widths (a group of books), and boxes under aspect 1.5 (face-out covers) are dropped. Duplicates across tiles are removed by rotated-rectangle IoU, keeping boxes not cut by a tile edge first. Each run has **one** box producer, so there is no box agreement; the box score and the gap test stand in. Three more arms swap only the box step (`--arm`): **B3** OWLv2 base patch16 ensemble (threshold 0.1) and **B4** MM Grounding DINO large feed SAM 2.1 the same way (added by the owner); **B1** SAM 3 segments `book spine` instances directly from the text prompt (instance score ≥ 0.3, its `transformers` default), and its masks take the same polygon, filter and merge steps. SAM 3 is under the SAM License (local use only, never redistributed). The arms are compared on the yardstick, where `evals/F0/report.md` has the per-arm table; `pilot-000` ran B2 only.
 2. **Shelf bands and gaps.** No band producer exists, so bands are rows of spine boxes (vertical overlap ≥ ½, broken by 8 median widths of empty space, ≥ 3 boxes). The gap share is the band length covered by no box, counting gaps ≥ ½ a median spine width. It sees gaps between boxes only, not missed spines at a row's end: a lower bound.
 3. **Readers.** Every crop is read rotated to horizontal at 90° and 270° (the catalog decides which is right):
    - R1 Apple Vision `.accurate`, language correction off and on (`helpers/ocr-vision`, through `src/perceive/ocr.ts`);
@@ -40,7 +40,7 @@ Weights are read from `$BOOKCASE_DATA/models/`; nothing is downloaded by the cod
 
 ## Limits
 
-- One box producer; box agreement is unavailable until SAM 3 is fetched.
+- One box producer per run; box agreement between arms is not computed (B1 arrived mid-card and ran on the yardstick only).
 - Bands are inferred from boxes; the gap share undercounts.
 - The yardstick is in Catalan and Spanish while Vision runs `en-US` (P-1 fixed it for reproducibility), and it is a library, not a bookstore.
 - The library inventory is a closed set of 15,229 books, an easier catalog than ISFDB's; yardstick precision is optimistic against the real catalog.

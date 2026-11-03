@@ -56,7 +56,9 @@ Two producers that don't share weights, so their agreement means something to F-
 3. **B3 · OWLv2 base patch16 ensemble → SAM 2.1 base-plus, tiled** ([`google/owlv2-base-patch16-ensemble`](https://huggingface.co/google/owlv2-base-patch16-ensemble), weights 604 MB). Open-vocabulary detector on a 960 px square input; box threshold 0.1 (its scores run lower than Grounding DINO's).
 4. **B4 · MM Grounding DINO large (all) → SAM 2.1 base-plus, tiled** ([`openmmlab-community/mm_grounding_dino_large_all`](https://huggingface.co/openmmlab-community/mm_grounding_dino_large_all), weights 1,313 MB). Grounding DINO re-trained by OpenMMLab on wider grounding data; B2's thresholds.
 
-F-0 compares B2, B3 and B4 on the same yardstick images through the end-to-end title score ([`evals/F0/report.md`](../../evals/F0/report.md)); B2 stays the default unless another clearly beats it. None of them is a second, independent opinion on the same spine yet: F-0 runs one arm at a time.
+**B1 arrived the same day (2026-11-02):** the owner's Hugging Face access to `facebook/sam3` was granted mid-card and the weights are in `$BOOKCASE_DATA/models/sam3/` (SAM License, the §2.1 flag stands). F-0 runs B1 through `transformers` (`Sam3Model`, default instance score 0.3) on the same tiles as the other arms; SAM 3 returns masks directly, so B1 has no SAM 2.1 step.
+
+F-0 compares B1, B2, B3 and B4 on the same yardstick images through the end-to-end title score ([`evals/F0/report.md`](../../evals/F0/report.md)); B2 stays the default unless another clearly beats it, and a B1 win goes to the owner because of its licence. None of them is a second, independent opinion on the same spine yet: F-0 runs one arm at a time.
 
 How the two are used (for F-0, *hypothesis*): a spine both producers find (mask IoU ≥ a threshold F-0 sets) is box-confident; a spine only one finds is box-uncertain; shelf-band width that neither covers is a gap. Neither producer can find spines that both miss, which is why box recall is measured on the yardstick, never claimed on `pilot-000`.
 

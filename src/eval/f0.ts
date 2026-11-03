@@ -10,7 +10,7 @@ import { createInterface } from "node:readline";
 import { fileURLToPath } from "node:url";
 import type { DatabaseSync } from "node:sqlite";
 import { retrieve, type Candidate } from "../catalog/retrieve.ts";
-import { runOcr } from "../perceive/ocr.ts";
+import { OcrHelperError, runOcr, type OcrRequest, type OcrResponse } from "../perceive/ocr.ts";
 import { assignShelves, type LabelSet, type Photo, type Polygon4 } from "./labels.ts";
 
 const REPO_ROOT = fileURLToPath(new URL("../../", import.meta.url));
@@ -65,6 +65,7 @@ export interface Detection {
   seconds: number;
   /** Box arm (b2, b3, b4) and the detector process's memory peaks so far, in MB. */
   arm?: string;
+  device?: string;
   peakRssMb?: number;
   mpsPeakMb?: number;
   error?: string;
@@ -141,7 +142,7 @@ function runHelper(script: string, args: string[], requests: object[], out: stri
 const spineId = (imageId: string, i: number): string => `${imageId}:${i}`;
 
 /** Box arms (docs/models/open-weights.md): b2 Grounding DINO base, b3 OWLv2, b4 MM Grounding DINO large; all -> SAM 2.1. */
-export const ARMS = ["b2", "b3", "b4"] as const;
+export const ARMS = ["b1", "b2", "b3", "b4"] as const;
 export type Arm = (typeof ARMS)[number];
 
 /** Tile size and overlap in working-copy pixels; the detector shrinks each tile to about 800-1333 px. */
@@ -173,6 +174,21 @@ function spineRequests(images: InputImage[], dets: Map<string, Detection>, only?
   );
 }
 
+type VisionResult = OcrResponse | { id: string; error: { code: string } };
+
+/** One helper call, 6 s a crop (at least 60 s). A call that stalls is halved and retried; a lone crop that stalls is an error. */
+async function visionBatch(reqs: OcrRequest[], log: (s: string) => void): Promise<VisionResult[]> {
+  try {
+    return await runOcr(reqs, { timeoutMs: Math.max(60_000, reqs.length * 6_000) });
+  } catch (e) {
+    if (!(e instanceof OcrHelperError) || !/within/.test(e.message)) throw e;
+    if (reqs.length === 1) return [{ id: reqs[0]!.id, error: { code: "timeout" } }];
+    log(`vision: helper stalled on ${reqs.length} crops, splitting`);
+    const half = Math.ceil(reqs.length / 2);
+    return [...(await visionBatch(reqs.slice(0, half), log)), ...(await visionBatch(reqs.slice(half), log))];
+  }
+}
+
 export async function visionStage(images: InputImage[], dets: Map<string, Detection>, dir: string, log: (s: string) => void): Promise<void> {
   const out = join(dir, "vision.jsonl");
   const done = new Set(readJsonl<Reading>(out).map((r) => r.id));
@@ -182,7 +198,7 @@ export async function visionStage(images: InputImage[], dets: Map<string, Detect
     const t0 = Date.now();
     // Batches keep one helper call well inside its timeout when the GPU is shared with detection.
     const res = [];
-    for (let i = 0; i < reqs.length; i += 100) res.push(...(await runOcr(reqs.slice(i, i + 100), { timeoutMs: 600_000 })));
+    for (let i = 0; i < reqs.length; i += 100) res.push(...(await visionBatch(reqs.slice(i, i + 100), log)));
     const per = (Date.now() - t0) / 1000 / reqs.length;
     for (const r of res) {
       const line: Reading =
@@ -391,6 +407,7 @@ export function machineAgreement(dets: Map<string, Detection>, decisions: SpineD
     memoryMb: {
       detectorPeakRss: Math.max(0, ...det.map((d) => d.peakRssMb ?? 0)) || null,
       detectorPeakMps: Math.max(0, ...det.map((d) => d.mpsPeakMb ?? 0)) || null,
+      detectorDevice: [...new Set(det.map((d) => d.device ?? "mps"))].join("+"),
     },
     spendPerSpineUsd: 0,
   };
