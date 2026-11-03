@@ -224,6 +224,28 @@ describe("JobStore", () => {
         .run("v1-bytes", clock, key, 1, "w", clock);
       expect(Number(v1Complete.changes)).toBe(0);
       expect(store.get(key)).toMatchObject({ status: "claimed", fence: 2 });
+      // The v1 worker loop carries on after its stale rejection. Every write it can make is refused, even
+      // with a token it read fresh: v1's statements (from 9b5ae8c) do not set the writer revision.
+      expect(store.release(key, c.fence, "w")).toBe(true);
+      const v1Claim = (): unknown =>
+        v1.prepare("UPDATE jobs SET status = 'claimed', fence = ?, worker = ?, lease_expires = ?, attempts = attempts + 1, updated = ? WHERE key = ?").run(3, "w", clock + LEASE, clock, key);
+      expect(v1Claim).toThrow(/pre-v2 client refused/);
+      expect(() =>
+        v1.prepare("UPDATE jobs SET lease_expires = ?, updated = ? WHERE key = ? AND status = 'ready' AND fence = ?").run(clock + LEASE, clock, key, 2),
+      ).toThrow(/pre-v2 client refused/);
+      expect(() =>
+        v1
+          .prepare(
+            `INSERT OR IGNORE INTO jobs (key, kind, payload, requires, priority, status, attempts, max_attempts, fence, created, updated)
+             VALUES (?, 'noop', '{}', '[]', 0, 'ready', 0, 3, 0, ?, ?)`,
+          )
+          .run("v1-admitted", clock, clock),
+      ).toThrow(/pre-v2 client refused/);
+      expect(store.get(key)).toMatchObject({ status: "ready", fence: 2, worker: null });
+      expect(store.get("v1-admitted")).toBeUndefined();
+      expect(store.claim("w", [])?.fence).toBe(3); // v2 still works
+      store.release(key, 3, "w");
+      store.claim("w", []); // a running v2 claim again, as the report checks expect
       // The retired v1 attempt counts its 2 s up to retirement, and stops there.
       clock += 10_000;
       const w = store.report(claimedAt).period.byWorker.w!;

@@ -36,7 +36,8 @@ CREATE TABLE jobs (
   output_file   TEXT,
   error         TEXT,
   created       INTEGER NOT NULL,
-  updated       INTEGER NOT NULL
+  updated       INTEGER NOT NULL,
+  rev           INTEGER NOT NULL DEFAULT 0
 );
 CREATE INDEX jobs_ready ON jobs (status, priority DESC, created);
 CREATE TABLE job_events (
@@ -53,6 +54,13 @@ BEGIN SELECT RAISE(ABORT, 'job_events is append-only: UPDATE refused'); END;
 CREATE TRIGGER job_events_no_delete BEFORE DELETE ON job_events
 BEGIN SELECT RAISE(ABORT, 'job_events is append-only: DELETE refused'); END;
 CREATE INDEX job_events_key ON job_events (key, fence);
+-- Only v2 clients may write: every v2 statement sets rev (1 on insert, rev + 1 on update), and a client
+-- built for an older schema, still running across the upgrade, sets neither. Its claim, heartbeat,
+-- completion or admission aborts instead of acting on a job it cannot fence.
+CREATE TRIGGER jobs_writer_insert BEFORE INSERT ON jobs WHEN NEW.rev IS NOT 1
+BEGIN SELECT RAISE(ABORT, 'jobs: write from a pre-v2 client refused'); END;
+CREATE TRIGGER jobs_writer_update BEFORE UPDATE ON jobs WHEN NEW.rev IS NOT OLD.rev + 1
+BEGIN SELECT RAISE(ABORT, 'jobs: write from a pre-v2 client refused'); END;
 `;
 
 /**
@@ -70,7 +78,15 @@ ALTER TABLE jobs ADD COLUMN inputs TEXT NOT NULL DEFAULT '[]' CHECK (json_valid(
 ALTER TABLE jobs ADD COLUMN params TEXT NOT NULL DEFAULT '{}' CHECK (json_valid(params));
 ALTER TABLE jobs ADD COLUMN code TEXT;
 ALTER TABLE jobs ADD COLUMN output_file TEXT;
+ALTER TABLE jobs ADD COLUMN rev INTEGER NOT NULL DEFAULT 0;
 CREATE INDEX job_events_key ON job_events (key, fence);
+-- Only v2 clients may write: every v2 statement sets rev (1 on insert, rev + 1 on update), and a client
+-- built for an older schema, still running across the upgrade, sets neither. Its claim, heartbeat,
+-- completion or admission aborts instead of acting on a job it cannot fence.
+CREATE TRIGGER jobs_writer_insert BEFORE INSERT ON jobs WHEN NEW.rev IS NOT 1
+BEGIN SELECT RAISE(ABORT, 'jobs: write from a pre-v2 client refused'); END;
+CREATE TRIGGER jobs_writer_update BEFORE UPDATE ON jobs WHEN NEW.rev IS NOT OLD.rev + 1
+BEGIN SELECT RAISE(ABORT, 'jobs: write from a pre-v2 client refused'); END;
 `;
 
 export type JobStatus = "ready" | "claimed" | "done" | "failed";
@@ -266,8 +282,8 @@ export class JobStore {
       const now = this.#now();
       const res = this.#db
         .prepare(
-          `INSERT OR IGNORE INTO jobs (key, kind, inputs, params, code, payload, requires, priority, status, attempts, max_attempts, fence, created, updated)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'ready', 0, ?, (SELECT COALESCE(MAX(fence), 0) FROM job_events WHERE key = ?), ?, ?)`,
+          `INSERT OR IGNORE INTO jobs (key, kind, inputs, params, code, payload, requires, priority, status, attempts, max_attempts, fence, created, updated, rev)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'ready', 0, ?, (SELECT COALESCE(MAX(fence), 0) FROM job_events WHERE key = ?), ?, ?, 1)`,
         )
         .run(
           key,
@@ -307,7 +323,7 @@ export class JobStore {
       const fence = row.fence + 1;
       const leaseExpires = now + this.#leaseMs;
       this.#db
-        .prepare("UPDATE jobs SET status = 'claimed', fence = ?, worker = ?, lease_expires = ?, attempts = attempts + 1, updated = ? WHERE key = ?")
+        .prepare("UPDATE jobs SET status = 'claimed', fence = ?, worker = ?, lease_expires = ?, attempts = attempts + 1, updated = ?, rev = rev + 1 WHERE key = ?")
         .run(fence, worker, leaseExpires, now, row.key);
       this.#event(row.key, "claimed", worker, fence);
       return {
@@ -331,7 +347,7 @@ export class JobStore {
     return this.#tx(() => {
       const now = this.#now();
       const res = this.#db
-        .prepare("UPDATE jobs SET lease_expires = ?, updated = ? WHERE key = ? AND status = 'claimed' AND fence = ? AND worker = ? AND lease_expires > ?")
+        .prepare("UPDATE jobs SET lease_expires = ?, updated = ?, rev = rev + 1 WHERE key = ? AND status = 'claimed' AND fence = ? AND worker = ? AND lease_expires > ?")
         .run(now + this.#leaseMs, now, key, fence, worker, now);
       return Number(res.changes) === 1;
     });
@@ -346,7 +362,7 @@ export class JobStore {
       const now = this.#now();
       const res = this.#db
         .prepare(
-          "UPDATE jobs SET status = 'done', output = ?, output_file = ?, error = NULL, lease_expires = NULL, updated = ? WHERE key = ? AND status = 'claimed' AND fence = ? AND worker = ? AND lease_expires > ?",
+          "UPDATE jobs SET status = 'done', output = ?, output_file = ?, error = NULL, lease_expires = NULL, updated = ?, rev = rev + 1 WHERE key = ? AND status = 'claimed' AND fence = ? AND worker = ? AND lease_expires > ?",
         )
         .run(output.sha256, output.file, now, key, fence, worker, now);
       const ok = Number(res.changes) === 1;
@@ -365,7 +381,7 @@ export class JobStore {
       }
       const again = retryable && row.attempts < row.max_attempts;
       this.#db
-        .prepare("UPDATE jobs SET status = ?, error = ?, worker = NULL, lease_expires = NULL, updated = ? WHERE key = ?")
+        .prepare("UPDATE jobs SET status = ?, error = ?, worker = NULL, lease_expires = NULL, updated = ?, rev = rev + 1 WHERE key = ?")
         .run(again ? "ready" : "failed", code, this.#now(), key);
       this.#event(key, again ? "retry" : "failed", worker, fence, code);
       return true;
@@ -377,7 +393,7 @@ export class JobStore {
     return this.#tx(() => {
       if (!this.#held(key, fence, worker)) return false;
       this.#db
-        .prepare("UPDATE jobs SET status = 'ready', attempts = attempts - 1, worker = NULL, lease_expires = NULL, updated = ? WHERE key = ?")
+        .prepare("UPDATE jobs SET status = 'ready', attempts = attempts - 1, worker = NULL, lease_expires = NULL, updated = ?, rev = rev + 1 WHERE key = ?")
         .run(this.#now(), key);
       this.#event(key, "released", worker, fence);
       return true;
@@ -493,7 +509,7 @@ export class JobStore {
     for (const r of expired) {
       const again = r.attempts < r.max_attempts;
       this.#db
-        .prepare("UPDATE jobs SET status = ?, error = ?, worker = NULL, lease_expires = NULL, updated = ? WHERE key = ?")
+        .prepare("UPDATE jobs SET status = ?, error = ?, worker = NULL, lease_expires = NULL, updated = ?, rev = rev + 1 WHERE key = ?")
         .run(again ? "ready" : "failed", again ? null : "lease-expired", now, r.key);
       // The detail is when the lease actually ran out, which the report uses, not when the sweep noticed.
       this.#event(r.key, "lease-expired", r.worker, r.fence, String(r.lease_expires));
