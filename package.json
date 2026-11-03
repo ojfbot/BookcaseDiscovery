@@ -20,7 +20,8 @@
     "catalog:check": "node src/catalog/isfdb-import.ts check",
     "guard": "node scripts/privacy-guard.mjs",
     "prepare": "simple-git-hooks",
-    "report:synthetic": "node scripts/synthetic-report.ts"
+    "report:synthetic": "node scripts/synthetic-report.ts",
+    "f0": "node src/eval/f0-cli.ts"
   },
   "simple-git-hooks": {
     "pre-commit": "if [ -f scripts/privacy-guard.mjs ]; then node scripts/privacy-guard.mjs; fi"
