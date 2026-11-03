@@ -239,7 +239,7 @@ describe("bookcase replay <db> --to <fresh db>", () => {
     console.log = (...a) => logs.push(a.join(" "));
     console.error = (...a) => errs.push(a.join(" "));
     try {
-      return { code: main(["replay", ...args]), out: logs.join("\n"), err: errs.join("\n") };
+      return { code: main(["replay", ...args]) as number, out: logs.join("\n"), err: errs.join("\n") };
     } finally {
       console.log = log;
       console.error = error;

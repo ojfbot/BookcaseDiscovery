@@ -13,6 +13,7 @@ import { createSchema } from "../catalog/isfdb-staging.ts";
 import { normalize, surnameFirstToGivenFirst } from "../catalog/normalize.ts";
 import type { Candidate } from "../catalog/retrieve.ts";
 import { dataRoot, ImageStore } from "../ledger/images.ts";
+import { cropName } from "../perceive/crop.ts";
 import {
   ACCEPT,
   buildLabelSet,
@@ -21,7 +22,7 @@ import {
   loadReadings,
   machineAgreement,
   pyReaderStage,
-  ROTATIONS,
+  CROP,
   stackFor,
   stageDir,
   visionStage,
@@ -43,12 +44,12 @@ const log = (s: string): void => console.error(`[f0] ${s}`);
 async function pipeline(images: InputImage[], db: DatabaseSync, dir: string, qwenCap: number, arm: Arm = "b2", tiling: Tiling = CASE_TILING) {
   const dets = await detectStage(images, dir, log, arm, tiling);
   // Per-spine provenance (producer, readers, scores, catalog id or reason) is private: decisions.jsonl beside the stages.
-  await visionStage(images, dets, dir, log);
+  await visionStage(images, dets, dir, log, CROP);
   log("ppocr: reading");
   await pyReaderStage("ppocr", images, dets, dir, log);
   const cache = new Map<string, Candidate | undefined>();
   const decideAll = (): SpineDecision[] => {
-    const readings = loadReadings(dir);
+    const readings = loadReadings(dir, CROP);
     return images.flatMap((img) =>
       (dets.get(img.id)?.spines ?? []).map((s, i) => {
         const id = `${img.id}:${i}`;
@@ -70,7 +71,7 @@ async function pipeline(images: InputImage[], db: DatabaseSync, dir: string, qwe
   await pyReaderStage("qwen", images, dets, dir, log, hard);
   const decisions = decideAll();
   writeFileSync(join(dir, "decisions.jsonl"), decisions.map((d) => JSON.stringify({ ...d, accepted: d.accepted && { workId: d.accepted.workId, score: d.accepted.score, queryCoverage: d.accepted.queryCoverage } })).join("\n") + "\n");
-  return { dets, decisions, readings: loadReadings(dir), hardSelected: hard.size, hardTotal: first.filter((d) => d.hard).length };
+  return { dets, decisions, readings: loadReadings(dir, CROP), hardSelected: hard.size, hardTotal: first.filter((d) => d.hard).length };
 }
 
 /** Each run writes its part (aggregates only) under $BOOKCASE_DATA/f0/parts/; `publish` joins the parts into evals/F0/. */
@@ -130,7 +131,7 @@ async function pilot(session: string, limit: number, qwenCap: number, runId: str
     date: new Date().toLocaleDateString("en-CA"), // local date, as in the logs
     stack: stackFor("b2", "pilot"),
     accept: ACCEPT,
-    rotations: ROTATIONS,
+    cropMethod: cropName(CROP),
     tiling: CASE_TILING,
     qwenCapPerImage: qwenCap,
     hardSelection: { total: hardTotal, sentToQwen: hardSelected },

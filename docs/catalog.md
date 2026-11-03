@@ -215,3 +215,22 @@ Weakest noisy tags by top-1 (top-5 is 100 % for every tag): `truncated-title` 83
 - Recall outside the golden set. 161 queries on well-known books; a large catalog has long-tail titles with common-word names, where the cap of 250 forms per FTS query and 400 works per author could cut a true match. No test exercises that.
 - `ca_status = 1` as "author" and `tags.tag_status` carry over from C-1's not-verified list.
 - On-device behaviour: the iOS FTS5/trigram probe is a later card.
+
+---
+
+# Catalog coverage on machine reads (C-4)
+
+C-4 measures what share of a session's readable spines ISFDB holds, using F-0's cached reader text instead of hand labels (OC36). It adapts the coverage method of `docs/catalog/backend-options.md` §5: an outside catalog resolves the reader text to a book (the **readable label**, `CONTEXT.md`), and the resolved book's ISBNs, then its clean title and author, are looked up in ISFDB. Method, thresholds and results: [`evals/C4/report.md`](../evals/C4/report.md).
+
+| | |
+|---|---|
+| Code | `src/catalog/coverage.ts` (sample, queries, MODS / Open Library parsing, resolution rule, ISFDB check, estimates), `src/catalog/coverage-cli.ts` |
+| Commands | `bookcase catalog coverage --tune` (the confirmed tuning rows), `bookcase catalog coverage [--run-id C4] [--offline] [--session <name>]` |
+| Inputs | F-0's stage cache `f0/<session>/{decisions,vision,ppocr,qwen}.jsonl` and `catalog/catalog.sqlite`, under `$BOOKCASE_DATA` |
+| Live sources | Open Library search (≤ 1 request/s), then LoC SRU `lx2.loc.gov:210/LCDB` over HTTP (≤ 10 requests/min), keyless, app User-Agent with no email address |
+| Cache | every response under `$BOOKCASE_DATA/catalog/coverage/{openlibrary,loc}/<sha256 of URL>.json`; `--offline` reruns make no calls and fail on a miss |
+| Output | the per-box table in the data root's `private/c4/<session>.<role>.jsonl` (reader text, queries, records: private); aggregates in `evals/<run-id>/metrics.json` |
+| Tests | `test/catalog-coverage.test.ts` (mocked fetch, public example titles, the mini staging catalog) |
+
+The live APIs are verifiers, not a search backend (backend-options §2): neither tolerates OCR noise, so the queries are per text line (AND) and per reading (OR), and the resolution rule, not the engine's ranking, decides whether a record is the book.
+
