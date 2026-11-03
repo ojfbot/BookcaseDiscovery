@@ -116,6 +116,7 @@ These are kept apart on purpose: raw evidence is stored separately from interpre
 - **Capture coverage** — how well each place on a bookcase has been captured for reading, shown as fill while panning (proposal, Q-0, `docs/capture/coverage.md`). *Not* recognition coverage: a fully captured shelf can still hold `unknown`s whose cause is the catalog.
 - **Coverage segment** — the unit capture coverage colours: a piece of one shelf band about two median spine widths long, anchored to working-copy pixels in a still and to stable tracks live (proposal, Q-0).
 - **Coverage rung** — a spine's or segment's place on the capture ladder: `not-seen` → `seen` → `spine-found` → `text-present` → `text-read` → `matched` → `confirmed`. Filled from `text-read` up; the top two restate bands (proposal, Q-0).
+- **Top seam** — where a detected spine's top edge actually sits against its box's top end, measured from pixels as the strongest colour step across the spine. A box that *overshoots* runs past the top edge onto the top face or the shelf, and a box that *cuts* stops short of it (Q-2, `helpers/coverage/geometry.py`).
 
 ## Evidence, fixtures and honesty
 
