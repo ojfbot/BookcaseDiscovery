@@ -268,7 +268,10 @@ function inventoryCatalog(lib: string, out: string): void {
   buildCatalog({ staging, out, log });
 }
 
-async function yardstick(limit: number, qwenCap: number, runId: string, arm: Arm): Promise<void> {
+async function yardstick(limit: number, qwenCap: number, runId: string, arm: Arm, post: string[] = []): Promise<void> {
+  // --post (F-0e): detect.py post steps on the shelf-scale tiling, in their own stage folder and part.
+  const tiling: Tiling = post.length ? { ...SHELF_TILING, post } : SHELF_TILING;
+  const name = [arm, ...post].join("+");
   const root = dataRoot();
   const lib = join(root, "proxy", "library-dataset");
   const imgDir = join(lib, "images");
@@ -305,9 +308,9 @@ async function yardstick(limit: number, qwenCap: number, runId: string, arm: Arm
   const step = Math.max(2, Math.floor(names.length / limit));
   const sample = names.filter((_, i) => i % step === Math.floor(step / 2)).slice(0, limit);
   const images: InputImage[] = sample.map((n) => ({ id: n.replace(/\.jpg$/i, ""), photoHash: "0".repeat(64), path: join(imgDir, n), setting: "proxy" }));
-  const dir = stageDir(root, `yardstick-library-${arm}`);
+  const dir = stageDir(root, `yardstick-library-${name}`);
   const t0 = Date.now();
-  const { dets, decisions, readings, hardSelected, hardTotal } = await pipeline(images, db, dir, qwenCap, arm, SHELF_TILING);
+  const { dets, decisions, readings, hardSelected, hardTotal } = await pipeline(images, db, dir, qwenCap, arm, tiling);
   let tp = 0, predN = 0, gtN = 0, authorOk = 0, notDetected = 0, notInInv = 0;
   const perImage: { recall: number | null; precision: number | null }[] = [];
   const perImageCounts: [number, number, number][] = []; // [annotated, hits, accepted] in sample order, for paired arm comparisons
@@ -334,10 +337,10 @@ async function yardstick(limit: number, qwenCap: number, runId: string, arm: Arm
     card: "F-0",
     arm,
     boxArm: ARM_NAMES[arm],
-    tiling: SHELF_TILING,
+    tiling,
     yardstick: "Library Dataset (Llabrés et al. 2024, MIT), split images; titles only. PROXY: library shelves, not bookstore",
     date: new Date().toLocaleDateString("en-CA"), // local date, as in the logs
-    stack: stackFor(arm, "yardstick"),
+    stack: stackFor(arm, "yardstick", tiling),
     accept: ACCEPT,
     catalog: "the dataset's own inventory (library_books.csv, closed set), indexed with C-3's build and retrieve",
     images: images.length,
@@ -365,7 +368,7 @@ async function yardstick(limit: number, qwenCap: number, runId: string, arm: Arm
     wallSeconds: Math.round((Date.now() - t0) / 1000),
     machine: machineAgreement(dets, decisions, readings),
   };
-  const dir2 = writeEval(`yardstick-${arm}`, metrics, yardstickReport(metrics));
+  const dir2 = writeEval(`yardstick-${name}`, metrics, yardstickReport(metrics));
   log(`aggregates -> ${dir2}`);
 }
 
@@ -485,6 +488,7 @@ const { positionals, values } = parseArgs({
     "run-id": { type: "string" },
     session: { type: "string", default: "pilot-000" },
     arm: { type: "string", default: "b2" },
+    post: { type: "string", default: "" },
   },
 });
 const limit = Number(values.limit);
@@ -494,10 +498,10 @@ if (cmd === "pilot") await pilot(values.session!, limit, qwenCap, values["run-id
 else if (cmd === "yardstick") {
   const arm = values.arm as Arm;
   if (!ARMS.includes(arm)) throw new Error(`--arm must be one of ${ARMS.join(", ")}`);
-  await yardstick(limit, qwenCap, values["run-id"] ?? "F0-yardstick", arm);
+  await yardstick(limit, qwenCap, values["run-id"] ?? "F0-yardstick", arm, values.post!.split(",").filter(Boolean));
 }
 else if (cmd === "publish") publish(values["run-id"] ?? "F0");
 else {
-  console.error("usage: node src/eval/f0-cli.ts pilot|yardstick|publish [--limit n] [--qwen-cap n] [--run-id id] [--session id] [--arm b2|b3|b4]");
+  console.error("usage: node src/eval/f0-cli.ts pilot|yardstick|publish [--limit n] [--qwen-cap n] [--run-id id] [--session id] [--arm b2|b3|b4] [--post strips,extend]");
   process.exit(2);
 }

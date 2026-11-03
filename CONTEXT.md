@@ -129,6 +129,7 @@ These are kept apart on purpose: raw evidence is stored separately from interpre
 - **Machine-first labelling** — detector boxes plus OCR plus catalog lookup propose labels; the owner reviews a ranked queue of the uncertain ones and the gaps (F-0).
 - **PROXY** — a result from a public library-shelf dataset, not the owner's bookcase. Always labelled **PROXY (library shelves)**. Library shelves are not bookstore shelves.
 - **Labelling stack** — the open-weight models that label spines with no owner time (OC36): box producers plus readers, chosen in `docs/models/open-weights.md` (H-0).
+- **Spine piece** — a detector box holding only part of one spine: cut by a tile edge, or a part-of-spine detection (a label block, a colour band) inside or stacked on the rest. Whole-spine boxes have none (F-0e). Not a *fragment*, which is a piece of OCR text.
 - **Yardstick** — something the labelling stack didn't produce, used to score it (OC36): a public labelled spine dataset (PROXY; local only, never committed, never trained on), the catalog, and optional yes/no taps.
 - **Machine agreement** — how often independent readers and the catalog agree on a spine. Reported for real-use sets that have no taps; never called accuracy (INV-17).
 - **Hypothesis (claim)** — in docs, a number or fact not yet measured is marked *hypothesis* (INV-17). Not to be confused with the identity hypothesis above.
