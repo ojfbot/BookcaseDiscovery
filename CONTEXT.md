@@ -101,7 +101,7 @@ These are kept apart on purpose: raw evidence is stored separately from interpre
 - **Recommendation** — a Work suggested to the reader, located at a spine, with a rank, a band, a lens and a templated rationale (`RecommendationIssued`). A **revision** (`RecommendationRevised`) says what it was, what it is and which events changed it (INV-21).
 - **Lens** — *two senses, kept apart.* **Interest lens**: the basis of a recommendation (reading taste, serendipity), named in the recommendation. **Overlay lens**: the live view's highlight mode (Recommended, Read, All, Needs a closer look; OC30). Say which.
 - **Identity confidence** vs **discovery temperature** — two separate user settings (OC33). Confidence decides whether we know which book it is; temperature decides how far from the centre of the reader's taste a pick may sit.
-- **Dev mode** — the owner's view showing every band, the evidence and score behind each label and pick, and live-tunable parameters.
+- **Dev mode** — the owner's view showing every band, the evidence and score behind each label and pick, and live-tunable parameters; on glass, the `dev` display mode.
 - **Late-pass discovery** — a spine resolved in a pass after the first. Tracked (INV-16).
 - **Wrong-but-confident** — band `verified` or `probable` and wrong. The metric that matters most for identity.
 
@@ -125,6 +125,10 @@ These are kept apart on purpose: raw evidence is stored separately from interpre
 - **Coverage segment** — the unit capture coverage colours: a piece of one shelf band about two median spine widths long, anchored to working-copy pixels in a still and to stable tracks live (proposal, Q-0).
 - **Coverage rung** — a spine's or segment's place on the capture ladder: `not-seen` → `seen` → `spine-found` → `text-present` → `text-read` → `matched` → `confirmed`. Filled from `text-read` up; the top two restate bands (proposal, Q-0).
 - **Top seam** — where a detected spine's top edge actually sits against its box's top end, measured from pixels as the strongest colour step across the spine. A box that *overshoots* runs past the top edge onto the top face or the shelf, and a box that *cuts* stops short of it (Q-2, `helpers/coverage/geometry.py`).
+- **Display mode** — who the glass is for, and so which overlay layers it may draw (U-4, `docs/capture/display-modes.md`): `dev` (boxes, ids, scores, bands, tiles, cut and partial flags), `labelling` (hairline boxes, the machine's guess and its rung) and `user` (object-shaped highlights and capture-coverage fill; no boxes, numbers or labels). *Orthogonal to the overlay lens*: the lens chooses which spines a highlight means, the display mode how glass draws them, and any lens works in any mode.
+- **Display variant** — one named style of a display mode (`user-glow`, `user-veil`, `user-ridge`, …), all data: the layers it draws and every style number. A blue/green **arm** is a variant's id plus its parameter hash, so a retuned variant is a new arm (proposal, U-4).
+- **Overlay layer** — one drawable kind on glass (scrim, box, band line, tile edge, cut flag, partial flag, box id, box score, machine guess, rung tag, coverage fill, highlight). A display mode whitelists layers; a display variant lists and styles them.
+- **Feel metric** — a smoothness measure reported per display variant: live ones (flicker rate, edge wobble, time to fill, uncaused downgrades, target 0) measured by Q-6, and still proxies (outline jaggedness, perturbation wobble, area stability) computed on photos (U-4).
 
 ## Evidence, fixtures and honesty
 
