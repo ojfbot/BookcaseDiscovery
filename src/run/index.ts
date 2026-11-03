@@ -3,11 +3,12 @@ import { catalogCommand } from "../catalog/cli.ts";
 import { ingestCommand, manifestCommand } from "../capture/cli.ts";
 import { profileCommand } from "../recommend/cli.ts";
 import { reportCommand } from "../report/cli.ts";
+import { jobsCommand } from "./jobs-cli.ts";
 import { replayCommand } from "./replay.ts";
 
 export const moduleName = "run";
 
-export const commands = ["ingest", "perceive", "identify", "recommend", "replay", "report", "manifest", "eval", "catalog", "profile"] as const;
+export const commands = ["ingest", "perceive", "identify", "recommend", "replay", "report", "manifest", "eval", "catalog", "profile", "jobs"] as const;
 export type Command = (typeof commands)[number];
 
 const usage = `usage: bookcase <command> [args]
@@ -29,6 +30,7 @@ export function main(argv: string[]): number | Promise<number> {
   if (cmd === "replay") return replayCommand(argv.slice(1));
   if (cmd === "manifest") return manifestCommand(argv.slice(1));
   if (cmd === "report") return reportCommand(argv.slice(1));
+  if (cmd === "jobs") return jobsCommand(argv.slice(1));
   if ((commands as readonly string[]).includes(cmd)) {
     console.error(`bookcase ${cmd}: not implemented yet`);
     return 2;

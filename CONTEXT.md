@@ -34,6 +34,7 @@ These are kept apart on purpose: raw evidence is stored separately from interpre
 
 - **Observation** — what the system saw in a photo: a spine's polygon plus the OCR readings from it (`SpineObserved`, `TextObserved`). Carries the detector and OCR versions that produced it, so a re-run is reproducible (INV-14).
 - **Text variant** — one OCR reading of one spine at one rotation with language correction off or on (`TextObserved`; 0/90/270° x two flags).
+- **Crop method** — how a spine's polygon is cut and turned before a reader sees it: which quad (the detector's rectangle, or the spine face from the mask), trimmed to the frame or not, and which rotations (`src/perceive/crop.ts`). Every machine-labelling reading names its crop method (`crop`, e.g. `rect;rot=fixed;clip=frame`), so readings cut differently are never mixed (F-0b).
 - **Hypothesis** — an interpretation of an observation: a ranked list of candidates **plus the explicit `unknown`**, each with evidence (`HypothesesProposed`). Never an observation.
 - **Candidate** — one Work (optionally one Edition) a spine might be.
 - **`unknown`** — the none-of-the-above hypothesis. Present for every observation, so no match is forced (INV-5). An honest output, but every `unknown` is a defect with a reason (OC32).
@@ -133,3 +134,18 @@ These are kept apart on purpose: raw evidence is stored separately from interpre
 - **Hypothesis (claim)** — in docs, a number or fact not yet measured is marked *hypothesis* (INV-17). Not to be confused with the identity hypothesis above.
 - **Gate** — an owner decision point, `G-*`. The conductor writes a packet; the owner rules; a gate is never closed silently.
 - **Task card** — one unit of delivery work in `DELIVERY-PLAN.md`, ending in a PR.
+
+## Compute jobs and shifts
+
+The interim queue in `docs/ops/compute-fleet.md` (cards N-1 to N-3). Core's fleet-runner will take it over; these words name the parts that move with it.
+
+- **Job** — one unit of compute a worker claims: detect one photo, read one batch of crops, render one page, run the test suite at one commit. Not a *run* (a pipeline execution recorded by `RunStarted`); one run can enqueue many jobs. Not a *task card* (delivery work ending in a PR).
+- **Job kind** — what a job does (`detect`, `read-vision`, `read-ppocr`, `read-qwen`, `render`, `test-suite`). Each kind has one handler and declares the capabilities a worker needs (MPS, Apple Vision, MLX).
+- **Job key** — SHA-256 over the canonical JSON of the kind, input content hashes, parameters, model id and revision, and code commit or helper version. Same key, same work: enqueueing twice is a no-op, and a finished key is a cache hit. The payload (where a host keeps the inputs) is not keyed, so a handler executes the keyed parameters and checks the inputs' hashes, never trusting the payload for anything that changes the output.
+- **Host** — one machine that runs workers. Hosts provision themselves (their own model-hub login, lockfiles, a models manifest checked by hash); credentials are never copied between hosts.
+- **Worker** — one process on a host that claims and runs one job at a time. A host runs at most one GPU worker.
+- **Lease** — a worker's time-limited claim on a job, renewed by heartbeat. When it expires (sleep, crash, lost network), the job returns to the queue.
+- **Fencing token** — a per-job counter incremented on every claim. A heartbeat or completion that carries an old token is rejected, and each attempt writes its own output file named by the token. So a worker that wakes after its lease expired can never overwrite a newer attempt's row or bytes.
+- **Day shift / night shift** — the day shift is when the owner is present: admitting work, gates, merges, rulings, review. The night shift runs only admitted jobs that have a deterministic success check and no effect outside the owner's machines.
+- **Admission** — the day-shift act that puts a job plan into the queue for the night shift.
+- **Morning report** — `bookcase jobs report`: aggregates in two labelled scopes, *now* (state per job kind, failures by error code, oldest waiting job) and *period* (attempts per worker by how they ended, and leased machine-hours: valid lease time only, clipped to the period). A query over the job table, never a session's memory.

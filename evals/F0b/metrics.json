@@ -1,0 +1,1633 @@
+{
+ "runId": "F0b",
+ "card": "F-0b",
+ "date": "2026-11-03",
+ "shippedCrop": "rect;rot=fixed;clip=frame",
+ "previousCrop": "rect;rot=fixed",
+ "bootstrap": {
+  "unit": "photo (cluster), paired: the same boxes before and after",
+  "reps": 2000,
+  "interval": "95 % percentile",
+  "units": "percentage points"
+ },
+ "thresholds": {
+  "ambiguousAspect": 2,
+  "edgeRadial": 0.56,
+  "pad": 0.04,
+  "faceDefaults": "src/perceive/crop.ts FACE"
+ },
+ "keepRule": "keep when the pilot-000 confirmed-share interval excludes 0 upward and the yardstick's confirmed share does not fall, nor its wrong-accept share rise, beyond its interval",
+ "verdicts": {
+  "orient": {
+   "keep": false,
+   "pilotConfirmedExcludesZero": false,
+   "yardstickNotHurt": true
+  },
+  "clip": {
+   "keep": true,
+   "pilotConfirmedExcludesZero": true,
+   "yardstickNotHurt": true
+  },
+  "face": {
+   "keep": false,
+   "pilotConfirmedExcludesZero": true,
+   "yardstickNotHurt": false
+  },
+  "pad": {
+   "keep": false,
+   "pilotConfirmedExcludesZero": false,
+   "yardstickNotHurt": true
+  }
+ },
+ "sets": {
+  "pilot-000": {
+   "scope": "real use (OC35): machine agreement, never accuracy (INV-17)",
+   "boxCount": 6894,
+   "photos": 31,
+   "outlines": 6894,
+   "geometry": {
+    "lying": 407,
+    "squatUpright": 132,
+    "partlyOutOfFrame": 668,
+    "edge": 2776,
+    "oblique": 3274,
+    "topFaceTrimmed": 2144,
+    "flagged": 4146,
+    "cutOrPartial": 3825
+   },
+   "variants": {
+    "orient": {
+     "what": "rotations from the polygon's long axis (lying: 0/180; long/short < 2: all four)",
+     "cropMethod": "rect;rot=long-axis",
+     "cropChanged": 539,
+     "all": {
+      "boxCount": 539,
+      "photos": 31,
+      "textRead": {
+       "before": 47.7,
+       "after": 49,
+       "delta": 1.3,
+       "lo": -0.9,
+       "hi": 3.8
+      },
+      "confirmed": {
+       "before": 1.9,
+       "after": 1.9,
+       "delta": 0,
+       "lo": -1.3,
+       "hi": 1.1
+      }
+     },
+     "strata": {
+      "lying": {
+       "boxCount": 407,
+       "photos": 31,
+       "textRead": {
+        "before": 44.2,
+        "after": 44.5,
+        "delta": 0.2,
+        "lo": -2.2,
+        "hi": 2.8
+       },
+       "confirmed": {
+        "before": 1.5,
+        "after": 1,
+        "delta": -0.5,
+        "lo": -2,
+        "hi": 0.7
+       }
+      },
+      "squat upright": {
+       "boxCount": 132,
+       "photos": 27,
+       "textRead": {
+        "before": 58.3,
+        "after": 62.9,
+        "delta": 4.5,
+        "lo": 1.5,
+        "hi": 7.6
+       },
+       "confirmed": {
+        "before": 3,
+        "after": 4.5,
+        "delta": 1.5,
+        "lo": 0,
+        "hi": 3.3
+       }
+      }
+     },
+     "byBox": {
+      "whole": {
+       "boxCount": 69,
+       "photos": 19,
+       "textRead": {
+        "before": 39.1,
+        "after": 44.9,
+        "delta": 5.8,
+        "lo": -3.1,
+        "hi": 15.4
+       },
+       "confirmed": {
+        "before": 0,
+        "after": 1.4,
+        "delta": 1.4,
+        "lo": 0,
+        "hi": 4.3
+       }
+      },
+      "cutOrPartial": {
+       "boxCount": 470,
+       "photos": 31,
+       "textRead": {
+        "before": 48.9,
+        "after": 49.6,
+        "delta": 0.6,
+        "lo": -1.6,
+        "hi": 2.8
+       },
+       "confirmed": {
+        "before": 2.1,
+        "after": 1.9,
+        "delta": -0.2,
+        "lo": -1.5,
+        "hi": 0.9
+       }
+      }
+     },
+     "cost": {
+      "before": {
+       "vision": {
+        "calls": 976,
+        "seconds": 67
+       },
+       "ppocr": {
+        "calls": 1078,
+        "seconds": 656
+       },
+       "qwen": {
+        "calls": 168,
+        "seconds": 135
+       }
+      },
+      "after": {
+       "vision": {
+        "calls": 1296,
+        "seconds": 219
+       },
+       "ppocr": {
+        "calls": 1448,
+        "seconds": 1827
+       },
+       "qwen": {
+        "calls": 294,
+        "seconds": 730
+       }
+      }
+     }
+    },
+    "clip": {
+     "what": "polygon trimmed to the part inside the photo",
+     "cropMethod": "rect;rot=fixed;clip=frame",
+     "cropChanged": 602,
+     "all": {
+      "boxCount": 614,
+      "photos": 31,
+      "textRead": {
+       "before": 56.5,
+       "after": 57.7,
+       "delta": 1.1,
+       "lo": -1.3,
+       "hi": 3.2
+      },
+      "confirmed": {
+       "before": 1.3,
+       "after": 2.4,
+       "delta": 1.1,
+       "lo": 0.2,
+       "hi": 2
+      }
+     },
+     "strata": {
+      "partly out of frame": {
+       "boxCount": 614,
+       "photos": 31,
+       "textRead": {
+        "before": 56.5,
+        "after": 57.7,
+        "delta": 1.1,
+        "lo": -1.3,
+        "hi": 3.4
+       },
+       "confirmed": {
+        "before": 1.3,
+        "after": 2.4,
+        "delta": 1.1,
+        "lo": 0.2,
+        "hi": 2
+       }
+      }
+     },
+     "byBox": {
+      "whole": {
+       "boxCount": 417,
+       "photos": 31,
+       "textRead": {
+        "before": 61.4,
+        "after": 62.8,
+        "delta": 1.4,
+        "lo": -1.4,
+        "hi": 4.7
+       },
+       "confirmed": {
+        "before": 1.2,
+        "after": 2.4,
+        "delta": 1.2,
+        "lo": 0,
+        "hi": 2.6
+       }
+      },
+      "cutOrPartial": {
+       "boxCount": 197,
+       "photos": 30,
+       "textRead": {
+        "before": 46.2,
+        "after": 46.7,
+        "delta": 0.5,
+        "lo": -3.7,
+        "hi": 4.1
+       },
+       "confirmed": {
+        "before": 1.5,
+        "after": 2.5,
+        "delta": 1,
+        "lo": -1,
+        "hi": 2.7
+       }
+      }
+     },
+     "cost": {
+      "before": {
+       "vision": {
+        "calls": 76,
+        "seconds": 70
+       },
+       "ppocr": {
+        "calls": 1228,
+        "seconds": 870
+       },
+       "qwen": {
+        "calls": 198,
+        "seconds": 177
+       }
+      },
+      "after": {
+       "vision": {
+        "calls": 1212,
+        "seconds": 355
+       },
+       "ppocr": {
+        "calls": 1212,
+        "seconds": 2122
+       },
+       "qwen": {
+        "calls": 202,
+        "seconds": 452
+       }
+      }
+     }
+    },
+    "face": {
+     "what": "spine face from the mask outline (sides fitted, second plane trimmed), perspective-warped by the readers",
+     "cropMethod": "face;rot=fixed;clip=frame",
+     "cropChanged": 4146,
+     "all": {
+      "boxCount": 4146,
+      "photos": 31,
+      "textRead": {
+       "before": 71.1,
+       "after": 68.6,
+       "delta": -2.5,
+       "lo": -3.4,
+       "hi": -1.7
+      },
+      "confirmed": {
+       "before": 8.1,
+       "after": 8.9,
+       "delta": 0.8,
+       "lo": 0.1,
+       "hi": 1.4
+      }
+     },
+     "strata": {
+      "in frame": {
+       "boxCount": 3532,
+       "photos": 31,
+       "textRead": {
+        "before": 73.7,
+        "after": 70.9,
+        "delta": -2.8,
+        "lo": -3.9,
+        "hi": -1.8
+       },
+       "confirmed": {
+        "before": 9.3,
+        "after": 10,
+        "delta": 0.7,
+        "lo": -0.1,
+        "hi": 1.4
+       }
+      },
+      "partly out of frame": {
+       "boxCount": 614,
+       "photos": 31,
+       "textRead": {
+        "before": 56.5,
+        "after": 55.7,
+        "delta": -0.8,
+        "lo": -3.1,
+        "hi": 1.2
+       },
+       "confirmed": {
+        "before": 1.3,
+        "after": 2.8,
+        "delta": 1.5,
+        "lo": 0.3,
+        "hi": 2.6
+       }
+      }
+     },
+     "byBox": {
+      "whole": {
+       "boxCount": 2086,
+       "photos": 31,
+       "textRead": {
+        "before": 75.6,
+        "after": 73.3,
+        "delta": -2.3,
+        "lo": -3.3,
+        "hi": -1.4
+       },
+       "confirmed": {
+        "before": 8,
+        "after": 8.7,
+        "delta": 0.7,
+        "lo": -0.3,
+        "hi": 1.7
+       }
+      },
+      "cutOrPartial": {
+       "boxCount": 2060,
+       "photos": 31,
+       "textRead": {
+        "before": 66.6,
+        "after": 63.9,
+        "delta": -2.7,
+        "lo": -4.2,
+        "hi": -1.3
+       },
+       "confirmed": {
+        "before": 8.3,
+        "after": 9.1,
+        "delta": 0.8,
+        "lo": 0,
+        "hi": 1.6
+       }
+      }
+     },
+     "outOfFrameVsClip": {
+      "boxCount": 614,
+      "photos": 31,
+      "textRead": {
+       "before": 57.7,
+       "after": 55.7,
+       "delta": -2,
+       "lo": -4.3,
+       "hi": 0.2
+      },
+      "confirmed": {
+       "before": 2.4,
+       "after": 2.8,
+       "delta": 0.3,
+       "lo": -0.5,
+       "hi": 1.2
+      }
+     },
+     "cost": {
+      "before": {
+       "vision": {
+        "calls": 7140,
+        "seconds": 504
+       },
+       "ppocr": {
+        "calls": 8292,
+        "seconds": 5127
+       },
+       "qwen": {
+        "calls": 1290,
+        "seconds": 1048
+       }
+      },
+      "after": {
+       "vision": {
+        "calls": 8216,
+        "seconds": 1273
+       },
+       "ppocr": {
+        "calls": 8290,
+        "seconds": 8109
+       },
+       "qwen": {
+        "calls": 1264,
+        "seconds": 1540
+       }
+      }
+     }
+    },
+    "pad": {
+     "what": "each end lengthened by 4 % of the spine along its long axis",
+     "cropMethod": "rect;rot=fixed;clip=frame;pad=0.04",
+     "cropChanged": 4146,
+     "all": {
+      "boxCount": 4146,
+      "photos": 31,
+      "textRead": {
+       "before": 71.1,
+       "after": 71.8,
+       "delta": 0.7,
+       "lo": 0.1,
+       "hi": 1.3
+      },
+      "confirmed": {
+       "before": 8.1,
+       "after": 8.4,
+       "delta": 0.2,
+       "lo": -0.3,
+       "hi": 0.8
+      }
+     },
+     "strata": {
+      "in frame": {
+       "boxCount": 3532,
+       "photos": 31,
+       "textRead": {
+        "before": 73.7,
+        "after": 74.5,
+        "delta": 0.8,
+        "lo": 0.2,
+        "hi": 1.5
+       },
+       "confirmed": {
+        "before": 9.3,
+        "after": 9.4,
+        "delta": 0.1,
+        "lo": -0.5,
+        "hi": 0.7
+       }
+      },
+      "partly out of frame": {
+       "boxCount": 614,
+       "photos": 31,
+       "textRead": {
+        "before": 56.5,
+        "after": 56.7,
+        "delta": 0.2,
+        "lo": -2.4,
+        "hi": 2.5
+       },
+       "confirmed": {
+        "before": 1.3,
+        "after": 2.6,
+        "delta": 1.3,
+        "lo": 0.2,
+        "hi": 2.3
+       }
+      }
+     },
+     "byBox": {
+      "whole": {
+       "boxCount": 2086,
+       "photos": 31,
+       "textRead": {
+        "before": 75.6,
+        "after": 76.1,
+        "delta": 0.5,
+        "lo": -0.6,
+        "hi": 1.4
+       },
+       "confirmed": {
+        "before": 8,
+        "after": 8.2,
+        "delta": 0.3,
+        "lo": -0.6,
+        "hi": 1.3
+       }
+      },
+      "cutOrPartial": {
+       "boxCount": 2060,
+       "photos": 31,
+       "textRead": {
+        "before": 66.6,
+        "after": 67.5,
+        "delta": 0.9,
+        "lo": 0.2,
+        "hi": 1.8
+       },
+       "confirmed": {
+        "before": 8.3,
+        "after": 8.5,
+        "delta": 0.2,
+        "lo": -0.4,
+        "hi": 0.7
+       }
+      }
+     },
+     "outOfFrameVsClip": {
+      "boxCount": 614,
+      "photos": 31,
+      "textRead": {
+       "before": 57.7,
+       "after": 56.7,
+       "delta": -1,
+       "lo": -2.2,
+       "hi": 0.1
+      },
+      "confirmed": {
+       "before": 2.4,
+       "after": 2.6,
+       "delta": 0.2,
+       "lo": -0.4,
+       "hi": 0.7
+      }
+     },
+     "cost": {
+      "before": {
+       "vision": {
+        "calls": 7140,
+        "seconds": 504
+       },
+       "ppocr": {
+        "calls": 8292,
+        "seconds": 5127
+       },
+       "qwen": {
+        "calls": 1290,
+        "seconds": 1048
+       }
+      },
+      "after": {
+       "vision": {
+        "calls": 8274,
+        "seconds": 2236
+       },
+       "ppocr": {
+        "calls": 8274,
+        "seconds": 7794
+       },
+       "qwen": {
+        "calls": 1298,
+        "seconds": 2108
+       }
+      }
+     }
+    },
+    "remask": {
+     "what": "control for face: the re-derived mask's minimum-area rectangle, no side fit or trim (not a ship candidate)",
+     "cropMethod": "rect(re-derived mask);rot=fixed;clip=frame",
+     "control": true,
+     "cropChanged": 4140,
+     "all": {
+      "boxCount": 4146,
+      "photos": 31,
+      "textRead": {
+       "before": 71.1,
+       "after": 72,
+       "delta": 0.8,
+       "lo": -0.2,
+       "hi": 1.9
+      },
+      "confirmed": {
+       "before": 8.1,
+       "after": 8.7,
+       "delta": 0.6,
+       "lo": -0.1,
+       "hi": 1.3
+      }
+     },
+     "strata": {
+      "in frame": {
+       "boxCount": 3532,
+       "photos": 31,
+       "textRead": {
+        "before": 73.7,
+        "after": 74.2,
+        "delta": 0.5,
+        "lo": -0.5,
+        "hi": 1.6
+       },
+       "confirmed": {
+        "before": 9.3,
+        "after": 9.7,
+        "delta": 0.4,
+        "lo": -0.3,
+        "hi": 1.2
+       }
+      },
+      "partly out of frame": {
+       "boxCount": 614,
+       "photos": 31,
+       "textRead": {
+        "before": 56.5,
+        "after": 59.1,
+        "delta": 2.6,
+        "lo": -0.9,
+        "hi": 6
+       },
+       "confirmed": {
+        "before": 1.3,
+        "after": 2.9,
+        "delta": 1.6,
+        "lo": 0.3,
+        "hi": 2.9
+       }
+      }
+     },
+     "byBox": {
+      "whole": {
+       "boxCount": 2086,
+       "photos": 31,
+       "textRead": {
+        "before": 75.6,
+        "after": 75.9,
+        "delta": 0.3,
+        "lo": -1.1,
+        "hi": 1.9
+       },
+       "confirmed": {
+        "before": 8,
+        "after": 8.3,
+        "delta": 0.3,
+        "lo": -0.6,
+        "hi": 1.2
+       }
+      },
+      "cutOrPartial": {
+       "boxCount": 2060,
+       "photos": 31,
+       "textRead": {
+        "before": 66.6,
+        "after": 68,
+        "delta": 1.4,
+        "lo": 0.1,
+        "hi": 2.7
+       },
+       "confirmed": {
+        "before": 8.3,
+        "after": 9.1,
+        "delta": 0.8,
+        "lo": -0.1,
+        "hi": 1.8
+       }
+      }
+     },
+     "outOfFrameVsClip": {
+      "boxCount": 614,
+      "photos": 31,
+      "textRead": {
+       "before": 57.7,
+       "after": 59.1,
+       "delta": 1.5,
+       "lo": -0.7,
+       "hi": 3.7
+      },
+      "confirmed": {
+       "before": 2.4,
+       "after": 2.9,
+       "delta": 0.5,
+       "lo": -0.4,
+       "hi": 1.4
+      }
+     },
+     "cost": {
+      "before": {
+       "vision": {
+        "calls": 7140,
+        "seconds": 504
+       },
+       "ppocr": {
+        "calls": 8292,
+        "seconds": 5127
+       },
+       "qwen": {
+        "calls": 1290,
+        "seconds": 1048
+       }
+      },
+      "after": {
+       "vision": {
+        "calls": 8256,
+        "seconds": 1711
+       },
+       "ppocr": {
+        "calls": 8256,
+        "seconds": 8542
+       },
+       "qwen": {
+        "calls": 1292,
+        "seconds": 1132
+       }
+      }
+     }
+    }
+   }
+  },
+  "yardstick-library-b2": {
+   "scope": "PROXY: Library Dataset sample, box arm B2; confirmed = accepted and annotated in the image",
+   "boxCount": 1132,
+   "photos": 40,
+   "outlines": 1132,
+   "geometry": {
+    "lying": 66,
+    "squatUpright": 31,
+    "partlyOutOfFrame": 83,
+    "edge": 273,
+    "oblique": 456,
+    "topFaceTrimmed": 328,
+    "flagged": 557,
+    "cutOrPartial": 363
+   },
+   "variants": {
+    "orient": {
+     "what": "rotations from the polygon's long axis (lying: 0/180; long/short < 2: all four)",
+     "cropMethod": "rect;rot=long-axis",
+     "cropChanged": 97,
+     "all": {
+      "boxCount": 97,
+      "photos": 25,
+      "textRead": {
+       "before": 28.9,
+       "after": 29.9,
+       "delta": 1,
+       "lo": -2.8,
+       "hi": 3.9
+      },
+      "confirmed": {
+       "before": 1,
+       "after": 1,
+       "delta": 0,
+       "lo": 0,
+       "hi": 0
+      },
+      "wrong": {
+       "before": 2.1,
+       "after": 2.1,
+       "delta": 0,
+       "lo": 0,
+       "hi": 0
+      }
+     },
+     "strata": {
+      "lying": {
+       "boxCount": 66,
+       "photos": 22,
+       "textRead": {
+        "before": 22.7,
+        "after": 24.2,
+        "delta": 1.5,
+        "lo": -4.3,
+        "hi": 5.7
+       },
+       "confirmed": {
+        "before": 1.5,
+        "after": 1.5,
+        "delta": 0,
+        "lo": 0,
+        "hi": 0
+       },
+       "wrong": {
+        "before": 3,
+        "after": 3,
+        "delta": 0,
+        "lo": 0,
+        "hi": 0
+       }
+      },
+      "squat upright": {
+       "boxCount": 31,
+       "photos": 16,
+       "textRead": {
+        "before": 41.9,
+        "after": 41.9,
+        "delta": 0,
+        "lo": 0,
+        "hi": 0
+       },
+       "confirmed": {
+        "before": 0,
+        "after": 0,
+        "delta": 0,
+        "lo": 0,
+        "hi": 0
+       },
+       "wrong": {
+        "before": 0,
+        "after": 0,
+        "delta": 0,
+        "lo": 0,
+        "hi": 0
+       }
+      }
+     },
+     "byBox": {
+      "whole": {
+       "boxCount": 19,
+       "photos": 11,
+       "textRead": {
+        "before": 21.1,
+        "after": 15.8,
+        "delta": -5.3,
+        "lo": -13.6,
+        "hi": 0
+       },
+       "confirmed": {
+        "before": 0,
+        "after": 0,
+        "delta": 0,
+        "lo": 0,
+        "hi": 0
+       },
+       "wrong": {
+        "before": 10.5,
+        "after": 10.5,
+        "delta": 0,
+        "lo": 0,
+        "hi": 0
+       }
+      },
+      "cutOrPartial": {
+       "boxCount": 78,
+       "photos": 23,
+       "textRead": {
+        "before": 30.8,
+        "after": 33.3,
+        "delta": 2.6,
+        "lo": 0,
+        "hi": 5.2
+       },
+       "confirmed": {
+        "before": 1.3,
+        "after": 1.3,
+        "delta": 0,
+        "lo": 0,
+        "hi": 0
+       },
+       "wrong": {
+        "before": 0,
+        "after": 0,
+        "delta": 0,
+        "lo": 0,
+        "hi": 0
+       }
+      }
+     },
+     "cost": {
+      "before": {
+       "vision": {
+        "calls": 168,
+        "seconds": 15
+       },
+       "ppocr": {
+        "calls": 194,
+        "seconds": 220
+       },
+       "qwen": {
+        "calls": 28,
+        "seconds": 49
+       }
+      },
+      "after": {
+       "vision": {
+        "calls": 258,
+        "seconds": 18
+       },
+       "ppocr": {
+        "calls": 292,
+        "seconds": 438
+       },
+       "qwen": {
+        "calls": 52,
+        "seconds": 198
+       }
+      }
+     }
+    },
+    "clip": {
+     "what": "polygon trimmed to the part inside the photo",
+     "cropMethod": "rect;rot=fixed;clip=frame",
+     "cropChanged": 70,
+     "all": {
+      "boxCount": 70,
+      "photos": 20,
+      "textRead": {
+       "before": 78.6,
+       "after": 80,
+       "delta": 1.4,
+       "lo": 0,
+       "hi": 5.5
+      },
+      "confirmed": {
+       "before": 17.1,
+       "after": 27.1,
+       "delta": 10,
+       "lo": 3.2,
+       "hi": 15.2
+      },
+      "wrong": {
+       "before": 0,
+       "after": 0,
+       "delta": 0,
+       "lo": 0,
+       "hi": 0
+      }
+     },
+     "strata": {
+      "partly out of frame": {
+       "boxCount": 70,
+       "photos": 20,
+       "textRead": {
+        "before": 78.6,
+        "after": 80,
+        "delta": 1.4,
+        "lo": 0,
+        "hi": 5.1
+       },
+       "confirmed": {
+        "before": 17.1,
+        "after": 27.1,
+        "delta": 10,
+        "lo": 3.3,
+        "hi": 15.6
+       },
+       "wrong": {
+        "before": 0,
+        "after": 0,
+        "delta": 0,
+        "lo": 0,
+        "hi": 0
+       }
+      }
+     },
+     "byBox": {
+      "whole": {
+       "boxCount": 58,
+       "photos": 17,
+       "textRead": {
+        "before": 86.2,
+        "after": 86.2,
+        "delta": 0,
+        "lo": 0,
+        "hi": 0
+       },
+       "confirmed": {
+        "before": 20.7,
+        "after": 31,
+        "delta": 10.3,
+        "lo": 2.2,
+        "hi": 16.9
+       },
+       "wrong": {
+        "before": 0,
+        "after": 0,
+        "delta": 0,
+        "lo": 0,
+        "hi": 0
+       }
+      },
+      "cutOrPartial": {
+       "boxCount": 12,
+       "photos": 8,
+       "textRead": {
+        "before": 41.7,
+        "after": 50,
+        "delta": 8.3,
+        "lo": 0,
+        "hi": 30
+       },
+       "confirmed": {
+        "before": 0,
+        "after": 8.3,
+        "delta": 8.3,
+        "lo": 0,
+        "hi": 30
+       },
+       "wrong": {
+        "before": 0,
+        "after": 0,
+        "delta": 0,
+        "lo": 0,
+        "hi": 0
+       }
+      }
+     },
+     "cost": {
+      "before": {
+       "vision": {
+        "calls": 8,
+        "seconds": 7
+       },
+       "ppocr": {
+        "calls": 140,
+        "seconds": 253
+       },
+       "qwen": {
+        "calls": 88,
+        "seconds": 127
+       }
+      },
+      "after": {
+       "vision": {
+        "calls": 140,
+        "seconds": 29
+       },
+       "ppocr": {
+        "calls": 140,
+        "seconds": 778
+       },
+       "qwen": {
+        "calls": 78,
+        "seconds": 321
+       }
+      }
+     }
+    },
+    "face": {
+     "what": "spine face from the mask outline (sides fitted, second plane trimmed), perspective-warped by the readers",
+     "cropMethod": "face;rot=fixed;clip=frame",
+     "cropChanged": 557,
+     "all": {
+      "boxCount": 557,
+      "photos": 40,
+      "textRead": {
+       "before": 72.7,
+       "after": 68.9,
+       "delta": -3.8,
+       "lo": -5.7,
+       "hi": -2.2
+      },
+      "confirmed": {
+       "before": 17.6,
+       "after": 25,
+       "delta": 7.4,
+       "lo": 2.5,
+       "hi": 12.6
+      },
+      "wrong": {
+       "before": 0.9,
+       "after": 2.2,
+       "delta": 1.3,
+       "lo": 0.5,
+       "hi": 2.1
+      }
+     },
+     "strata": {
+      "in frame": {
+       "boxCount": 487,
+       "photos": 40,
+       "textRead": {
+        "before": 71.9,
+        "after": 68,
+        "delta": -3.9,
+        "lo": -6.1,
+        "hi": -2.1
+       },
+       "confirmed": {
+        "before": 17.7,
+        "after": 23.6,
+        "delta": 6,
+        "lo": 1.2,
+        "hi": 11.9
+       },
+       "wrong": {
+        "before": 1,
+        "after": 2.5,
+        "delta": 1.4,
+        "lo": 0.6,
+        "hi": 2.4
+       }
+      },
+      "partly out of frame": {
+       "boxCount": 70,
+       "photos": 20,
+       "textRead": {
+        "before": 78.6,
+        "after": 75.7,
+        "delta": -2.9,
+        "lo": -8.3,
+        "hi": 0
+       },
+       "confirmed": {
+        "before": 17.1,
+        "after": 34.3,
+        "delta": 17.1,
+        "lo": 4.6,
+        "hi": 30
+       },
+       "wrong": {
+        "before": 0,
+        "after": 0,
+        "delta": 0,
+        "lo": 0,
+        "hi": 0
+       }
+      }
+     },
+     "byBox": {
+      "whole": {
+       "boxCount": 385,
+       "photos": 40,
+       "textRead": {
+        "before": 87.3,
+        "after": 85.7,
+        "delta": -1.6,
+        "lo": -3.4,
+        "hi": 0
+       },
+       "confirmed": {
+        "before": 22.6,
+        "after": 34,
+        "delta": 11.4,
+        "lo": 5.8,
+        "hi": 18
+       },
+       "wrong": {
+        "before": 1.3,
+        "after": 2.9,
+        "delta": 1.6,
+        "lo": 0.5,
+        "hi": 2.8
+       }
+      },
+      "cutOrPartial": {
+       "boxCount": 172,
+       "photos": 30,
+       "textRead": {
+        "before": 40.1,
+        "after": 31.4,
+        "delta": -8.7,
+        "lo": -12.4,
+        "hi": -5.5
+       },
+       "confirmed": {
+        "before": 6.4,
+        "after": 4.7,
+        "delta": -1.7,
+        "lo": -5.8,
+        "hi": 3
+       },
+       "wrong": {
+        "before": 0,
+        "after": 0.6,
+        "delta": 0.6,
+        "lo": 0,
+        "hi": 1.7
+       }
+      }
+     },
+     "outOfFrameVsClip": {
+      "boxCount": 70,
+      "photos": 20,
+      "textRead": {
+       "before": 80,
+       "after": 75.7,
+       "delta": -4.3,
+       "lo": -10.8,
+       "hi": 0
+      },
+      "confirmed": {
+       "before": 27.1,
+       "after": 34.3,
+       "delta": 7.1,
+       "lo": -3.7,
+       "hi": 17.3
+      },
+      "wrong": {
+       "before": 0,
+       "after": 0,
+       "delta": 0,
+       "lo": 0,
+       "hi": 0
+      }
+     },
+     "cost": {
+      "before": {
+       "vision": {
+        "calls": 982,
+        "seconds": 93
+       },
+       "ppocr": {
+        "calls": 1114,
+        "seconds": 1902
+       },
+       "qwen": {
+        "calls": 476,
+        "seconds": 699
+       }
+      },
+      "after": {
+       "vision": {
+        "calls": 1102,
+        "seconds": 110
+       },
+       "ppocr": {
+        "calls": 1114,
+        "seconds": 2247
+       },
+       "qwen": {
+        "calls": 372,
+        "seconds": 1323
+       }
+      }
+     }
+    },
+    "pad": {
+     "what": "each end lengthened by 4 % of the spine along its long axis",
+     "cropMethod": "rect;rot=fixed;clip=frame;pad=0.04",
+     "cropChanged": 557,
+     "all": {
+      "boxCount": 557,
+      "photos": 40,
+      "textRead": {
+       "before": 72.7,
+       "after": 72.7,
+       "delta": 0,
+       "lo": -0.7,
+       "hi": 0.8
+      },
+      "confirmed": {
+       "before": 17.6,
+       "after": 18,
+       "delta": 0.4,
+       "lo": -1.3,
+       "hi": 2.2
+      },
+      "wrong": {
+       "before": 0.9,
+       "after": 0.9,
+       "delta": 0,
+       "lo": -0.6,
+       "hi": 0.4
+      }
+     },
+     "strata": {
+      "in frame": {
+       "boxCount": 487,
+       "photos": 40,
+       "textRead": {
+        "before": 71.9,
+        "after": 72.1,
+        "delta": 0.2,
+        "lo": -0.5,
+        "hi": 1
+       },
+       "confirmed": {
+        "before": 17.7,
+        "after": 17,
+        "delta": -0.6,
+        "lo": -2.2,
+        "hi": 1
+       },
+       "wrong": {
+        "before": 1,
+        "after": 0.8,
+        "delta": -0.2,
+        "lo": -0.7,
+        "hi": 0
+       }
+      },
+      "partly out of frame": {
+       "boxCount": 70,
+       "photos": 20,
+       "textRead": {
+        "before": 78.6,
+        "after": 77.1,
+        "delta": -1.4,
+        "lo": -5.7,
+        "hi": 0
+       },
+       "confirmed": {
+        "before": 17.1,
+        "after": 24.3,
+        "delta": 7.1,
+        "lo": 0,
+        "hi": 11.9
+       },
+       "wrong": {
+        "before": 0,
+        "after": 1.4,
+        "delta": 1.4,
+        "lo": 0,
+        "hi": 5.8
+       }
+      }
+     },
+     "byBox": {
+      "whole": {
+       "boxCount": 385,
+       "photos": 40,
+       "textRead": {
+        "before": 87.3,
+        "after": 87.3,
+        "delta": 0,
+        "lo": -0.7,
+        "hi": 0.8
+       },
+       "confirmed": {
+        "before": 22.6,
+        "after": 23.1,
+        "delta": 0.5,
+        "lo": -1.7,
+        "hi": 2.9
+       },
+       "wrong": {
+        "before": 1.3,
+        "after": 1.3,
+        "delta": 0,
+        "lo": -0.9,
+        "hi": 0.7
+       }
+      },
+      "cutOrPartial": {
+       "boxCount": 172,
+       "photos": 30,
+       "textRead": {
+        "before": 40.1,
+        "after": 40.1,
+        "delta": 0,
+        "lo": -1.7,
+        "hi": 1.8
+       },
+       "confirmed": {
+        "before": 6.4,
+        "after": 6.4,
+        "delta": 0,
+        "lo": -2,
+        "hi": 2.6
+       },
+       "wrong": {
+        "before": 0,
+        "after": 0,
+        "delta": 0,
+        "lo": 0,
+        "hi": 0
+       }
+      }
+     },
+     "outOfFrameVsClip": {
+      "boxCount": 70,
+      "photos": 20,
+      "textRead": {
+       "before": 80,
+       "after": 77.1,
+       "delta": -2.9,
+       "lo": -8.6,
+       "hi": 0
+      },
+      "confirmed": {
+       "before": 27.1,
+       "after": 24.3,
+       "delta": -2.9,
+       "lo": -8.9,
+       "hi": 0
+      },
+      "wrong": {
+       "before": 0,
+       "after": 1.4,
+       "delta": 1.4,
+       "lo": 0,
+       "hi": 5.9
+      }
+     },
+     "cost": {
+      "before": {
+       "vision": {
+        "calls": 982,
+        "seconds": 93
+       },
+       "ppocr": {
+        "calls": 1114,
+        "seconds": 1902
+       },
+       "qwen": {
+        "calls": 476,
+        "seconds": 699
+       }
+      },
+      "after": {
+       "vision": {
+        "calls": 1112,
+        "seconds": 400
+       },
+       "ppocr": {
+        "calls": 1112,
+        "seconds": 3208
+       },
+       "qwen": {
+        "calls": 470,
+        "seconds": 1268
+       }
+      }
+     }
+    },
+    "remask": {
+     "what": "control for face: the re-derived mask's minimum-area rectangle, no side fit or trim (not a ship candidate)",
+     "cropMethod": "rect(re-derived mask);rot=fixed;clip=frame",
+     "control": true,
+     "cropChanged": 557,
+     "all": {
+      "boxCount": 557,
+      "photos": 40,
+      "textRead": {
+       "before": 72.7,
+       "after": 72,
+       "delta": -0.7,
+       "lo": -2.2,
+       "hi": 0.6
+      },
+      "confirmed": {
+       "before": 17.6,
+       "after": 18,
+       "delta": 0.4,
+       "lo": -1.8,
+       "hi": 2.8
+      },
+      "wrong": {
+       "before": 0.9,
+       "after": 1.3,
+       "delta": 0.4,
+       "lo": -0.4,
+       "hi": 1
+      }
+     },
+     "strata": {
+      "in frame": {
+       "boxCount": 487,
+       "photos": 40,
+       "textRead": {
+        "before": 71.9,
+        "after": 70.8,
+        "delta": -1,
+        "lo": -2.6,
+        "hi": 0.4
+       },
+       "confirmed": {
+        "before": 17.7,
+        "after": 16.4,
+        "delta": -1.2,
+        "lo": -3.1,
+        "hi": 0.4
+       },
+       "wrong": {
+        "before": 1,
+        "after": 1.2,
+        "delta": 0.2,
+        "lo": -0.5,
+        "hi": 0.8
+       }
+      },
+      "partly out of frame": {
+       "boxCount": 70,
+       "photos": 20,
+       "textRead": {
+        "before": 78.6,
+        "after": 80,
+        "delta": 1.4,
+        "lo": 0,
+        "hi": 5.1
+       },
+       "confirmed": {
+        "before": 17.1,
+        "after": 28.6,
+        "delta": 11.4,
+        "lo": 2.9,
+        "hi": 19.8
+       },
+       "wrong": {
+        "before": 0,
+        "after": 1.4,
+        "delta": 1.4,
+        "lo": 0,
+        "hi": 3.3
+       }
+      }
+     },
+     "byBox": {
+      "whole": {
+       "boxCount": 385,
+       "photos": 40,
+       "textRead": {
+        "before": 87.3,
+        "after": 86.8,
+        "delta": -0.5,
+        "lo": -1.8,
+        "hi": 0.5
+       },
+       "confirmed": {
+        "before": 22.6,
+        "after": 22.9,
+        "delta": 0.3,
+        "lo": -2.6,
+        "hi": 3.7
+       },
+       "wrong": {
+        "before": 1.3,
+        "after": 1.8,
+        "delta": 0.5,
+        "lo": -0.5,
+        "hi": 1.4
+       }
+      },
+      "cutOrPartial": {
+       "boxCount": 172,
+       "photos": 30,
+       "textRead": {
+        "before": 40.1,
+        "after": 39,
+        "delta": -1.2,
+        "lo": -4.4,
+        "hi": 2.1
+       },
+       "confirmed": {
+        "before": 6.4,
+        "after": 7,
+        "delta": 0.6,
+        "lo": -2.3,
+        "hi": 3.8
+       },
+       "wrong": {
+        "before": 0,
+        "after": 0,
+        "delta": 0,
+        "lo": 0,
+        "hi": 0
+       }
+      }
+     },
+     "outOfFrameVsClip": {
+      "boxCount": 70,
+      "photos": 20,
+      "textRead": {
+       "before": 80,
+       "after": 80,
+       "delta": 0,
+       "lo": 0,
+       "hi": 0
+      },
+      "confirmed": {
+       "before": 27.1,
+       "after": 28.6,
+       "delta": 1.4,
+       "lo": -4.7,
+       "hi": 8.8
+      },
+      "wrong": {
+       "before": 0,
+       "after": 1.4,
+       "delta": 1.4,
+       "lo": 0,
+       "hi": 3.4
+      }
+     },
+     "cost": {
+      "before": {
+       "vision": {
+        "calls": 982,
+        "seconds": 93
+       },
+       "ppocr": {
+        "calls": 1114,
+        "seconds": 1902
+       },
+       "qwen": {
+        "calls": 476,
+        "seconds": 699
+       }
+      },
+      "after": {
+       "vision": {
+        "calls": 1110,
+        "seconds": 265
+       },
+       "ppocr": {
+        "calls": 1110,
+        "seconds": 4135
+       },
+       "qwen": {
+        "calls": 460,
+        "seconds": 917
+       }
+      }
+     }
+    }
+   }
+  }
+ }
+}

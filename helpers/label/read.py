@@ -2,7 +2,8 @@
 classifier, and R2 Qwen3-VL-4B-Instruct 8-bit (MLX). R1, Apple Vision, is helpers/ocr-vision.
 
 Usage: read.py --reader ppocr|qwen < requests.jsonl > responses.jsonl
-Request: {"id", "image", "polygon", "rotations"} as contracts/helpers/ocr-request.schema.json.
+Request: {"id", "image", "polygon", "rotations"} as contracts/helpers/ocr-request.schema.json, plus an optional
+"crop" (the runner's crop-method provenance, src/perceive/crop.ts), echoed back.
 Response: {"id", "variants": [{"rotation", "text", "confidence"}], "seconds"} or {"id", "error"}.
 The crop is cut like ocr-vision's: the polygon is perspective-corrected to an upright rectangle (corners
 clockwise from the one nearest the image's top-left), then turned clockwise by each rotation.
@@ -113,6 +114,10 @@ class Qwen:
         return text, 1.0  # no calibrated confidence from a generative reader
 
 
+def crop_of(req: dict) -> dict:
+    return {"crop": req["crop"]} if "crop" in req else {}
+
+
 def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--reader", choices=["ppocr", "qwen"], required=True)
@@ -133,10 +138,11 @@ def main() -> None:
             for rot in req["rotations"]:
                 text, conf = reader.read(crop(cache[1], req["polygon"], rot))
                 variants.append({"rotation": rot, "text": text, "confidence": round(conf, 4)})
-            print(json.dumps({"id": req["id"], "reader": reader.name, "variants": variants,
+            print(json.dumps({"id": req["id"], "reader": reader.name, **crop_of(req), "variants": variants,
                               "seconds": round(time.time() - t0, 3)}), flush=True)
         except Exception as e:  # noqa: BLE001 - one bad crop must not stop the run
-            print(json.dumps({"id": req["id"], "reader": reader.name, "error": type(e).__name__}), flush=True)
+            print(json.dumps({"id": req["id"], "reader": reader.name, **crop_of(req), "error": type(e).__name__}),
+                  flush=True)
         n += 1
         if n % 50 == 0:
             log(f"read: {reader.name} {n} crops")
