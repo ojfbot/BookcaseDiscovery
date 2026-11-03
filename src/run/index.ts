@@ -17,7 +17,7 @@ commands:
 
 Every command is a stub until its card lands (docs/plan/DELIVERY-PLAN.md §3).`;
 
-export function main(argv: string[]): number {
+export function main(argv: string[]): number | Promise<number> {
   const [cmd] = argv;
   if (!cmd || cmd === "--help" || cmd === "-h") {
     console.log(usage);

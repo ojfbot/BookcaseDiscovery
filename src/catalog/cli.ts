@@ -1,4 +1,4 @@
-// `bookcase catalog build | query | eval` (card C-3).
+// `bookcase catalog build | query | eval` (card C-3) and `coverage` (card C-4, in coverage-cli.ts).
 import { createHash } from "node:crypto";
 import { execFileSync } from "node:child_process";
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
@@ -19,6 +19,8 @@ const usage = `usage: bookcase catalog <command>
   query  <text>... [-k N] [--json] [--db <file>] retrieve candidates; each <text> is one reading (variant) of the spine
   eval   [--golden <file>] [--db <file>] [--run-id <id>] [--k N]
                                                  score retrieve on the golden fragments; --run-id writes evals/<id>/{metrics.json,report.md}
+  coverage [--tune] [--session <name>] [--offline] [--db <file>] [--run-id <id>]
+                                                 catalog gap on an F-0 session through Open Library and LoC (C-4); --run-id writes evals/<id>/metrics.json
 
 Files default to $BOOKCASE_DATA/catalog/{isfdb-staging,catalog}.sqlite (default root ~/data/bookcase-discovery/).`;
 
@@ -116,9 +118,17 @@ export function reportMarkdown(run: GoldenRun, runId: string, metrics: Record<st
   ].join("\n");
 }
 
-export function catalogCommand(argv: string[], env: NodeJS.ProcessEnv = process.env): number {
+export function catalogCommand(argv: string[], env: NodeJS.ProcessEnv = process.env): number | Promise<number> {
   const [cmd, ...rest] = argv;
   const paths = catalogPaths(env);
+  if (cmd === "coverage") {
+    return import("./coverage-cli.ts")
+      .then((m) => m.coverageCommand(rest, env))
+      .catch((e: unknown) => {
+        console.error(`bookcase catalog coverage: ${(e as Error).message}`);
+        return 1;
+      });
+  }
   try {
     if (cmd === "build") {
       const { values } = parseArgs({ args: rest, options: { staging: { type: "string" }, out: { type: "string" } } });
