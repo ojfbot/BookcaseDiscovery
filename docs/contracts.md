@@ -124,7 +124,7 @@ Each helper reads one JSON object per line from stdin and writes one per line to
 | `helpers/detect-request.schema.json` | core → detect | `{id, image}`, `image` the path of the working copy |
 | `helpers/detect-response.schema.json` | detect → core | `{id, image:{width, height}, detections:[{polygon, score}], version:{backend, weightsSha256}}` or the error |
 | `helpers/ocr-request.schema.json` | core → ocr-vision | `{id, image, polygon, rotations[]}` |
-| `helpers/ocr-response.schema.json` | ocr-vision → core | `{id, variants:[{rotation, langCorrection, text, confidence}], version:{helper, os, requestRevision}}` or the error |
+| `helpers/ocr-response.schema.json` | ocr-vision → core | `{id, variants:[{rotation, langCorrection, text, confidence, fields?}], version:{helper, os, requestRevision}}` or the error. `fields` (optional, F-0j) is a field read: `{lines:[{i, text}], title, author, imprint:{lineIds, text, from}, unassigned?}`, each field `{lineIds, text}` with `text` null when not read |
 
 Example lines: `test/fixtures/contracts/helpers/*.jsonl`. Zod: `src/ledger/helper-contracts.ts`.
 
