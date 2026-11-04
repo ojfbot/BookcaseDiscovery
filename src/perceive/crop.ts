@@ -287,6 +287,11 @@ export interface CropMethod {
   face: boolean;
   /** Lengthen each end along the long axis by this share (0: off). */
   pad: number;
+  /**
+   * Read the spine-face trim from monocular normals (H-2, `face3dTrim` in faces3d.ts) instead of the rectangle,
+   * where one is known: only boxes that over-select and whose trim is feasible carry one.
+   */
+  face3d?: boolean;
 }
 
 /**
@@ -301,12 +306,15 @@ export function coverRotations(q: readonly Point[]): Rotation[] {
 /** F-0c's cover crop: the mask rectangle's whole face, clipped to the frame as F-0b ships for spines. */
 export const COVER_CROP: CropMethod = { orient: "cover", clip: true, face: false, pad: 0 };
 
+/** H-2's crop: the spine-face trim, clipped to the frame, at F-0's rotations. Off by default (evals/H2). */
+export const FACE3D_CROP: CropMethod = { orient: "fixed", clip: true, face: false, pad: 0, face3d: true };
+
 /** F-0 as shipped in #23. Records without a crop string were read this way. */
 export const F0_CROP: CropMethod = { orient: "fixed", clip: false, face: false, pad: 0 };
 
 /** The provenance string each reading record carries, e.g. `rect;rot=long-axis;clip=frame`. */
 export function cropName(m: CropMethod): string {
-  return [m.face ? "face" : "rect", `rot=${m.orient}`, ...(m.clip ? ["clip=frame"] : []), ...(m.pad ? [`pad=${m.pad}`] : [])].join(";");
+  return [m.face3d ? "face3d" : m.face ? "face" : "rect", `rot=${m.orient}`, ...(m.clip ? ["clip=frame"] : []), ...(m.pad ? [`pad=${m.pad}`] : [])].join(";");
 }
 
 export interface SpineCrop {
@@ -317,12 +325,13 @@ export interface SpineCrop {
 
 /** The polygon and rotations one spine is read with under `method`, or null when nothing of it is in the frame. */
 export function cropFor(
-  spine: { polygon: readonly Point[]; outline?: readonly Point[] },
+  spine: { polygon: readonly Point[]; outline?: readonly Point[]; face3d?: readonly Point[] },
   frame: { width: number; height: number },
   method: CropMethod,
 ): SpineCrop | null {
   let q = canonical(spine.polygon);
-  if (method.face && spine.outline) {
+  if (method.face3d && spine.face3d) q = canonical(spine.face3d);
+  else if (method.face && spine.outline) {
     const f = spineFace(spine.outline);
     if (f) q = f.quad;
   }

@@ -33,7 +33,7 @@ const BASE = join(ROOT, "f0e", PILOT, "bands+strips");
 const log = (s: string) => process.stderr.write(`q2b: ${s}\n`);
 
 /** Box ids the shipped not-a-book rules keep as spines: F-0c's shape rules and F-0f's shelf-label rules (cover pass off). */
-function spineIds(detect: string, set: "pilot-000" | "yardstick"): Set<string> {
+export function spineIds(detect: string, set: "pilot-000" | "yardstick"): Set<string> {
   const ev = evidenceFor(set);
   const keep = new Set<string>();
   for (const d of readJsonl<Detection>(detect)) {

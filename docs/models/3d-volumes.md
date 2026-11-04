@@ -206,3 +206,43 @@ The code installs MoGe from its official GitHub repo at commit `b942f00` (MIT; t
   per-box plane fallback was added after looking at it.
 - The licence conflict on Depth Anything 3 Large-1.1 (HF says Apache-2.0, GitHub says CC BY-NC 4.0). It doesn't
   matter while MoGe-2 is the pick.
+
+## 8. H-2: the depth stage, face shares and the `face3d` crop
+
+Card H-2 built §5's card. Results: [`evals/H2/report.md`](../../evals/H2/report.md); the keep rule was
+committed before the first reader run.
+
+**The depth stage** (`helpers/depth/stage.py`, [README](../../helpers/depth/README.md)). Geometry per photo
+and faces per box are each looked up in a cache before they are computed. The geometry key covers the model id,
+its revision and weight hash, the MoGe code commit, the geometry code, the long side, the field of view and the
+working copy's hash. The faces key covers the geometry key, the face code and the photo's boxes and bands. A re-run
+is all cache hits. New boxes re-run only the face split (about 1 s a photo on the CPU); a new model revision
+re-runs both. The cache holds the point map, normals and mask per photo, and per box the face-split rows, band
+frames and a class map: what S-1 (shelf structure and voids) needs for gaps and shelf planes. It sits under the data
+root's `private/h2/cache/`. On `pilot-000` the stage reproduces H-1's face split exactly, on all 6,145 boxes.
+
+**Face shares per box.** For each default box after the shipped not-a-book filter (F-0e `bands+strips` on
+`pilot-000`; F-0's B2 on the yardstick), the private file `private/h2/<set>/faces.jsonl` holds:
+
+- the six shares;
+- whether the box over-selects and whether its trim is feasible;
+- the trim (where both hold);
+- the visible top face;
+- the elevation and the plane fallback.
+
+**Proposed contract field (not in this card: `contracts/` is not edited).** An optional `faces` object on
+`SpineObserved`, for a contract card that L-1's owner reviews:
+
+```jsonc
+"faces": {
+  "model": { "id": "Ruicheng/moge-2-vitl-normal", "revision": "cb0e8bb…", "code": "<faces.py hash>" },
+  "shares": { "front": 0.71, "edge": 0.06, "top": 0.19, "under": 0, "cover": 0.04, "behind": 0 }, // sum to 1
+  "overSelects": true,          // top + under + cover + behind ≥ 0.15 of the box (H-1)
+  "trim": [[x, y], …4],         // working-copy pixels; present only when the trim is feasible
+  "topFace": [[x, y], …4] | null // the cuboid's top where the camera sees it (display only)
+}
+```
+
+- Shares are machine measurements, never accuracy (INV-17).
+- The `model` triple is the replay pin (INV-14).
+- No pixels and no text are recorded (OC9).

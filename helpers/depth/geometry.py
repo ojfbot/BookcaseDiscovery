@@ -43,6 +43,32 @@ def load(path: str, long_side: int) -> tuple[np.ndarray, float]:
     return np.asarray(im.convert("RGB")), s
 
 
+def load_model():
+    """MoGe-2 from the pinned local weights, on MPS when available (CPU otherwise)."""
+    from moge.model.v2 import MoGeModel
+
+    device = torch.device("mps" if torch.backends.mps.is_available() else "cpu")
+    return MoGeModel.from_pretrained(str(WEIGHTS)).to(device).eval(), device
+
+
+def infer(model, device, rgb: np.ndarray, fov_x: float | None) -> tuple[dict, float]:
+    """One photo through MoGe-2: maps as float16/bool numpy arrays and the synchronised inference seconds."""
+    x = torch.tensor(rgb / 255.0, dtype=torch.float32, device=device).permute(2, 0, 1)
+    t = time.time()
+    with torch.inference_mode():
+        r = model.infer(x, fov_x=fov_x)
+    if device.type == "mps":
+        torch.mps.synchronize()
+    secs = time.time() - t
+    maps = {
+        "points": r["points"].cpu().numpy().astype(np.float16),
+        "normal": r["normal"].cpu().numpy().astype(np.float16),
+        "mask": r["mask"].cpu().numpy().astype(bool),
+        "intrinsics": r["intrinsics"].cpu().numpy().astype(np.float32),
+    }
+    return maps, secs
+
+
 def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--images", required=True, help="JSON Lines {id, image}")
@@ -53,11 +79,8 @@ def main() -> None:
     ap.add_argument("--no-save", action="store_true")
     args = ap.parse_args()
 
-    from moge.model.v2 import MoGeModel
-
-    device = torch.device("mps" if torch.backends.mps.is_available() else "cpu")
     t = time.time()
-    model = MoGeModel.from_pretrained(str(WEIGHTS)).to(device).eval()
+    model, device = load_model()
     print(f"loaded MoGe-2 on {device} in {time.time() - t:.1f}s", file=sys.stderr)
 
     out = Path(args.out)
@@ -67,24 +90,11 @@ def main() -> None:
         if args.only and rec["id"] not in args.only:
             continue
         rgb, s = load(rec["image"], args.long)
-        x = torch.tensor(rgb / 255.0, dtype=torch.float32, device=device).permute(2, 0, 1)
-        t = time.time()
-        with torch.inference_mode():
-            fov = None if args.estimate_fov else rec.get("fovX")
-            r = model.infer(x, fov_x=fov)
-        if device.type == "mps":
-            torch.mps.synchronize()
-        secs = time.time() - t
-        K = r["intrinsics"].cpu().numpy()
+        fov = None if args.estimate_fov else rec.get("fovX")
+        maps, secs = infer(model, device, rgb, fov)
+        K = maps["intrinsics"]
         if not args.no_save:
-            np.savez_compressed(
-                out / f"{rec['id']}.npz",
-                points=r["points"].cpu().numpy().astype(np.float16),
-                normal=r["normal"].cpu().numpy().astype(np.float16),
-                mask=r["mask"].cpu().numpy().astype(bool),
-                intrinsics=K.astype(np.float32),
-                scale=np.float32(s),
-            )
+            np.savez_compressed(out / f"{rec['id']}.npz", **maps, scale=np.float32(s))
         H, W = rgb.shape[:2]
         fov_x = math.degrees(2 * math.atan(0.5 / float(K[0, 0])))
         fov_y = math.degrees(2 * math.atan(0.5 / float(K[1, 1])))

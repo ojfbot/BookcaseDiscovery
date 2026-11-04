@@ -20,6 +20,10 @@ export interface SceneSpine {
   rung: Rung;
   /** The machine's title guess (labelling only; private renders). */
   guess: string | null;
+  /** The spine-face trim from the depth stage (H-2), where the box over-selects and the trim is feasible. */
+  face?: Pt[];
+  /** The book's top face as the camera sees it (H-2: the cuboid's top, when it faces the camera). */
+  topFace?: Pt[];
 }
 
 export interface Scene {
@@ -218,8 +222,20 @@ export function spineShape(s: SceneSpine, spec: ShapeSpec): Pt[][] {
 
 /** The outline a spec starts from before smoothing: the box, the hull of the mask pieces, or the first piece. */
 export function baseOutline(s: SceneSpine, spec: ShapeSpec): Pt[] {
-  if (spec.source === "quad" || !s.pieces.length) return s.quad;
-  return spec.hull ? convexHull(s.pieces.flat()) : s.pieces[0]!;
+  const raw = spec.source === "quad" || !s.pieces.length ? s.quad : spec.hull ? convexHull(s.pieces.flat()) : s.pieces[0]!;
+  return spec.face && s.face ? toFace(raw, s.face) : raw;
+}
+
+/** Share of the spine face a clipped outline must keep; below it the face's own quad is drawn. */
+export const FACE_KEEP = 0.6;
+
+/**
+ * An outline cut back to the spine face: clipped by the face quad grown as mask pieces are (3 % along, 8 % across),
+ * so a mask edge is not shaved. If too little is left (the mask and the face disagree), the face quad itself.
+ */
+export function toFace(outline: Pt[], face: Pt[]): Pt[] {
+  const clipped = clipConvex(outline, growQuad(face, 0.03, 0.08));
+  return clipped.length >= 3 && area(clipped) >= FACE_KEEP * area(face) ? clipped : face;
 }
 
 // --- SVG -----------------------------------------------------------------------------------------------------
@@ -386,6 +402,14 @@ function layer(c: Ctx, scene: Scene, v: DisplayVariant, l: LayerStyle, display: 
     case "coverage-fill": {
       const of = (state: string): Painted[] => sp.filter((s) => coverageState(s.rung) === state).map((s) => ({ polys: spineShape(s, l.shape), angleDeg: angleOf(s) }));
       return paintAll(c, l.patchy, of("patchy")) + paintAll(c, l.filled, of("filled"));
+    }
+    case "top-face": {
+      const at = (st: string) => st === "filled" || (l.minState === "patchy" && st === "patchy");
+      return paintAll(
+        c,
+        l.paint,
+        sp.filter((s) => s.topFace && at(coverageState(s.rung))).map((s) => ({ polys: [chaikin(s.topFace!, l.smoothing)], angleDeg: angleOf(s) })),
+      );
     }
     case "highlight":
       return paintAll(
