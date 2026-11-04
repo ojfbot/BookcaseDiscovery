@@ -1,0 +1,1076 @@
+{
+ "card": "Q-3",
+ "question": "for every book a person can see, the coverage rung where the machine stopped and the primary cause; causes ranked by books lost",
+ "baseline": "F-0i's partition (#51); re-run after F-0m, F-0k and NB-3 change the box set",
+ "constants": {
+  "floor": 0.225,
+  "outerRadial": 0.5612,
+  "topShare": 0.15,
+  "occluded": 0.25,
+  "absorbed": 0.6,
+  "droppedShape": 0.25,
+  "frameMargin": 0.01,
+  "bandGrow": 0.12,
+  "darkQuantile": 0.05,
+  "binW": 0.25
+ },
+ "sets": {
+  "pilot-000": {
+   "set": "pilot-000",
+   "scope": "real use (OC35): machine agreement, never accuracy (INV-17)",
+   "photos": 31,
+   "books": {
+    "n": 6068,
+    "lo": 5058,
+    "hi": 7130.1
+   },
+   "perPhoto": 195.7,
+   "lost": {
+    "n": 5244,
+    "lo": 4427.9,
+    "hi": 6061.1
+   },
+   "lostShare": 0.864,
+   "byKind": {
+    "box": 5761,
+    "gap": 225,
+    "face-out": 82
+   },
+   "rungs": {
+    "not-seen": {
+     "n": 0,
+     "lo": 0,
+     "hi": 0
+    },
+    "seen": {
+     "n": 307,
+     "lo": 236,
+     "hi": 384
+    },
+    "spine-found": {
+     "n": 1236,
+     "lo": 957.8,
+     "hi": 1553
+    },
+    "text-present": {
+     "n": 1579,
+     "lo": 1266,
+     "hi": 1879
+    },
+    "text-read": {
+     "n": 1320,
+     "lo": 972.9,
+     "hi": 1709
+    },
+    "matched": {
+     "n": 802,
+     "lo": 559,
+     "hi": 1057
+    },
+    "confirmed": {
+     "n": 824,
+     "lo": 500,
+     "hi": 1199
+    }
+   },
+   "ranked": [
+    {
+     "cause": "catalog-gap",
+     "residual": false,
+     "lost": {
+      "n": 1358,
+      "lo": 1001,
+      "hi": 1748.1
+     },
+     "share": 0.259,
+     "any": 1358
+    },
+    {
+     "cause": "frame-edge",
+     "residual": false,
+     "lost": {
+      "n": 877,
+      "lo": 760,
+      "hi": 995
+     },
+     "share": 0.167,
+     "any": 1670
+    },
+    {
+     "cause": "single-reader",
+     "residual": false,
+     "lost": {
+      "n": 741,
+      "lo": 511,
+      "hi": 974
+     },
+     "share": 0.141,
+     "any": 741
+    },
+    {
+     "cause": "tiling-or-side-case",
+     "residual": false,
+     "lost": {
+      "n": 638,
+      "lo": 437,
+      "hi": 885
+     },
+     "share": 0.122,
+     "any": 820
+    },
+    {
+     "cause": "top-face",
+     "residual": false,
+     "lost": {
+      "n": 634,
+      "lo": 438,
+      "hi": 840
+     },
+     "share": 0.121,
+     "any": 997
+    },
+    {
+     "cause": "misread",
+     "residual": false,
+     "lost": {
+      "n": 435,
+      "lo": 331,
+      "hi": 545
+     },
+     "share": 0.083,
+     "any": 1640
+    },
+    {
+     "cause": "dark-or-low-contrast",
+     "residual": false,
+     "lost": {
+      "n": 220,
+      "lo": 147,
+      "hi": 305
+     },
+     "share": 0.042,
+     "any": 563
+    },
+    {
+     "cause": "shape-filter",
+     "residual": false,
+     "lost": {
+      "n": 116,
+      "lo": 77,
+      "hi": 158
+     },
+     "share": 0.022,
+     "any": 199
+    },
+    {
+     "cause": "unattributed",
+     "residual": true,
+     "lost": {
+      "n": 114,
+      "lo": 78,
+      "hi": 151
+     },
+     "share": 0.022,
+     "any": 1461
+    },
+    {
+     "cause": "doubtful-box",
+     "residual": true,
+     "lost": {
+      "n": 86,
+      "lo": 44,
+      "hi": 134
+     },
+     "share": 0.016,
+     "any": 674
+    },
+    {
+     "cause": "occlusion",
+     "residual": false,
+     "lost": {
+      "n": 14,
+      "lo": 6,
+      "hi": 24
+     },
+     "share": 0.003,
+     "any": 32
+    },
+    {
+     "cause": "lying-flat",
+     "residual": false,
+     "lost": {
+      "n": 11,
+      "lo": 5,
+      "hi": 18
+     },
+     "share": 0.002,
+     "any": 68
+    }
+   ],
+   "cells": {
+    "seen": {
+     "frame-edge": 149,
+     "tiling-or-side-case": 1,
+     "shape-filter": 92,
+     "dark-or-low-contrast": 5,
+     "occlusion": 5,
+     "unattributed": 55
+    },
+    "spine-found": {
+     "frame-edge": 330,
+     "tiling-or-side-case": 348,
+     "shape-filter": 18,
+     "top-face": 287,
+     "dark-or-low-contrast": 100,
+     "occlusion": 2,
+     "lying-flat": 6,
+     "doubtful-box": 86,
+     "unattributed": 59
+    },
+    "text-present": {
+     "frame-edge": 398,
+     "tiling-or-side-case": 289,
+     "shape-filter": 6,
+     "top-face": 347,
+     "dark-or-low-contrast": 115,
+     "occlusion": 7,
+     "catalog-gap": 38,
+     "misread": 374,
+     "lying-flat": 5
+    },
+    "text-read": {
+     "catalog-gap": 1320
+    },
+    "matched": {
+     "misread": 61,
+     "single-reader": 741
+    }
+   },
+   "subs": {
+    "lying-flat": {
+     "—": 11
+    },
+    "top-face": {
+     "—": 634
+    },
+    "shape-filter": {
+     "face-out-piece": 24,
+     "face-out": 41,
+     "dropped-shape": 51
+    },
+    "tiling-or-side-case": {
+     "side-case": 493,
+     "tile-cut": 144,
+     "no-band-tile": 1
+    },
+    "single-reader": {
+     "—": 741
+    },
+    "catalog-gap": {
+     "no-local-catalog": 782,
+     "open-catalog": 576
+    },
+    "misread": {
+     "disagree": 61,
+     "garbled": 374
+    },
+    "dark-or-low-contrast": {
+     "low-contrast": 120,
+     "dark": 100
+    },
+    "unattributed": {
+     "—": 114
+    },
+    "frame-edge": {
+     "outer": 243,
+     "cut": 634
+    },
+    "doubtful-box": {
+     "—": 86
+    },
+    "occlusion": {
+     "cover": 14
+    }
+   },
+   "splits": {
+    "elevation": {
+     "below": {
+      "books": 3318,
+      "lost": 2957,
+      "causes": {
+       "frame-edge": 418,
+       "tiling-or-side-case": 422,
+       "shape-filter": 66,
+       "top-face": 634,
+       "dark-or-low-contrast": 113,
+       "occlusion": 11,
+       "catalog-gap": 588,
+       "misread": 174,
+       "single-reader": 426,
+       "lying-flat": 3,
+       "doubtful-box": 58,
+       "unattributed": 44
+      }
+     },
+     "level": {
+      "books": 1211,
+      "lost": 1013,
+      "causes": {
+       "frame-edge": 131,
+       "tiling-or-side-case": 91,
+       "shape-filter": 29,
+       "dark-or-low-contrast": 38,
+       "occlusion": 3,
+       "catalog-gap": 414,
+       "misread": 144,
+       "single-reader": 118,
+       "lying-flat": 2,
+       "doubtful-box": 10,
+       "unattributed": 33
+      }
+     },
+     "above": {
+      "books": 1539,
+      "lost": 1274,
+      "causes": {
+       "frame-edge": 328,
+       "tiling-or-side-case": 125,
+       "shape-filter": 21,
+       "dark-or-low-contrast": 69,
+       "catalog-gap": 356,
+       "misread": 117,
+       "single-reader": 197,
+       "lying-flat": 6,
+       "doubtful-box": 18,
+       "unattributed": 37
+      }
+     }
+    },
+    "case": {
+     "main": {
+      "books": 4969,
+      "lost": 4220,
+      "causes": {
+       "frame-edge": 696,
+       "tiling-or-side-case": 74,
+       "shape-filter": 109,
+       "top-face": 634,
+       "dark-or-low-contrast": 220,
+       "occlusion": 14,
+       "catalog-gap": 1234,
+       "misread": 423,
+       "single-reader": 605,
+       "lying-flat": 11,
+       "doubtful-box": 86,
+       "unattributed": 114
+      }
+     },
+     "side": {
+      "books": 1099,
+      "lost": 1024,
+      "causes": {
+       "frame-edge": 181,
+       "tiling-or-side-case": 564,
+       "shape-filter": 7,
+       "catalog-gap": 124,
+       "misread": 12,
+       "single-reader": 136
+      }
+     }
+    },
+    "frame": {
+     "centre": {
+      "books": 3523,
+      "lost": 2911,
+      "causes": {
+       "tiling-or-side-case": 312,
+       "shape-filter": 73,
+       "top-face": 311,
+       "dark-or-low-contrast": 125,
+       "occlusion": 10,
+       "catalog-gap": 975,
+       "misread": 414,
+       "single-reader": 484,
+       "lying-flat": 7,
+       "doubtful-box": 86,
+       "unattributed": 114
+      }
+     },
+     "outer": {
+      "books": 1758,
+      "lost": 1562,
+      "causes": {
+       "frame-edge": 243,
+       "tiling-or-side-case": 326,
+       "shape-filter": 43,
+       "top-face": 323,
+       "dark-or-low-contrast": 95,
+       "occlusion": 4,
+       "catalog-gap": 315,
+       "misread": 15,
+       "single-reader": 194,
+       "lying-flat": 4
+      }
+     },
+     "cut": {
+      "books": 787,
+      "lost": 771,
+      "causes": {
+       "frame-edge": 634,
+       "catalog-gap": 68,
+       "misread": 6,
+       "single-reader": 63
+      }
+     }
+    },
+    "row": {
+     "0": {
+      "books": 1128,
+      "lost": 1007,
+      "causes": {
+       "frame-edge": 344,
+       "tiling-or-side-case": 80,
+       "shape-filter": 10,
+       "dark-or-low-contrast": 52,
+       "catalog-gap": 298,
+       "misread": 74,
+       "single-reader": 113,
+       "lying-flat": 1,
+       "doubtful-box": 13,
+       "unattributed": 22
+      }
+     },
+     "1": {
+      "books": 1054,
+      "lost": 872,
+      "causes": {
+       "frame-edge": 99,
+       "tiling-or-side-case": 81,
+       "shape-filter": 15,
+       "top-face": 2,
+       "dark-or-low-contrast": 36,
+       "occlusion": 3,
+       "catalog-gap": 351,
+       "misread": 115,
+       "single-reader": 124,
+       "lying-flat": 2,
+       "doubtful-box": 11,
+       "unattributed": 33
+      }
+     },
+     "2": {
+      "books": 872,
+      "lost": 664,
+      "causes": {
+       "frame-edge": 69,
+       "tiling-or-side-case": 59,
+       "shape-filter": 18,
+       "top-face": 20,
+       "dark-or-low-contrast": 28,
+       "occlusion": 1,
+       "catalog-gap": 206,
+       "misread": 113,
+       "single-reader": 111,
+       "lying-flat": 1,
+       "doubtful-box": 13,
+       "unattributed": 25
+      }
+     },
+     "3": {
+      "books": 825,
+      "lost": 688,
+      "causes": {
+       "frame-edge": 87,
+       "tiling-or-side-case": 97,
+       "shape-filter": 13,
+       "top-face": 93,
+       "dark-or-low-contrast": 23,
+       "occlusion": 1,
+       "catalog-gap": 164,
+       "misread": 59,
+       "single-reader": 124,
+       "lying-flat": 1,
+       "doubtful-box": 12,
+       "unattributed": 14
+      }
+     },
+     "4": {
+      "books": 590,
+      "lost": 535,
+      "causes": {
+       "frame-edge": 72,
+       "tiling-or-side-case": 71,
+       "shape-filter": 12,
+       "top-face": 106,
+       "dark-or-low-contrast": 21,
+       "occlusion": 2,
+       "catalog-gap": 134,
+       "misread": 29,
+       "single-reader": 59,
+       "lying-flat": 1,
+       "doubtful-box": 18,
+       "unattributed": 10
+      }
+     },
+     "5": {
+      "books": 619,
+      "lost": 571,
+      "causes": {
+       "frame-edge": 38,
+       "tiling-or-side-case": 79,
+       "shape-filter": 21,
+       "top-face": 192,
+       "dark-or-low-contrast": 14,
+       "occlusion": 5,
+       "catalog-gap": 101,
+       "misread": 19,
+       "single-reader": 94,
+       "doubtful-box": 2,
+       "unattributed": 6
+      }
+     },
+     "6+": {
+      "books": 677,
+      "lost": 623,
+      "causes": {
+       "frame-edge": 71,
+       "tiling-or-side-case": 130,
+       "shape-filter": 7,
+       "top-face": 182,
+       "dark-or-low-contrast": 36,
+       "occlusion": 2,
+       "catalog-gap": 74,
+       "misread": 17,
+       "single-reader": 86,
+       "doubtful-box": 15,
+       "unattributed": 3
+      }
+     },
+     "none": {
+      "books": 303,
+      "lost": 284,
+      "causes": {
+       "frame-edge": 97,
+       "tiling-or-side-case": 41,
+       "shape-filter": 20,
+       "top-face": 39,
+       "dark-or-low-contrast": 10,
+       "catalog-gap": 30,
+       "misread": 9,
+       "single-reader": 30,
+       "lying-flat": 5,
+       "doubtful-box": 2,
+       "unattributed": 1
+      }
+     }
+    }
+   },
+   "darkBar": {
+    "luma": 57.4,
+    "contrast": 39.7
+   },
+   "reconstruction": {
+    "gaps": 153,
+    "underHalfInKeptBoxes": 75,
+    "share": 0.49
+   },
+   "apart": {
+    "headroomFrontNoBox": 25,
+    "coverGaps": 44,
+    "coverGapBooks": 59,
+    "rowEndGapBooks": 60
+   },
+   "v2": {
+    "reDecided": 2923,
+    "v1Reproduced": 1
+   }
+  },
+  "yardstick": {
+   "set": "yardstick",
+   "scope": "PROXY (library shelves): Library Dataset sample, box arm B2; confirmed = accepted and annotated in the image",
+   "photos": 40,
+   "books": {
+    "n": 1077,
+    "lo": 893,
+    "hi": 1276
+   },
+   "perPhoto": 26.9,
+   "lost": {
+    "n": 799,
+    "lo": 625,
+    "hi": 985
+   },
+   "lostShare": 0.742,
+   "byKind": {
+    "box": 1040,
+    "gap": 24,
+    "face-out": 13
+   },
+   "rungs": {
+    "not-seen": {
+     "n": 0,
+     "lo": 0,
+     "hi": 0
+    },
+    "seen": {
+     "n": 37,
+     "lo": 19,
+     "hi": 58
+    },
+    "spine-found": {
+     "n": 259,
+     "lo": 176,
+     "hi": 354
+    },
+    "text-present": {
+     "n": 89,
+     "lo": 56,
+     "hi": 127
+    },
+    "text-read": {
+     "n": 278,
+     "lo": 210,
+     "hi": 354
+    },
+    "matched": {
+     "n": 136,
+     "lo": 104,
+     "hi": 172
+    },
+    "confirmed": {
+     "n": 278,
+     "lo": 211,
+     "hi": 352
+    }
+   },
+   "ranked": [
+    {
+     "cause": "catalog-gap",
+     "residual": false,
+     "lost": {
+      "n": 278,
+      "lo": 210,
+      "hi": 351
+     },
+     "share": 0.348,
+     "any": 278
+    },
+    {
+     "cause": "single-reader",
+     "residual": false,
+     "lost": {
+      "n": 135,
+      "lo": 104,
+      "hi": 170
+     },
+     "share": 0.169,
+     "any": 135
+    },
+    {
+     "cause": "frame-edge",
+     "residual": false,
+     "lost": {
+      "n": 86,
+      "lo": 56,
+      "hi": 123
+     },
+     "share": 0.108,
+     "any": 162
+    },
+    {
+     "cause": "tiling-or-side-case",
+     "residual": false,
+     "lost": {
+      "n": 68,
+      "lo": 47,
+      "hi": 92
+     },
+     "share": 0.085,
+     "any": 73
+    },
+    {
+     "cause": "dark-or-low-contrast",
+     "residual": false,
+     "lost": {
+      "n": 55,
+      "lo": 34,
+      "hi": 80
+     },
+     "share": 0.069,
+     "any": 94
+    },
+    {
+     "cause": "unattributed",
+     "residual": true,
+     "lost": {
+      "n": 41,
+      "lo": 20,
+      "hi": 66
+     },
+     "share": 0.051,
+     "any": 283
+    },
+    {
+     "cause": "doubtful-box",
+     "residual": true,
+     "lost": {
+      "n": 37,
+      "lo": 13,
+      "hi": 68
+     },
+     "share": 0.046,
+     "any": 167
+    },
+    {
+     "cause": "misread",
+     "residual": false,
+     "lost": {
+      "n": 34,
+      "lo": 19,
+      "hi": 51
+     },
+     "share": 0.043,
+     "any": 90
+    },
+    {
+     "cause": "top-face",
+     "residual": false,
+     "lost": {
+      "n": 24,
+      "lo": 3,
+      "hi": 59
+     },
+     "share": 0.03,
+     "any": 35
+    },
+    {
+     "cause": "shape-filter",
+     "residual": false,
+     "lost": {
+      "n": 19,
+      "lo": 9,
+      "hi": 32
+     },
+     "share": 0.024,
+     "any": 26
+    },
+    {
+     "cause": "lying-flat",
+     "residual": false,
+     "lost": {
+      "n": 19,
+      "lo": 5,
+      "hi": 39
+     },
+     "share": 0.024,
+     "any": 43
+    },
+    {
+     "cause": "occlusion",
+     "residual": false,
+     "lost": {
+      "n": 3,
+      "lo": 0,
+      "hi": 9.1
+     },
+     "share": 0.004,
+     "any": 5
+    }
+   ],
+   "cells": {
+    "seen": {
+     "frame-edge": 3,
+     "shape-filter": 13,
+     "occlusion": 2,
+     "unattributed": 19
+    },
+    "spine-found": {
+     "frame-edge": 52,
+     "tiling-or-side-case": 50,
+     "shape-filter": 6,
+     "top-face": 21,
+     "dark-or-low-contrast": 52,
+     "occlusion": 1,
+     "lying-flat": 18,
+     "doubtful-box": 37,
+     "unattributed": 22
+    },
+    "text-present": {
+     "frame-edge": 31,
+     "tiling-or-side-case": 18,
+     "top-face": 3,
+     "dark-or-low-contrast": 3,
+     "misread": 33,
+     "lying-flat": 1
+    },
+    "text-read": {
+     "catalog-gap": 278
+    },
+    "matched": {
+     "misread": 1,
+     "single-reader": 135
+    }
+   },
+   "subs": {
+    "single-reader": {
+     "—": 135
+    },
+    "catalog-gap": {
+     "inventory": 278
+    },
+    "misread": {
+     "garbled": 33,
+     "disagree": 1
+    },
+    "frame-edge": {
+     "outer": 52,
+     "cut": 34
+    },
+    "tiling-or-side-case": {
+     "side-case": 47,
+     "tile-cut": 21
+    },
+    "dark-or-low-contrast": {
+     "low-contrast": 44,
+     "dark": 11
+    },
+    "unattributed": {
+     "—": 41
+    },
+    "lying-flat": {
+     "—": 19
+    },
+    "doubtful-box": {
+     "—": 37
+    },
+    "occlusion": {
+     "cover": 3
+    },
+    "shape-filter": {
+     "face-out": 10,
+     "dropped-shape": 3,
+     "face-out-piece": 6
+    },
+    "top-face": {
+     "—": 24
+    }
+   },
+   "splits": {
+    "elevation": {
+     "below": {
+      "books": 390,
+      "lost": 281,
+      "causes": {
+       "frame-edge": 26,
+       "tiling-or-side-case": 23,
+       "shape-filter": 1,
+       "top-face": 19,
+       "dark-or-low-contrast": 14,
+       "occlusion": 2,
+       "catalog-gap": 109,
+       "misread": 12,
+       "single-reader": 59,
+       "lying-flat": 2,
+       "doubtful-box": 4,
+       "unattributed": 10
+      }
+     },
+     "level": {
+      "books": 616,
+      "lost": 451,
+      "causes": {
+       "frame-edge": 52,
+       "tiling-or-side-case": 41,
+       "shape-filter": 14,
+       "top-face": 5,
+       "dark-or-low-contrast": 36,
+       "occlusion": 1,
+       "catalog-gap": 146,
+       "misread": 19,
+       "single-reader": 70,
+       "lying-flat": 15,
+       "doubtful-box": 21,
+       "unattributed": 31
+      }
+     },
+     "above": {
+      "books": 71,
+      "lost": 67,
+      "causes": {
+       "frame-edge": 8,
+       "tiling-or-side-case": 4,
+       "shape-filter": 4,
+       "dark-or-low-contrast": 5,
+       "catalog-gap": 23,
+       "misread": 3,
+       "single-reader": 6,
+       "lying-flat": 2,
+       "doubtful-box": 12
+      }
+     }
+    },
+    "case": {
+     "main": {
+      "books": 1005,
+      "lost": 731,
+      "causes": {
+       "frame-edge": 83,
+       "tiling-or-side-case": 16,
+       "shape-filter": 19,
+       "top-face": 24,
+       "dark-or-low-contrast": 55,
+       "occlusion": 3,
+       "catalog-gap": 268,
+       "misread": 34,
+       "single-reader": 132,
+       "lying-flat": 19,
+       "doubtful-box": 37,
+       "unattributed": 41
+      }
+     },
+     "side": {
+      "books": 72,
+      "lost": 68,
+      "causes": {
+       "frame-edge": 3,
+       "tiling-or-side-case": 52,
+       "catalog-gap": 10,
+       "single-reader": 3
+      }
+     }
+    },
+    "frame": {
+     "centre": {
+      "books": 781,
+      "lost": 546,
+      "causes": {
+       "tiling-or-side-case": 30,
+       "shape-filter": 16,
+       "top-face": 20,
+       "dark-or-low-contrast": 31,
+       "occlusion": 2,
+       "catalog-gap": 224,
+       "misread": 33,
+       "single-reader": 100,
+       "lying-flat": 12,
+       "doubtful-box": 37,
+       "unattributed": 41
+      }
+     },
+     "outer": {
+      "books": 214,
+      "lost": 188,
+      "causes": {
+       "frame-edge": 52,
+       "tiling-or-side-case": 38,
+       "shape-filter": 3,
+       "top-face": 4,
+       "dark-or-low-contrast": 24,
+       "occlusion": 1,
+       "catalog-gap": 40,
+       "misread": 1,
+       "single-reader": 18,
+       "lying-flat": 7
+      }
+     },
+     "cut": {
+      "books": 82,
+      "lost": 65,
+      "causes": {
+       "frame-edge": 34,
+       "catalog-gap": 14,
+       "single-reader": 17
+      }
+     }
+    },
+    "row": {
+     "0": {
+      "books": 778,
+      "lost": 558,
+      "causes": {
+       "frame-edge": 58,
+       "tiling-or-side-case": 38,
+       "shape-filter": 15,
+       "top-face": 9,
+       "dark-or-low-contrast": 48,
+       "catalog-gap": 192,
+       "misread": 22,
+       "single-reader": 92,
+       "lying-flat": 14,
+       "doubtful-box": 35,
+       "unattributed": 35
+      }
+     },
+     "1": {
+      "books": 182,
+      "lost": 143,
+      "causes": {
+       "frame-edge": 9,
+       "tiling-or-side-case": 14,
+       "shape-filter": 4,
+       "top-face": 14,
+       "dark-or-low-contrast": 6,
+       "occlusion": 3,
+       "catalog-gap": 57,
+       "misread": 8,
+       "single-reader": 21,
+       "doubtful-box": 2,
+       "unattributed": 5
+      }
+     },
+     "2": {
+      "books": 14,
+      "lost": 14,
+      "causes": {
+       "frame-edge": 7,
+       "catalog-gap": 2,
+       "single-reader": 5
+      }
+     },
+     "none": {
+      "books": 103,
+      "lost": 84,
+      "causes": {
+       "frame-edge": 12,
+       "tiling-or-side-case": 16,
+       "top-face": 1,
+       "dark-or-low-contrast": 1,
+       "catalog-gap": 27,
+       "misread": 4,
+       "single-reader": 17,
+       "lying-flat": 5,
+       "unattributed": 1
+      }
+     }
+    }
+   },
+   "darkBar": {
+    "luma": 61.8,
+    "contrast": 27.2
+   },
+   "reconstruction": {
+    "gaps": 14,
+    "underHalfInKeptBoxes": 12,
+    "share": 0.857
+   },
+   "apart": {
+    "headroomFrontNoBox": 6,
+    "coverGaps": 10,
+    "coverGapBooks": 16,
+    "rowEndGapBooks": 4
+   },
+   "v2": null
+  }
+ },
+ "yardstickReference": {
+  "images": 40,
+  "annotated": 653,
+  "found": 250,
+  "lost": {
+   "n": 403,
+   "lo": 309.975,
+   "hi": 510.02499999999986
+  },
+  "foundShare": 0.383
+ }
+}
