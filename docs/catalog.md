@@ -325,3 +325,39 @@ path. Unset, it is `catalog.sqlite`, as before. `--db` flags still override it. 
 ```
 BOOKCASE_CATALOG=catalog-v2.sqlite bookcase catalog query "MOONWALKING EINSTEIN FOER"
 ```
+
+# Lookalike guard for open catalogs (C-6)
+
+On an open catalog a spine's text can fit a book and its **lookalikes** equally well: another book with the same
+title by someone else, a one-word title that is also a common word, a title many books share. F-0's bar
+(`ACCEPT`: score ≥ 0.72, title evidence ≥ 0.8, coverage ≥ 0.5, two readers agree) asks how well the text explains a
+work, never whether it explains that work better than every other one. C-5 measured the cost on the yardstick: wrong
+accepts per spine 0.5 % on v1, 1.5 % on v2. The **lookalike guard** (`src/catalog/lookalike.ts`) asks the second
+question. Pre-registration, results and the verdict: `evals/C6/report.md`.
+
+**Where it sits.** On each reader's ranked candidates (`retrieve` on that reader's variants, depth 50, scoring and
+ranking unchanged), after F-0's bar: a reader confirms its top work only if the work also passes the arms in force.
+F-0's vote is unchanged, so the guard can withdraw a vote but never add an accept or switch one to another work. A
+spine it stops keeps F-0's reasons (`single-reader`, `no-catalog-match`, `readers-disagree`); `decide` records which
+arm withdrew which reader (`SpineDecision.lookalike`). `decide(…, guard)` takes it as an option; nothing applies it
+unless a caller passes one.
+
+**Same book.** One work id; or one normalised title by a shared author surname (F-0g's `sameWork`, now shared from
+`lookalike.ts`); or, by a shared surname, one main title or a shared whole or main title form, own or variant
+(`title_norm` kinds T, M, V, W). Open Library duplicate works and an ISFDB omnibus recorded under one of its books'
+titles are one book and never each other's lookalike.
+
+| arm | rule | constant (`LOOKALIKE`) |
+|---|---|---|
+| **margin** | the work beats the best *different* book among the reader's candidates by at least the margin | 0.01: `retrieve` ranks by hundredths, then edition count, so under 0.01 the work won on popularity |
+| **author evidence** | a one-content-word title form, or one held by two or more distinct books (`titleHolders`, duplicates counted once), needs author evidence above 0 | `sharedBooks` 2 |
+| **short title** | a one-content-word title needs a second field confirmed: author evidence ≥ 0.5 (a surname) or series ≥ 0.8 | `secondAuthor` 0.5, `secondSeries` 0.8 |
+
+Commands (offline; per-reading and per-spine files stay in the data root's private folder (`private/c6/`)):
+
+```
+node src/catalog/c6-eval.ts readings --set pilot-000 --catalog v2 [--shard 1/4]
+node src/catalog/c6-eval.ts decide --set pilot-000
+node src/catalog/c6-eval.ts golden
+node src/catalog/c6-eval.ts publish            # evals/C6/metrics.json
+```
