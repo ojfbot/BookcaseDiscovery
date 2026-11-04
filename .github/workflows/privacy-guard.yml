@@ -39,4 +39,4 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm typecheck
       - run: pnpm exec node scripts/check-fleet-vendor.mjs
-      - run: pnpm exec vitest run test/fleet.test.ts test/fleet-service.test.ts test/fleet-runtime.test.ts test/jobs.test.ts
+      - run: pnpm exec vitest run test/fleet.test.ts test/fleet-service.test.ts test/fleet-runtime.test.ts test/jobs.test.ts test/read-qwen.test.ts test/read-qwen-cli.test.ts

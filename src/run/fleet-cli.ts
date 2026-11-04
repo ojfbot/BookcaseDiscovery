@@ -6,11 +6,22 @@ import { defaultOcrBinary } from "../perceive/ocr.ts";
 import { isServiceWorker, workerService } from "./fleet-service.ts";
 import { mayClaim } from "./fleet-worker-policy.ts";
 import { detectCapabilities, ocrHelperId, readVisionHandler, readVisionJob } from "./job-kinds.ts";
+import { canonicalJson } from "./jobs.ts";
+import {
+  checkReadQwenOutput,
+  compareWithCached,
+  detectReadQwen,
+  READ_QWEN_MODEL_DIR,
+  readQwenHandler,
+  ReadQwenJobSchema,
+} from "./read-qwen.ts";
 import { generateToken } from "./vendor/fleet-runner/auth.ts";
 import { fleetClient } from "./vendor/fleet-runner/client.ts";
+import type { JobSpec } from "./vendor/fleet-runner/jobs.js";
 import { runWorker, workOnce } from "./vendor/fleet-runner/worker.ts";
 
-const usage = "usage: bookcase fleet <keygen | stage PHOTO | enqueue PHOTO | work WORKER | serve-worker WORKER | service | report | verify WORKER>";
+const usage =
+  "usage: bookcase fleet <keygen | stage PHOTO | enqueue PHOTO | pins | admit JOB | check JOB OUTPUT [CACHED] | work WORKER | serve-worker WORKER | service | report | verify WORKER>";
 
 function dimensions(photo: string): [number, number] {
   const result = execFileSync("/usr/bin/sips", ["-g", "pixelWidth", "-g", "pixelHeight", photo], {
@@ -37,8 +48,8 @@ export async function fleetCommand(argv: string[], env: NodeJS.ProcessEnv = proc
     console.log(usage);
     return 0;
   }
-  const arity = command === "keygen" || command === "report" ? 1 : 2;
-  if (!["keygen", "stage", "enqueue", "work", "serve-worker", "report", "verify"].includes(command ?? "") || argv.length !== arity) {
+  const arity = command === "keygen" || command === "report" || command === "pins" ? [1] : command === "check" ? [3, 4] : [2];
+  if (!["keygen", "stage", "enqueue", "pins", "admit", "check", "work", "serve-worker", "report", "verify"].includes(command ?? "") || !arity.includes(argv.length)) {
     console.error(usage);
     return 1;
   }
@@ -57,6 +68,30 @@ export async function fleetCommand(argv: string[], env: NodeJS.ProcessEnv = proc
       console.log("fleet input staged");
       return 0;
     }
+    const qwenModels = join(root, "models", READ_QWEN_MODEL_DIR);
+    if (command === "pins") {
+      // Hashes of public code and weights, and the Python version: nothing private.
+      const detected = detectReadQwen({ modelDir: qwenModels });
+      if (!detected.ok) {
+        console.error(`read-qwen unavailable: ${detected.reason}`);
+        return 1;
+      }
+      console.log(JSON.stringify(detected.pins, null, 2));
+      return 0;
+    }
+    if (command === "check") {
+      // Counts and problem codes only: the output and the cache hold reader text.
+      const job = ReadQwenJobSchema.parse(JSON.parse(readFileSync(resolve(arg!), "utf8")));
+      const output = readFileSync(resolve(argv[2]!), "utf8");
+      const result = checkReadQwenOutput(job, output);
+      console.log(`read-qwen output: ${result.readings} readings for ${result.requests} requests, ${result.readerErrors} reader errors`);
+      console.log(`contract and order: ${result.problems.length === 0 ? "pass" : `fail (${result.problems.join(", ")})`}`);
+      if (result.problems.length > 0) return 1;
+      if (argv[3] === undefined) return 0;
+      const cached = compareWithCached(job, output, readFileSync(resolve(argv[3]), "utf8"));
+      console.log(`cached readings equal: ${cached.equal} of ${result.requests} (${cached.differ} differ, ${cached.missing} not cached)`);
+      return cached.equal === result.requests ? 0 : 1;
+    }
     if (!token || !endpoint) throw new Error("missing fleet configuration");
     if (command === "report") {
       const report = await fleetClient(endpoint, "owner", token).report();
@@ -65,15 +100,31 @@ export async function fleetCommand(argv: string[], env: NodeJS.ProcessEnv = proc
     }
     const binary = defaultOcrBinary(env);
     const keyFile = join(fleetDir, "job-key");
-    if (command === "enqueue") {
-      const photo = resolve(arg!);
-      const [w, h] = dimensions(photo);
-      const spec = readVisionJob(
-        photo,
-        [{ id: "pilot", polygon: [[0, 0], [w - 1, 0], [w - 1, h - 1], [0, h - 1]], rotations: [0] }],
-        ocrHelperId(binary),
-        { payload: null },
-      );
+    if (command === "enqueue" || command === "admit") {
+      let spec: JobSpec;
+      if (command === "admit") {
+        const parsed = ReadQwenJobSchema.safeParse(JSON.parse(readFileSync(resolve(arg!), "utf8")));
+        if (!parsed.success) {
+          console.error("fleet job is not a valid read-qwen spec");
+          return 1;
+        }
+        // Admit only pins this host also holds, so a typo never reaches a worker as a permanent mismatch.
+        const detected = detectReadQwen({ modelDir: qwenModels });
+        if (!detected.ok || detected.pins.code !== parsed.data.code || canonicalJson(detected.pins.model) !== canonicalJson(parsed.data.params.model)) {
+          console.error("fleet job pins do not match this host");
+          return 1;
+        }
+        spec = parsed.data as unknown as JobSpec;
+      } else {
+        const photo = resolve(arg!);
+        const [w, h] = dimensions(photo);
+        spec = readVisionJob(
+          photo,
+          [{ id: "pilot", polygon: [[0, 0], [w - 1, 0], [w - 1, h - 1], [0, h - 1]], rotations: [0] }],
+          ocrHelperId(binary),
+          { payload: null },
+        );
+      }
       const result = await fleetClient(endpoint, "owner", token).enqueue(spec);
       if (!/^[a-f0-9]{64}$/.test(result.key)) throw new Error("invalid admitted key");
       mkdirSync(fleetDir, { recursive: true });
@@ -94,7 +145,13 @@ export async function fleetCommand(argv: string[], env: NodeJS.ProcessEnv = proc
       const client = fleetClient(endpoint, arg!, token);
       const worker = {
         caps,
-        handlers: { "read-vision": readVisionHandler({ binary, resolveImage: (hash) => images.find(hash) }) },
+        handlers: {
+          "read-vision": readVisionHandler({ binary, resolveImage: (hash) => images.find(hash) }),
+          // Registered only where the pins were detected; the handler re-checks them on every attempt.
+          ...(caps.some((c) => c.startsWith("read-qwen-"))
+            ? { "read-qwen": readQwenHandler({ modelDir: qwenModels, resolveImage: (hash) => images.find(hash) }) }
+            : {}),
+        },
         outDir: join(fleetDir, "attempts"),
       };
       if (command === "serve-worker") {

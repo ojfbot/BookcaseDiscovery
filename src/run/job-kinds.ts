@@ -1,5 +1,6 @@
 // Job kinds the interim queue can run (docs/ops/compute-fleet.md §3). Each handler wraps an existing
-// helper unchanged; card N-1 adds detect and the Python readers the same way.
+// helper unchanged; card N-1 adds detect and the Python readers the same way, starting with `read-qwen`
+// (src/run/read-qwen.ts).
 //
 // Kind boundary: everything that changes a kind's output is keyed (inputs, params, code), and the handler
 // executes the keyed params, never the payload. The payload only says where this host keeps the inputs.
@@ -14,8 +15,11 @@ import { extname, join } from "node:path";
 import { OcrRequestSchema } from "../ledger/helper-contracts.ts";
 import { defaultOcrBinary, ocrBinaryAvailable, OcrHelperError, runOcr } from "../perceive/ocr.ts";
 import type { OcrHelperOptions, OcrRequest } from "../perceive/ocr.ts";
+import { dataRoot } from "../ledger/images.ts";
 import { JobError, writeOutput } from "./jobs.ts";
 import type { JobHandler, JobSpec } from "./jobs.ts";
+import { detectReadQwen, READ_QWEN_MODEL_DIR, readQwenHandler } from "./read-qwen.ts";
+import type { ReadQwenHost } from "./read-qwen.ts";
 
 /** One spine to read: everything in an `OcrRequest` except the image path, which is host-specific. */
 export type ReadVisionItem = Omit<OcrRequest, "image">;
@@ -44,7 +48,7 @@ export function ocrHelperId(binary: string = defaultOcrBinary()): string {
  * it still hashes to `bytes`; otherwise it is replaced. Linking never overwrites, so concurrent workers
  * staging the same content converge on one verified file.
  */
-function stageVerified(dir: string, name: string, bytes: Buffer, mode: number): string {
+export function stageVerified(dir: string, name: string, bytes: Buffer, mode: number): string {
   mkdirSync(dir, { recursive: true });
   const path = join(dir, name);
   const want = sha256(bytes);
@@ -148,13 +152,21 @@ export function readVisionHandler(options: ReadVisionOptions = {}): JobHandler {
   };
 }
 
-/** Capabilities this host can offer, detected rather than declared, so a worker never claims what it cannot run. */
-export function detectCapabilities(env: NodeJS.ProcessEnv = process.env): string[] {
+/**
+ * Capabilities this host can offer, detected rather than declared, so a worker never claims what it cannot run.
+ * `read-qwen` adds `mlx` and a capability naming its pins, only when the venv matches uv.lock and the helper and
+ * weights hash (src/run/read-qwen.ts); so a read-qwen job is claimed only by a host holding the same pins.
+ */
+export function detectCapabilities(env: NodeJS.ProcessEnv = process.env, qwen: ReadQwenHost = {}): string[] {
   const caps: string[] = [];
   if (process.platform === "darwin" && ocrBinaryAvailable(defaultOcrBinary(env))) caps.push("apple-vision");
+  if (process.platform === "darwin" && process.arch === "arm64") {
+    const detected = detectReadQwen({ modelDir: join(dataRoot(env), "models", READ_QWEN_MODEL_DIR), ...qwen });
+    if (detected.ok) caps.push("mlx", detected.pins.capability);
+  }
   return caps;
 }
 
 export function builtInHandlers(): Record<string, JobHandler> {
-  return { "read-vision": readVisionHandler() };
+  return { "read-vision": readVisionHandler(), "read-qwen": readQwenHandler() };
 }
