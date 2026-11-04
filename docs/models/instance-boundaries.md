@@ -191,14 +191,16 @@ Inputs:
 | BPR (boundary patches) | yes, per instance | yes | Apache-2.0; no HF | HRNet | mmcv 1.x build on Mac (hypothesis) | medium |
 | SegRefiner, CRM, ZIM, BiRefNet | — | — | CRM and RCF are **CC BY-NC**; ZIM's licence conflicts; BiRefNet uses deformable conv (MPS gap, snippet) | — | — | low or blocked |
 
-**Edge evidence.** For the seam's cost:
-- **TEED** (MIT, 58 K params, `fal/teed`, verified);
-- **DexiNed** (MIT, `kornia/dexined`, verified);
-- a classical gradient profile across the axis on the rotated tile, which needs no model.
-
-Avoid PiDiNet ("research purpose" licence, verified) and RCF (CC BY-NC-SA, verified). Spines carry strong internal
-edges (title bands), so only edges that run within about 15° of the spine axis and persist along it count
-(hypothesis).
+**Edge and shadow inputs come from F-R3.**
+- **Scope:** F-R3 (`claude/fr3-representations`) surveys alternate input representations: edge and gradient maps,
+  shadow removal, colour and illumination transforms, and test-time augmentation. This card does not survey them.
+- **F-0i's needs:** an **edge map** on the rotated conflict tile for the seam's cost (§4.5). It may also use a
+  **shadow-free or illumination-normalised tile** as SAM's input, if F-R3 finds one that sharpens dark gutters
+  between spines.
+- **Placeholder:** until F-R3 reports, the seam uses a classical gradient profile across the spine axis, which needs
+  no model.
+- **Constraint for F-R3's pick (hypothesis):** spines carry strong internal edges (title bands). So whatever map F-R3
+  recommends, the seam should count only edges that run within about 15° of the spine axis and persist along it.
 
 ### 3.4 Tiling (thread d)
 
@@ -241,8 +243,9 @@ edges (title bands), so only edges that run within about 15° of the spine axis 
    - Masks from different tiles are never unioned. Where tiles overlap, logits are averaged with border-distance
      weights (BPR's and CascadePSP's rule; verified).
 5. **Seam, then depth, then fallbacks.** A minimum-cost seam runs along the spine axis inside each two-member
-   contested band. Its cost is edge evidence (gradient across the axis; TEED as an arm) plus the two members' logit
-   difference. Depth and normals override only where the pair is depth-separated.
+   contested band. Its cost is edge evidence plus the two members' logit difference. The edge map is an input from
+   F-R3 (§3.3); the default is a classical gradient across the axis. Depth and normals override only where the
+   pair is depth-separated.
    - **Fallbacks, in order:**
      1. a weak seam (no stronger than its surroundings) falls back to logit argmax;
      2. without logits, to a distance-transform split;
@@ -425,8 +428,8 @@ The claims this design rests on were re-opened for this doc in the transformers 
   must not undo that. Run the gate after F-0c's kinds, on spines only.
 - **Will joint prompts recover books the detector merged?** The merged-parent remainder is re-prompted, but no box
   ground truth exists. A small blind spot check, like H-2's exit (b) protocol, on a fresh session would say.
-- **TEED or a classical gradient for the seam?** This is an arm inside F-0i; the default is the classical profile,
-  which needs no download.
+- **Which edge or shadow representation feeds the seam and the tiles?** F-R3 answers this. F-0i takes its
+  recommendation as an arm against the classical gradient default, pre-registered before the first tile runs.
 
 ## Sources
 
@@ -444,7 +447,6 @@ The claims this design rests on were re-opened for this doc in the transformers 
   - https://github.com/SysCV/sam-hq
   - https://github.com/linyq2117/SAMRefiner
   - https://github.com/hkchengrex/CascadePSP
-  - https://github.com/xavysp/TEED
   - https://github.com/apple/ml-depth-pro (`boundary_metrics.py`)
   - https://github.com/llabres/library-dataset
 - **Hugging Face:**
@@ -452,7 +454,5 @@ The claims this design rests on were re-opened for this doc in the transformers 
   - https://huggingface.co/lkeab/hq-sam
   - https://huggingface.co/syscv-community/sam-hq-vit-base
   - https://huggingface.co/hkchengrex/CascadePSP-onnx
-  - https://huggingface.co/fal/teed
-  - https://huggingface.co/kornia/dexined
   - https://huggingface.co/facebook/sam3 (gated)
   - https://huggingface.co/Ruicheng/moge-2-vitl-normal
