@@ -290,7 +290,7 @@ export function boxImprint(r: ImprintReading | undefined): { key: string | null;
   return { key: keys[0]!, name: named[0]!.v.imprint, from: named.every((x) => x.v.imprintFrom === "logo") ? "logo" : "text", conflict: false };
 }
 
-function runImprintHelper(requests: object[], out: string): Promise<void> {
+export function runImprintHelper(requests: object[], out: string): Promise<void> {
   if (requests.length === 0) return Promise.resolve();
   const helper = join(REPO, "helpers", "label");
   return new Promise((resolve, reject) => {
