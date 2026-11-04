@@ -175,7 +175,7 @@ function parseCsv(text: string): CsvRow[] {
   return body.map((r) => Object.fromEntries(head!.map((h, i) => [h, r[i] ?? ""])));
 }
 
-interface TruthBook { isbn13: string | null; title: string; surnames: Set<string> }
+export interface TruthBook { isbn13: string | null; title: string; surnames: Set<string> }
 
 /**
  * Leading articles dropped before comparing titles. The yardstick is a Barcelona library, so Spanish and Catalan
@@ -186,7 +186,7 @@ const ARTICLE = /^(the|a|an|el|la|los|las|lo|un|una|l|els|les|uns|unes) /;
 const stripDates = (a: string) => a.replace(/(,\s*[^,]*\d[^,]*|\s*\(.*\))\s*$/, "").trim();
 
 /** The yardstick's annotated books per image (PROXY): ISBN, main title, author surnames. */
-function yardstickBooks(): Map<string, TruthBook[]> {
+export function yardstickBooks(): Map<string, TruthBook[]> {
   const lib = join(dataRoot(), "proxy", "library-dataset");
   const out = new Map<string, TruthBook[]>();
   for (const a of parseCsv(readFileSync(join(lib, "data", "annotations", "library_books_annotations.csv"), "utf8"))) {
@@ -201,7 +201,7 @@ function yardstickBooks(): Map<string, TruthBook[]> {
 }
 
 /** Is the accepted work one of the image's annotated books? ISBN on any edition, else title form plus surname. */
-function isAnnotated(db: DatabaseSync, workId: string, books: TruthBook[]): boolean {
+export function isAnnotated(db: DatabaseSync, workId: string, books: TruthBook[]): boolean {
   const isbns = new Set((db.prepare("SELECT isbn13 FROM editions WHERE work_id = ? AND isbn13 IS NOT NULL").all(workId) as Array<{ isbn13: string }>).map((r) => r.isbn13));
   if (books.some((b) => b.isbn13 && isbns.has(b.isbn13))) return true;
   const w = db.prepare("SELECT title_norm, author_norm FROM works WHERE id = ?").get(workId) as { title_norm: string; author_norm: string } | undefined;

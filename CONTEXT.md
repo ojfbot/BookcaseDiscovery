@@ -37,10 +37,31 @@ The record shapes these words name are in `contracts/` and explained in `docs/co
 - **Top-face layer** — (H-2) the overlay layer that lights a book's top face where the camera sees it (its cuboid's
   top, the camera above it, depth not a default), as a second, dimmer shape beside the spine: the "volume" in
   `user-glow-volume`.
+- **Shelf plane** — (S-1) one of three planes fitted per shelf row from the depth stage's point map
+  (`helpers/shelf/shelf.py`, RANSAC with the band's frame as the prior):
+  - the **board top**, facing up at the books' base;
+  - the **lip**, the board's front edge, facing out just under the base;
+  - the **back panel**, facing out more than 8 cm behind the spine plane.
+
+  A plane is *found* when enough inliers span enough of the row. Board tops show only where the camera looks down
+  on a shelf (`evals/S1`).
+- **Board pitch** — (S-1) the height between one row's board-top level and the next row's above it: a ceiling on
+  the lower row's book heights. **Board depth**: lip to back panel, a ceiling on book depth. Both are in MoGe-2's
+  metres, whose scale is unverified.
+- **Void** — (S-1) a stretch of a shelf row with no book in it: at least half a median spine width along the row
+  (in the coverage-segment unit) that no book's outline covers, where the back panel shows (mostly H-1's
+  `behind`). An uncovered stretch that is not behind is an **outline gap** (usually a book with no outline), not a
+  void. F-0's *gap share* sees only gaps between boxes; a void can also lie at a row's empty end.
+- **On-lip** — (S-1) a `not-a-book` sub-reason from geometry, not text (`onLip` in `src/eval/s1.ts`): a flat box
+  inside the frame whose pixels lie mostly on a row's lip face, not behind the lip and in front of the books' faces.
+  It catches shelf strips and cards clipped to the lip. It is a post step after F-0c's and F-0f's kinds, with its
+  default set by `evals/S1`'s keep rule.
 - **Ordinal** — a spine's position on its shelf, counted from the left, from 0.
 - **Physical copy** — one book on the shelf. Two copies of the same work are two observations with the same identity; never collapsed (INV-4).
 - **Copy group** — (F-0g) a run of neighbouring spines on one shelf that look the same (one size, an appearance score at the calibrated threshold; `visuallySame` in `src/eval/f0g.ts`) and whose reads pass the series guard: copies of one edition or one look. Every copy stays its own observation (INV-4). A hardback and a paperback of one work are two groups, counted together only at the work level (copies of a work on a shelf).
 - **Series guard** — (F-0g) the text test two visually alike neighbours must pass to be linked as copies (`pairGuard`): the same work where both are confirmed; on the other, no reader confirming another work and no reader's top candidate another title with strong title evidence that outscores the work; agreeing strong reads where neither is confirmed; the same imprint where both have one. Matching jackets of one author's series fail it.
+- **Pixel conflict** — (F-R1) two books' masks claiming the same visible pixel. Two oriented *boxes* may overlap legitimately (a leaning book, perspective); two masks may not, since each visible pixel belongs to one book. A conflict is *duplicate* (IoU ≥ 0.5), *nested* (≥ 80 % of the smaller mask inside the other), *partial* (20–80 %) or *boundary bleed* (under 20 %). **Overlap rate**: pixels claimed by two or more masks over pixels claimed by at least one; the invariant's target is 0 (`helpers/coverage/overlap.py`).
+- **Instance partition** — (F-0i, proposed in `docs/models/instance-boundaries.md`) the non-overlapping assignment of a photo's visible pixels to books, from an **instance gate** (CPU rules on mask overlap that drop duplicates, pieces inside a whole spine and two-book masks), **conflict tiles** (only the remaining conflict groups re-segmented on rotated, upsampled tiles with joint prompts) and a seam per shared edge. Every boundary segment carries its **boundary provenance**: which step drew it (`outline`, `gate`, `tile-argmax`, `seam`, `depth`, `fallback`) and with which tile, model and prompts.
 
 ## Photos and ingest
 
@@ -117,6 +138,8 @@ These are kept apart on purpose: raw evidence is stored separately from interpre
 - **Match miss** — a readable book the catalog holds that F-0 still left `unknown` (`in-isfdb-match-miss`). A matching and retrieval lever (C-3), not a catalog gap.
 - **Crosswalk** — (C-5) the link from an Open Library work to the ISFDB work it is: by ISBN first, then by title plus author surname. A crosswalked work adds its editions and an `openlibrary` entry to the ISFDB work's `sources`; it never becomes a second Work.
 - **Shelf-held layer** / **breadth layer** — (C-5) the two ways an Open Library work enters `catalog-v2.sqlite`. Shelf-held: it matches a book C-4's resolver resolved on a scanned session (fixes repeat scans). Breadth: English, first published 1960 or later, two or more editions (for first sightings). Recorded per work as `layer` in `sources`.
+- **Lookalike** — (C-6) a different book whose catalog record explains a spine's text about as well as the right one: a namesake by another author, a one-word title that is also a common word, a title many books share. Not a *physical copy* of the same book, and not an Open Library duplicate record of it: records with a shared title form and a shared author surname are one book.
+- **Lookalike guard** — (C-6) a test on one reader's ranked candidates that F-0's accept rule can apply on an open catalog: the reader confirms its top work only if it also passes the guard's arms. **Margin**: it beats the best different book by at least 0.01. **Author evidence**: a one-word title, or one two or more books hold, needs author evidence above 0. **Short title**: a one-word title needs a surname or the series confirmed (`LOOKALIKE` in `src/catalog/lookalike.ts`). It only withdraws a reader's vote; it never adds an accept or switches one to another work.
 - **Catalog gap** — a readable book the catalog does not hold (`not-in-isfdb`): the part of `unknown` the catalog causes, as opposed to perception (`no-text`) or matching (OC32).
 - **Decision basis** — what a confirmed label rests on: `readers-agree` (F-0: two readers name one work and pass the catalog bar) or `confirmed-by-copy` (F-0g). Recorded with the label, so a basis can be counted, audited or switched off on its own.
 - **Confirmed-by-copy** — (F-0g) the decision basis of an unconfirmed spine in a copy group that takes the work its confirmed copies share, because its own reads do not contradict that work and at least one of its readers supports it (the work's title evidence on that reader's text at least 0.5). Evidence, never a bypass of the spine's own reads and never a merge of copies.

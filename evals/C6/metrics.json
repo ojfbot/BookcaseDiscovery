@@ -1,0 +1,1675 @@
+{
+  "runId": "C6",
+  "card": "C-6",
+  "date": "2026-11-03",
+  "code": "4f79fb464a13",
+  "arms": {
+    "none": [],
+    "a": [
+      "margin"
+    ],
+    "b": [
+      "author"
+    ],
+    "c": [
+      "short"
+    ],
+    "a+b+c": [
+      "margin",
+      "author",
+      "short"
+    ],
+    "a+b": [
+      "margin",
+      "author"
+    ]
+  },
+  "keep": {
+    "verdicts": {
+      "a": {
+        "yardstick": false,
+        "pilot": true,
+        "goldenTop5": true,
+        "goldenStrict": false,
+        "goldenAuthorBearing": true,
+        "passStrict": false,
+        "passAlternative": false
+      },
+      "b": {
+        "yardstick": false,
+        "pilot": false,
+        "goldenTop5": true,
+        "goldenStrict": false,
+        "goldenAuthorBearing": true,
+        "passStrict": false,
+        "passAlternative": false
+      },
+      "c": {
+        "yardstick": true,
+        "pilot": true,
+        "goldenTop5": true,
+        "goldenStrict": false,
+        "goldenAuthorBearing": false,
+        "passStrict": false,
+        "passAlternative": false
+      },
+      "a+b+c": {
+        "yardstick": true,
+        "pilot": false,
+        "goldenTop5": true,
+        "goldenStrict": false,
+        "goldenAuthorBearing": false,
+        "passStrict": false,
+        "passAlternative": false
+      },
+      "a+b": {
+        "yardstick": true,
+        "pilot": false,
+        "goldenTop5": true,
+        "goldenStrict": false,
+        "goldenAuthorBearing": true,
+        "passStrict": false,
+        "passAlternative": false
+      }
+    },
+    "chosenStrict": null,
+    "chosenAlternative": null,
+    "switchDefault": false
+  },
+  "decide-pilot-000": {
+    "set": "pilot-000",
+    "scope": "real use (OC35): machine agreement only, never accuracy (INV-17)",
+    "spineCount": 6894,
+    "images": 31,
+    "readingSet": "all-crops",
+    "accept": {
+      "minScore": 0.72,
+      "minTitleEvidence": 0.8,
+      "minCoverage": 0.5,
+      "minReaders": 2
+    },
+    "lookalike": {
+      "margin": 0.01,
+      "depth": 50,
+      "sharedBooks": 2,
+      "sharedScan": 200,
+      "secondAuthor": 0.5,
+      "secondSeries": 0.8
+    },
+    "bootstrap": {
+      "reps": 2000,
+      "seed": 1,
+      "unit": "photo"
+    },
+    "reproducedC5": {
+      "v1": 1,
+      "v2": 1
+    },
+    "readingRetrieveMs": {
+      "v1": {
+        "readings": 10273,
+        "p50": 46.8,
+        "p95": 321.7,
+        "max": 1707.6
+      },
+      "v2": {
+        "readings": 10273,
+        "p50": 288.3,
+        "p95": 2209.2,
+        "max": 14154.1
+      }
+    },
+    "arms": {
+      "none": {
+        "v1": {
+          "confirmed": 718,
+          "confirmedShare": {
+            "value": 0.1041,
+            "lo": 0.0668,
+            "hi": 0.1397
+          },
+          "confirmedOpenLibraryWorks": 0,
+          "readersWithdrawn": 0,
+          "unknownByReason": {
+            "single-reader": 923,
+            "no-text": 1738,
+            "no-catalog-match": 3435,
+            "readers-disagree": 80
+          },
+          "distinctWorksPerPhoto": {
+            "value": 20.0968,
+            "lo": 12.129,
+            "hi": 28.8427
+          },
+          "deltaVsV1": {
+            "confirmedShare": {
+              "value": 0,
+              "lo": 0,
+              "hi": 0
+            },
+            "distinctWorksPerPhoto": {
+              "value": 0,
+              "lo": 0,
+              "hi": 0
+            }
+          },
+          "acceptsWithdrawn": 0,
+          "acceptsChangedToAnotherWork": 0
+        },
+        "v2": {
+          "confirmed": 992,
+          "confirmedShare": {
+            "value": 0.1439,
+            "lo": 0.1129,
+            "hi": 0.1711
+          },
+          "confirmedOpenLibraryWorks": 342,
+          "readersWithdrawn": 0,
+          "unknownByReason": {
+            "single-reader": 1371,
+            "no-text": 1738,
+            "no-catalog-match": 2604,
+            "readers-disagree": 189
+          },
+          "distinctWorksPerPhoto": {
+            "value": 28.3226,
+            "lo": 20.7419,
+            "hi": 36.4516
+          },
+          "deltaVsV1": {
+            "confirmedShare": {
+              "value": 0.0397,
+              "lo": 0.0206,
+              "hi": 0.0619
+            },
+            "distinctWorksPerPhoto": {
+              "value": 8.2258,
+              "lo": 4.354,
+              "hi": 12.7742
+            }
+          },
+          "acceptsWithdrawn": 0,
+          "acceptsChangedToAnotherWork": 0
+        }
+      },
+      "a": {
+        "v1": {
+          "confirmed": 666,
+          "confirmedShare": {
+            "value": 0.0966,
+            "lo": 0.0603,
+            "hi": 0.1317
+          },
+          "confirmedOpenLibraryWorks": 0,
+          "readersWithdrawn": 257,
+          "unknownByReason": {
+            "single-reader": 838,
+            "no-text": 1738,
+            "no-catalog-match": 3603,
+            "readers-disagree": 49
+          },
+          "distinctWorksPerPhoto": {
+            "value": 18.6452,
+            "lo": 11.096,
+            "hi": 27.2911
+          },
+          "deltaVsV1": {
+            "confirmedShare": {
+              "value": -0.0075,
+              "lo": -0.0104,
+              "hi": -0.0048
+            },
+            "distinctWorksPerPhoto": {
+              "value": -1.4516,
+              "lo": -2.0323,
+              "hi": -0.9355
+            }
+          },
+          "acceptsWithdrawn": 52,
+          "acceptsChangedToAnotherWork": 0
+        },
+        "v2": {
+          "confirmed": 877,
+          "confirmedShare": {
+            "value": 0.1272,
+            "lo": 0.097,
+            "hi": 0.1549
+          },
+          "confirmedOpenLibraryWorks": 269,
+          "readersWithdrawn": 677,
+          "unknownByReason": {
+            "single-reader": 1158,
+            "no-text": 1738,
+            "no-catalog-match": 3032,
+            "readers-disagree": 89
+          },
+          "distinctWorksPerPhoto": {
+            "value": 24.8065,
+            "lo": 17.5484,
+            "hi": 32.7097
+          },
+          "deltaVsV1": {
+            "confirmedShare": {
+              "value": 0.0231,
+              "lo": 0.0059,
+              "hi": 0.0428
+            },
+            "distinctWorksPerPhoto": {
+              "value": 4.7097,
+              "lo": 1.3548,
+              "hi": 8.6137
+            }
+          },
+          "acceptsWithdrawn": 115,
+          "acceptsChangedToAnotherWork": 0
+        }
+      },
+      "b": {
+        "v1": {
+          "confirmed": 611,
+          "confirmedShare": {
+            "value": 0.0886,
+            "lo": 0.0542,
+            "hi": 0.1216
+          },
+          "confirmedOpenLibraryWorks": 0,
+          "readersWithdrawn": 543,
+          "unknownByReason": {
+            "no-catalog-match": 3808,
+            "no-text": 1738,
+            "single-reader": 710,
+            "readers-disagree": 27
+          },
+          "distinctWorksPerPhoto": {
+            "value": 16.9677,
+            "lo": 9.8379,
+            "hi": 25.3565
+          },
+          "deltaVsV1": {
+            "confirmedShare": {
+              "value": -0.0155,
+              "lo": -0.0209,
+              "hi": -0.0106
+            },
+            "distinctWorksPerPhoto": {
+              "value": -3.129,
+              "lo": -4.2903,
+              "hi": -2.0645
+            }
+          },
+          "acceptsWithdrawn": 107,
+          "acceptsChangedToAnotherWork": 0
+        },
+        "v2": {
+          "confirmed": 837,
+          "confirmedShare": {
+            "value": 0.1214,
+            "lo": 0.0921,
+            "hi": 0.1475
+          },
+          "confirmedOpenLibraryWorks": 268,
+          "readersWithdrawn": 902,
+          "unknownByReason": {
+            "no-catalog-match": 3196,
+            "no-text": 1738,
+            "single-reader": 1047,
+            "readers-disagree": 76
+          },
+          "distinctWorksPerPhoto": {
+            "value": 23.6129,
+            "lo": 16.4815,
+            "hi": 31.3234
+          },
+          "deltaVsV1": {
+            "confirmedShare": {
+              "value": 0.0173,
+              "lo": -0.0021,
+              "hi": 0.0399
+            },
+            "distinctWorksPerPhoto": {
+              "value": 3.5161,
+              "lo": -0.2266,
+              "hi": 7.8387
+            }
+          },
+          "acceptsWithdrawn": 155,
+          "acceptsChangedToAnotherWork": 0
+        }
+      },
+      "c": {
+        "v1": {
+          "confirmed": 633,
+          "confirmedShare": {
+            "value": 0.0918,
+            "lo": 0.0572,
+            "hi": 0.1247
+          },
+          "confirmedOpenLibraryWorks": 0,
+          "readersWithdrawn": 462,
+          "unknownByReason": {
+            "no-catalog-match": 3762,
+            "no-text": 1738,
+            "single-reader": 719,
+            "readers-disagree": 42
+          },
+          "distinctWorksPerPhoto": {
+            "value": 17.6452,
+            "lo": 10.4169,
+            "hi": 25.8718
+          },
+          "deltaVsV1": {
+            "confirmedShare": {
+              "value": -0.0123,
+              "lo": -0.0163,
+              "hi": -0.0085
+            },
+            "distinctWorksPerPhoto": {
+              "value": -2.4516,
+              "lo": -3.2903,
+              "hi": -1.6774
+            }
+          },
+          "acceptsWithdrawn": 85,
+          "acceptsChangedToAnotherWork": 0
+        },
+        "v2": {
+          "confirmed": 870,
+          "confirmedShare": {
+            "value": 0.1262,
+            "lo": 0.0974,
+            "hi": 0.1522
+          },
+          "confirmedOpenLibraryWorks": 274,
+          "readersWithdrawn": 874,
+          "unknownByReason": {
+            "no-catalog-match": 3199,
+            "no-text": 1738,
+            "single-reader": 1014,
+            "readers-disagree": 73
+          },
+          "distinctWorksPerPhoto": {
+            "value": 24.6452,
+            "lo": 17.6774,
+            "hi": 32.3556
+          },
+          "deltaVsV1": {
+            "confirmedShare": {
+              "value": 0.022,
+              "lo": 0.002,
+              "hi": 0.0454
+            },
+            "distinctWorksPerPhoto": {
+              "value": 4.5484,
+              "lo": 0.4839,
+              "hi": 9.2589
+            }
+          },
+          "acceptsWithdrawn": 122,
+          "acceptsChangedToAnotherWork": 0
+        }
+      },
+      "a+b+c": {
+        "v1": {
+          "confirmed": 584,
+          "confirmedShare": {
+            "value": 0.0847,
+            "lo": 0.0513,
+            "hi": 0.1168
+          },
+          "confirmedOpenLibraryWorks": 0,
+          "readersWithdrawn": 670,
+          "unknownByReason": {
+            "no-catalog-match": 3896,
+            "no-text": 1738,
+            "single-reader": 656,
+            "readers-disagree": 20
+          },
+          "distinctWorksPerPhoto": {
+            "value": 16.2581,
+            "lo": 9.354,
+            "hi": 24.3871
+          },
+          "deltaVsV1": {
+            "confirmedShare": {
+              "value": -0.0194,
+              "lo": -0.0255,
+              "hi": -0.0135
+            },
+            "distinctWorksPerPhoto": {
+              "value": -3.8387,
+              "lo": -5.1621,
+              "hi": -2.6452
+            }
+          },
+          "acceptsWithdrawn": 134,
+          "acceptsChangedToAnotherWork": 0
+        },
+        "v2": {
+          "confirmed": 777,
+          "confirmedShare": {
+            "value": 0.1127,
+            "lo": 0.0841,
+            "hi": 0.1385
+          },
+          "confirmedOpenLibraryWorks": 230,
+          "readersWithdrawn": 1254,
+          "unknownByReason": {
+            "no-catalog-match": 3432,
+            "no-text": 1738,
+            "single-reader": 910,
+            "readers-disagree": 37
+          },
+          "distinctWorksPerPhoto": {
+            "value": 21.8065,
+            "lo": 15.0952,
+            "hi": 29.2903
+          },
+          "deltaVsV1": {
+            "confirmedShare": {
+              "value": 0.0086,
+              "lo": -0.0106,
+              "hi": 0.0309
+            },
+            "distinctWorksPerPhoto": {
+              "value": 1.7097,
+              "lo": -2.0331,
+              "hi": 6.0323
+            }
+          },
+          "acceptsWithdrawn": 215,
+          "acceptsChangedToAnotherWork": 0
+        }
+      },
+      "a+b": {
+        "v1": {
+          "confirmed": 603,
+          "confirmedShare": {
+            "value": 0.0875,
+            "lo": 0.0533,
+            "hi": 0.1201
+          },
+          "confirmedOpenLibraryWorks": 0,
+          "readersWithdrawn": 580,
+          "unknownByReason": {
+            "no-catalog-match": 3833,
+            "no-text": 1738,
+            "single-reader": 695,
+            "readers-disagree": 25
+          },
+          "distinctWorksPerPhoto": {
+            "value": 16.8065,
+            "lo": 9.7411,
+            "hi": 25.0968
+          },
+          "deltaVsV1": {
+            "confirmedShare": {
+              "value": -0.0167,
+              "lo": -0.0224,
+              "hi": -0.0113
+            },
+            "distinctWorksPerPhoto": {
+              "value": -3.2903,
+              "lo": -4.5484,
+              "hi": -2.1613
+            }
+          },
+          "acceptsWithdrawn": 115,
+          "acceptsChangedToAnotherWork": 0
+        },
+        "v2": {
+          "confirmed": 813,
+          "confirmedShare": {
+            "value": 0.1179,
+            "lo": 0.089,
+            "hi": 0.1436
+          },
+          "confirmedOpenLibraryWorks": 250,
+          "readersWithdrawn": 1032,
+          "unknownByReason": {
+            "no-catalog-match": 3285,
+            "no-text": 1738,
+            "single-reader": 996,
+            "readers-disagree": 62
+          },
+          "distinctWorksPerPhoto": {
+            "value": 22.871,
+            "lo": 15.9355,
+            "hi": 30.4194
+          },
+          "deltaVsV1": {
+            "confirmedShare": {
+              "value": 0.0138,
+              "lo": -0.0045,
+              "hi": 0.0347
+            },
+            "distinctWorksPerPhoto": {
+              "value": 2.7742,
+              "lo": -0.8387,
+              "hi": 6.904
+            }
+          },
+          "acceptsWithdrawn": 179,
+          "acceptsChangedToAnotherWork": 0
+        }
+      }
+    },
+    "switchedV1toV2": {
+      "n": 34,
+      "withdrawnByArm": {
+        "none": 0,
+        "a": 12,
+        "b": 13,
+        "c": 16,
+        "a+b+c": 19,
+        "a+b": 14
+      },
+      "backToV1Work": {
+        "none": 0,
+        "a": 0,
+        "b": 0,
+        "c": 0,
+        "a+b+c": 0,
+        "a+b": 0
+      }
+    }
+  },
+  "decide-yardstick-library-b2": {
+    "set": "yardstick-library-b2",
+    "scope": "yardstick (PROXY): wrong accepts against the annotated books of each image (C-5's judge)",
+    "spineCount": 1132,
+    "images": 40,
+    "readingSet": "all-crops",
+    "accept": {
+      "minScore": 0.72,
+      "minTitleEvidence": 0.8,
+      "minCoverage": 0.5,
+      "minReaders": 2
+    },
+    "lookalike": {
+      "margin": 0.01,
+      "depth": 50,
+      "sharedBooks": 2,
+      "sharedScan": 200,
+      "secondAuthor": 0.5,
+      "secondSeries": 0.8
+    },
+    "bootstrap": {
+      "reps": 2000,
+      "seed": 1,
+      "unit": "photo"
+    },
+    "reproducedC5": {
+      "v1": 1,
+      "v2": 1
+    },
+    "readingRetrieveMs": {
+      "v1": {
+        "readings": 2037,
+        "p50": 120.7,
+        "p95": 504.9,
+        "max": 3841
+      },
+      "v2": {
+        "readings": 2037,
+        "p50": 601.1,
+        "p95": 2840.8,
+        "max": 26507.2
+      }
+    },
+    "arms": {
+      "none": {
+        "v1": {
+          "confirmed": 13,
+          "confirmedShare": {
+            "value": 0.0115,
+            "lo": 0.0033,
+            "hi": 0.024
+          },
+          "confirmedOpenLibraryWorks": 0,
+          "readersWithdrawn": 0,
+          "unknownByReason": {
+            "no-catalog-match": 811,
+            "no-text": 290,
+            "single-reader": 18
+          },
+          "wrongAccepts": 6,
+          "wrongAcceptShareOfAccepted": {
+            "value": 0.4615,
+            "lo": 0.2308,
+            "hi": 0.8339
+          },
+          "wrongAcceptShareOfSpines": {
+            "value": 0.0053,
+            "lo": 0.001,
+            "hi": 0.0105
+          },
+          "deltaVsV1": {
+            "confirmedShare": {
+              "value": 0,
+              "lo": 0,
+              "hi": 0
+            },
+            "wrongAcceptShareOfSpines": {
+              "value": 0,
+              "lo": 0,
+              "hi": 0
+            }
+          },
+          "acceptsWithdrawn": 0,
+          "acceptsChangedToAnotherWork": 0,
+          "wrongAmongWithdrawn": 0
+        },
+        "v2": {
+          "confirmed": 44,
+          "confirmedShare": {
+            "value": 0.0389,
+            "lo": 0.021,
+            "hi": 0.0648
+          },
+          "confirmedOpenLibraryWorks": 34,
+          "readersWithdrawn": 0,
+          "unknownByReason": {
+            "no-catalog-match": 737,
+            "no-text": 290,
+            "single-reader": 53,
+            "readers-disagree": 8
+          },
+          "wrongAccepts": 17,
+          "wrongAcceptShareOfAccepted": {
+            "value": 0.3864,
+            "lo": 0.204,
+            "hi": 0.6222
+          },
+          "wrongAcceptShareOfSpines": {
+            "value": 0.015,
+            "lo": 0.0066,
+            "hi": 0.0246
+          },
+          "deltaVsV1": {
+            "confirmedShare": {
+              "value": 0.0274,
+              "lo": 0.0143,
+              "hi": 0.0428
+            },
+            "wrongAcceptShareOfSpines": {
+              "value": 0.0097,
+              "lo": 0.0021,
+              "hi": 0.0177
+            }
+          },
+          "acceptsWithdrawn": 0,
+          "acceptsChangedToAnotherWork": 0,
+          "wrongAmongWithdrawn": 0
+        }
+      },
+      "a": {
+        "v1": {
+          "confirmed": 10,
+          "confirmedShare": {
+            "value": 0.0088,
+            "lo": 0.0011,
+            "hi": 0.0217
+          },
+          "confirmedOpenLibraryWorks": 0,
+          "readersWithdrawn": 10,
+          "unknownByReason": {
+            "no-catalog-match": 818,
+            "no-text": 290,
+            "single-reader": 14
+          },
+          "wrongAccepts": 3,
+          "wrongAcceptShareOfAccepted": {
+            "value": 0.3,
+            "lo": 0,
+            "hi": 0.6667
+          },
+          "wrongAcceptShareOfSpines": {
+            "value": 0.0027,
+            "lo": 0,
+            "hi": 0.0074
+          },
+          "deltaVsV1": {
+            "confirmedShare": {
+              "value": -0.0027,
+              "lo": -0.0059,
+              "hi": 0
+            },
+            "wrongAcceptShareOfSpines": {
+              "value": -0.0027,
+              "lo": -0.0059,
+              "hi": 0
+            }
+          },
+          "acceptsWithdrawn": 3,
+          "acceptsChangedToAnotherWork": 0,
+          "wrongAmongWithdrawn": 3
+        },
+        "v2": {
+          "confirmed": 40,
+          "confirmedShare": {
+            "value": 0.0353,
+            "lo": 0.0177,
+            "hi": 0.0618
+          },
+          "confirmedOpenLibraryWorks": 31,
+          "readersWithdrawn": 25,
+          "unknownByReason": {
+            "no-catalog-match": 754,
+            "no-text": 290,
+            "single-reader": 42,
+            "readers-disagree": 6
+          },
+          "wrongAccepts": 13,
+          "wrongAcceptShareOfAccepted": {
+            "value": 0.325,
+            "lo": 0.1429,
+            "hi": 0.5625
+          },
+          "wrongAcceptShareOfSpines": {
+            "value": 0.0115,
+            "lo": 0.0038,
+            "hi": 0.0201
+          },
+          "deltaVsV1": {
+            "confirmedShare": {
+              "value": 0.0239,
+              "lo": 0.0104,
+              "hi": 0.0396
+            },
+            "wrongAcceptShareOfSpines": {
+              "value": 0.0062,
+              "lo": -0.001,
+              "hi": 0.0144
+            }
+          },
+          "acceptsWithdrawn": 4,
+          "acceptsChangedToAnotherWork": 0,
+          "wrongAmongWithdrawn": 4
+        }
+      },
+      "b": {
+        "v1": {
+          "confirmed": 8,
+          "confirmedShare": {
+            "value": 0.0071,
+            "lo": 0.0008,
+            "hi": 0.0178
+          },
+          "confirmedOpenLibraryWorks": 0,
+          "readersWithdrawn": 20,
+          "unknownByReason": {
+            "no-catalog-match": 826,
+            "no-text": 290,
+            "single-reader": 8
+          },
+          "wrongAccepts": 1,
+          "wrongAcceptShareOfAccepted": {
+            "value": 0.125,
+            "lo": 0,
+            "hi": 0.2
+          },
+          "wrongAcceptShareOfSpines": {
+            "value": 0.0009,
+            "lo": 0,
+            "hi": 0.0029
+          },
+          "deltaVsV1": {
+            "confirmedShare": {
+              "value": -0.0044,
+              "lo": -0.0086,
+              "hi": -0.0009
+            },
+            "wrongAcceptShareOfSpines": {
+              "value": -0.0044,
+              "lo": -0.0086,
+              "hi": -0.0009
+            }
+          },
+          "acceptsWithdrawn": 5,
+          "acceptsChangedToAnotherWork": 0,
+          "wrongAmongWithdrawn": 5
+        },
+        "v2": {
+          "confirmed": 39,
+          "confirmedShare": {
+            "value": 0.0345,
+            "lo": 0.0177,
+            "hi": 0.0586
+          },
+          "confirmedOpenLibraryWorks": 31,
+          "readersWithdrawn": 39,
+          "unknownByReason": {
+            "no-catalog-match": 765,
+            "no-text": 290,
+            "single-reader": 35,
+            "readers-disagree": 3
+          },
+          "wrongAccepts": 12,
+          "wrongAcceptShareOfAccepted": {
+            "value": 0.3077,
+            "lo": 0.1333,
+            "hi": 0.5652
+          },
+          "wrongAcceptShareOfSpines": {
+            "value": 0.0106,
+            "lo": 0.0038,
+            "hi": 0.0182
+          },
+          "deltaVsV1": {
+            "confirmedShare": {
+              "value": 0.023,
+              "lo": 0.0101,
+              "hi": 0.0373
+            },
+            "wrongAcceptShareOfSpines": {
+              "value": 0.0053,
+              "lo": -0.002,
+              "hi": 0.0131
+            }
+          },
+          "acceptsWithdrawn": 5,
+          "acceptsChangedToAnotherWork": 0,
+          "wrongAmongWithdrawn": 5
+        }
+      },
+      "c": {
+        "v1": {
+          "confirmed": 8,
+          "confirmedShare": {
+            "value": 0.0071,
+            "lo": 0.0008,
+            "hi": 0.0178
+          },
+          "confirmedOpenLibraryWorks": 0,
+          "readersWithdrawn": 20,
+          "unknownByReason": {
+            "no-catalog-match": 826,
+            "no-text": 290,
+            "single-reader": 8
+          },
+          "wrongAccepts": 1,
+          "wrongAcceptShareOfAccepted": {
+            "value": 0.125,
+            "lo": 0,
+            "hi": 0.2
+          },
+          "wrongAcceptShareOfSpines": {
+            "value": 0.0009,
+            "lo": 0,
+            "hi": 0.0029
+          },
+          "deltaVsV1": {
+            "confirmedShare": {
+              "value": -0.0044,
+              "lo": -0.0086,
+              "hi": -0.0009
+            },
+            "wrongAcceptShareOfSpines": {
+              "value": -0.0044,
+              "lo": -0.0086,
+              "hi": -0.0009
+            }
+          },
+          "acceptsWithdrawn": 5,
+          "acceptsChangedToAnotherWork": 0,
+          "wrongAmongWithdrawn": 5
+        },
+        "v2": {
+          "confirmed": 35,
+          "confirmedShare": {
+            "value": 0.0309,
+            "lo": 0.0143,
+            "hi": 0.0556
+          },
+          "confirmedOpenLibraryWorks": 27,
+          "readersWithdrawn": 51,
+          "unknownByReason": {
+            "no-catalog-match": 771,
+            "no-text": 290,
+            "single-reader": 34,
+            "readers-disagree": 2
+          },
+          "wrongAccepts": 8,
+          "wrongAcceptShareOfAccepted": {
+            "value": 0.2286,
+            "lo": 0.08,
+            "hi": 0.4444
+          },
+          "wrongAcceptShareOfSpines": {
+            "value": 0.0071,
+            "lo": 0.0018,
+            "hi": 0.0132
+          },
+          "deltaVsV1": {
+            "confirmedShare": {
+              "value": 0.0194,
+              "lo": 0.0064,
+              "hi": 0.0346
+            },
+            "wrongAcceptShareOfSpines": {
+              "value": 0.0018,
+              "lo": -0.005,
+              "hi": 0.0087
+            }
+          },
+          "acceptsWithdrawn": 9,
+          "acceptsChangedToAnotherWork": 0,
+          "wrongAmongWithdrawn": 9
+        }
+      },
+      "a+b+c": {
+        "v1": {
+          "confirmed": 8,
+          "confirmedShare": {
+            "value": 0.0071,
+            "lo": 0.0008,
+            "hi": 0.0178
+          },
+          "confirmedOpenLibraryWorks": 0,
+          "readersWithdrawn": 20,
+          "unknownByReason": {
+            "no-catalog-match": 826,
+            "no-text": 290,
+            "single-reader": 8
+          },
+          "wrongAccepts": 1,
+          "wrongAcceptShareOfAccepted": {
+            "value": 0.125,
+            "lo": 0,
+            "hi": 0.2
+          },
+          "wrongAcceptShareOfSpines": {
+            "value": 0.0009,
+            "lo": 0,
+            "hi": 0.0029
+          },
+          "deltaVsV1": {
+            "confirmedShare": {
+              "value": -0.0044,
+              "lo": -0.0086,
+              "hi": -0.0009
+            },
+            "wrongAcceptShareOfSpines": {
+              "value": -0.0044,
+              "lo": -0.0086,
+              "hi": -0.0009
+            }
+          },
+          "acceptsWithdrawn": 5,
+          "acceptsChangedToAnotherWork": 0,
+          "wrongAmongWithdrawn": 5
+        },
+        "v2": {
+          "confirmed": 34,
+          "confirmedShare": {
+            "value": 0.03,
+            "lo": 0.0134,
+            "hi": 0.0547
+          },
+          "confirmedOpenLibraryWorks": 26,
+          "readersWithdrawn": 56,
+          "unknownByReason": {
+            "no-catalog-match": 774,
+            "no-text": 290,
+            "single-reader": 32,
+            "readers-disagree": 2
+          },
+          "wrongAccepts": 7,
+          "wrongAcceptShareOfAccepted": {
+            "value": 0.2059,
+            "lo": 0.0513,
+            "hi": 0.4118
+          },
+          "wrongAcceptShareOfSpines": {
+            "value": 0.0062,
+            "lo": 0.0009,
+            "hi": 0.0125
+          },
+          "deltaVsV1": {
+            "confirmedShare": {
+              "value": 0.0186,
+              "lo": 0.0057,
+              "hi": 0.0336
+            },
+            "wrongAcceptShareOfSpines": {
+              "value": 0.0009,
+              "lo": -0.0055,
+              "hi": 0.0077
+            }
+          },
+          "acceptsWithdrawn": 10,
+          "acceptsChangedToAnotherWork": 0,
+          "wrongAmongWithdrawn": 10
+        }
+      },
+      "a+b": {
+        "v1": {
+          "confirmed": 8,
+          "confirmedShare": {
+            "value": 0.0071,
+            "lo": 0.0008,
+            "hi": 0.0178
+          },
+          "confirmedOpenLibraryWorks": 0,
+          "readersWithdrawn": 20,
+          "unknownByReason": {
+            "no-catalog-match": 826,
+            "no-text": 290,
+            "single-reader": 8
+          },
+          "wrongAccepts": 1,
+          "wrongAcceptShareOfAccepted": {
+            "value": 0.125,
+            "lo": 0,
+            "hi": 0.2
+          },
+          "wrongAcceptShareOfSpines": {
+            "value": 0.0009,
+            "lo": 0,
+            "hi": 0.0029
+          },
+          "deltaVsV1": {
+            "confirmedShare": {
+              "value": -0.0044,
+              "lo": -0.0086,
+              "hi": -0.0009
+            },
+            "wrongAcceptShareOfSpines": {
+              "value": -0.0044,
+              "lo": -0.0086,
+              "hi": -0.0009
+            }
+          },
+          "acceptsWithdrawn": 5,
+          "acceptsChangedToAnotherWork": 0,
+          "wrongAmongWithdrawn": 5
+        },
+        "v2": {
+          "confirmed": 38,
+          "confirmedShare": {
+            "value": 0.0336,
+            "lo": 0.0167,
+            "hi": 0.0578
+          },
+          "confirmedOpenLibraryWorks": 30,
+          "readersWithdrawn": 46,
+          "unknownByReason": {
+            "no-catalog-match": 770,
+            "no-text": 290,
+            "single-reader": 31,
+            "readers-disagree": 3
+          },
+          "wrongAccepts": 11,
+          "wrongAcceptShareOfAccepted": {
+            "value": 0.2895,
+            "lo": 0.1053,
+            "hi": 0.5385
+          },
+          "wrongAcceptShareOfSpines": {
+            "value": 0.0097,
+            "lo": 0.0028,
+            "hi": 0.0175
+          },
+          "deltaVsV1": {
+            "confirmedShare": {
+              "value": 0.0221,
+              "lo": 0.0096,
+              "hi": 0.0366
+            },
+            "wrongAcceptShareOfSpines": {
+              "value": 0.0044,
+              "lo": -0.0027,
+              "hi": 0.0123
+            }
+          },
+          "acceptsWithdrawn": 6,
+          "acceptsChangedToAnotherWork": 0,
+          "wrongAmongWithdrawn": 6
+        }
+      }
+    },
+    "switchedV1toV2": {
+      "n": 1,
+      "withdrawnByArm": {
+        "none": 0,
+        "a": 1,
+        "b": 1,
+        "c": 1,
+        "a+b+c": 1,
+        "a+b": 1
+      },
+      "backToV1Work": {
+        "none": 0,
+        "a": 0,
+        "b": 0,
+        "c": 0,
+        "a+b+c": 0,
+        "a+b": 0
+      }
+    }
+  },
+  "golden": {
+    "goldenFile": "evals/golden/fragments.jsonl",
+    "v1": {
+      "catalog": "catalog.sqlite:426409984:1793651835495",
+      "rates": {
+        "clean": {
+          "n": 87,
+          "top1": 0.989,
+          "top5": 1,
+          "top10": 1,
+          "mrr": 0.992
+        },
+        "noisy": {
+          "n": 68,
+          "top1": 0.956,
+          "top5": 1,
+          "top10": 1,
+          "mrr": 0.967
+        },
+        "clean.dev": {
+          "n": 44,
+          "top1": 1,
+          "top5": 1,
+          "top10": 1,
+          "mrr": 1
+        },
+        "clean.test": {
+          "n": 43,
+          "top1": 0.977,
+          "top5": 1,
+          "top10": 1,
+          "mrr": 0.984
+        },
+        "noisy.dev": {
+          "n": 34,
+          "top1": 0.971,
+          "top5": 1,
+          "top10": 1,
+          "mrr": 0.978
+        },
+        "noisy.test": {
+          "n": 34,
+          "top1": 0.941,
+          "top5": 1,
+          "top10": 1,
+          "mrr": 0.957
+        },
+        "noise.initials": {
+          "n": 2,
+          "top1": 1,
+          "top5": 1,
+          "top10": 1,
+          "mrr": 1
+        },
+        "noise.multi-variant": {
+          "n": 3,
+          "top1": 1,
+          "top5": 1,
+          "top10": 1,
+          "mrr": 1
+        },
+        "noise.ocr-0O": {
+          "n": 15,
+          "top1": 1,
+          "top5": 1,
+          "top10": 1,
+          "mrr": 1
+        },
+        "noise.ocr-1l": {
+          "n": 5,
+          "top1": 0.8,
+          "top5": 1,
+          "top10": 1,
+          "mrr": 0.84
+        },
+        "noise.ocr-rn-m": {
+          "n": 2,
+          "top1": 1,
+          "top5": 1,
+          "top10": 1,
+          "mrr": 1
+        },
+        "noise.series-larger": {
+          "n": 8,
+          "top1": 1,
+          "top5": 1,
+          "top10": 1,
+          "mrr": 1
+        },
+        "noise.split-words": {
+          "n": 16,
+          "top1": 0.938,
+          "top5": 1,
+          "top10": 1,
+          "mrr": 0.958
+        },
+        "noise.surname-first": {
+          "n": 6,
+          "top1": 1,
+          "top5": 1,
+          "top10": 1,
+          "mrr": 1
+        },
+        "noise.truncated-author": {
+          "n": 14,
+          "top1": 0.929,
+          "top5": 1,
+          "top10": 1,
+          "mrr": 0.952
+        },
+        "noise.truncated-title": {
+          "n": 6,
+          "top1": 0.833,
+          "top5": 1,
+          "top10": 1,
+          "mrr": 0.875
+        }
+      },
+      "latencyMs": {
+        "n": 161,
+        "p50": 33.2,
+        "p95": 83.1,
+        "max": 117.6,
+        "mean": 38.4
+      },
+      "latency": {
+        "retrieveOnly": {
+          "n": 161,
+          "p50": 32.8,
+          "p95": 85.8,
+          "max": 120.6
+        },
+        "retrievePlusGuard": {
+          "n": 161,
+          "p50": 32.8,
+          "p95": 85.6,
+          "max": 121.5
+        }
+      },
+      "refusals": {
+        "a": {
+          "goldenCorrectConfirmations": 147,
+          "refused": [
+            "c074",
+            "c075"
+          ],
+          "refusedWithAuthorEvidence": [],
+          "goldenWrongConfirmations": [
+            "c076",
+            "x001"
+          ],
+          "goldenWrongRefused": [
+            "c076"
+          ]
+        },
+        "b": {
+          "goldenCorrectConfirmations": 147,
+          "refused": [
+            "c074",
+            "c075",
+            "c077",
+            "c078",
+            "c079",
+            "c080",
+            "c081",
+            "n037"
+          ],
+          "refusedWithAuthorEvidence": [],
+          "goldenWrongConfirmations": [
+            "c076",
+            "x001"
+          ],
+          "goldenWrongRefused": [
+            "c076"
+          ]
+        },
+        "c": {
+          "goldenCorrectConfirmations": 147,
+          "refused": [
+            "c074",
+            "c075",
+            "c077",
+            "c079",
+            "c080",
+            "n025"
+          ],
+          "refusedWithAuthorEvidence": [
+            "n025"
+          ],
+          "goldenWrongConfirmations": [
+            "c076",
+            "x001"
+          ],
+          "goldenWrongRefused": []
+        },
+        "a+b+c": {
+          "goldenCorrectConfirmations": 147,
+          "refused": [
+            "c074",
+            "c075",
+            "c077",
+            "c078",
+            "c079",
+            "c080",
+            "c081",
+            "n025",
+            "n037"
+          ],
+          "refusedWithAuthorEvidence": [
+            "n025"
+          ],
+          "goldenWrongConfirmations": [
+            "c076",
+            "x001"
+          ],
+          "goldenWrongRefused": [
+            "c076"
+          ]
+        },
+        "a+b": {
+          "goldenCorrectConfirmations": 147,
+          "refused": [
+            "c074",
+            "c075",
+            "c077",
+            "c078",
+            "c079",
+            "c080",
+            "c081",
+            "n037"
+          ],
+          "refusedWithAuthorEvidence": [],
+          "goldenWrongConfirmations": [
+            "c076",
+            "x001"
+          ],
+          "goldenWrongRefused": [
+            "c076"
+          ]
+        }
+      }
+    },
+    "v2": {
+      "catalog": "catalog-v2.sqlite:6178123776:1793751638739",
+      "rates": {
+        "clean": {
+          "n": 87,
+          "top1": 0.989,
+          "top5": 1,
+          "top10": 1,
+          "mrr": 0.992
+        },
+        "noisy": {
+          "n": 68,
+          "top1": 0.941,
+          "top5": 0.956,
+          "top10": 0.971,
+          "mrr": 0.947
+        },
+        "clean.dev": {
+          "n": 44,
+          "top1": 1,
+          "top5": 1,
+          "top10": 1,
+          "mrr": 1
+        },
+        "clean.test": {
+          "n": 43,
+          "top1": 0.977,
+          "top5": 1,
+          "top10": 1,
+          "mrr": 0.984
+        },
+        "noisy.dev": {
+          "n": 34,
+          "top1": 0.941,
+          "top5": 0.971,
+          "top10": 0.971,
+          "mrr": 0.949
+        },
+        "noisy.test": {
+          "n": 34,
+          "top1": 0.941,
+          "top5": 0.941,
+          "top10": 0.971,
+          "mrr": 0.945
+        },
+        "noise.initials": {
+          "n": 2,
+          "top1": 1,
+          "top5": 1,
+          "top10": 1,
+          "mrr": 1
+        },
+        "noise.multi-variant": {
+          "n": 3,
+          "top1": 1,
+          "top5": 1,
+          "top10": 1,
+          "mrr": 1
+        },
+        "noise.ocr-0O": {
+          "n": 15,
+          "top1": 1,
+          "top5": 1,
+          "top10": 1,
+          "mrr": 1
+        },
+        "noise.ocr-1l": {
+          "n": 5,
+          "top1": 0.8,
+          "top5": 0.8,
+          "top10": 0.8,
+          "mrr": 0.8
+        },
+        "noise.ocr-rn-m": {
+          "n": 2,
+          "top1": 1,
+          "top5": 1,
+          "top10": 1,
+          "mrr": 1
+        },
+        "noise.series-larger": {
+          "n": 8,
+          "top1": 1,
+          "top5": 1,
+          "top10": 1,
+          "mrr": 1
+        },
+        "noise.split-words": {
+          "n": 16,
+          "top1": 0.938,
+          "top5": 0.938,
+          "top10": 1,
+          "mrr": 0.945
+        },
+        "noise.surname-first": {
+          "n": 6,
+          "top1": 1,
+          "top5": 1,
+          "top10": 1,
+          "mrr": 1
+        },
+        "noise.truncated-author": {
+          "n": 14,
+          "top1": 0.857,
+          "top5": 0.857,
+          "top10": 0.929,
+          "mrr": 0.866
+        },
+        "noise.truncated-title": {
+          "n": 6,
+          "top1": 0.833,
+          "top5": 1,
+          "top10": 1,
+          "mrr": 0.875
+        }
+      },
+      "latencyMs": {
+        "n": 161,
+        "p50": 182,
+        "p95": 491,
+        "max": 1611.7,
+        "mean": 227.9
+      },
+      "latency": {
+        "retrieveOnly": {
+          "n": 161,
+          "p50": 181.1,
+          "p95": 487.3,
+          "max": 1631.9
+        },
+        "retrievePlusGuard": {
+          "n": 161,
+          "p50": 180.8,
+          "p95": 484.9,
+          "max": 1606.3
+        }
+      },
+      "refusals": {
+        "a": {
+          "goldenCorrectConfirmations": 146,
+          "refused": [
+            "c074",
+            "c075",
+            "c077"
+          ],
+          "refusedWithAuthorEvidence": [],
+          "goldenWrongConfirmations": [
+            "c076",
+            "x001",
+            "x002",
+            "x003",
+            "x004",
+            "x005",
+            "x006"
+          ],
+          "goldenWrongRefused": [
+            "c076",
+            "x001",
+            "x004",
+            "x005"
+          ]
+        },
+        "b": {
+          "goldenCorrectConfirmations": 146,
+          "refused": [
+            "c074",
+            "c075",
+            "c077",
+            "c078",
+            "c079",
+            "c080",
+            "c081",
+            "n037"
+          ],
+          "refusedWithAuthorEvidence": [],
+          "goldenWrongConfirmations": [
+            "c076",
+            "x001",
+            "x002",
+            "x003",
+            "x004",
+            "x005",
+            "x006"
+          ],
+          "goldenWrongRefused": [
+            "c076",
+            "x005"
+          ]
+        },
+        "c": {
+          "goldenCorrectConfirmations": 146,
+          "refused": [
+            "c074",
+            "c075",
+            "c077",
+            "c079",
+            "c080"
+          ],
+          "refusedWithAuthorEvidence": [],
+          "goldenWrongConfirmations": [
+            "c076",
+            "x001",
+            "x002",
+            "x003",
+            "x004",
+            "x005",
+            "x006"
+          ],
+          "goldenWrongRefused": []
+        },
+        "a+b+c": {
+          "goldenCorrectConfirmations": 146,
+          "refused": [
+            "c074",
+            "c075",
+            "c077",
+            "c078",
+            "c079",
+            "c080",
+            "c081",
+            "n037"
+          ],
+          "refusedWithAuthorEvidence": [],
+          "goldenWrongConfirmations": [
+            "c076",
+            "x001",
+            "x002",
+            "x003",
+            "x004",
+            "x005",
+            "x006"
+          ],
+          "goldenWrongRefused": [
+            "c076",
+            "x001",
+            "x004",
+            "x005"
+          ]
+        },
+        "a+b": {
+          "goldenCorrectConfirmations": 146,
+          "refused": [
+            "c074",
+            "c075",
+            "c077",
+            "c078",
+            "c079",
+            "c080",
+            "c081",
+            "n037"
+          ],
+          "refusedWithAuthorEvidence": [],
+          "goldenWrongConfirmations": [
+            "c076",
+            "x001",
+            "x002",
+            "x003",
+            "x004",
+            "x005",
+            "x006"
+          ],
+          "goldenWrongRefused": [
+            "c076",
+            "x001",
+            "x004",
+            "x005"
+          ]
+        }
+      },
+      "expandLimitDiagnostic": {
+        "expandLimit": 100,
+        "p95": 577.6,
+        "cleanTop5": 1,
+        "noisyTop5": 0.9559,
+        "cleanTop1": 0.9885
+      }
+    },
+    "host": {
+      "cpu": "Apple M4 Pro",
+      "node": "v24.22.1"
+    }
+  }
+}
