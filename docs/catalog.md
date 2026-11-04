@@ -371,3 +371,64 @@ node src/catalog/c6-eval.ts publish            # evals/C6/metrics.json
 
 `BOOKCASE_CATALOG=catalog-v2.sqlite` still selects v2 by hand (above), with no guard. What a switch would need is in
 `evals/C6/report.md` § What would be needed.
+
+# Rarity basis: rarity-weighted evidence and counter-evidence (C-7)
+
+F-0's bar measures how well a reader's text explains a work. It cannot see that a title match on a word a hundred
+books share is weaker than one on a word only one book uses, and nothing in it counts *against* a work. C-7 adds both
+from the catalog's own statistics, with no labels (record linkage's term-frequency adjustment; C-R2,
+`docs/catalog/identification-research.md` §1.2–1.4). Pre-registration, results and the verdict:
+`evals/C7/report.md`.
+
+**Statistics sidecar.** `bookcase catalog stats [--db <catalog>]` reads a catalog and writes `<catalog>.stats.sqlite`
+beside it (`catalog.stats.sqlite`: 5 s, 34 MB; `catalog-v2.stats.sqlite`: 87 s, 404 MB). The catalog file is never
+written. The sidecar records the catalog's size and modification time, and `openStats` refuses it against any other
+state, so rebuild it after every catalog build.
+
+| table | key | value |
+|---|---|---|
+| `title_totals` | whole or main title form, own or variant (kinds T, M, V, W) | works, books, editions |
+| `title_books` | (title form, primary author surname): one book, so duplicates and crosswalks collapse | works, editions |
+| `words` | token | works carrying it in a title, author or series form; works with an edition whose publisher carries it |
+| `author_works` | author form | works |
+
+**Evidence** (`rarityEvidence`, new fields beside `retrieve`'s scores; `retrieve` itself is unchanged): the matched
+form's works, books and editions; the **namesake share** (the candidate's book's share of those editions); the
+**rarity-weighted title evidence** in bits; the unexplained read words that count and the rarest of them; whether
+another book's author was read; the reading's and the work's language.
+
+**Counter-evidence** (`counterEvidence`; constants `RARITY` in `src/catalog/rarity.ts`):
+
+| kind | withdraws a reader's confirmation when |
+|---|---|
+| namesake | no surname (author ≥ 0.5) or series (≥ 0.8) was read and the namesake share is ≤ 0.5, or the form is only the work's subtitle |
+| unexplained | the reading holds a word (≥ 4 letters, no digit, in ≥ 2 works, not an imprint word) that the work does not explain and that occurs in fewer works than the matched title form |
+| author | the work's own author was not read, and a different book among the reader's top 50 has a surname read from words this work leaves unexplained |
+| language | the reading's exclusive function words mark one non-English language, and the work is English and matched its own title |
+
+**Where it sits.** After F-0's bar, on each reader's ranked candidates (depth 50), after C-6's guard arms if any:
+`decide(…, { guard, ranked, rarity: { basis, kinds } })`, with `basis = rarityBasis(db, openStats(statsPathFor(path), path))`.
+It only withdraws votes, so it never adds an accept or switches one; `SpineDecision.counter` records which kind
+withdrew which reader.
+
+Commands (offline; per-reading and per-spine files stay in the data root's private folder, `private/c7/`):
+
+```
+bookcase catalog stats --db "$BOOKCASE_DATA/catalog/catalog-v2.sqlite"
+node src/catalog/c7-eval.ts readings --set pilot-000 --catalog v2 [--shard 1/4]
+node src/catalog/c7-eval.ts decide --set pilot-000
+node src/catalog/c7-eval.ts golden
+node src/catalog/c7-eval.ts publish            # evals/C7/metrics.json
+```
+
+**Result (2026-11-03): the default stays `catalog.sqlite`.** Neither eligible arm (the full basis, or the basis with
+C-6's margin) passed the pre-registered keep rule:
+
+- The full basis passed the yardstick conditions: wrong share of accepts 38.6 % → 25.7 %, wrong per spine 0.80 %, 26
+  of 27 correct accepts kept.
+- It failed `pilot-000`: +1.35 points over v1, with an interval reaching below 0. Most of the loss is the author kind.
+- It refused one golden-correct v1 confirmation (C-6's (c) refused six) and two on v2. Both are bare common-word
+  titles whose book holds under half of its title's editions.
+
+The basis stays an option of `decide`, off unless a caller passes it. What would close the gap is in
+`evals/C7/report.md` § What would close the gap.

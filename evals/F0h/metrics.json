@@ -1,0 +1,686 @@
+{
+  "card": "F-0h",
+  "run": "2026-11-03",
+  "note": "Aggregates only. pilot-000 is machine agreement, never accuracy (INV-17); the yardstick is PROXY (library shelves). Never pooled (OC35). No profile input (INV-13).",
+  "boxSet": "each set's default boxes (pilot-000: F-0e bands+strips; yardstick: F-0's B2 run) less F-0c's and F-0f's not-a-book boxes, as on main d37d2c0",
+  "context": {
+    "rowOverlap": 0.5,
+    "rowGapWidths": 3,
+    "anchorReach": 2,
+    "bracketMaxGap": 5,
+    "maxProposals": 60,
+    "editShort": 1,
+    "editLong": 2,
+    "longFrom": 7,
+    "skeletonCost": 1,
+    "distinctiveShare": 0.001,
+    "distinctiveMinLetters": 3,
+    "titleCover": 0.8,
+    "oneWordMinLetters": 6,
+    "oneWordMaxCost": 1,
+    "minTitleEvidence": 0.6,
+    "minCoverage": 0.5,
+    "margin": 2,
+    "openCatalogLead": 0.05,
+    "usableMinLetters": 3,
+    "orderedShare": 0.8,
+    "orderedMinPairs": 3,
+    "bracketWeight": 2,
+    "hypothesisTop": 5,
+    "stripBelowHeights": 1,
+    "gapWidths": 0.5,
+    "shuffleSeeds": 20,
+    "seed": 20261103,
+    "worksBuckets": [
+      1,
+      5,
+      20,
+      60
+    ],
+    "halfA": 15
+  },
+  "keepConstants": {
+    "shuffleMean": 0.1,
+    "shuffleP95": 0.15,
+    "loroWrong": 0.05,
+    "stressWrong": 0.05
+  },
+  "sets": {
+    "pilot-000": {
+      "scope": "real use (OC35): machine agreement, never accuracy (INV-17)",
+      "evaluation": "half B (16 photos)",
+      "eval": {
+        "photos": 16,
+        "bookBoxes": 3238,
+        "confirmedBase": 404,
+        "targets": 560,
+        "targetsByF0Reason": {
+          "no-catalog-match": 294,
+          "readers-disagree": 14,
+          "single-reader": 191,
+          "no-text": 61
+        },
+        "targetsWithUsableText": 492,
+        "targetsInBracket": 42,
+        "confirmedByContext": 56,
+        "extraConfirmedPerPhoto": [
+          3.5,
+          1.1875,
+          6.2516
+        ],
+        "extraConfirmedSharePts": [
+          0.0173,
+          0.0078,
+          0.027
+        ],
+        "acceptsByF0Reason": {
+          "single-reader": 43,
+          "no-catalog-match": 13
+        },
+        "acceptsBySource": {
+          "P1+P2": 17,
+          "P1+P2+bracket": 8,
+          "P1": 21,
+          "P1+bracket": 10
+        },
+        "acceptsByK": {
+          "31-60": 6,
+          "1-10": 5,
+          "61+ (capped)": 35,
+          "11-30": 10
+        },
+        "acceptsByReaders": {
+          "qwen": 15,
+          "vision": 26,
+          "vision+ppocr": 7,
+          "ppocr": 6,
+          "vision+qwen": 2
+        },
+        "acceptsReaderAtBar": {
+          "a supporting reader at F-0's bar": 43,
+          "no supporting reader at F-0's bar": 13
+        },
+        "outcomes": {
+          "no-proposal-passes": 408,
+          "margin": 5,
+          "confirmed-by-context": 56,
+          "bar": 14,
+          "open-catalog-winner": 2,
+          "counter:namesake": 5,
+          "conflicting-reader": 1,
+          "counter:author": 1
+        },
+        "counterWithdrawals": {
+          "namesake": 6,
+          "author": 1
+        },
+        "copyArm": {
+          "confirmedByContext": 56,
+          "extraPerPhoto": [
+            3.5,
+            1.1875,
+            6.2516
+          ]
+        }
+      },
+      "all": {
+        "photos": 31,
+        "bookBoxes": 6121,
+        "confirmedBase": 731,
+        "targets": 1007,
+        "targetsByF0Reason": {
+          "single-reader": 346,
+          "no-catalog-match": 518,
+          "no-text": 114,
+          "readers-disagree": 29
+        },
+        "targetsWithUsableText": 882,
+        "targetsInBracket": 78,
+        "confirmedByContext": 90,
+        "extraConfirmedPerPhoto": [
+          2.9032,
+          1.4516,
+          4.5806
+        ],
+        "extraConfirmedSharePts": [
+          0.0147,
+          0.0081,
+          0.0212
+        ],
+        "acceptsByF0Reason": {
+          "single-reader": 68,
+          "no-catalog-match": 22
+        },
+        "acceptsBySource": {
+          "P1+P2+bracket": 12,
+          "P1": 37,
+          "P1+P2": 29,
+          "P1+bracket": 11,
+          "bracket": 1
+        },
+        "acceptsByK": {
+          "61+ (capped)": 53,
+          "11-30": 15,
+          "31-60": 11,
+          "1-10": 11
+        },
+        "acceptsByReaders": {
+          "ppocr": 13,
+          "vision+ppocr": 13,
+          "vision": 38,
+          "qwen": 21,
+          "vision+qwen": 5
+        },
+        "acceptsReaderAtBar": {
+          "a supporting reader at F-0's bar": 68,
+          "no supporting reader at F-0's bar": 22
+        },
+        "outcomes": {
+          "confirmed-by-context": 90,
+          "no-proposal-passes": 732,
+          "margin": 14,
+          "bar": 28,
+          "open-catalog-winner": 3,
+          "readers-disagree": 2,
+          "conflicting-reader": 5,
+          "counter:namesake": 6,
+          "counter:author": 2
+        },
+        "counterWithdrawals": {
+          "namesake": 7,
+          "author": 3
+        },
+        "copyArm": {
+          "confirmedByContext": 90,
+          "extraPerPhoto": [
+            2.9032,
+            1.4516,
+            4.5806
+          ]
+        }
+      },
+      "shuffle": {
+        "realAccepts": 56,
+        "seeds": [
+          4,
+          5,
+          3,
+          1,
+          1,
+          3,
+          3,
+          3,
+          2,
+          1,
+          4,
+          4,
+          0,
+          3,
+          1,
+          0,
+          4,
+          2,
+          1,
+          2
+        ],
+        "meanAccepts": 2.35,
+        "meanRatio": 0.042,
+        "p95Ratio": 0.0723,
+        "sameAuthorDrawShare": 0.0117
+      },
+      "loro": {
+        "all": {
+          "views": 627,
+          "accepted": 220,
+          "recovered": 220,
+          "wrong": 0,
+          "abstained": 407,
+          "recoveredShareOfViews": 0.3509,
+          "wrongShareOfAccepts": 0,
+          "wrongWilson": [
+            0,
+            0.0172
+          ],
+          "abstainWhy": {
+            "no-proposal-passes": 381,
+            "margin": 10,
+            "counter:author": 3,
+            "counter:namesake": 1,
+            "bar": 8,
+            "open-catalog-winner": 2,
+            "conflicting-reader": 1,
+            "counter:unexplained": 1
+          }
+        },
+        "weak": {
+          "views": 60,
+          "accepted": 5,
+          "recovered": 5,
+          "wrong": 0,
+          "abstained": 55,
+          "recoveredShareOfViews": 0.0833,
+          "wrongShareOfAccepts": 0,
+          "wrongWilson": [
+            0,
+            0.4345
+          ],
+          "abstainWhy": {
+            "no-proposal-passes": 52,
+            "bar": 2,
+            "counter:author": 1
+          }
+        },
+        "stress": {
+          "views": 420,
+          "accepted": 220,
+          "recovered": 220,
+          "wrong": 0,
+          "abstained": 200,
+          "recoveredShareOfViews": 0.5238,
+          "wrongShareOfAccepts": 0,
+          "wrongWilson": [
+            0,
+            0.0172
+          ],
+          "abstainWhy": {
+            "no-proposal-passes": 176,
+            "margin": 10,
+            "counter:author": 3,
+            "counter:namesake": 1,
+            "bar": 6,
+            "open-catalog-winner": 2,
+            "conflicting-reader": 1,
+            "counter:unexplained": 1
+          }
+        }
+      },
+      "hypotheses": {
+        "total": 125,
+        "byKind": {
+          "adjacent": 120,
+          "bracket": 5
+        },
+        "hiddenCheck": {
+          "all": {
+            "n": 280,
+            "top1": [
+              0.1036,
+              0.0628,
+              0.1443
+            ],
+            "top5": [
+              0.2143,
+              0.1695,
+              0.2353
+            ]
+          },
+          "bracket": {
+            "n": 64,
+            "top1": [
+              0.2031,
+              0.0769,
+              0.3273
+            ],
+            "top5": [
+              0.375,
+              0.1719,
+              0.52
+            ]
+          },
+          "adjacent": {
+            "n": 216,
+            "top1": [
+              0.0741,
+              0.0508,
+              0.0943
+            ],
+            "top5": [
+              0.1667,
+              0.1071,
+              0.219
+            ]
+          }
+        }
+      },
+      "detectionGaps": {
+        "brackets": 2,
+        "boxGaps": 1,
+        "s1FrontOutlineGaps": 2
+      },
+      "strips": {
+        "source": "f0f-shelf-strip",
+        "found": 5,
+        "statingOrder": 2,
+        "rows": 316,
+        "rowsLabelled": 5,
+        "rowsSetOrdered": 1,
+        "rowsWithGenre": 4,
+        "otherKindsWithStripWording": 0
+      },
+      "order": {
+        "adjacentConfirmedPairs": 114,
+        "adjacentSameWork": 0.2368,
+        "adjacentSameAuthorOtherWork": 0.4023,
+        "withinTwoPairsOtherWork": 167,
+        "withinTwoSameAuthor": 0.3653,
+        "anchorSameAuthorRate": 0.5556,
+        "anchorSameAuthorN": 216,
+        "bracketPurity": 0.9524,
+        "bracketedN": 42,
+        "rowsScored": 21,
+        "consecutivePairs": 122,
+        "inOrderShare": 0.7869,
+        "inOrderShareCI": [
+          0.7869,
+          0.6494,
+          0.8521
+        ],
+        "rowsOrdered": 12,
+        "rowsOrderedShare": 0.5714,
+        "rowsWithBreak": 13,
+        "rowConsistencyP50": 0.8333,
+        "misfileCandidates": 2,
+        "misfileShareOfConfirmedInOrderedRows": 0.0163,
+        "rowsWithStrip": 2
+      },
+      "orderOther": {
+        "adjacentConfirmedPairs": 160,
+        "adjacentSameWork": 0.3063,
+        "adjacentSameAuthorOtherWork": 0.5135,
+        "withinTwoPairsOtherWork": 234,
+        "withinTwoSameAuthor": 0.4615,
+        "anchorSameAuthorRate": 0.6643,
+        "anchorSameAuthorN": 280,
+        "bracketPurity": 0.9692,
+        "bracketedN": 65,
+        "rowsScored": 25,
+        "consecutivePairs": 150,
+        "inOrderShare": 0.8333,
+        "inOrderShareCI": [
+          0.8333,
+          0.7273,
+          0.8921
+        ],
+        "rowsOrdered": 15,
+        "rowsOrderedShare": 0.6,
+        "rowsWithBreak": 14,
+        "rowConsistencyP50": 0.8333,
+        "misfileCandidates": 8,
+        "misfileShareOfConfirmedInOrderedRows": 0.0415,
+        "rowsWithStrip": 3
+      },
+      "yardstick": null,
+      "seconds": 701
+    },
+    "yardstick": {
+      "scope": "PROXY (library shelves): Library Dataset sample, box arm B2; confirmed = accepted and annotated in the image",
+      "evaluation": "all photos",
+      "eval": {
+        "photos": 40,
+        "bookBoxes": 1116,
+        "confirmedBase": 269,
+        "targets": 253,
+        "targetsByF0Reason": {
+          "no-catalog-match": 145,
+          "single-reader": 84,
+          "no-text": 24
+        },
+        "targetsWithUsableText": 227,
+        "targetsInBracket": 6,
+        "confirmedByContext": 12,
+        "extraConfirmedPerPhoto": [
+          0.3,
+          0.1244,
+          0.525
+        ],
+        "extraConfirmedSharePts": [
+          0.0108,
+          0.004,
+          0.0189
+        ],
+        "acceptsByF0Reason": {
+          "single-reader": 12
+        },
+        "acceptsBySource": {
+          "P1": 11,
+          "P1+bracket": 1
+        },
+        "acceptsByK": {
+          "1-10": 11,
+          "11-30": 1
+        },
+        "acceptsByReaders": {
+          "qwen": 11,
+          "ppocr": 1
+        },
+        "acceptsReaderAtBar": {
+          "a supporting reader at F-0's bar": 12
+        },
+        "outcomes": {
+          "bar": 11,
+          "confirmed-by-context": 12,
+          "no-proposal-passes": 201,
+          "margin": 1,
+          "counter:author": 2
+        },
+        "counterWithdrawals": {
+          "author": 4
+        },
+        "copyArm": {
+          "confirmedByContext": 12,
+          "extraPerPhoto": [
+            0.3,
+            0.1244,
+            0.525
+          ]
+        }
+      },
+      "all": null,
+      "shuffle": {
+        "realAccepts": 12,
+        "seeds": [
+          0,
+          1,
+          1,
+          1,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          1,
+          1,
+          1,
+          0,
+          1
+        ],
+        "meanAccepts": 0.4,
+        "meanRatio": 0.0333,
+        "p95Ratio": 0.0833,
+        "sameAuthorDrawShare": 0.0035
+      },
+      "loro": {
+        "all": {
+          "views": 373,
+          "accepted": 53,
+          "recovered": 53,
+          "wrong": 0,
+          "abstained": 320,
+          "recoveredShareOfViews": 0.1421,
+          "wrongShareOfAccepts": 0,
+          "wrongWilson": [
+            0,
+            0.0676
+          ],
+          "abstainWhy": {
+            "no-proposal-passes": 311,
+            "bar": 6,
+            "margin": 2,
+            "counter:author": 1
+          }
+        },
+        "weak": {
+          "views": 55,
+          "accepted": 4,
+          "recovered": 4,
+          "wrong": 0,
+          "abstained": 51,
+          "recoveredShareOfViews": 0.0727,
+          "wrongShareOfAccepts": 0,
+          "wrongWilson": [
+            0,
+            0.4899
+          ],
+          "abstainWhy": {
+            "no-proposal-passes": 47,
+            "bar": 4
+          }
+        },
+        "stress": {
+          "views": 94,
+          "accepted": 53,
+          "recovered": 53,
+          "wrong": 0,
+          "abstained": 41,
+          "recoveredShareOfViews": 0.5638,
+          "wrongShareOfAccepts": 0,
+          "wrongWilson": [
+            0,
+            0.0676
+          ],
+          "abstainWhy": {
+            "no-proposal-passes": 34,
+            "bar": 4,
+            "margin": 2,
+            "counter:author": 1
+          }
+        }
+      },
+      "hypotheses": {
+        "total": 26,
+        "byKind": {
+          "adjacent": 26
+        },
+        "hiddenCheck": {
+          "all": {
+            "n": 159,
+            "top1": [
+              0.0503,
+              0.0149,
+              0.0898
+            ],
+            "top5": [
+              0.1698,
+              0.0769,
+              0.2649
+            ]
+          },
+          "bracket": {
+            "n": 12,
+            "top1": [
+              0.3333,
+              0.1429,
+              0.6667
+            ],
+            "top5": [
+              0.5833,
+              0.4348,
+              1
+            ]
+          },
+          "adjacent": {
+            "n": 147,
+            "top1": [
+              0.0272,
+              0,
+              0.0621
+            ],
+            "top5": [
+              0.1361,
+              0.0566,
+              0.2299
+            ]
+          }
+        }
+      },
+      "detectionGaps": {
+        "brackets": 0,
+        "boxGaps": 0,
+        "s1FrontOutlineGaps": 0
+      },
+      "strips": {
+        "source": "f0f-shelf-strip",
+        "found": 0,
+        "statingOrder": 0,
+        "rows": 90,
+        "rowsLabelled": 0,
+        "rowsSetOrdered": 0,
+        "rowsWithGenre": 0,
+        "otherKindsWithStripWording": 0
+      },
+      "order": {
+        "adjacentConfirmedPairs": 85,
+        "adjacentSameWork": 0.0235,
+        "adjacentSameAuthorOtherWork": 0.241,
+        "withinTwoPairsOtherWork": 161,
+        "withinTwoSameAuthor": 0.1925,
+        "anchorSameAuthorRate": 0.2516,
+        "anchorSameAuthorN": 159,
+        "bracketPurity": 1,
+        "bracketedN": 12,
+        "rowsScored": 19,
+        "consecutivePairs": 111,
+        "inOrderShare": 0.6937,
+        "inOrderShareCI": [
+          0.6937,
+          0.6071,
+          0.7843
+        ],
+        "rowsOrdered": 8,
+        "rowsOrderedShare": 0.4211,
+        "rowsWithBreak": 15,
+        "rowConsistencyP50": 0.6667,
+        "misfileCandidates": 2,
+        "misfileShareOfConfirmedInOrderedRows": 0.0313,
+        "rowsWithStrip": 0
+      },
+      "orderOther": null,
+      "yardstick": {
+        "wrongAcceptsBase": 22,
+        "wrongAcceptsWith": 23,
+        "contextAccepts": 12,
+        "wrongPerImageDelta": [
+          0.025,
+          0,
+          0.075
+        ],
+        "wrongShareBase": [
+          0.0818,
+          0.0364,
+          0.1392
+        ],
+        "wrongShareWith": [
+          0.0819,
+          0.0387,
+          0.1364
+        ]
+      },
+      "seconds": 78
+    }
+  },
+  "keep": {
+    "k1PilotLift": true,
+    "k2Shuffle": true,
+    "k3Yardstick": true,
+    "k4Loro": true,
+    "k4Vacuous": false,
+    "ship": true
+  },
+  "seconds": 779
+}

@@ -10,6 +10,7 @@ import { createInterface } from "node:readline";
 import { fileURLToPath } from "node:url";
 import type { DatabaseSync } from "node:sqlite";
 import { guardCheck, LOOKALIKE, type GuardArm, type LookalikeGuard } from "../catalog/lookalike.ts";
+import { counterCheck, type CounterKind, type RarityBasis } from "../catalog/rarity.ts";
 import { retrieve, type Candidate } from "../catalog/retrieve.ts";
 import { cropFor, cropName, F0_CROP, type CropMethod } from "../perceive/crop.ts";
 import { OcrHelperError, runOcr, type OcrRequest, type OcrResponse } from "../perceive/ocr.ts";
@@ -119,6 +120,8 @@ export interface SpineDecision {
   hard: boolean;
   /** C-6: readers whose confirmation the lookalike guard withdrew, and the arm that did (absent without a guard). */
   lookalike?: Partial<Record<ReaderName, GuardArm>>;
+  /** C-7: readers whose confirmation counter-evidence withdrew, and which kind (absent without the rarity basis). */
+  counter?: Partial<Record<ReaderName, CounterKind>>;
 }
 
 // --- stage plumbing ---------------------------------------------------------------------------
@@ -391,6 +394,8 @@ export function topFor(db: DatabaseSync, r: Reading | undefined, cache: Map<stri
 export interface DecideGuard {
   guard: LookalikeGuard;
   ranked: Map<string, Candidate[]>;
+  /** C-7: the rarity basis (`src/catalog/rarity.ts`) and the counter-evidence kinds in force; after the guard's arms. */
+  rarity?: { basis: RarityBasis; kinds: ReadonlySet<CounterKind> };
 }
 
 /** One reader's ranked candidates, as deep as the lookalike guard looks; the first is `topFor`'s candidate. */
@@ -435,7 +440,8 @@ export function vote(v: ReaderVotes): Pick<SpineDecision, "agreeing" | "reason" 
 
 /**
  * Decide one spine from whatever readers have read it. With `guard` (C-6), a reader confirms its top candidate only
- * when it also passes the lookalike guard on that reader's ranked candidates; the vote is unchanged.
+ * when it also passes the lookalike guard on that reader's ranked candidates, and (C-7, `guard.rarity`) when no
+ * counter-evidence in force holds against it; the vote is unchanged.
  */
 export function decide(
   db: DatabaseSync,
@@ -449,6 +455,7 @@ export function decide(
   const v: ReaderVotes = { readText: {}, top: {}, confirmed: {} };
   const cands = new Map<string, Candidate>();
   const lookalike: Partial<Record<ReaderName, GuardArm>> = {};
+  const counter: Partial<Record<ReaderName, CounterKind>> = {};
   for (const reader of READERS) {
     if (!reads[reader]) continue;
     v.readText[reader] = variantsOf(reads[reader]).length > 0;
@@ -460,11 +467,15 @@ export function decide(
       const why = guardCheck(guard.guard, c!, ranked!);
       if (why) (lookalike[reader] = why), (ok = false);
     }
+    if (ok && guard?.rarity && guard.rarity.kinds.size > 0) {
+      const why = counterCheck(guard.rarity.basis, c!, ranked!, variantsOf(reads[reader]), guard.rarity.kinds);
+      if (why) (counter[reader] = why), (ok = false);
+    }
     v.confirmed[reader] = ok ? c!.workId : null;
     if (ok && !cands.has(c!.workId)) cands.set(c!.workId, c!);
   }
   const { acceptedId, agreeing, reason, hard } = vote(v);
-  return { id, imageId, boxScore, confirmed: v.confirmed, top: v.top, readText: v.readText, accepted: acceptedId ? cands.get(acceptedId)! : null, agreeing, reason, hard, ...(guard ? { lookalike } : {}) };
+  return { id, imageId, boxScore, confirmed: v.confirmed, top: v.top, readText: v.readText, accepted: acceptedId ? cands.get(acceptedId)! : null, agreeing, reason, hard, ...(guard ? { lookalike } : {}), ...(guard?.rarity ? { counter } : {}) };
 }
 
 // --- labels -----------------------------------------------------------------------------------

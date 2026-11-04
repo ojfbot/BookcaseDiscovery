@@ -66,14 +66,14 @@ const stage = (set: SetName): string => {
   mkdirSync(dir, { recursive: true });
   return dir;
 };
-const loadDets = (set: SetName): Map<string, Detection> =>
+export const loadDets = (set: SetName): Map<string, Detection> =>
   new Map(readJsonl<Detection>(join(SETS[set].base, "detect.jsonl")).filter((d) => !d.error).map((d) => [d.id, d]));
 
 /**
  * The shipped box set's kinds: per photo, whether each box is a book. F-0c's not-a-book flags and F-0f's shelf
  * labels and cards (from the base's Vision and PP-OCR text and F-0f's cached pixel probe); the cover pass is off.
  */
-const loadBooks = (set: SetName, dets: Map<string, Detection>): Map<string, boolean[]> => {
+export const loadBooks = (set: SetName, dets: Map<string, Detection>): Map<string, boolean[]> => {
   const ev = evidenceFor(set);
   return new Map([...dets].map(([id, d]) => [id, kinds({ ...d, covers: [] }, ev.get(id)).spines.map((b) => b.kind === "spine")]));
 };
@@ -283,7 +283,7 @@ async function imprint(set: SetName, dryRun = false): Promise<void> {
 // --- analyse ------------------------------------------------------------------------------------------------
 
 /** Annotated copies per work per yardstick image (the annotation lists every book, so a work twice is two copies). */
-function yardstickCopies(): Map<string, Map<string, number>> {
+export function yardstickCopies(): Map<string, Map<string, number>> {
   const lib = join(ROOT, "proxy", "library-dataset");
   const cleanTitle = (t: string) => t.replace(/\s+:\s+/g, ": ").replace(/\s+/g, " ").trim(); // as in F-0 and Q-1
   const inv = parseCsv(readFileSync(join(lib, "data", "target_lists", "library_books.csv"), "utf8"));
