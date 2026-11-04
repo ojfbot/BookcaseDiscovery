@@ -66,6 +66,7 @@ def main() -> None:
     ap = argparse.ArgumentParser()
     for k in ("detect", "outlines", "table", "images", "part", "out", "label"):
         ap.add_argument(f"--{k}", required=True)
+    ap.add_argument("--first", default="", help="JSON list of [photo id, caption]: these photos lead the page")
     a = ap.parse_args()
     out = Path(a.out)
     (out / "img").mkdir(parents=True, exist_ok=True)
@@ -81,7 +82,12 @@ def main() -> None:
         groups.setdefault(g["photo"], []).append(g)
     photos = {p["photo"]: p for p in read_jsonl(str(part / "photos.jsonl"))}
     sections = []
-    for n, d in enumerate(read_jsonl(a.detect)):
+    first = json.loads(a.first) if a.first else []
+    lead = {pid: cap for pid, cap in first}
+    dets = read_jsonl(a.detect)
+    order = sorted(range(len(dets)), key=lambda k: ([p for p, _ in first].index(dets[k].get("id")) if dets[k].get("id") in lead else len(first), k))
+    for n in order:
+        d = dets[n]
         pid = d.get("id")
         if d.get("error") or pid not in rows or pid not in images:
             continue
@@ -147,7 +153,8 @@ def main() -> None:
                      f"{ph['boxes']} boxes, {ph['kept']} kept, {ph['changed']} changed, {ph['flagged']} flagged; "
                      f"{ph['groups']} conflict groups, {ph['windows']} windows")
         dropped = sum(1 for r in rows[pid] if r["state"] == "dropped")
-        sections.append(f"<section><h2>Photo {n + 1}</h2><p>{html.escape(stats)}; {dropped} dropped</p>"
+        cap = f" — owner's example: {html.escape(lead[pid])}" if pid in lead else ""
+        sections.append(f"<section><h2>Photo {n + 1}{cap}</h2><p>{html.escape(stats)}; {dropped} dropped</p>"
                         f"<img class=wide src={name}><div class=z>{''.join(zooms)}</div></section>")
     page = ("<!doctype html><meta charset=utf-8><title>F-0i partition</title><style>body{background:#222;color:#eee;"
             "font:14px system-ui;margin:16px}img.wide{max-width:100%}.z img{margin:4px;max-width:48%}h2{margin:24px 0 4px}"

@@ -5,6 +5,7 @@
 //   node src/eval/f0i-cli.ts plan <set>       # helpers/coverage/resolve.py plan: the gate, conflict groups, windows (CPU)
 //   node src/eval/f0i-cli.ts tiles <set>      # helpers/label/partition.py: SAM 2.1 logits per group, cached (GPU)
 //   node src/eval/f0i-cli.ts resolve <set>    # resolve.py resolve: the exclusive partition, provenance, measures (CPU)
+//   node src/eval/f0i-cli.ts strata <set>     # helpers/coverage/strata.py: the addendum's reported strata (CPU)
 //   node src/eval/f0i-cli.ts render <set>     # private before/after page, per-book coloured mask fills
 //   node src/eval/f0i-cli.ts run <set> <arm>  # arm: clip (before) | refit | own (refit+own), on the changed set
 //   node src/eval/f0i-cli.ts analyse          # evals/F0i/{metrics.json,report.md}: aggregates only
@@ -157,10 +158,26 @@ function resolve(set: SetName): void {
   if (r.status !== 0) throw new Error(`resolve.py resolve failed on ${set}`);
 }
 
+function strata(set: SetName): void {
+  const c = SETS[set];
+  const fd = openSync(join(PRIV, set, "strata.json"), "w");
+  const r = spawnSync(py("coverage"), ["-I", join(REPO, "helpers", "coverage", "strata.py"), "--set", set, "--detect", join(c.stage, "detect.jsonl"), "--outlines", c.outlines, "--table", c.table, "--images", c.images, "--faces", join(ROOT, "private", "h2", set, "faces.jsonl"), "--pairs", join(ROOT, "private", "fr1", `pairs-${set}.jsonl`), "--part", join(PRIV, set)], { stdio: ["ignore", fd, "inherit"] });
+  closeSync(fd);
+  if (r.status !== 0) throw new Error(`strata.py failed on ${set}`);
+}
+
 function render(set: SetName): void {
   const c = SETS[set];
   const out = join(PRIV, "renders", set);
-  const r = spawnSync(py("coverage"), ["-I", join(REPO, "helpers", "coverage", "render_f0i.py"), "--detect", join(c.stage, "detect.jsonl"), "--outlines", c.outlines, "--table", c.table, "--images", c.images, "--part", join(PRIV, set), "--out", out, "--label", set], { stdio: ["ignore", "inherit", "inherit"] });
+  // The owner's examples lead the page: photos matched by helpers/label/match_examples.py (ORB), kept when the best
+  // photo has at least 100 inliers and twice the runner-up's.
+  const mPath = join(PRIV, "examples", "matches.json");
+  const first = existsSync(mPath)
+    ? (JSON.parse(readFileSync(mPath, "utf8")).first as { example: string; id: string; inliers: number; runnerUp: number }[])
+        .filter((x) => x.id.startsWith(`${set}|`) && x.inliers >= 100 && x.inliers >= 2 * x.runnerUp)
+        .map((x) => [x.id.slice(set.length + 1), x.example.replace(/^owner-\d{4}-\d{2}-\d{2}-|\.\w+$/g, "")])
+    : [];
+  const r = spawnSync(py("coverage"), ["-I", join(REPO, "helpers", "coverage", "render_f0i.py"), "--detect", join(c.stage, "detect.jsonl"), "--outlines", c.outlines, "--table", c.table, "--images", c.images, "--part", join(PRIV, set), "--out", out, "--label", set, "--first", JSON.stringify(first)], { stdio: ["ignore", "inherit", "inherit"] });
   if (r.status !== 0) throw new Error(`render_f0i.py failed on ${set}`);
   log(`render under the data root's private/f0i/renders/${set}/index.html`);
 }
@@ -331,6 +348,7 @@ function analyse(): void {
         peakMpsMb: Math.max(0, ...tiles.map((t) => t.mpsPeakMb ?? 0)),
       },
       arms: {} as Record<string, unknown>,
+      ...(existsSync(join(PRIV, set, "strata.json")) ? { strata: JSON.parse(readFileSync(join(PRIV, set, "strata.json"), "utf8")) } : {}),
     };
     const dec = (arm: string) => {
       const p = join(PRIV, set, arm, "decisions.jsonl");
@@ -483,6 +501,28 @@ function tables(m: { verdict: any; sets: Record<string, any> }): string {
     const s = m.sets[n].geometry.seam;
     return `${n} ${s.strong} strong of ${s.runs} runs (classical arm: ${s.classicalStrong} strong; it would give ${pc(s.classicalDiffer / Math.max(s.classicalCompared, 1))} of the compared pixels to the other book)`;
   }).join("; ")}.`, "");
+  if (names.every((n) => m.sets[n].strata)) {
+    const st = (s: any) => s.strata;
+    const strata: [string, string][] = [["lowContrast", "low-contrast (ΔE76 < 10)"], ["lowContrastToneOnly", "... tone only"], ["lowContrastTopFace", "... top-face cause"], ["otherContrast", "other neighbours"], ["coverKind", "cover-kind member"]];
+    out.push("### Reported strata (addendum; not in a keep rule)", "",
+      `Neighbouring pairs (F-R1's table): ${col((s) => `${st(s).neighbourPairs} (${st(s).pairsWithColour} with a colour on both cores)`)}. Pair conflict = masks share ≥ 1 % of the smaller; pair overlap = contested ÷ the pair's union, pooled.`, "",
+      "| stratum | set | pairs | conflict before → after | pair overlap before → after | pairs with a member dropped | contested pixels: seam / argmax / depth | seam runs | strong: combined / normals / Retinex / luma |",
+      "|---|---|---:|---|---|---:|---|---:|---|");
+    for (const [k, label] of strata)
+      for (const n of names) {
+        const x = m.sets[n].strata[k], ps = x.provenancePixelShare, ss = x.seamStrong;
+        out.push(`| ${label} | ${n} | ${x.pairs} | ${pc(x.conflictBefore.share)} → ${pc(x.conflictAfter.share, 2)} | ${pc(x.pairOverlapBefore)} → ${pc(x.pairOverlapAfter, 2)} | ${x.pairsWithADroppedMember} | ${pc(ps.seam ?? 0, 0)} / ${pc(ps["tile-argmax"] ?? 0, 0)} / ${pc(ps.depth ?? 0, 0)} | ${x.seamRuns} | ${[ss.combined, ss.normals, ss.retinex, ss.luma].map((v: number) => pc(v, 0)).join(" / ")} |`);
+      }
+    out.push("", `Merged-mask splits by the gate (merged parents dropped / remainders made): ${names.map((n) => {
+      const ms = m.sets[n].strata.mergedSplits;
+      return `${n}: low-contrast ${ms.lowContrast["merged-parent"]} / ${ms.lowContrast.remainder} (top-face cause ${ms.lowContrastTopFace["merged-parent"]} / ${ms.lowContrastTopFace.remainder}), other ${ms.other["merged-parent"]} / ${ms.other.remainder}`;
+    }).join("; ")}.`, "",
+      `Ends for F-0m (kept boxes; which step moved the outline's top / bottom end, else \`outline\`): ${names.map((n) => {
+        const e = m.sets[n].strata.ends;
+        const f = (o: Record<string, number>) => Object.entries(o).map(([k, v]) => `${k} ${v}`).join(", ");
+        return `${n}: top ${f(e.top)}; bottom ${f(e.bottom)}`;
+      }).join(". ")}.`, "");
+  }
   for (const [set, s] of Object.entries(m.sets)) {
     const yard = set !== "pilot-000";
     for (const [arm, x] of Object.entries<any>(s.arms)) {
@@ -521,11 +561,12 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
   if (cmd === "plan" && isSet(set)) plan(set);
   else if (cmd === "tiles" && isSet(set)) tiles(set);
   else if (cmd === "resolve" && isSet(set)) resolve(set);
+  else if (cmd === "strata" && isSet(set)) strata(set);
   else if (cmd === "render" && isSet(set)) render(set);
   else if (cmd === "run" && isSet(set) && arg) await run(set, arg);
   else if (cmd === "analyse") analyse();
   else {
-    console.error("usage: f0i-cli.ts plan|tiles|resolve|render <set> | run <set> <clip|refit|own> | analyse   (set: pilot-000 | yardstick-library-b2)");
+    console.error("usage: f0i-cli.ts plan|tiles|resolve|strata|render <set> | run <set> <clip|refit|own> | analyse   (set: pilot-000 | yardstick-library-b2)");
     process.exit(2);
   }
 }

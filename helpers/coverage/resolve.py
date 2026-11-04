@@ -477,8 +477,10 @@ class Evidence:
         y, x = self.sample_idx(p)
         return self.z[y, x]
 
-    def edge(self, p: np.ndarray, n: np.ndarray) -> np.ndarray:
-        """R3-A evidence at photo points for edges running along the axis (gradient across it, within 15°)."""
+    def edge(self, p: np.ndarray, n: np.ndarray, only: str | None = None) -> np.ndarray:
+        """R3-A evidence at photo points for edges running along the axis (gradient across it, within 15°).
+
+        `only` ("normals" or "retinex") gives one map alone: the reported per-source seam strata, never a decision."""
         y, x = self.sample_idx(p)
         cos = math.cos(math.radians(ALIGN_DEG))
         pn = np.sqrt(sum((gx[y, x] * n[0] + gy[y, x] * n[1]) ** 2 for gx, gy in self.ng))
@@ -487,7 +489,7 @@ class Evidence:
         fr = np.sqrt(self.rg[0][y, x] ** 2 + self.rg[1][y, x] ** 2)
         rn = np.where(pn >= cos * fn, np.searchsorted(self.nref, pn) / len(self.nref), 0.0)
         rr = np.where(pr >= cos * fr, np.searchsorted(self.rref, pr) / len(self.rref), 0.0)
-        return 0.5 * (rn + rr)
+        return rn if only == "normals" else rr if only == "retinex" else 0.5 * (rn + rr)
 
 
 class Classical:
@@ -685,7 +687,13 @@ def resolve_group(members: list[Box], pairs: dict, plan: dict, logits: dict | No
             left, right = (a, b) if dx >= 0 else (b, a)
             runs = seam_runs(q[ix], P[left, ix], P[right, ix], lambda t: ev.edge(fr.back(t), fr.n))
             alt = seam_runs(q[ix], P[left, ix], P[right, ix], lambda t: cl.edge(fr.back(t), fr.n)) if cl and cl.ok else None
-            rec["seamRuns"], rec["strongRuns"] = 0, 0
+            rec["seamRuns"], rec["strongRuns"], rec["runs"] = 0, 0, []
+            # reported only (evals/F0i addendum): would each evidence map alone, with its own seam, pass the margin?
+            alone = {}
+            for src in ("normals", "retinex"):
+                rs = seam_runs(q[ix], P[left, ix], P[right, ix], lambda t, src=src: ev.edge(fr.back(t), fr.n, src))
+                alone[src] = [r["seamEdge"] >= SEAM_MARGIN * max(float(ev.edge(pts[ix[r["idx"]]], fr.n, src).mean()), 1e-6)
+                              if "toA" in r else None for r in rs]
             for r_i, run in enumerate(runs):
                 if "toA" not in run:
                     continue
@@ -693,6 +701,9 @@ def resolve_group(members: list[Box], pairs: dict, plan: dict, logits: dict | No
                 rec["seamRuns"] += 1
                 sub = ix[run["idx"]]
                 strong = run["seamEdge"] >= SEAM_MARGIN * max(float(ev.edge(pts[sub], fr.n).mean()), 1e-6)
+                run_rec = {"rows": run["rows"], "pixels": int(len(sub)), "strong": bool(strong),
+                           "normals": alone["normals"][r_i], "retinex": alone["retinex"][r_i]}
+                rec["runs"].append(run_rec)
                 mine = np.where(run["toA"], left, right) if strong else np.where(P[left, sub] >= P[right, sub], left, right)
                 if strong:
                     seam_stats["strong"] += 1
@@ -704,6 +715,7 @@ def resolve_group(members: list[Box], pairs: dict, plan: dict, logits: dict | No
                     ar = alt[r_i]  # same rows and pixels: the runs depend only on the pixel layout
                     a_strong = ar["seamEdge"] >= SEAM_MARGIN * max(float(cl.edge(pts[ix[ar["idx"]]], fr.n).mean()), 1e-6)
                     seam_stats["classicalStrong"] += int(a_strong)
+                    run_rec["luma"] = bool(a_strong)
                     other = np.empty(len(ix), int)
                     other[ar["idx"]] = np.where(ar["toA"], left, right) if a_strong else \
                         np.where(P[left, ix[ar["idx"]]] >= P[right, ix[ar["idx"]]], left, right)
@@ -741,6 +753,29 @@ def resolve_group(members: list[Box], pairs: dict, plan: dict, logits: dict | No
         rec["logitMargin"] = round(float(np.median(np.abs(la[ok] - lb[ok]))), 3) if ok.any() else None
     return {"keys": keys, "owner": owner, "source": source, "cm": cm, "pairs": rows_out, "seam": seam_stats,
             "multi": int((ncl >= 3).sum())}
+
+
+def end_sources(b: Box, src_code: np.ndarray, W: int) -> dict:
+    """For F-0m: did the outline's top or bottom end (along the detection axis; top = up the image) move by more than
+    2 px in the partition, and which step moved it (the commonest source among the pixels it lost there)?"""
+    u = geometry(rect_of(cv2.boxPoints(b.rect)))["u"]  # points down the image
+    o = mask_coords(b, b.orig_m if b.orig_mb == b.mb else None) if b.orig_m is not None else None
+    f = mask_coords(b)
+    out = {"top": "outline", "bottom": "outline"}
+    if o is None or not len(o) or not len(f):
+        return out
+    ao, af = o @ u, f @ u
+    lost = b.orig_m & ~b.m if b.orig_mb == b.mb else np.zeros_like(b.m)
+    ly, lx = np.nonzero(lost)
+    lp = np.stack([lx + b.mb[0], ly + b.mb[1]], 1).astype(float)
+    la = lp @ u if len(lp) else np.zeros(0)
+    span = max(ao.max() - ao.min(), 1.0)
+    for end, moved, near in (("top", af.min() - ao.min() > 2, la <= ao.min() + 0.05 * span),
+                             ("bottom", ao.max() - af.max() > 2, la >= ao.max() - 0.05 * span)):
+        if moved and near.any():
+            codes = src_code[((ly[near] + b.mb[1]).astype(np.int64)) * W + lx[near] + b.mb[0]]
+            out[end] = SOURCES[int(np.bincount(codes, minlength=len(SOURCES)).argmax())]
+    return out
 
 
 def outline_of(mask: np.ndarray, x0: int, y0: int) -> list[list[float]] | None:
@@ -872,6 +907,16 @@ def cmd_resolve(a, sets) -> None:
             ys, xs = kk // W - b.mb[1], kk % W - b.mb[0]
             m[ys, xs] = False
             b.set_mask(m)
+        src_code = np.zeros(H * W, np.int8)
+        for b in boxes:  # boundaries the gate drew: a remainder's edge against the children taken out of it
+            if b.role == "remainder" and b.idx in post_gate:
+                x0, y0, x1, y1 = b.orig_mb
+                took = b.orig_m & ~crop_to(post_gate[b.idx][1], post_gate[b.idx][0], b.orig_mb) if \
+                    overlap_window(b.orig_mb, post_gate[b.idx][0]) == b.orig_mb else b.orig_m.copy()
+                ys, xs = np.nonzero(took)
+                src_code[(ys + y0).astype(np.int64) * W + xs + x0] = SOURCES.index("gate")
+        for keys, src in src_px:
+            src_code[keys] = src
         # validity, refit, outlines
         label = np.zeros((H, W), np.uint16)
         recs = []
@@ -905,6 +950,7 @@ def cmd_resolve(a, sets) -> None:
                     pts = np.stack([xx + b.mb[0], yy + b.mb[1]], 1).astype(np.float32)
                     if len(pts) >= 3:
                         rec["refit"] = [[round(float(x), 1), round(float(y), 1)] for x, y in cv2.boxPoints(cv2.minAreaRect(pts))]
+                rec["ends"] = end_sources(b, src_code, W)
                 rec["outline"] = outline_of(b.m, b.mb[0], b.mb[1])
                 rec["area"] = b.area
                 x0, y0, x1, y1 = b.mb
@@ -915,16 +961,6 @@ def cmd_resolve(a, sets) -> None:
             fp.write(json.dumps(rec) + "\n")
         cv2.imwrite(str(out / "labels" / f"{d['id']}.png"), label)
         # boundary length by source: pixels of a kept book with a 4-neighbour of another, sourced by provenance
-        src_code = np.zeros(H * W, np.int8)
-        for b in boxes:  # boundaries the gate drew: a remainder's edge against the children taken out of it
-            if b.role == "remainder" and b.idx in post_gate:
-                x0, y0, x1, y1 = b.orig_mb
-                took = b.orig_m & ~crop_to(post_gate[b.idx][1], post_gate[b.idx][0], b.orig_mb) if \
-                    overlap_window(b.orig_mb, post_gate[b.idx][0]) == b.orig_mb else b.orig_m.copy()
-                ys, xs = np.nonzero(took)
-                src_code[(ys + y0).astype(np.int64) * W + xs + x0] = SOURCES.index("gate")
-        for keys, src in src_px:
-            src_code[keys] = src
         edge = np.zeros((H, W), bool)
         for sh in ((0, 1), (1, 0)):
             a_ = label[: H - sh[0], : W - sh[1]]

@@ -245,6 +245,40 @@ sets are reported apart (OC35).
    the yardstick (0.34 s, 6 s a photo), peak MPS 6.1 GB, no errors and no group without logits. The CPU steps took
    about 1 s a photo for the plan and 15–25 s for the resolve, the classical arm included.
 
+## Reported strata (addendum; not in a keep rule)
+
+Figures are in the generated tables below (*Reported strata*); the private render leads with the owner's examples.
+
+7. **Face-out covers never reach the partition.** The shipped filter keeps spine-kind boxes only, and F-0c's cover
+   pass is off, so a cover standing in front of a spine row is not a box. In the owner's cover-out example the covers
+   carry no mask on either side of the render. So the gate cannot read a cover as nesting or a duplicate, nor drop
+   the spines behind it, and the depth override is never asked to give a cover its pixels: that case is untested.
+   The pre-fixed in-population proxy (a member whose H-2 `cover` share is ≥ 15 % and its dominant extra face) holds
+   339 conflicting `pilot-000` pairs and 132 on the yardstick, resolved like the rest (depth 30 % and 29 % of their
+   contested pixels). On library shelves seen square-on that proxy is mostly a spine's own receding cover, not a
+   face-out book, so it over-counts. When the cover pass is switched on, a cover's conflicts need their own rule
+   (front layer owns) before the gate runs; logged.
+8. **Low-contrast neighbours are not where conflict concentrates.** 2,226 of 12,648 `pilot-000` neighbouring pairs
+   (18 %) and 407 of 2,051 on the yardstick have exclusive cores under ΔE76 10. Their conflict rate before is
+   15.2 % against 14.4 % for the others (yardstick 16.0 % against 13.5 %), and after the partition both are near 0
+   (0.13 % and 0.25 %). In the stratum the seam decides more of the contested pixels on `pilot-000` (60 % against
+   34 %) and depth less (7 % against 30 %). On the yardstick it is the reverse: seam 13 %, depth 40 %.
+   - **Top-face cause apart:** 1,241 of the 2,226 low-contrast `pilot-000` pairs have a member whose top share is
+     ≥ 15 %. They conflict more (16.4 % against 13.7 % for tone only), and the seam decides 62 % of their contested
+     pixels against 53 %.
+   - **Seam evidence by source, per seam run in the stratum** (share passing the strong-seam margin with each map
+     alone): normals 41 %, Retinex 60 %, full-resolution luma 84 %, combined 47 % on `pilot-000`. Tone-only pairs
+     pass least (normals 31 %, Retinex 47 %, combined 33 %). Passing the margin is not being right: luma passes most
+     because title bands and texture also make strong vertical edges.
+9. **The merged-mask split is mostly not a low-contrast event.** Of the gate's 18 merged parents and 127 remainders
+   on `pilot-000`, 2 and 23 have children (or child and remainder) under ΔE76 10; 13 of those 25 have the top-face
+   cause. Yardstick: 4 and 16 of 8 and 44. Runs that SAM segmented as one mask with no child detection inside are
+   untouched by the gate (§ Limits); the owner's "bottom edges unseparated" example could not be matched to a photo
+   with confidence (ORB 41 inliers against 16, SIFT 381 against 372 on a different photo), so it is not placed.
+10. **Ends (for F-0m).** F-0i moved an outline's top end on 85 kept `pilot-000` boxes (argmax 31, depth 26, seam 20,
+    gate 8) and its bottom end on 71; every other end (5,676 tops, 5,690 bottoms) is the original outline's.
+    Yardstick: 16 tops, 18 bottoms. `partition.jsonl` records it per box (`ends`).
+
 ## Caches that change if the partition is adopted
 
 Box ids are stable, so only boxes the partition drops or changes are affected: 360 dropped and 1,001 changed on
@@ -318,6 +352,27 @@ Box ids are stable, so only boxes the partition drops or changes are affected: 3
 | fallback | 0.0 % | 0.0 % | 0.1 % | 0.0 % |
 
 Seams: pilot-000 490 strong of 1100 runs (classical arm: 874 strong; it would give 4.2 % of the compared pixels to the other book); yardstick-library-b2 29 strong of 57 runs (classical arm: 51 strong; it would give 2.4 % of the compared pixels to the other book).
+
+### Reported strata (addendum; not in a keep rule)
+
+Neighbouring pairs (F-R1's table): 12680 (12648 with a colour on both cores) | 2062 (2051 with a colour on both cores). Pair conflict = masks share ≥ 1 % of the smaller; pair overlap = contested ÷ the pair's union, pooled.
+
+| stratum | set | pairs | conflict before → after | pair overlap before → after | pairs with a member dropped | contested pixels: seam / argmax / depth | seam runs | strong: combined / normals / Retinex / luma |
+|---|---|---:|---|---|---:|---|---:|---|
+| low-contrast (ΔE76 < 10) | pilot-000 | 2226 | 15.2 % → 0.13 % | 2.2 % → 0.01 % | 230 | 60 % / 33 % / 7 % | 291 | 47 % / 41 % / 60 % / 84 % |
+| low-contrast (ΔE76 < 10) | yardstick-library-b2 | 407 | 16.0 % → 0.25 % | 2.7 % → 0.01 % | 65 | 13 % / 46 % / 40 % | 20 | 50 % / 50 % / 50 % / 95 % |
+| ... tone only | pilot-000 | 985 | 13.7 % → 0.00 % | 1.8 % → 0.01 % | 82 | 53 % / 35 % / 12 % | 107 | 33 % / 31 % / 47 % / 78 % |
+| ... tone only | yardstick-library-b2 | 322 | 14.6 % → 0.00 % | 2.5 % → 0.01 % | 48 | 1 % / 63 % / 36 % | 14 | 43 % / 50 % / 43 % / 93 % |
+| ... top-face cause | pilot-000 | 1241 | 16.4 % → 0.24 % | 2.5 % → 0.01 % | 148 | 62 % / 32 % / 6 % | 184 | 55 % / 47 % / 68 % / 88 % |
+| ... top-face cause | yardstick-library-b2 | 85 | 21.2 % → 1.18 % | 3.4 % → 0.01 % | 17 | 48 % / 1 % / 50 % | 6 | 67 % / 50 % / 67 % / 100 % |
+| other neighbours | pilot-000 | 10422 | 14.4 % → 0.08 % | 2.5 % → 0.01 % | 1550 | 34 % / 36 % / 30 % | 807 | 44 % / 39 % / 57 % / 78 % |
+| other neighbours | yardstick-library-b2 | 1644 | 13.5 % → 0.06 % | 2.5 % → 0.01 % | 325 | 21 % / 61 % / 18 % | 37 | 51 % / 43 % / 62 % / 86 % |
+| cover-kind member | pilot-000 | 2337 | 14.5 % → 0.09 % | 2.2 % → 0.02 % | 321 | 34 % / 36 % / 30 % | 174 | 44 % / 36 % / 56 % / 82 % |
+| cover-kind member | yardstick-library-b2 | 778 | 17.0 % → 0.39 % | 3.1 % → 0.02 % | 179 | 17 % / 53 % / 29 % | 20 | 60 % / 50 % / 70 % / 95 % |
+
+Merged-mask splits by the gate (merged parents dropped / remainders made): pilot-000: low-contrast 2 / 23 (top-face cause 2 / 11), other 16 / 104; yardstick-library-b2: low-contrast 4 / 16 (top-face cause 0 / 3), other 4 / 28.
+
+Ends for F-0m (kept boxes; which step moved the outline's top / bottom end, else `outline`): pilot-000: top outline 5676, gate 8, tile-argmax 31, seam 20, depth 26; bottom outline 5690, gate 8, tile-argmax 34, seam 11, depth 18. yardstick-library-b2: top outline 1024, gate 2, tile-argmax 6, seam 2, depth 6; bottom outline 1022, gate 3, tile-argmax 7, seam 1, depth 7.
 
 ## pilot-000: `refit` against `clip` (real use (OC35): machine agreement, never accuracy (INV-17))
 

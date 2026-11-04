@@ -127,6 +127,7 @@ describe.skipIf(!existsSync(PY))("helpers/coverage resolve.py (synthetic photo)"
       const part = new Map(readFileSync(join(dir, "out", "partition.jsonl"), "utf8").trim().split("\n").map((l) => JSON.parse(l)).map((x) => [x.id, x]));
       expect(part.get("p:4")).toMatchObject({ state: "kept", changed: true });
       expect(part.get("p:4").refit).toHaveLength(4);
+      expect(part.get("p:0").ends).toEqual({ top: "outline", bottom: "outline" }); // a side strip moved, not an end
       const b = readFileSync(join(dir, "out", "boundaries.jsonl"), "utf8").trim().split("\n").map((l) => JSON.parse(l));
       expect(b).toHaveLength(1);
       expect(b[0]).toMatchObject({ a: "p:0", b: "p:2", contested: 6 * 261, after: 0 }); // x 85..90 by y 20..280, edges included as fillPoly draws them

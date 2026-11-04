@@ -14,6 +14,7 @@ python -I render_q2.py --detect … --images … --table … --fill-p P --seam-o
 python -I overlap.py --set S --detect … --outlines … --table … --faces … --images … > metrics.json   # F-R1
 python -I resolve.py plan|resolve --set S --detect … --outlines … --table … --decisions … --images … --out DIR  # F-0i
 python -I resolve.py own --requests R --out DIR                                         # F-0i `mask=own` crops
+python -I strata.py --set S --detect … --outlines … --table … --images … --faces … --pairs … --part DIR  # F-0i strata
 python -I render_f0i.py --detect … --outlines … --table … --images … --part DIR --out DIR --label SET
 ```
 
@@ -41,6 +42,9 @@ python -I render_f0i.py --detect … --outlines … --table … --images … --p
   validity rule, refit boxes, lossless exclusive outlines, label maps and per-boundary provenance; `own` writes the
   `mask=own` reader crops (neighbour-owned pixels filled) as one lossless mosaic per photo. Every threshold is a
   constant at the top, pre-registered.
+- `strata.py` (F-0i): the reported strata of the report's addendum (cover-kind pairs, low-contrast neighbours with
+  the top-face cause apart, merged-mask splits, seam evidence by source, end provenance for F-0m), from the
+  partition's private files; it never changes the partition.
 - `render_f0i.py` (F-0i): before and after with per-book coloured mask fills and zooms on the largest conflict groups.
   Same privacy rule as `render.py`.
 

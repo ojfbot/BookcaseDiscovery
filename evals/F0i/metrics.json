@@ -1,7 +1,7 @@
 {
  "runId": "F0i",
  "card": "F-0i",
- "date": "2026-11-03",
+ "date": "2026-11-04",
  "model": {
   "id": "facebook/sam2.1-hiera-base-plus",
   "licence": "Apache-2.0"
@@ -452,6 +452,263 @@
         "seconds": 212
        }
       }
+     }
+    }
+   },
+   "strata": {
+    "set": "pilot-000",
+    "neighbourPairs": 12680,
+    "pairsWithColour": 12648,
+    "thresholds": {
+     "lowDeltaE76": 10,
+     "topShare": 0.15,
+     "coverShare": 0.15
+    },
+    "lowContrast": {
+     "pairs": 2226,
+     "conflictBefore": {
+      "share": 0.1523,
+      "lo": 0.1297,
+      "hi": 0.1799
+     },
+     "conflictAfter": {
+      "share": 0.0013,
+      "lo": 0,
+      "hi": 0.0035
+     },
+     "pairOverlapBefore": 0.0221,
+     "pairOverlapAfter": 0.0001,
+     "contestedBefore": 11667448,
+     "contestedAfter": 56861,
+     "pairsWithADroppedMember": 230,
+     "dropReasons": {
+      "absorbed": 5,
+      "duplicate": 132,
+      "merged-parent": 10,
+      "piece-of": 101
+     },
+     "provenancePixelShare": {
+      "tile-argmax": 0.3288,
+      "seam": 0.5989,
+      "depth": 0.0724
+     },
+     "seamRuns": 291,
+     "seamStrong": {
+      "combined": 0.4674,
+      "normals": 0.4089,
+      "retinex": 0.6048,
+      "luma": 0.8385
+     }
+    },
+    "otherContrast": {
+     "pairs": 10422,
+     "conflictBefore": {
+      "share": 0.1443,
+      "lo": 0.1293,
+      "hi": 0.1625
+     },
+     "conflictAfter": {
+      "share": 0.0008,
+      "lo": 0.0003,
+      "hi": 0.0014
+     },
+     "pairOverlapBefore": 0.0246,
+     "pairOverlapAfter": 0.0001,
+     "contestedBefore": 64322869,
+     "contestedAfter": 201724,
+     "pairsWithADroppedMember": 1550,
+     "dropReasons": {
+      "absorbed": 47,
+      "duplicate": 718,
+      "merged-parent": 98,
+      "piece-of": 777
+     },
+     "provenancePixelShare": {
+      "tile-argmax": 0.3641,
+      "seam": 0.3408,
+      "depth": 0.295,
+      "fallback": 0.0001
+     },
+     "seamRuns": 807,
+     "seamStrong": {
+      "combined": 0.4374,
+      "normals": 0.3866,
+      "retinex": 0.5651,
+      "luma": 0.7782
+     }
+    },
+    "lowContrastTopFace": {
+     "pairs": 1241,
+     "conflictBefore": {
+      "share": 0.1644,
+      "lo": 0.137,
+      "hi": 0.1972
+     },
+     "conflictAfter": {
+      "share": 0.0024,
+      "lo": 0,
+      "hi": 0.006
+     },
+     "pairOverlapBefore": 0.0253,
+     "pairOverlapAfter": 0.0001,
+     "contestedBefore": 7344722,
+     "contestedAfter": 31723,
+     "pairsWithADroppedMember": 148,
+     "dropReasons": {
+      "absorbed": 2,
+      "duplicate": 90,
+      "merged-parent": 6,
+      "piece-of": 63
+     },
+     "provenancePixelShare": {
+      "tile-argmax": 0.3197,
+      "seam": 0.624,
+      "depth": 0.0563
+     },
+     "seamRuns": 184,
+     "seamStrong": {
+      "combined": 0.5489,
+      "normals": 0.4674,
+      "retinex": 0.6848,
+      "luma": 0.875
+     }
+    },
+    "lowContrastToneOnly": {
+     "pairs": 985,
+     "conflictBefore": {
+      "share": 0.1371,
+      "lo": 0.1081,
+      "hi": 0.1707
+     },
+     "conflictAfter": {
+      "share": 0,
+      "lo": 0,
+      "hi": 0
+     },
+     "pairOverlapBefore": 0.0181,
+     "pairOverlapAfter": 0.0001,
+     "contestedBefore": 4322726,
+     "contestedAfter": 25138,
+     "pairsWithADroppedMember": 82,
+     "dropReasons": {
+      "absorbed": 3,
+      "duplicate": 42,
+      "merged-parent": 4,
+      "piece-of": 38
+     },
+     "provenancePixelShare": {
+      "tile-argmax": 0.3548,
+      "seam": 0.5267,
+      "depth": 0.1185
+     },
+     "seamRuns": 107,
+     "seamStrong": {
+      "combined": 0.3271,
+      "normals": 0.3084,
+      "retinex": 0.4673,
+      "luma": 0.7757
+     }
+    },
+    "coverKind": {
+     "pairs": 2337,
+     "conflictBefore": {
+      "share": 0.1451,
+      "lo": 0.1309,
+      "hi": 0.1604
+     },
+     "conflictAfter": {
+      "share": 0.0009,
+      "lo": 0,
+      "hi": 0.0021
+     },
+     "pairOverlapBefore": 0.0223,
+     "pairOverlapAfter": 0.0002,
+     "contestedBefore": 16835218,
+     "contestedAfter": 130037,
+     "pairsWithADroppedMember": 321,
+     "dropReasons": {
+      "absorbed": 5,
+      "duplicate": 163,
+      "merged-parent": 18,
+      "piece-of": 149
+     },
+     "provenancePixelShare": {
+      "tile-argmax": 0.3632,
+      "seam": 0.339,
+      "depth": 0.2978
+     },
+     "seamRuns": 174,
+     "seamStrong": {
+      "combined": 0.4368,
+      "normals": 0.3563,
+      "retinex": 0.5632,
+      "luma": 0.8218
+     }
+    },
+    "coverKindConflicting": {
+     "pairs": 339,
+     "conflictBefore": {
+      "share": 1,
+      "lo": 1,
+      "hi": 1
+     },
+     "conflictAfter": {
+      "share": 0.0029,
+      "lo": 0,
+      "hi": 0.0109
+     },
+     "pairOverlapBefore": 0.1805,
+     "pairOverlapAfter": 0.0009,
+     "contestedBefore": 16779184,
+     "contestedAfter": 84818,
+     "pairsWithADroppedMember": 105,
+     "dropReasons": {
+      "absorbed": 1,
+      "duplicate": 46,
+      "merged-parent": 11,
+      "piece-of": 48
+     },
+     "provenancePixelShare": {
+      "tile-argmax": 0.3634,
+      "seam": 0.3392,
+      "depth": 0.2974
+     },
+     "seamRuns": 174,
+     "seamStrong": {
+      "combined": 0.4368,
+      "normals": 0.3563,
+      "retinex": 0.5632,
+      "luma": 0.8218
+     }
+    },
+    "mergedSplits": {
+     "lowContrast": {
+      "merged-parent": 2,
+      "remainder": 23
+     },
+     "lowContrastTopFace": {
+      "merged-parent": 2,
+      "remainder": 11
+     },
+     "other": {
+      "merged-parent": 16,
+      "remainder": 104
+     }
+    },
+    "ends": {
+     "top": {
+      "outline": 5676,
+      "gate": 8,
+      "tile-argmax": 31,
+      "seam": 20,
+      "depth": 26
+     },
+     "bottom": {
+      "outline": 5690,
+      "gate": 8,
+      "tile-argmax": 34,
+      "seam": 11,
+      "depth": 18
      }
     }
    }
@@ -959,6 +1216,266 @@
         "seconds": 145
        }
       }
+     }
+    }
+   },
+   "strata": {
+    "set": "yardstick-library-b2",
+    "neighbourPairs": 2062,
+    "pairsWithColour": 2051,
+    "thresholds": {
+     "lowDeltaE76": 10,
+     "topShare": 0.15,
+     "coverShare": 0.15
+    },
+    "lowContrast": {
+     "pairs": 407,
+     "conflictBefore": {
+      "share": 0.1597,
+      "lo": 0.1223,
+      "hi": 0.2016
+     },
+     "conflictAfter": {
+      "share": 0.0025,
+      "lo": 0,
+      "hi": 0.0069
+     },
+     "pairOverlapBefore": 0.0268,
+     "pairOverlapAfter": 0.0001,
+     "contestedBefore": 9880268,
+     "contestedAfter": 36962,
+     "pairsWithADroppedMember": 65,
+     "dropReasons": {
+      "absorbed": 1,
+      "duplicate": 29,
+      "merged-parent": 13,
+      "piece-of": 23
+     },
+     "provenancePixelShare": {
+      "tile-argmax": 0.4634,
+      "seam": 0.1344,
+      "depth": 0.4016,
+      "fallback": 0.0007
+     },
+     "seamRuns": 20,
+     "seamStrong": {
+      "combined": 0.5,
+      "normals": 0.5,
+      "retinex": 0.5,
+      "luma": 0.95
+     }
+    },
+    "otherContrast": {
+     "pairs": 1644,
+     "conflictBefore": {
+      "share": 0.135,
+      "lo": 0.1101,
+      "hi": 0.16
+     },
+     "conflictAfter": {
+      "share": 0.0006,
+      "lo": 0,
+      "hi": 0.0022
+     },
+     "pairOverlapBefore": 0.0247,
+     "pairOverlapAfter": 0.0001,
+     "contestedBefore": 41253549,
+     "contestedAfter": 93372,
+     "pairsWithADroppedMember": 325,
+     "dropReasons": {
+      "absorbed": 18,
+      "duplicate": 174,
+      "merged-parent": 45,
+      "piece-of": 114
+     },
+     "provenancePixelShare": {
+      "tile-argmax": 0.6131,
+      "seam": 0.2102,
+      "depth": 0.1755,
+      "fallback": 0.0012
+     },
+     "seamRuns": 37,
+     "seamStrong": {
+      "combined": 0.5135,
+      "normals": 0.4324,
+      "retinex": 0.6216,
+      "luma": 0.8649
+     }
+    },
+    "lowContrastTopFace": {
+     "pairs": 85,
+     "conflictBefore": {
+      "share": 0.2118,
+      "lo": 0.0811,
+      "hi": 0.314
+     },
+     "conflictAfter": {
+      "share": 0.0118,
+      "lo": 0,
+      "hi": 0.0286
+     },
+     "pairOverlapBefore": 0.0344,
+     "pairOverlapAfter": 0.0001,
+     "contestedBefore": 2287782,
+     "contestedAfter": 4988,
+     "pairsWithADroppedMember": 17,
+     "dropReasons": {
+      "duplicate": 5,
+      "merged-parent": 1,
+      "piece-of": 11
+     },
+     "provenancePixelShare": {
+      "tile-argmax": 0.0135,
+      "seam": 0.484,
+      "depth": 0.5025
+     },
+     "seamRuns": 6,
+     "seamStrong": {
+      "combined": 0.6667,
+      "normals": 0.5,
+      "retinex": 0.6667,
+      "luma": 1
+     }
+    },
+    "lowContrastToneOnly": {
+     "pairs": 322,
+     "conflictBefore": {
+      "share": 0.146,
+      "lo": 0.1057,
+      "hi": 0.1832
+     },
+     "conflictAfter": {
+      "share": 0,
+      "lo": 0,
+      "hi": 0
+     },
+     "pairOverlapBefore": 0.0251,
+     "pairOverlapAfter": 0.0001,
+     "contestedBefore": 7592486,
+     "contestedAfter": 31974,
+     "pairsWithADroppedMember": 48,
+     "dropReasons": {
+      "absorbed": 1,
+      "duplicate": 24,
+      "merged-parent": 12,
+      "piece-of": 12
+     },
+     "provenancePixelShare": {
+      "tile-argmax": 0.629,
+      "seam": 0.0057,
+      "depth": 0.3644,
+      "fallback": 0.0009
+     },
+     "seamRuns": 14,
+     "seamStrong": {
+      "combined": 0.4286,
+      "normals": 0.5,
+      "retinex": 0.4286,
+      "luma": 0.9286
+     }
+    },
+    "coverKind": {
+     "pairs": 778,
+     "conflictBefore": {
+      "share": 0.1697,
+      "lo": 0.1379,
+      "hi": 0.1998
+     },
+     "conflictAfter": {
+      "share": 0.0039,
+      "lo": 0.0009,
+      "hi": 0.0085
+     },
+     "pairOverlapBefore": 0.031,
+     "pairOverlapAfter": 0.0002,
+     "contestedBefore": 26400137,
+     "contestedAfter": 208705,
+     "pairsWithADroppedMember": 179,
+     "dropReasons": {
+      "absorbed": 13,
+      "duplicate": 112,
+      "merged-parent": 20,
+      "piece-of": 46
+     },
+     "provenancePixelShare": {
+      "tile-argmax": 0.5328,
+      "seam": 0.1722,
+      "depth": 0.2926,
+      "fallback": 0.0023
+     },
+     "seamRuns": 20,
+     "seamStrong": {
+      "combined": 0.6,
+      "normals": 0.5,
+      "retinex": 0.7,
+      "luma": 0.95
+     }
+    },
+    "coverKindConflicting": {
+     "pairs": 132,
+     "conflictBefore": {
+      "share": 1,
+      "lo": 1,
+      "hi": 1
+     },
+     "conflictAfter": {
+      "share": 0.0076,
+      "lo": 0,
+      "hi": 0.0278
+     },
+     "pairOverlapBefore": 0.2154,
+     "pairOverlapAfter": 0.0012,
+     "contestedBefore": 26334906,
+     "contestedAfter": 150534,
+     "pairsWithADroppedMember": 61,
+     "dropReasons": {
+      "absorbed": 1,
+      "duplicate": 46,
+      "merged-parent": 7,
+      "piece-of": 11
+     },
+     "provenancePixelShare": {
+      "tile-argmax": 0.5328,
+      "seam": 0.1722,
+      "depth": 0.2926,
+      "fallback": 0.0023
+     },
+     "seamRuns": 20,
+     "seamStrong": {
+      "combined": 0.6,
+      "normals": 0.5,
+      "retinex": 0.7,
+      "luma": 0.95
+     }
+    },
+    "mergedSplits": {
+     "lowContrast": {
+      "merged-parent": 4,
+      "remainder": 16
+     },
+     "lowContrastTopFace": {
+      "merged-parent": 0,
+      "remainder": 3
+     },
+     "other": {
+      "merged-parent": 4,
+      "remainder": 28
+     }
+    },
+    "ends": {
+     "top": {
+      "outline": 1024,
+      "gate": 2,
+      "tile-argmax": 6,
+      "seam": 2,
+      "depth": 6
+     },
+     "bottom": {
+      "outline": 1022,
+      "gate": 3,
+      "tile-argmax": 7,
+      "seam": 1,
+      "depth": 7
      }
     }
    }
