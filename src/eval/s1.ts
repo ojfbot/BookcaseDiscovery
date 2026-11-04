@@ -151,3 +151,28 @@ export const STANDARD_SHELF = { depth: [0.23, 0.31], pitch: [0.28, 0.36] } as co
 /** Implied metric scale: the standard range's midpoint over a measured median (1 means MoGe's metres are right). */
 export const impliedScale = (range: readonly [number, number], measured: number | null): number | null =>
   measured == null || measured <= 0 ? null : Math.round(((range[0] + range[1]) / 2 / measured) * 1000) / 1000;
+
+/** Spearman's rank correlation (average ranks for ties). */
+export function spearman(x: number[], y: number[]): number | null {
+  if (x.length < 3) return null;
+  const rank = (v: number[]) => {
+    const idx = v.map((x, i) => [x, i] as const).sort((a, b) => a[0] - b[0]);
+    const r = new Array<number>(v.length);
+    for (let i = 0; i < idx.length; ) {
+      let j = i;
+      while (j + 1 < idx.length && idx[j + 1]![0] === idx[i]![0]) j++;
+      for (let k = i; k <= j; k++) r[idx[k]![1]] = (i + j) / 2;
+      i = j + 1;
+    }
+    return r;
+  };
+  const rx = rank(x), ry = rank(y);
+  const mx = rx.reduce((a, b) => a + b, 0) / rx.length, my = ry.reduce((a, b) => a + b, 0) / ry.length;
+  let sxy = 0, sxx = 0, syy = 0;
+  for (let i = 0; i < rx.length; i++) {
+    sxy += (rx[i]! - mx) * (ry[i]! - my);
+    sxx += (rx[i]! - mx) ** 2;
+    syy += (ry[i]! - my) ** 2;
+  }
+  return sxx && syy ? Math.round((sxy / Math.sqrt(sxx * syy)) * 10000) / 10000 : null;
+}

@@ -37,6 +37,25 @@ The record shapes these words name are in `contracts/` and explained in `docs/co
 - **Top-face layer** — (H-2) the overlay layer that lights a book's top face where the camera sees it (its cuboid's
   top, the camera above it, depth not a default), as a second, dimmer shape beside the spine: the "volume" in
   `user-glow-volume`.
+- **Shelf plane** — (S-1) one of three planes fitted per shelf row from the depth stage's point map
+  (`helpers/shelf/shelf.py`, RANSAC with the band's frame as the prior):
+  - the **board top**, facing up at the books' base;
+  - the **lip**, the board's front edge, facing out just under the base;
+  - the **back panel**, facing out more than 8 cm behind the spine plane.
+
+  A plane is *found* when enough inliers span enough of the row. Board tops show only where the camera looks down
+  on a shelf (`evals/S1`).
+- **Board pitch** — (S-1) the height between one row's board-top level and the next row's above it: a ceiling on
+  the lower row's book heights. **Board depth**: lip to back panel, a ceiling on book depth. Both are in MoGe-2's
+  metres, whose scale is unverified.
+- **Void** — (S-1) a stretch of a shelf row with no book in it: at least half a median spine width along the row
+  (in the coverage-segment unit) that no book's outline covers, where the back panel shows (mostly H-1's
+  `behind`). An uncovered stretch that is not behind is an **outline gap** (usually a book with no outline), not a
+  void. F-0's *gap share* sees only gaps between boxes; a void can also lie at a row's empty end.
+- **On-lip** — (S-1) a `not-a-book` sub-reason from geometry, not text (`onLip` in `src/eval/s1.ts`): a flat box
+  inside the frame whose pixels lie mostly on a row's lip face, not behind the lip and in front of the books' faces.
+  It catches shelf strips and cards clipped to the lip. It is a post step after F-0c's and F-0f's kinds, with its
+  default set by `evals/S1`'s keep rule.
 - **Ordinal** — a spine's position on its shelf, counted from the left, from 0.
 - **Physical copy** — one book on the shelf. Two copies of the same work are two observations with the same identity; never collapsed (INV-4).
 - **Copy group** — (F-0g) a run of neighbouring spines on one shelf that look the same (one size, an appearance score at the calibrated threshold; `visuallySame` in `src/eval/f0g.ts`) and whose reads pass the series guard: copies of one edition or one look. Every copy stays its own observation (INV-4). A hardback and a paperback of one work are two groups, counted together only at the work level (copies of a work on a shelf).

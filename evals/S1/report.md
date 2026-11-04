@@ -218,3 +218,263 @@ evaluation-only use.
 
 If `on-lip` ships, the default not-a-book kinds change. F-0g, Q-2b and H-2 figures then need re-baselining, and the
 conductor schedules that.
+
+## Findings (run 2026-11-03, after the pre-registration above)
+
+Aggregates are in [`metrics.json`](metrics.json), and the tables below the marker are generated. The two sets are
+reported apart (OC35). `pilot-000` figures are machine agreement, never accuracy (INV-17). Metres are MoGe-2's,
+whose scale is unverified.
+
+1. **Lips are found on almost every row, and board tops wherever the camera looks down.**
+   - On `pilot-000` (168 rows), the lip is found on 96.4 % of rows (93.8–98.8), at every elevation.
+   - The board top is found on 83.0 % of rows below eye level, 58.8 % at eye level and 0 % above, as the geometry
+     predicts.
+   - The back panel is found on 60.1 % of rows: most at eye level (88.2 %), where the camera sees over the books,
+     and fewest above it (30.0 %).
+   - The yardstick (48 rows, mostly square-on) agrees: lip 93.8 %, board top 66.7 %, back panel 54.2 %.
+   - Inlier RMS is 0.1–0.6 cm. The planes are flat in MoGe's map: they show its smoothness, not the shelf's
+     flatness.
+2. **Real voids are rare; most uncovered stretches are books without an outline.**
+   - On `pilot-000`, 1.2 % of row length (0.4–2.2) is void, and 14.3 % of rows hold one: a bookstore keeps its
+     shelves full.
+   - Uncovered runs of half a width or more make up 12.2 % of row length, and 90 % of that length is not behind. By
+     length, those outline gaps are 72 % `front` (a spine face at the spine plane with no outline: a book Q-2b's
+     outline or the detector missed) and 24 % `cover` (a leaning book or the case's side).
+   - So an outline gap is a missed book far more often than a void. That suits Q-0's "patchy" places better than F-0's
+     gap share does: they correlate with F-0's gap share at Spearman 0.35 on `pilot-000` and 0.60 on the yardstick.
+     Confirmed voids correlate only weakly (0.15, 0.14).
+   - No void was found at a row's end on either set. Rows stop at the case's upright unless the stretch beyond is
+     behind, and none was.
+   - **Yardstick caveat:** where a library band takes in a near shelf and books on a further shelf seen through it,
+     the far books lie more than 8 cm behind the near spine plane. They then count as `behind`: false voids, and
+     `behind-under-outline` at 5.7 % of row length, against 1.3 % on `pilot-000`. The yardstick's void share
+     (1.7 %) is inflated by this.
+3. **Board pitch bounds book height, and the standard-shelf scale is believable but not verified.**
+   - On `pilot-000`, 119 adjacent row pairs give a pitch of 35.6 cm (p50; IQR 33.3–39.3). Only 1.4 % of books are
+     taller than their row's ceiling, and a book takes a median 0.72 of it.
+   - Board depth, lip to back panel (97 rows), has a median of 31.4 cm. But its lower quartile is 12.7 cm: where
+     only part of a back panel shows, the fit can take a nearer surface. 14.2 % of seen book depths exceed it.
+   - Against a standard shelf (0.23–0.31 m deep, 0.28–0.36 m pitch: an assumption, not verified), MoGe's metres
+     come out long by the same factor both ways. The implied scale is 0.86 from depth and 0.90 from pitch, which
+     agree within 5 %. That matches H-1's "metric scale looks 20–25 % high" on one photo.
+   - Rescaled, the median spine height falls from 25.5 cm to 21.9–23.0 cm, plausible for a mix of mass-market, trade
+     and hardcover books.
+   - **H-1's depth shortfall is not a scale error.** Rescaling makes the seen book depth smaller still (8.2 → 7.0–7.3
+     cm, against 13–24 cm), so it comes from foreshortening and occlusion, as H-1 supposed.
+   - Page counts (722 confirmed boxes, 509 works with an ISFDB count) agree only loosely. Width rises with pages
+     (Spearman 0.45), with a Theil-Sen slope of 0.050 mm a page against paper at about 0.05–0.10. The edition on the
+     shelf is unknown and its page count is a median over editions, which flattens the slope.
+   - The yardstick has only 5 pitch pairs (its photos rarely hold two rows of one case) and 24 board depths, so its
+     scale figures (0.80, 0.70) are thin.
+   - **So the scale stays *hypothesis*.** Two shelf-based estimates agree with each other and with spine heights, but
+     a known reference, LiDAR or multi-view is needed to verify it.
+4. **`on-lip` meets its keep rule.**
+   - On `pilot-000` it removes 4 spine-path boxes the default keeps, and no kept cover. None was confirmed, and 1 was
+     at `text-read`.
+   - On the yardstick it removes 2 boxes, none confirmed and none read. Titles, wrong accepts and distinct works
+     per image are unchanged.
+   - On `pilot-000`, all 4 removed boxes are boxes F-0f does not flag. In the blind spot check, all 4 were judged
+     *not a book* (two section strips, a "film reference" strip and a label clip on a shelf edge), and 0 of the 20
+     controls were.
+   - Against F-0f over every spine-path box and kept cover, `on-lip` also flags 13 of the 31 boxes F-0f flags. The
+     rest are shelf-talkers and cards standing above the lip or hanging below it, which the ±1 cm zone leaves to
+     F-0f's text rules by design.
+   - Viewed after the run (evaluation only): of the 2 yardstick removals, one is a section strip on the lip. The
+     other is a box across the bottom ends of two books, a fragment that no reader read. It is not a label, though
+     removing it lost nothing.
+   - **What this changes:** the default's not-a-book kinds, by 4 boxes in 6,121 on `pilot-000` and 2 in 1,116 on the
+     yardstick.
+     - The rule is ready as a post step: `applyOnLip` in `src/eval/s1.ts`, after F-0c's and F-0f's kinds.
+     - It is **not yet wired into `f0-cli.ts`**, because the default pipeline has no depth stage: `on-lip` needs
+       H-2's point map, and `f0.ts` is C-6's while it runs (logged as a deviation).
+     - Wiring the depth stage into the default path, then re-baselining F-0g, Q-2b and H-2 on the new kinds, is for
+       the conductor to schedule.
+5. **Prior art: neither off-the-shelf segmenter is worth a card as a shelf cue.** The pre-registered bar was lip
+   recall of at least 0.7 and book leakage of at most 0.1, on both sets.
+   - OneFormer's `shelf ∪ bookcase` covers 87 % of S-1's lip inliers on `pilot-000`, with 9.9 % of book pixels
+     inside. On the yardstick it covers 28 %: its `bookcase` class takes the whole store case, and library shelving
+     is labelled neither way.
+   - SAM 3's `shelf` keeps books out (0.7 % and 2.9 %) and finds board tops well (88 %, 96 %). But it covers only
+     71 % and 31 % of the lips, and 1 of `on-lip`'s 4 boxes.
+   - Cost: 0.6–0.8 s a photo for OneFormer and 1.6 s for SAM 3 on MPS, against 1.7–4.9 s for S-1's own step, which
+     runs on the CPU after the cached depth stage.
+   - The geometry gives what a mask cannot: the lip as a plane, so "on the lip and in front of the books" can be
+     tested at all.
+6. **Cost.** The shelf step takes a median 4.9 s a `pilot-000` photo and 1.7 s a yardstick photo, on the CPU,
+   reading the depth stage's cache (every photo a cache hit).
+
+## What this does not show
+
+- No box accuracy, and no proof that a found plane is the real board. `pilot-000` has no ground truth. The planes
+  were checked by eye on the six dev photos and the still study, not measured.
+- The `on-lip` spot check is one agent's judgement on 4 catches and 20 controls, not labels. The rule was shaped on
+  six `pilot-000` photos, and its no-harm result is on the same set plus the yardstick.
+- Metric scale is not verified, and neither is the standard-shelf assumption (*snippet*).
+- Shelf-talkers above or below a lip are left to F-0f by design. A store whose labels are not on the lip gains
+  nothing from `on-lip`.
+
+## Private outputs
+
+Everything per photo or box is under the data root's `private/s1/`:
+
+- per set: `inputs.jsonl`, `shelf.jsonl`, the label maps (`maps/`), `flags.jsonl` and `segment.jsonl`;
+- the spot-check sheet with its key and judgements (`pilot-000/spot/`);
+- the still study (`renders/<set>/index.html`).
+
+None of it is in the repository.
+
+<!-- generated by src/eval/s1-cli.ts analyse: edit above this line -->
+
+## pilot-000 (real use (OC35): machine agreement, never accuracy (INV-17))
+
+31 photos; shelf step 4.94 s a photo (p50, CPU, after the cached depth stage).
+
+### Shelf planes
+
+168 rows in 31 photos (skipped: few-books 14, no-frame 19). Share of rows with each plane found; 95 % photo bootstrap.
+
+| rows | n | board top | lip | back panel | all three |
+|---|---:|---|---|---|---|
+| all | 168 | 58.3 % (52.3–64.1) | 96.4 % (93.8–98.8) | 60.1 % (51.4–68.8) | 38.7 % (32.4–46.1) |
+| below eye level | 94 | 83.0 % (75.5–90.0) | 94.7 % (90.5–98.2) | 62.8 % (54.0–72.5) | 48.9 % (40.4–58.8) |
+| level eye level | 34 | 58.8 % (42.9–75.0) | 100.0 % (100.0–100.0) | 88.2 % (78.1–97.0) | 55.9 % (40.0–72.7) |
+| above eye level | 40 | 0.0 % (0.0–0.0) | 97.5 % (91.7–100.0) | 30.0 % (12.5–48.6) | 0.0 % (0.0–0.0) |
+
+Inlier RMS, p50: board top 0.3 cm, lip 0.5 cm, back panel 0.6 cm.
+
+### Voids (median spine widths; a coverage segment is two)
+
+168 rows; row length p25 / p50 / p75 20.6875 / 27.125 / 35.6875 widths.
+
+| measure | value |
+|---|---|
+| **void share** (void length / row length, pooled) | **1.2 % (0.4–2.2)** |
+| void share per row, p50 / p90 | 0.0 % / 3.5 % |
+| rows with a void | 14.3 % (8.0–21.8) |
+| of void length, at a row's end | 0.0 % |
+| candidate share (uncovered runs ≥ ½ width / row length) | 12.2 % (9.8–14.8) |
+| of candidates, `outline-gap` (not behind) | 90.3 % (84.2–96.5) |
+| `outline-gap` by dominant class (length) | front 72 %, cover 24 %, top 3 %, edge 1 %, under 1 % |
+| `behind-under-outline` (length / row length) | 1.3 % (0.6–2.2) |
+| voids over behind length | 47.9 % (23.8–71.2) |
+| Spearman, void share against F-0's gap share (rows) | 0.1538 (candidates: 0.3531) |
+
+### Book-size bounds and scale (MoGe-2 metres, unverified)
+
+| measure | value |
+|---|---|
+| board pitch: pairs (photos) | 119 (29) |
+| pitch p25 / p50 / p75 | 33.3 cm / 35.6 cm / 39.3 cm |
+| pitch p50 by source: board / lip / base | 35.7 cm (54) / 35.5 cm (64) / 18.8 cm (1) |
+| books taller than their ceiling (pitch) | 1.4 % (0.6–2.2) |
+| book height / ceiling, p50 / p90 | 0.7158 / 0.8422 |
+| board depth: rows (photos) | 97 (31) |
+| board depth p25 / p50 / p75 | 12.7 cm / 31.4 cm / 34.4 cm |
+| seen book depths deeper than the board | 14.2 % (6.9–21.5) |
+| implied scale from depth / from pitch (standard shelf) | 0.86 / 0.9 (ratio 0.9556) |
+| spine height p50, raw → × depth scale / × pitch scale | 25.5 cm → 21.9 cm / 23.0 cm |
+| seen book depth p50, raw → × depth scale / × pitch scale | 8.2 cm → 7.0 cm / 7.3 cm |
+| page counts: confirmed boxes (works) with an ISFDB count | 722 (509) |
+| width on pages: Theil-Sen slope, Spearman | 0.0498 mm a page, 0.4481 (pages p50 401.75, width p50 4.4 cm) |
+
+### `on-lip`
+
+*Removed confirmed* is a lower bound on real books removed; *at `text-read`* an upper hint.
+
+| boxes | boxes | removed by `on-lip` | removed confirmed | removed at `text-read` |
+|---|---:|---:|---:|---:|
+| default spine path (cover pass off), after F-0c's and F-0f's flags | 6121 | 4 | 0 | 1 |
+| F-0c's kept covers (F-0f on) | 129 | 0 | 0 | 0 |
+
+Against F-0f over every spine-path box and every cover F-0c keeps (6287): both 13, F-0f only 18, **`on-lip` only 4**, neither 6252.
+
+Spine path with `on-lip` against the default: works per photo +0.00 (0.00 to 0.00), confirmed share +0.0 pts (0.0 to 0.0). Cover arm: face-out boxes per photo 4.16 (3.00 to 5.39) → 4.16 (3.00 to 5.39); works per photo +0.00 (0.00 to 0.00).
+
+### Prior art: off-the-shelf shelf masks
+
+| model | mask | lip inliers inside | board-top inliers inside | book pixels inside (leakage) | `on-lip` boxes inside | F-0f boxes inside | s / photo |
+|---|---|---|---|---|---:|---:|---:|
+| oneformer | shelf | 15.5 % (1.2–32.6) | 19.8 % (1.3–40.4) | 0.3 % (0.0–0.7) | 0/4 | 0/18 | 0.573 |
+| oneformer | bookcase | 71.6 % (55.2–84.6) | 73.0 % (53.1–91.2) | 9.6 % (7.5–12.3) | 4/4 | 14/18 | 0.573 |
+| oneformer | shelf+bookcase | 87.1 % (84.1–89.5) | 92.8 % (88.2–96.2) | 9.9 % (7.9–12.4) | 4/4 | 14/18 | 0.573 |
+| sam3 | shelf | 71.1 % (67.4–74.6) | 87.5 % (82.0–91.1) | 0.7 % (0.4–1.1) | 1/4 | 5/18 | 1.633 |
+
+## yardstick (PROXY (library shelves): Library Dataset sample, box arm B2; confirmed = accepted and annotated in the image)
+
+40 photos; shelf step 1.67 s a photo (p50, CPU, after the cached depth stage).
+
+### Shelf planes
+
+48 rows in 40 photos (skipped: no-frame 15, few-books 7). Share of rows with each plane found; 95 % photo bootstrap.
+
+| rows | n | board top | lip | back panel | all three |
+|---|---:|---|---|---|---|
+| all | 48 | 66.7 % (55.1–78.4) | 93.8 % (85.7–100.0) | 54.2 % (41.2–68.8) | 43.8 % (31.1–56.8) |
+| below eye level | 15 | 80.0 % (57.1–100.0) | 93.3 % (78.6–100.0) | 66.7 % (42.9–86.7) | 60.0 % (35.7–80.0) |
+| level eye level | 30 | 66.7 % (48.3–83.3) | 93.3 % (83.3–100.0) | 53.3 % (34.5–71.0) | 40.0 % (20.7–58.1) |
+| above eye level | 3 | 0.0 % (0.0–0.0) | 100.0 % (100.0–100.0) | 0.0 % (0.0–0.0) | 0.0 % (0.0–0.0) |
+
+Inlier RMS, p50: board top 0.1 cm, lip 0.5 cm, back panel 0.5 cm.
+
+### Voids (median spine widths; a coverage segment is two)
+
+48 rows; row length p25 / p50 / p75 12.25 / 18.125 / 24.1875 widths.
+
+| measure | value |
+|---|---|
+| **void share** (void length / row length, pooled) | **1.7 % (0.6–3.2)** |
+| void share per row, p50 / p90 | 0.0 % / 5.6 % |
+| rows with a void | 20.8 % (9.8–33.3) |
+| of void length, at a row's end | 0.0 % |
+| candidate share (uncovered runs ≥ ½ width / row length) | 7.4 % (4.5–10.7) |
+| of candidates, `outline-gap` (not behind) | 76.6 % (63.9–89.6) |
+| `outline-gap` by dominant class (length) | front 70 %, cover 21 %, top 4 %, under 4 % |
+| `behind-under-outline` (length / row length) | 5.7 % (2.8–9.4) |
+| voids over behind length | 20.9 % (12.2–28.6) |
+| Spearman, void share against F-0's gap share (rows) | 0.143 (candidates: 0.5994) |
+
+### Book-size bounds and scale (MoGe-2 metres, unverified)
+
+| measure | value |
+|---|---|
+| board pitch: pairs (photos) | 5 (4) |
+| pitch p25 / p50 / p75 | 20.0 cm / 45.8 cm / 46.7 cm |
+| pitch p50 by source: board / lip / base | — (0) / 46.3 cm (4) / 13.6 cm (1) |
+| books taller than their ceiling (pitch) | 44.6 % (0.0–87.1) |
+| book height / ceiling, p50 / p90 | 0.7216 / 1.8721 |
+| board depth: rows (photos) | 24 (22) |
+| board depth p25 / p50 / p75 | 22.3 cm / 33.7 cm / 36.1 cm |
+| seen book depths deeper than the board | 2.2 % (0.3–5.9) |
+| implied scale from depth / from pitch (standard shelf) | 0.8 / 0.699 (ratio 1.1445) |
+| spine height p50, raw → × depth scale / × pitch scale | 26.9 cm → 21.5 cm / 18.8 cm |
+| seen book depth p50, raw → × depth scale / × pitch scale | 10.5 cm → 8.4 cm / 7.3 cm |
+
+### `on-lip`
+
+*Removed confirmed* is a lower bound on real books removed; *at `text-read`* an upper hint.
+
+| boxes | boxes | removed by `on-lip` | removed confirmed | removed at `text-read` |
+|---|---:|---:|---:|---:|
+| default spine path (cover pass off), after F-0c's and F-0f's flags | 1116 | 2 | 0 | 0 |
+| F-0c's kept covers (F-0f on) | 21 | 0 | 0 | 0 |
+
+Against F-0f over every spine-path box and every cover F-0c keeps (1153): both 2, F-0f only 4, **`on-lip` only 3**, neither 1144.
+
+Spine path with `on-lip` against the default: works per photo +0.00 (0.00 to 0.00), confirmed share +0.0 pts (0.0 to 0.1). Cover arm: face-out boxes per photo 0.53 (0.25 to 0.85) → 0.53 (0.25 to 0.85); works per photo +0.00 (0.00 to 0.00). Yardstick titles: recall +0.0 pts (0.0 to 0.0), precision +0.0 pts (0.0 to 0.0), wrong accepts per image +0.00 (0.00 to 0.00), distinct confirmed works per image +0.00 (0.00 to 0.00).
+
+### Prior art: off-the-shelf shelf masks
+
+| model | mask | lip inliers inside | board-top inliers inside | book pixels inside (leakage) | `on-lip` boxes inside | F-0f boxes inside | s / photo |
+|---|---|---|---|---|---:|---:|---:|
+| oneformer | shelf | 22.0 % (9.6–38.2) | 36.3 % (16.8–59.2) | 2.0 % (0.9–3.2) | 1/2 | 1/6 | 0.7525 |
+| oneformer | bookcase | 6.2 % (1.0–13.7) | 15.9 % (4.5–31.6) | 1.0 % (0.3–1.8) | 0/2 | 0/6 | 0.7525 |
+| oneformer | shelf+bookcase | 28.2 % (14.7–46.0) | 52.2 % (32.4–75.7) | 3.0 % (1.9–4.2) | 1/2 | 1/6 | 0.7525 |
+| sam3 | shelf | 30.9 % (17.1–49.1) | 95.5 % (93.8–96.8) | 2.9 % (1.6–4.6) | 0/2 | 3/6 | 1.6225 |
+
+## Spot check and verdict
+
+Blind agent spot check (`pilot-000`): `on-lip`'s new catches judged *not a book* 4 of 4 (0 unclear); controls 0 of 20 (0 unclear). One agent's judgement, never labels.
+
+| no confirmed book removed (both sets) | catches labels F-0f misses | yardstick not hurt | `on-lip` keep rule |
+|---|---|---|---|
+| yes (0) | yes (4 new) | yes | **met: a ready post step, not yet wired into the default pipeline (finding 4)** |
