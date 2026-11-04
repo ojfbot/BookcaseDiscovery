@@ -19,6 +19,7 @@ import {
   buildLabelSet,
   decide,
   detectStage,
+  probeStage,
   loadReadings,
   machineAgreement,
   pyReaderStage,
@@ -36,6 +37,8 @@ import {
   type InputImage,
   type SpineDecision,
 } from "./f0.ts";
+import { kinds } from "./f0c.ts";
+import { evidenceOf, type BoxEvidence } from "./f0f.ts";
 import { LabelSet } from "./labels.ts";
 
 const REPO_ROOT = fileURLToPath(new URL("../../", import.meta.url));
@@ -43,10 +46,21 @@ const log = (s: string): void => console.error(`[f0] ${s}`);
 
 async function pipeline(images: InputImage[], db: DatabaseSync, dir: string, qwenCap: number, arm: Arm = "b2", tiling: Tiling = CASE_TILING) {
   const dets = await detectStage(images, dir, log, arm, tiling);
+  const probes = await probeStage(images, dir, log);
+  // F-0c: boxes the not-a-book rules flag (shelf lips, rows of book ends, flat strips) are labelled so and never read.
+  const flat = notABook(dets);
+  const readable = new Set(images.flatMap((img) => (dets.get(img.id)?.spines ?? []).flatMap((_, i) => (flat(img.id, i).kind === "spine" ? [`${img.id}:${i}`] : []))));
   // Per-spine provenance (producer, readers, scores, catalog id or reason) is private: decisions.jsonl beside the stages.
-  await visionStage(images, dets, dir, log, CROP);
+  await visionStage(images, dets, dir, log, CROP, readable);
   log("ppocr: reading");
-  await pyReaderStage("ppocr", images, dets, dir, log);
+  await pyReaderStage("ppocr", images, dets, dir, log, readable);
+  // F-0f: shelf labels and cards (genre strips, shelf-talkers, blank cards), from what Vision and PP-OCR read and the
+  // pixel probe, are not-a-book too and never go to Qwen.
+  const ocr = loadReadings(dir, CROP);
+  const kindOf = notABook(dets, (imageId, ref) => {
+    const r = ocr.get(`${imageId}:${ref.slice(1)}`);
+    return r ? evidenceOf(r, probes.get(`${imageId}:${ref}`)) : undefined;
+  });
   const cache = new Map<string, Candidate | undefined>();
   const decideAll = (): SpineDecision[] => {
     const readings = loadReadings(dir, CROP);
@@ -62,7 +76,7 @@ async function pipeline(images: InputImage[], db: DatabaseSync, dir: string, qwe
   const hard = new Set<string>();
   for (const img of images) {
     first
-      .filter((d) => d.imageId === img.id && d.hard && Object.values(d.readText).some(Boolean))
+      .filter((d) => d.imageId === img.id && d.hard && kindOf(img.id, Number(d.id.slice(img.id.length + 1))).kind === "spine" && Object.values(d.readText).some(Boolean))
       .sort((a, b) => b.boxScore - a.boxScore)
       .slice(0, qwenCap)
       .forEach((d) => hard.add(d.id));
@@ -71,7 +85,17 @@ async function pipeline(images: InputImage[], db: DatabaseSync, dir: string, qwe
   await pyReaderStage("qwen", images, dets, dir, log, hard);
   const decisions = decideAll();
   writeFileSync(join(dir, "decisions.jsonl"), decisions.map((d) => JSON.stringify({ ...d, accepted: d.accepted && { workId: d.accepted.workId, score: d.accepted.score, queryCoverage: d.accepted.queryCoverage } })).join("\n") + "\n");
-  return { dets, decisions, readings: loadReadings(dir, CROP), hardSelected: hard.size, hardTotal: first.filter((d) => d.hard).length };
+  return { dets, decisions, readings: loadReadings(dir, CROP), hardSelected: hard.size, hardTotal: first.filter((d) => d.hard).length, kindOf };
+}
+
+/**
+ * Each box's kind under the shipped rules: the not-a-book flags (evals/F0c, kept by its no-harm rule) and, given a
+ * box's reader text and pixel probe, the shelf-label rules (evals/F0f, which removed no confirmed book). The cover
+ * pass is off by default (it did not pass its keep rule), so no box is face-out here.
+ */
+function notABook(dets: Map<string, Detection>, evidence?: (imageId: string, ref: string) => BoxEvidence | undefined) {
+  const by = new Map([...dets].map(([id, d]) => [id, kinds({ ...d, covers: [] }, evidence && ((ref) => evidence(id, ref))).spines]));
+  return (imageId: string, i: number) => by.get(imageId)?.[i] ?? { kind: "spine" as const, why: "spine" };
 }
 
 /** Each run writes its part (aggregates only) under $BOOKCASE_DATA/f0/parts/; `publish` joins the parts into evals/F0/. */
@@ -119,8 +143,8 @@ async function pilot(session: string, limit: number, qwenCap: number, runId: str
   const db = openCatalog(catalogPaths().catalog);
   const dir = stageDir(root, session);
   const t0 = Date.now();
-  const { dets, decisions, readings, hardSelected, hardTotal } = await pipeline(images, db, dir, qwenCap);
-  const set = LabelSet.parse(buildLabelSet(session, images, dets, new Map(decisions.map((d) => [d.id, d]))));
+  const { dets, decisions, readings, hardSelected, hardTotal, kindOf } = await pipeline(images, db, dir, qwenCap);
+  const set = LabelSet.parse(buildLabelSet(session, images, dets, new Map(decisions.map((d) => [d.id, d])), kindOf));
   mkdirSync(join(root, "labels"), { recursive: true });
   writeFileSync(join(root, "labels", `${session}.machine.json`), `${JSON.stringify(set, null, 2)}\n`);
   const metrics = {
@@ -268,7 +292,10 @@ function inventoryCatalog(lib: string, out: string): void {
   buildCatalog({ staging, out, log });
 }
 
-async function yardstick(limit: number, qwenCap: number, runId: string, arm: Arm): Promise<void> {
+async function yardstick(limit: number, qwenCap: number, runId: string, arm: Arm, post: string[] = []): Promise<void> {
+  // --post (F-0e): detect.py post steps on the shelf-scale tiling, in their own stage folder and part.
+  const tiling: Tiling = post.length ? { ...SHELF_TILING, post } : SHELF_TILING;
+  const name = [arm, ...post].join("+");
   const root = dataRoot();
   const lib = join(root, "proxy", "library-dataset");
   const imgDir = join(lib, "images");
@@ -305,9 +332,9 @@ async function yardstick(limit: number, qwenCap: number, runId: string, arm: Arm
   const step = Math.max(2, Math.floor(names.length / limit));
   const sample = names.filter((_, i) => i % step === Math.floor(step / 2)).slice(0, limit);
   const images: InputImage[] = sample.map((n) => ({ id: n.replace(/\.jpg$/i, ""), photoHash: "0".repeat(64), path: join(imgDir, n), setting: "proxy" }));
-  const dir = stageDir(root, `yardstick-library-${arm}`);
+  const dir = stageDir(root, `yardstick-library-${name}`);
   const t0 = Date.now();
-  const { dets, decisions, readings, hardSelected, hardTotal } = await pipeline(images, db, dir, qwenCap, arm, SHELF_TILING);
+  const { dets, decisions, readings, hardSelected, hardTotal } = await pipeline(images, db, dir, qwenCap, arm, tiling);
   let tp = 0, predN = 0, gtN = 0, authorOk = 0, notDetected = 0, notInInv = 0;
   const perImage: { recall: number | null; precision: number | null }[] = [];
   const perImageCounts: [number, number, number][] = []; // [annotated, hits, accepted] in sample order, for paired arm comparisons
@@ -334,10 +361,10 @@ async function yardstick(limit: number, qwenCap: number, runId: string, arm: Arm
     card: "F-0",
     arm,
     boxArm: ARM_NAMES[arm],
-    tiling: SHELF_TILING,
+    tiling,
     yardstick: "Library Dataset (Llabrés et al. 2024, MIT), split images; titles only. PROXY: library shelves, not bookstore",
     date: new Date().toLocaleDateString("en-CA"), // local date, as in the logs
-    stack: stackFor(arm, "yardstick"),
+    stack: stackFor(arm, "yardstick", tiling),
     accept: ACCEPT,
     catalog: "the dataset's own inventory (library_books.csv, closed set), indexed with C-3's build and retrieve",
     images: images.length,
@@ -365,7 +392,7 @@ async function yardstick(limit: number, qwenCap: number, runId: string, arm: Arm
     wallSeconds: Math.round((Date.now() - t0) / 1000),
     machine: machineAgreement(dets, decisions, readings),
   };
-  const dir2 = writeEval(`yardstick-${arm}`, metrics, yardstickReport(metrics));
+  const dir2 = writeEval(`yardstick-${name}`, metrics, yardstickReport(metrics));
   log(`aggregates -> ${dir2}`);
 }
 
@@ -485,6 +512,7 @@ const { positionals, values } = parseArgs({
     "run-id": { type: "string" },
     session: { type: "string", default: "pilot-000" },
     arm: { type: "string", default: "b2" },
+    post: { type: "string", default: "" },
   },
 });
 const limit = Number(values.limit);
@@ -494,10 +522,10 @@ if (cmd === "pilot") await pilot(values.session!, limit, qwenCap, values["run-id
 else if (cmd === "yardstick") {
   const arm = values.arm as Arm;
   if (!ARMS.includes(arm)) throw new Error(`--arm must be one of ${ARMS.join(", ")}`);
-  await yardstick(limit, qwenCap, values["run-id"] ?? "F0-yardstick", arm);
+  await yardstick(limit, qwenCap, values["run-id"] ?? "F0-yardstick", arm, values.post!.split(",").filter(Boolean));
 }
 else if (cmd === "publish") publish(values["run-id"] ?? "F0");
 else {
-  console.error("usage: node src/eval/f0-cli.ts pilot|yardstick|publish [--limit n] [--qwen-cap n] [--run-id id] [--session id] [--arm b2|b3|b4]");
+  console.error("usage: node src/eval/f0-cli.ts pilot|yardstick|publish [--limit n] [--qwen-cap n] [--run-id id] [--session id] [--arm b2|b3|b4] [--post strips,extend]");
   process.exit(2);
 }

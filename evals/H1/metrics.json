@@ -1,0 +1,395 @@
+{
+  "card": "H-1",
+  "set": "pilot-000 (real use); machine measurements, no labels (INV-17)",
+  "detector": "F-0e bands+strips boxes (B2), unchanged",
+  "geometryModel": "Ruicheng/moge-2-vitl-normal (MIT), long side 2048 px, MPS",
+  "photos": 31,
+  "thresholds": {
+    "frontDeg": 30,
+    "edgeDeg": 45,
+    "behindM": 0.08,
+    "overShare": 0.15,
+    "overMinPx": 15,
+    "trimComponent": 0.8,
+    "trimPurity": 0.85,
+    "trimKeep": 0.5,
+    "elevationBandDeg": 10.0,
+    "topSeamOvershoot": 0.05,
+    "topSeamCut": -0.05
+  },
+  "ownerExample": {
+    "count": 143,
+    "measured": 143,
+    "skipped": {
+      "no-pixels": 0,
+      "no-frame": 0,
+      "small": 0
+    },
+    "ownPlane": 9,
+    "overSelectShare": [
+      0.5175,
+      0.5175,
+      0.5175
+    ],
+    "pixelShare": {
+      "front": 0.7568,
+      "edge": 0.0358,
+      "top": 0.1269,
+      "under": 0.0013,
+      "cover": 0.0757,
+      "behind": 0.0035
+    },
+    "overSelectBy": {
+      "top": 0.757,
+      "under": 0.0,
+      "cover": 0.23,
+      "behind": 0.014
+    },
+    "trimFeasibleShare": [
+      0.8531,
+      0.8531,
+      0.8531
+    ],
+    "trimFeasibleShareOfOverSelecting": [
+      0.7162,
+      0.7162,
+      0.7162
+    ],
+    "trimKeptAreaOfOverSelecting": [
+      0.554,
+      0.625,
+      0.786
+    ],
+    "byElevation": {
+      "below": {
+        "count": 72,
+        "overSelectShare": [
+          0.8889,
+          0.8889,
+          0.8889
+        ],
+        "topPixelShare": 0.243,
+        "coverPixelShare": 0.0802
+      },
+      "level": {
+        "count": 40,
+        "overSelectShare": [
+          0.15,
+          0.15,
+          0.15
+        ],
+        "topPixelShare": 0.0016,
+        "coverPixelShare": 0.069
+      },
+      "above": {
+        "count": 31,
+        "overSelectShare": [
+          0.129,
+          0.129,
+          0.129
+        ],
+        "topPixelShare": 0.0,
+        "coverPixelShare": 0.0727
+      }
+    },
+    "byCut": {
+      "whole": {
+        "count": 142,
+        "overSelectShare": [
+          0.5211,
+          0.5211,
+          0.5211
+        ]
+      },
+      "cut": {
+        "count": 1,
+        "overSelectShare": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      }
+    },
+    "cuboids": {
+      "count": 143,
+      "depthSource": {
+        "seen": 84,
+        "band": 53,
+        "default": 6
+      },
+      "spineHeightCm": [
+        11.6,
+        29.4,
+        31.3
+      ],
+      "spineThicknessCm": [
+        2.0,
+        3.8,
+        7.1
+      ],
+      "seenDepthCm": [
+        5.0,
+        12.2,
+        19.6
+      ]
+    },
+    "topSeamCrossCheck": {
+      "overshoot": {
+        "count": 60,
+        "topPixelShare": 0.1403,
+        "overSelectShare": [
+          0.5833,
+          0.5833,
+          0.5833
+        ]
+      },
+      "atEdge": {
+        "count": 69,
+        "topPixelShare": 0.0985,
+        "overSelectShare": [
+          0.4203,
+          0.4203,
+          0.4203
+        ]
+      },
+      "cut": {
+        "count": 14,
+        "topPixelShare": 0.1912,
+        "overSelectShare": [
+          0.7143,
+          0.7143,
+          0.7143
+        ]
+      }
+    }
+  },
+  "all": {
+    "count": 6145,
+    "measured": 6145,
+    "skipped": {
+      "no-pixels": 0,
+      "no-frame": 0,
+      "small": 0
+    },
+    "ownPlane": 1180,
+    "overSelectShare": [
+      0.4924,
+      0.4637,
+      0.5266
+    ],
+    "pixelShare": {
+      "front": 0.7316,
+      "edge": 0.0584,
+      "top": 0.1076,
+      "under": 0.003,
+      "cover": 0.08,
+      "behind": 0.0193
+    },
+    "overSelectBy": {
+      "top": 0.669,
+      "under": 0.002,
+      "cover": 0.253,
+      "behind": 0.076
+    },
+    "trimFeasibleShare": [
+      0.7909,
+      0.7638,
+      0.8144
+    ],
+    "trimFeasibleShareOfOverSelecting": [
+      0.5767,
+      0.5335,
+      0.6154
+    ],
+    "trimKeptAreaOfOverSelecting": [
+      0.68,
+      0.748,
+      0.794
+    ],
+    "byElevation": {
+      "below": {
+        "count": 3432,
+        "overSelectShare": [
+          0.7448,
+          0.7145,
+          0.7777
+        ],
+        "topPixelShare": 0.1884,
+        "coverPixelShare": 0.0785
+      },
+      "level": {
+        "count": 1192,
+        "overSelectShare": [
+          0.1988,
+          0.1642,
+          0.2388
+        ],
+        "topPixelShare": 0.007,
+        "coverPixelShare": 0.0916
+      },
+      "above": {
+        "count": 1521,
+        "overSelectShare": [
+          0.1532,
+          0.1329,
+          0.1739
+        ],
+        "topPixelShare": 0.0001,
+        "coverPixelShare": 0.0725
+      }
+    },
+    "byCut": {
+      "whole": {
+        "count": 5881,
+        "overSelectShare": [
+          0.4935,
+          0.4654,
+          0.5269
+        ]
+      },
+      "cut": {
+        "count": 264,
+        "overSelectShare": [
+          0.4697,
+          0.3913,
+          0.5695
+        ]
+      }
+    },
+    "cuboids": {
+      "count": 6138,
+      "depthSource": {
+        "seen": 3272,
+        "band": 2478,
+        "default": 388
+      },
+      "spineHeightCm": [
+        14.5,
+        25.5,
+        29.8
+      ],
+      "spineThicknessCm": [
+        2.5,
+        4.5,
+        8.7
+      ],
+      "seenDepthCm": [
+        3.8,
+        8.2,
+        18.3
+      ]
+    },
+    "topSeamCrossCheck": {
+      "overshoot": {
+        "count": 2286,
+        "topPixelShare": 0.1217,
+        "overSelectShare": [
+          0.6129,
+          0.5677,
+          0.655
+        ]
+      },
+      "atEdge": {
+        "count": 2784,
+        "topPixelShare": 0.0742,
+        "overSelectShare": [
+          0.3348,
+          0.2971,
+          0.3814
+        ]
+      },
+      "cut": {
+        "count": 973,
+        "topPixelShare": 0.177,
+        "overSelectShare": [
+          0.6917,
+          0.6498,
+          0.7397
+        ]
+      }
+    }
+  },
+  "spinePlaneSpreadCm": [
+    1.15,
+    2.43,
+    4.55
+  ],
+  "upFromSurfaces": 383,
+  "bands": 428,
+  "fieldOfView": {
+    "photosWithExif": 17,
+    "moge2AbsErrorDeg": [
+      2.9,
+      5.3,
+      12.9
+    ]
+  },
+  "runtime": {
+    "moge2SecondsPerPhoto": [
+      1.95,
+      2.04,
+      2.37
+    ],
+    "facesSecondsPerPhoto": [
+      1.31,
+      1.57,
+      1.64
+    ],
+    "note": "GPU shared with other card sessions during the run"
+  },
+  "bandOnlyFrames": {
+    "note": "first run, before the per-box plane fallback (side cases misread as covers)",
+    "all": {
+      "overSelectShare": [
+        0.5808,
+        0.5504,
+        0.614
+      ],
+      "pixelShare": {
+        "front": 0.6349,
+        "edge": 0.0583,
+        "top": 0.0977,
+        "under": 0.0088,
+        "cover": 0.1835,
+        "behind": 0.0169
+      },
+      "overSelectBy": {
+        "top": 0.474,
+        "under": 0.011,
+        "cover": 0.467,
+        "behind": 0.049
+      },
+      "trimFeasibleShare": [
+        0.6753,
+        0.6223,
+        0.7243
+      ],
+      "trimFeasibleShareOfOverSelecting": [
+        0.4419,
+        0.3738,
+        0.5091
+      ]
+    }
+  },
+  "visualCheck": {
+    "by": "the H-1 agent, not the owner: a spot check, not labels or accuracy (INV-17)",
+    "sample": "40 over-selecting and 20 other boxes, random (seed 11), shuffled, judged before reading which was which",
+    "judged": 53,
+    "unclear": 7,
+    "agree": 47,
+    "flagged": {
+      "judged": 35,
+      "realExtraFace": 33,
+      "spineMisclassed": 2
+    },
+    "notFlagged": {
+      "judged": 18,
+      "noExtraFace": 14,
+      "smallExtraFaceMissed": 4,
+      "missedShareOverRange": [
+        0.069,
+        0.116
+      ]
+    }
+  }
+}

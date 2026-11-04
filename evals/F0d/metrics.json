@@ -1,0 +1,488 @@
+{
+ "runId": "F0d",
+ "card": "F-0d",
+ "date": "2026-11-03",
+ "bootstrap": {
+  "unit": "photo (cluster); paired where before and after are the same boxes",
+  "reps": 2000,
+  "interval": "95 % percentile",
+  "units": "% or percentage points"
+ },
+ "preregistered": {
+  "select": {
+   "pilot-000": {
+    "singleReader": 400,
+    "readersDisagree": 80,
+    "confirmed": 200,
+    "noText": 60,
+    "cap": 3000
+   },
+   "yardstick-library-b2": {
+    "singleReader": 160,
+    "readersDisagree": 20,
+    "confirmed": 200,
+    "noText": 40,
+    "cap": 1400
+   }
+  },
+  "tieK": 3,
+  "parent": {
+   "minEditions": 10,
+   "minShare": 0.05
+  },
+  "registrant": {
+   "minLen": 7,
+   "maxLen": 10,
+   "minEditions": 3,
+   "minShare": 0.9
+  },
+  "match": "exact key or whole-word prefix of 3+ letters"
+ },
+ "imprintTable": {
+  "publisherStrings": 40580,
+  "keys": 37047,
+  "withParent": 297
+ },
+ "keepRule": "keep when the pilot-000 confirmed-share interval on the boxes the tie-break can change excludes 0 upward, and the yardstick's wrong-accept share does not rise beyond its interval",
+ "verdict": {
+  "keep": false,
+  "pilotConfirmedExcludesZero": false,
+  "yardstickWrongNotUp": true
+ },
+ "sets": {
+  "pilot-000": {
+   "scope": "real use (OC35): machine agreement, never accuracy (INV-17)",
+   "boxCount": 6894,
+   "recomputeDrift": 0,
+   "selection": {
+    "reorderable": {
+     "selected": 32,
+     "read": 32
+    },
+    "confirmed": {
+     "selected": 200,
+     "read": 200
+    },
+    "no-text": {
+     "selected": 60,
+     "read": 60
+    },
+    "c4-not-in-isfdb": {
+     "selected": 22,
+     "read": 22
+    },
+    "readers-disagree": {
+     "selected": 47,
+     "read": 47
+    },
+    "single-reader": {
+     "selected": 400,
+     "read": 400
+    }
+   },
+   "imprintRead": {
+    "all": {
+     "n": 761,
+     "k": 139,
+     "value": 18.3,
+     "lo": 14.9,
+     "hi": 21.5
+    },
+    "byRole": {
+     "reorderable": {
+      "read": 32,
+      "imprint": {
+       "n": 32,
+       "k": 5,
+       "value": 15.6,
+       "lo": 0,
+       "hi": 30
+      },
+      "logoOfImprint": 20,
+      "conflicts": 5
+     },
+     "confirmed": {
+      "read": 200,
+      "imprint": {
+       "n": 200,
+       "k": 39,
+       "value": 19.5,
+       "lo": 13.9,
+       "hi": 23.7
+      },
+      "logoOfImprint": 33.3,
+      "conflicts": 17
+     },
+     "no-text": {
+      "read": 60,
+      "imprint": {
+       "n": 60,
+       "k": 1,
+       "value": 1.7,
+       "lo": 0,
+       "hi": 5.8
+      },
+      "logoOfImprint": 100,
+      "conflicts": 0
+     },
+     "c4-not-in-isfdb": {
+      "read": 22,
+      "imprint": {
+       "n": 22,
+       "k": 8,
+       "value": 36.4,
+       "lo": 17.6,
+       "hi": 56
+      },
+      "logoOfImprint": 12.5,
+      "conflicts": 2
+     },
+     "readers-disagree": {
+      "read": 47,
+      "imprint": {
+       "n": 47,
+       "k": 5,
+       "value": 10.6,
+       "lo": 2.5,
+       "hi": 22
+      },
+      "logoOfImprint": 20,
+      "conflicts": 5
+     },
+     "single-reader": {
+      "read": 400,
+      "imprint": {
+       "n": 400,
+       "k": 81,
+       "value": 20.3,
+       "lo": 16,
+       "hi": 25.2
+      },
+      "logoOfImprint": 25.9,
+      "conflicts": 33
+     }
+    },
+    "byPosition": {
+     "edge": {
+      "n": 264,
+      "k": 44,
+      "value": 16.7,
+      "lo": 11.4,
+      "hi": 22.9
+     },
+     "inner": {
+      "n": 497,
+      "k": 95,
+      "value": 19.1,
+      "lo": 16,
+      "hi": 21.9
+     }
+    },
+    "conflicts": 62,
+    "unparsed": 1,
+    "logoShare": 27.3
+   },
+   "precision": {
+    "all": {
+     "n": 38,
+     "k": 15,
+     "value": 39.5,
+     "lo": 20.7,
+     "hi": 54.4,
+     "nullMatch": 7.8
+    },
+    "text": {
+     "n": 25,
+     "k": 9,
+     "value": 36,
+     "lo": 12.5,
+     "hi": 56.3,
+     "nullMatch": 9.9
+    },
+    "logo": {
+     "n": 13,
+     "k": 6,
+     "value": 46.2,
+     "lo": 22.2,
+     "hi": 69.2,
+     "nullMatch": 9.2
+    }
+   },
+   "narrowing": {
+    "boxCount": 15,
+    "editionsKeptP50": 0.444,
+    "editionsKeptP90": 0.75
+   },
+   "tieBreak": {
+    "reorderableBoxes": 32,
+    "all": {
+     "boxCount": 32,
+     "photos": 14,
+     "withImprint": 5,
+     "fired": 0,
+     "switched": 0,
+     "newlyAccepted": 0,
+     "confirmed": {
+      "before": 0,
+      "after": 0,
+      "delta": 0,
+      "lo": 0,
+      "hi": 0
+     }
+    },
+    "byBox": {
+     "whole": {
+      "boxCount": 14,
+      "photos": 9,
+      "withImprint": 1,
+      "fired": 0,
+      "switched": 0,
+      "newlyAccepted": 0,
+      "confirmed": {
+       "before": 0,
+       "after": 0,
+       "delta": 0,
+       "lo": 0,
+       "hi": 0
+      }
+     },
+     "cutOrPartial": {
+      "boxCount": 18,
+      "photos": 9,
+      "withImprint": 4,
+      "fired": 0,
+      "switched": 0,
+      "newlyAccepted": 0,
+      "confirmed": {
+       "before": 0,
+       "after": 0,
+       "delta": 0,
+       "lo": 0,
+       "hi": 0
+      }
+     }
+    },
+    "wholeSet": {
+     "boxCount": 6894,
+     "confirmedAdded": 0,
+     "wrongAdded": 0
+    }
+   },
+   "c4NotInIsfdb": {
+    "read": 22,
+    "imprint": {
+     "n": 22,
+     "k": 8,
+     "value": 36.4,
+     "lo": 17.6,
+     "hi": 56
+    },
+    "logoOfImprint": 12.5,
+    "conflicts": 2
+   },
+   "noTextControl": {
+    "read": 60,
+    "imprint": {
+     "n": 60,
+     "k": 1,
+     "value": 1.7,
+     "lo": 0,
+     "hi": 5.8
+    },
+    "logoOfImprint": 100,
+    "conflicts": 0
+   },
+   "runtime": {
+    "calls": 1522,
+    "perCallP50": 1.326,
+    "perCallP90": 1.631,
+    "totalSeconds": 2110
+   }
+  },
+  "yardstick-library-b2": {
+   "scope": "PROXY: Library Dataset sample, box arm B2; confirmed = accepted and annotated in the image",
+   "boxCount": 1132,
+   "recomputeDrift": 0,
+   "yardstickPublisherKnown": 24,
+   "selection": {
+    "readers-disagree": {
+     "selected": 1,
+     "read": 1
+    },
+    "single-reader": {
+     "selected": 160,
+     "read": 160
+    },
+    "confirmed": {
+     "selected": 200,
+     "read": 200
+    },
+    "no-text": {
+     "selected": 40,
+     "read": 40
+    }
+   },
+   "imprintRead": {
+    "all": {
+     "n": 401,
+     "k": 109,
+     "value": 27.2,
+     "lo": 21.5,
+     "hi": 32.6
+    },
+    "byRole": {
+     "readers-disagree": {
+      "read": 1,
+      "imprint": {
+       "n": 1,
+       "k": 1,
+       "value": 100,
+       "lo": 100,
+       "hi": 100
+      },
+      "logoOfImprint": 0,
+      "conflicts": 0
+     },
+     "single-reader": {
+      "read": 160,
+      "imprint": {
+       "n": 160,
+       "k": 46,
+       "value": 28.8,
+       "lo": 19.1,
+       "hi": 39.4
+      },
+      "logoOfImprint": 10.9,
+      "conflicts": 18
+     },
+     "confirmed": {
+      "read": 200,
+      "imprint": {
+       "n": 200,
+       "k": 62,
+       "value": 31,
+       "lo": 24.4,
+       "hi": 37.6
+      },
+      "logoOfImprint": 8.1,
+      "conflicts": 10
+     },
+     "no-text": {
+      "read": 40,
+      "imprint": {
+       "n": 40,
+       "k": 0,
+       "value": 0,
+       "lo": 0,
+       "hi": 0
+      },
+      "logoOfImprint": null,
+      "conflicts": 0
+     }
+    },
+    "byPosition": {
+     "edge": {
+      "n": 85,
+      "k": 24,
+      "value": 28.2,
+      "lo": 16.7,
+      "hi": 38.6
+     },
+     "inner": {
+      "n": 316,
+      "k": 85,
+      "value": 26.9,
+      "lo": 21.3,
+      "hi": 32.3
+     }
+    },
+    "shelfMark": 44,
+    "conflicts": 28,
+    "unparsed": 0,
+    "logoShare": 9.2
+   },
+   "precision": {
+    "all": {
+     "n": 10,
+     "k": 1,
+     "value": 10,
+     "lo": 0,
+     "hi": 37.5,
+     "nullMatch": 1.2
+    },
+    "text": {
+     "n": 10,
+     "k": 1,
+     "value": 10,
+     "lo": 0,
+     "hi": 33.3,
+     "nullMatch": 1.2
+    },
+    "logo": {
+     "n": 0,
+     "k": 0,
+     "nullMatch": null
+    }
+   },
+   "narrowing": null,
+   "tieBreak": {
+    "reorderableBoxes": 0,
+    "all": {
+     "boxCount": 0,
+     "photos": 0,
+     "withImprint": 0,
+     "fired": 0,
+     "switched": 0,
+     "newlyAccepted": 0,
+     "confirmed": null,
+     "wrong": null
+    },
+    "byBox": {
+     "whole": {
+      "boxCount": 0,
+      "photos": 0,
+      "withImprint": 0,
+      "fired": 0,
+      "switched": 0,
+      "newlyAccepted": 0,
+      "confirmed": null,
+      "wrong": null
+     },
+     "cutOrPartial": {
+      "boxCount": 0,
+      "photos": 0,
+      "withImprint": 0,
+      "fired": 0,
+      "switched": 0,
+      "newlyAccepted": 0,
+      "confirmed": null,
+      "wrong": null
+     }
+    },
+    "wholeSet": {
+     "boxCount": 1132,
+     "confirmedAdded": 0,
+     "wrongAdded": 0
+    }
+   },
+   "noTextControl": {
+    "read": 40,
+    "imprint": {
+     "n": 40,
+     "k": 0,
+     "value": 0,
+     "lo": 0,
+     "hi": 0
+    },
+    "logoOfImprint": null,
+    "conflicts": 0
+   },
+   "runtime": {
+    "calls": 802,
+    "perCallP50": 3.647,
+    "perCallP90": 4.995,
+    "totalSeconds": 3005
+   }
+  }
+ }
+}

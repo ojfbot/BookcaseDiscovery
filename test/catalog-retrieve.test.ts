@@ -5,7 +5,7 @@ import { join } from "node:path";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { buildCatalog, WORK_TTYPES } from "../src/catalog/build.ts";
 import { catalogCommand } from "../src/catalog/cli.ts";
-import { retrieve } from "../src/catalog/retrieve.ts";
+import { retrieve, scoreWorks } from "../src/catalog/retrieve.ts";
 import { targetWorks } from "../src/catalog/golden.ts";
 import { makeMiniStaging } from "./helpers/mini-staging.ts";
 
@@ -176,5 +176,17 @@ describe("bookcase catalog", () => {
     } finally {
       console.error = err;
     }
+  });
+});
+
+describe("scoreWorks", () => {
+  it("scores a named work as retrieval would, and a work the text does not explain at 0", () => {
+    const variants = ["NEUROMANCER WILLIAM GIBSON"];
+    const [best] = retrieve(db, variants, 1);
+    const scored = scoreWorks(db, variants, [best!.workId, "isfdb:214", "isfdb:missing"]);
+    expect(scored.get(best!.workId)).toMatchObject({ score: best!.score, queryCoverage: best!.queryCoverage });
+    expect(scored.get("isfdb:214")!.score).toBeLessThan(best!.score);
+    expect(scored.has("isfdb:missing")).toBe(false);
+    expect(scoreWorks(db, [], ["isfdb:201"]).get("isfdb:201")).toMatchObject({ score: 0, evidence: [] });
   });
 });

@@ -65,12 +65,18 @@ export interface Detection {
   width: number;
   height: number;
   spines: DetectedSpine[];
+  /** F-0c cover pass ("book cover.", post step `covers`): cover-shaped boxes, kinded with `spines` by `kinds` in f0c.ts. */
+  covers?: DetectedSpine[];
+  coverTiles?: number;
+  coverSeconds?: number;
   bands: { polygon: Polygon4; spines: number; span: number; gap: number }[];
   gaps: { bandLength: number; gapLength: number; gapCount: number; medianWidth: number };
   tiles: number;
   seconds: number;
   /** Box arm (b2, b3, b4) and the detector process's memory peaks so far, in MB. */
   arm?: string;
+  /** Tiling and post steps (F-0e; absent before), as `tilingName`. */
+  layout?: string;
   device?: string;
   peakRssMb?: number;
   mpsPeakMb?: number;
@@ -168,9 +174,9 @@ const BOX_PRODUCER: Record<Arm, string> = {
 };
 
 /** Provenance of one run: the box step it actually used, its readers, and why there is no box agreement. */
-export function stackFor(arm: Arm, scope: "pilot" | "yardstick") {
+export function stackFor(arm: Arm, scope: "pilot" | "yardstick", tiling: Tiling = scope === "pilot" ? CASE_TILING : SHELF_TILING) {
   return {
-    boxProducer: BOX_PRODUCER[arm],
+    boxProducer: `${BOX_PRODUCER[arm]}; tiling ${tilingName(tiling)}`,
     boxProducers: 1,
     boxAgreement:
       scope === "pilot"
@@ -186,21 +192,67 @@ export function stackFor(arm: Arm, scope: "pilot" | "yardstick") {
 export interface Tiling {
   tile: number;
   overlap: number;
+  /** F-0e: tiles taller than wide, with their own vertical overlap (default: square, `tile` and `overlap`). */
+  tileH?: number;
+  overlapY?: number;
+  /**
+   * F-0e: `bands` finds the shelf bands first (a box-only pass on SHELF_TILING tiles) and lays one row of tiles
+   * `tile` wide along each band, as tall as the band plus a margin; the grid above is the fallback when it finds none.
+   */
+  layout?: "bands";
+  /** F-0e post steps after NMS, in detect.py's order (`strips`, `join`, `extend`). */
+  post?: string[];
 }
-/** Whole-case photos (pilot-000): spines are ~2 % of the frame. */
-export const CASE_TILING: Tiling = { tile: 1600, overlap: 700 };
+
+/** The tiling as detect.py names it in each detection's `layout` and the runs' provenance: "1600x2600/700x1900 +strips". */
+export function tilingName(t: Tiling): string {
+  const h = t.tileH ?? t.tile;
+  const oy = t.overlapY ?? t.overlap;
+  // detect.py's COARSE_TILE and COARSE_OVERLAP are SHELF_TILING's values.
+  const grid =
+    t.layout === "bands" ? `bands 3100/1300 -> ${t.tile}w` : h === t.tile && oy === t.overlap ? `${t.tile}/${t.overlap}` : `${t.tile}x${h}/${t.overlap}x${oy}`;
+  return grid + (t.post ?? []).map((p) => ` +${p}`).join("");
+}
+/**
+ * Whole-case photos (pilot-000): spines are ~2 % of the frame. F-0e: shelf-aligned tiling. A box-only pass on
+ * shelf-scale tiles finds the bands; then one row of 1600 px-wide tiles (the detector's input scale as before) runs
+ * along each band, as tall as the band plus 12 % above and below, so every spine in a found band is whole in a tile;
+ * then `strips` drops flat strips of spine ends that a tile edge cuts. If no band is found, the fallback grid is the
+ * tall one (1600 x 2600 px, 700 x 1900 px overlap). F-0 ran a square 1600/700 grid.
+ */
+export const CASE_TILING: Tiling = { tile: 1600, overlap: 700, tileH: 2600, overlapY: 1900, layout: "bands", post: ["strips"] };
 /** Shelf-scale photos (the yardstick's split images, ~7100 x 3100): one spine is ~2400 px tall, so a tile spans the shelf. */
 export const SHELF_TILING: Tiling = { tile: 3100, overlap: 1300 };
 
 export async function detectStage(images: InputImage[], dir: string, log: (s: string) => void, arm: Arm = "b2", tiling: Tiling = CASE_TILING): Promise<Map<string, Detection>> {
   const out = join(dir, "detect.jsonl");
-  const done = new Set(readJsonl<Detection>(out).filter((d) => !d.error).map((d) => d.id));
+  const cached = readJsonl<Detection>(out).filter((d) => !d.error);
+  // Spine ids are positions in a detection, so readings cached beside boxes from another tiling would be misread
+  // as this one's. Runs before F-0e carry no `layout`: they used the square 1600/700 or 3100/1300 grid.
+  const stale = cached.find((d) => (d.layout ?? `${tiling.tile}/${tiling.overlap}`) !== tilingName(tiling));
+  if (stale) throw new Error(`${out} holds detections made with tiling ${stale.layout ?? "1600/700"}, not ${tilingName(tiling)}: use a fresh stage folder`);
+  const done = new Set(cached.map((d) => d.id));
   await runHelper("detect.py", [], images.filter((i) => !done.has(i.id)).map((i) => ({ id: i.id, image: i.path })), out, log, {
     F0_ARM: arm,
     F0_TILE: String(tiling.tile),
     F0_OVERLAP: String(tiling.overlap),
+    F0_TILE_H: String(tiling.tileH ?? tiling.tile),
+    F0_OVERLAP_Y: String(tiling.overlapY ?? tiling.overlap),
+    F0_POST: (tiling.post ?? []).join(","),
+    F0_LAYOUT: tiling.layout ?? "grid",
   });
   return new Map(readJsonl<Detection>(out).filter((d) => !d.error).map((d) => [d.id, d]));
+}
+
+/**
+ * F-0f: the pixel probe of every box (helpers/label/probe.py: white share, edge share), which the blank-card rule
+ * reads (`labelWhy` in f0f.ts). Cached as probe.jsonl beside the detections, keyed `<image>:s<i>` / `<image>:c<j>`.
+ */
+export async function probeStage(images: InputImage[], dir: string, log: (s: string) => void): Promise<Map<string, { white: number; edges: number }>> {
+  const out = join(dir, "probe.jsonl");
+  const done = new Set(readJsonl<{ id: string }>(out).map((r) => r.id.slice(0, r.id.lastIndexOf(":"))));
+  await runHelper("probe.py", ["--detect", join(dir, "detect.jsonl")], images.filter((i) => !done.has(i.id)).map((i) => ({ id: i.id, image: i.path })), out, log);
+  return new Map(readJsonl<{ id: string; white: number; edges: number }>(out).map((r) => [r.id, r]));
 }
 
 /** One reader request per spine, cut by `method`; a spine with nothing inside the frame is not read. */
@@ -277,6 +329,8 @@ export async function pyReaderStage(
   log: (s: string) => void,
   only?: Set<string>,
   method: CropMethod = CROP,
+  /** Qwen's prompt (read.py `--prompt`): `cover` for F-0c's face-out covers. */
+  prompt: "spine" | "cover" = "spine",
 ): Promise<void> {
   const out = join(dir, `${reader}.jsonl`);
   const done = readWith(out, method);
@@ -286,7 +340,7 @@ export async function pyReaderStage(
   const shards: (typeof reqs)[] = Array.from({ length: workers }, () => []);
   const order = [...new Set(reqs.map((r) => r.image))];
   for (const r of reqs) shards[order.indexOf(r.image) % workers]!.push(r);
-  await Promise.all(shards.map((s) => runHelper("read.py", ["--reader", reader], s, out, log)));
+  await Promise.all(shards.map((s) => runHelper("read.py", ["--reader", reader, ...(prompt === "cover" ? ["--prompt", "cover"] : [])], s, out, log)));
 }
 
 /** Each spine's latest reading per reader; with `method`, only readings cut that way. */
@@ -378,6 +432,8 @@ export function buildLabelSet(
   images: InputImage[],
   dets: Map<string, Detection>,
   decisions: Map<string, SpineDecision>,
+  /** F-0c: a box's kind and the rule behind it (`kinds` in f0c.ts); every box is a `spine` without it. */
+  kindOf?: (imageId: string, i: number) => { kind: "spine" | "face-out" | "not-a-book"; why: string },
 ): LabelSet {
   const photos: Photo[] = [];
   for (const img of images) {
@@ -387,6 +443,9 @@ export function buildLabelSet(
     const spines = det.spines.map((s, i) => {
       const d = decisions.get(spineId(img.id, i));
       const a = d?.accepted;
+      const k = kindOf?.(img.id, i);
+      if (k && k.kind !== "spine")
+        return { id: spineId(img.id.slice(0, 12), i), polygon: s.polygon, kind: k.kind, text: { title: "", author: "" }, unreadable: false, catalogId: null, notes: `machine:${k.kind} rule=${k.why}` };
       return {
         id: spineId(img.id.slice(0, 12), i),
         polygon: s.polygon,

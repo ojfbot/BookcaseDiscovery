@@ -318,7 +318,7 @@ in the catalog, so a crosswalked ISFDB work's count includes the Open Library ed
 ## Choosing the catalog file
 
 `BOOKCASE_CATALOG` names the catalog every reader opens (`catalogPaths().catalog`: `bookcase catalog query|eval|
-coverage`, `bookcase recommend`, the F-0 pilot and F-0b): a file name in `$BOOKCASE_DATA/catalog/` or an absolute
+coverage`, `bookcase recommend`, and the F-0, F-0b, F-0c, F-0d and F-0e runners): a file name in `$BOOKCASE_DATA/catalog/` or an absolute
 path. Unset, it is `catalog.sqlite`, as before. `--db` flags still override it. `bookcase catalog build` without
 `--ol-staging` always writes `catalog.sqlite`; with it, `catalog-v2.sqlite`.
 

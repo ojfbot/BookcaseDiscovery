@@ -1,0 +1,1651 @@
+{
+  "runId": "F0e",
+  "card": "F-0e",
+  "agreement-pilot-000-bands+strips": {
+    "set": "pilot-000",
+    "armName": "bands+strips",
+    "scope": "machine agreement, not accuracy (INV-17)",
+    "base": {
+      "boxCount": 6894,
+      "textPresentShare": 0.7479,
+      "textReadShare": 0.2496,
+      "confirmedShare": 0.1041,
+      "confirmedPerPhoto": 23.1613,
+      "worksPerPhoto": 20.0968
+    },
+    "arm": {
+      "boxCount": 6145,
+      "textPresentShare": 0.7779,
+      "textReadShare": 0.27,
+      "confirmedShare": 0.119,
+      "confirmedPerPhoto": 23.5806,
+      "worksPerPhoto": 20.2903
+    },
+    "delta": {
+      "textReadShare": [
+        0.0203,
+        0.0087,
+        0.0322
+      ],
+      "confirmedShare": [
+        0.0148,
+        0.0086,
+        0.0219
+      ],
+      "textReadPerPhoto": [
+        -2,
+        -4.129,
+        0.2903
+      ],
+      "confirmedPerPhoto": [
+        0.4194,
+        -0.4516,
+        1.4516
+      ],
+      "worksPerPhoto": [
+        0.1935,
+        -0.6129,
+        1.0645
+      ],
+      "boxesPerPhoto": [
+        -24.1613,
+        -30.4855,
+        -18.5798
+      ]
+    }
+  },
+  "diagnose-pilot-000": {
+    "set": "pilot-000 (real use)",
+    "photos": 31,
+    "boxCount": 6894,
+    "uprightInBand": 6337,
+    "tiling": {
+      "tile": 1600,
+      "overlap": 700
+    },
+    "bandHeightPx": {
+      "p10": 891,
+      "p50": 1262,
+      "p90": 1708,
+      "max": 2278
+    },
+    "spineHeightPx": {
+      "p10": 740,
+      "p50": 984,
+      "p90": 1416,
+      "max": 1628
+    },
+    "byRatio": [
+      {
+        "spineHeightOverOverlap": [
+          0,
+          1
+        ],
+        "boxCount": 259,
+        "photos": 10,
+        "cut": [
+          0.2085,
+          0.0661,
+          0.6194
+        ],
+        "partial": [
+          0.6911,
+          0.4467,
+          0.8401
+        ],
+        "partialSpine": [
+          0.027,
+          0.0104,
+          0.0804
+        ],
+        "touching": [
+          0.0927,
+          0.0119,
+          0.127
+        ]
+      },
+      {
+        "spineHeightOverOverlap": [
+          1,
+          1.5
+        ],
+        "boxCount": 3873,
+        "photos": 28,
+        "cut": [
+          0.1846,
+          0.1323,
+          0.2545
+        ],
+        "partial": [
+          0.3992,
+          0.283,
+          0.5299
+        ],
+        "partialSpine": [
+          0.0447,
+          0.0245,
+          0.0758
+        ],
+        "touching": [
+          0.0645,
+          0.046,
+          0.0851
+        ]
+      },
+      {
+        "spineHeightOverOverlap": [
+          1.5,
+          2
+        ],
+        "boxCount": 1731,
+        "photos": 29,
+        "cut": [
+          0.4275,
+          0.3276,
+          0.5243
+        ],
+        "partial": [
+          0.2796,
+          0.2217,
+          0.3437
+        ],
+        "partialSpine": [
+          0.1086,
+          0.0747,
+          0.1557
+        ],
+        "touching": [
+          0.0266,
+          0.0088,
+          0.0463
+        ]
+      },
+      {
+        "spineHeightOverOverlap": [
+          2,
+          2.5
+        ],
+        "boxCount": 474,
+        "photos": 16,
+        "cut": [
+          0.6624,
+          0.4718,
+          0.8178
+        ],
+        "partial": [
+          0.3924,
+          0.2872,
+          0.4823
+        ],
+        "partialSpine": [
+          0.2996,
+          0.2279,
+          0.3526
+        ],
+        "touching": [
+          0.0169,
+          0.0036,
+          0.0423
+        ]
+      },
+      {
+        "spineHeightOverOverlap": [
+          2.5,
+          null
+        ],
+        "boxCount": 0,
+        "photos": 0,
+        "cut": null,
+        "partial": null,
+        "partialSpine": null,
+        "touching": null
+      }
+    ],
+    "byFit": [
+      {
+        "bandFitsOneTileRow": true,
+        "boxCount": 1001,
+        "cut": [
+          0.0639,
+          0.0369,
+          0.0969
+        ],
+        "partial": [
+          0.1269,
+          0.0666,
+          0.2521
+        ],
+        "partialSpine": [
+          0.05,
+          0.032,
+          0.0659
+        ]
+      },
+      {
+        "bandFitsOneTileRow": false,
+        "boxCount": 5336,
+        "cut": [
+          0.3296,
+          0.2602,
+          0.4177
+        ],
+        "partial": [
+          0.425,
+          0.3366,
+          0.5034
+        ],
+        "partialSpine": [
+          0.0862,
+          0.0541,
+          0.1256
+        ]
+      }
+    ],
+    "partialCauses": [
+      {
+        "cause": "cut",
+        "share": [
+          0.3537,
+          0.2492,
+          0.4955
+        ]
+      },
+      {
+        "cause": "inside",
+        "share": [
+          0.1111,
+          0.0804,
+          0.1373
+        ]
+      },
+      {
+        "cause": "stacked",
+        "share": [
+          0.0472,
+          0.0294,
+          0.066
+        ]
+      },
+      {
+        "cause": "alone",
+        "share": [
+          0.4881,
+          0.3736,
+          0.5781
+        ]
+      }
+    ],
+    "touchingThatAreCut": [
+      0.0884,
+      0.0546,
+      0.1346
+    ]
+  },
+  "diagnose-yardstick-b2": {
+    "set": "yardstick (PROXY)",
+    "photos": 40,
+    "boxCount": 1132,
+    "uprightInBand": 1050,
+    "tiling": {
+      "tile": 3100,
+      "overlap": 1300
+    },
+    "bandHeightPx": {
+      "p10": 1217,
+      "p50": 2843,
+      "p90": 3725,
+      "max": 4507
+    },
+    "spineHeightPx": {
+      "p10": 1356,
+      "p50": 2634,
+      "p90": 2981,
+      "max": 3082
+    },
+    "byRatio": [
+      {
+        "spineHeightOverOverlap": [
+          0,
+          1
+        ],
+        "boxCount": 44,
+        "photos": 4,
+        "cut": [
+          0,
+          0,
+          0
+        ],
+        "partial": [
+          0.5,
+          0,
+          0.7412
+        ],
+        "partialSpine": [
+          0.2273,
+          0,
+          0.3333
+        ],
+        "touching": [
+          0.0909,
+          0,
+          0.5714
+        ]
+      },
+      {
+        "spineHeightOverOverlap": [
+          1,
+          1.5
+        ],
+        "boxCount": 8,
+        "photos": 1,
+        "cut": [
+          0,
+          0,
+          0
+        ],
+        "partial": [
+          0.25,
+          0.25,
+          0.25
+        ],
+        "partialSpine": [
+          0,
+          0,
+          0
+        ],
+        "touching": [
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "spineHeightOverOverlap": [
+          1.5,
+          2
+        ],
+        "boxCount": 333,
+        "photos": 13,
+        "cut": [
+          0.03,
+          0.0026,
+          0.061
+        ],
+        "partial": [
+          0.1712,
+          0.1203,
+          0.2311
+        ],
+        "partialSpine": [
+          0.1441,
+          0.0914,
+          0.2051
+        ],
+        "touching": [
+          0.0601,
+          0.019,
+          0.116
+        ]
+      },
+      {
+        "spineHeightOverOverlap": [
+          2,
+          2.5
+        ],
+        "boxCount": 665,
+        "photos": 28,
+        "cut": [
+          0.0782,
+          0.0327,
+          0.1367
+        ],
+        "partial": [
+          0.2722,
+          0.1727,
+          0.3675
+        ],
+        "partialSpine": [
+          0.2,
+          0.1171,
+          0.2913
+        ],
+        "touching": [
+          0.0617,
+          0.0221,
+          0.1314
+        ]
+      },
+      {
+        "spineHeightOverOverlap": [
+          2.5,
+          null
+        ],
+        "boxCount": 0,
+        "photos": 0,
+        "cut": null,
+        "partial": null,
+        "partialSpine": null,
+        "touching": null
+      }
+    ],
+    "byFit": [
+      {
+        "bandFitsOneTileRow": true,
+        "boxCount": 327,
+        "cut": [
+          0.0031,
+          0,
+          0.0097
+        ],
+        "partial": [
+          0.1804,
+          0.1061,
+          0.2494
+        ],
+        "partialSpine": [
+          0.1254,
+          0.0922,
+          0.1545
+        ]
+      },
+      {
+        "bandFitsOneTileRow": false,
+        "boxCount": 723,
+        "cut": [
+          0.0844,
+          0.0446,
+          0.1381
+        ],
+        "partial": [
+          0.2808,
+          0.1968,
+          0.3685
+        ],
+        "partialSpine": [
+          0.2075,
+          0.1291,
+          0.2879
+        ]
+      }
+    ],
+    "partialCauses": [
+      {
+        "cause": "cut",
+        "share": [
+          0.0458,
+          0.013,
+          0.0898
+        ]
+      },
+      {
+        "cause": "inside",
+        "share": [
+          0.3473,
+          0.2581,
+          0.4479
+        ]
+      },
+      {
+        "cause": "stacked",
+        "share": [
+          0.0878,
+          0.0486,
+          0.1443
+        ]
+      },
+      {
+        "cause": "alone",
+        "share": [
+          0.5191,
+          0.3973,
+          0.6197
+        ]
+      }
+    ],
+    "touchingThatAreCut": [
+      0.2308,
+      0,
+      0.4767
+    ]
+  },
+  "measure-pilot-000-bands+strips": {
+    "set": "pilot-000",
+    "arm": "bands+strips",
+    "photos": 31,
+    "boxCount": 6145,
+    "tiles": {
+      "total": 987,
+      "p50": 32,
+      "boxOnlyTotal": 0
+    },
+    "boxesPerPhotoP50": 193,
+    "pooled": {
+      "cut": [
+        0.043,
+        0.0321,
+        0.0555
+      ],
+      "partial": [
+        0.3508,
+        0.2376,
+        0.4514
+      ],
+      "partialSpine": [
+        0.0535,
+        0.0398,
+        0.0685
+      ],
+      "touching": [
+        0.0594,
+        0.0427,
+        0.0802
+      ],
+      "inside": [
+        0.1448,
+        0.1222,
+        0.1697
+      ]
+    },
+    "photoMedian": {
+      "cut": 0.0345,
+      "partial": 0.1818,
+      "partialSpine": 0.0547,
+      "touching": 0.0364,
+      "boxesPerBand": [
+        1.0132,
+        0.9788,
+        1.0488
+      ],
+      "detectSeconds": [
+        69.23,
+        62.46,
+        83.69
+      ]
+    },
+    "vsBase": {
+      "uprightLong": [
+        1.0603,
+        1.0345,
+        1.1533
+      ],
+      "boxCount": [
+        0.899,
+        0.8552,
+        0.9394
+      ],
+      "detectSeconds": [
+        0.9857,
+        0.769,
+        1.16
+      ]
+    }
+  },
+  "measure-pilot-000-bands": {
+    "set": "pilot-000",
+    "arm": "bands",
+    "photos": 31,
+    "boxCount": 6403,
+    "tiles": {
+      "total": 987,
+      "p50": 32,
+      "boxOnlyTotal": 366
+    },
+    "boxesPerPhotoP50": 206,
+    "pooled": {
+      "cut": [
+        0.0815,
+        0.0687,
+        0.0955
+      ],
+      "partial": [
+        0.3092,
+        0.2102,
+        0.3948
+      ],
+      "partialSpine": [
+        0.0533,
+        0.0391,
+        0.0688
+      ],
+      "touching": [
+        0.0595,
+        0.0428,
+        0.0795
+      ],
+      "inside": [
+        0.1412,
+        0.119,
+        0.165
+      ]
+    },
+    "photoMedian": {
+      "cut": 0.08,
+      "partial": 0.175,
+      "partialSpine": 0.0521,
+      "touching": 0.0364,
+      "boxesPerBand": [
+        0.923,
+        0.8931,
+        0.9823
+      ],
+      "detectSeconds": [
+        69.1,
+        62.33,
+        83.49
+      ]
+    },
+    "vsBase": {
+      "uprightLong": [
+        1.0603,
+        1.0345,
+        1.1532
+      ],
+      "boxCount": [
+        0.9323,
+        0.8919,
+        0.9735
+      ],
+      "detectSeconds": [
+        0.9827,
+        0.7675,
+        1.1559
+      ]
+    }
+  },
+  "measure-pilot-000-base": {
+    "set": "pilot-000",
+    "arm": "base",
+    "photos": 31,
+    "boxCount": 6894,
+    "tiles": {
+      "total": 1572,
+      "p50": 54,
+      "boxOnlyTotal": 0
+    },
+    "boxesPerPhotoP50": 222,
+    "pooled": {
+      "cut": [
+        0.3146,
+        0.2563,
+        0.3879
+      ],
+      "partial": [
+        0.3787,
+        0.2909,
+        0.4579
+      ],
+      "partialSpine": [
+        0.0805,
+        0.0529,
+        0.1152
+      ],
+      "touching": [
+        0.0517,
+        0.0381,
+        0.0678
+      ],
+      "inside": [
+        0.0979,
+        0.0817,
+        0.1137
+      ]
+    },
+    "photoMedian": {
+      "cut": 0.2887,
+      "partial": 0.4661,
+      "partialSpine": 0.0714,
+      "touching": 0.0339,
+      "boxesPerBand": [
+        0.8765,
+        0.8328,
+        0.9411
+      ],
+      "detectSeconds": [
+        78.33,
+        59.36,
+        86.61
+      ]
+    },
+    "vsBase": {
+      "uprightLong": [
+        1,
+        1,
+        1
+      ],
+      "boxCount": [
+        1,
+        1,
+        1
+      ],
+      "detectSeconds": [
+        1,
+        1,
+        1
+      ]
+    }
+  },
+  "measure-pilot-000-extend": {
+    "set": "pilot-000",
+    "arm": "extend",
+    "photos": 31,
+    "boxCount": 6171,
+    "tiles": {
+      "total": 1572,
+      "p50": 54,
+      "boxOnlyTotal": 0
+    },
+    "boxesPerPhotoP50": 199,
+    "pooled": {
+      "cut": [
+        0.1578,
+        0.1363,
+        0.1828
+      ],
+      "partial": [
+        0.3093,
+        0.2183,
+        0.3927
+      ],
+      "partialSpine": [
+        0.0426,
+        0.029,
+        0.0572
+      ],
+      "touching": [
+        0.0733,
+        0.0576,
+        0.0904
+      ],
+      "inside": [
+        0.0583,
+        0.0456,
+        0.0719
+      ]
+    },
+    "photoMedian": {
+      "cut": 0.16,
+      "partial": 0.1983,
+      "partialSpine": 0.0365,
+      "touching": 0.0531,
+      "boxesPerBand": [
+        0.8745,
+        0.812,
+        0.9085
+      ],
+      "detectSeconds": [
+        94.44,
+        83.06,
+        102.4
+      ]
+    },
+    "vsBase": {
+      "uprightLong": [
+        1.0783,
+        1.054,
+        1.1291
+      ],
+      "boxCount": [
+        0.9006,
+        0.8802,
+        0.9146
+      ],
+      "detectSeconds": [
+        1.1875,
+        1.1555,
+        1.2663
+      ]
+    }
+  },
+  "measure-pilot-000-join": {
+    "set": "pilot-000",
+    "arm": "join",
+    "photos": 31,
+    "boxCount": 6764,
+    "tiles": {
+      "total": 1572,
+      "p50": 54,
+      "boxOnlyTotal": 0
+    },
+    "boxesPerPhotoP50": 219,
+    "pooled": {
+      "cut": [
+        0.3173,
+        0.2592,
+        0.3915
+      ],
+      "partial": [
+        0.5015,
+        0.4558,
+        0.551
+      ],
+      "partialSpine": [
+        0.0972,
+        0.0657,
+        0.1368
+      ],
+      "touching": [
+        0.0187,
+        0.0126,
+        0.0267
+      ],
+      "inside": [
+        0.1196,
+        0.0991,
+        0.1413
+      ]
+    },
+    "photoMedian": {
+      "cut": 0.3036,
+      "partial": 0.5234,
+      "partialSpine": 0.0936,
+      "touching": 0.013,
+      "boxesPerBand": [
+        0.8701,
+        0.8071,
+        0.9244
+      ],
+      "detectSeconds": [
+        79.88,
+        62.79,
+        89.73
+      ]
+    },
+    "vsBase": {
+      "uprightLong": [
+        1.0025,
+        1.0003,
+        1.0057
+      ],
+      "boxCount": [
+        0.987,
+        0.9797,
+        0.9941
+      ],
+      "detectSeconds": [
+        1.0251,
+        1.0199,
+        1.0309
+      ]
+    }
+  },
+  "measure-pilot-000-strips": {
+    "set": "pilot-000",
+    "arm": "strips",
+    "photos": 31,
+    "boxCount": 6617,
+    "tiles": {
+      "total": 1572,
+      "p50": 54,
+      "boxOnlyTotal": 0
+    },
+    "boxesPerPhotoP50": 218,
+    "pooled": {
+      "cut": [
+        0.2859,
+        0.2277,
+        0.3606
+      ],
+      "partial": [
+        0.4308,
+        0.3463,
+        0.5091
+      ],
+      "partialSpine": [
+        0.0822,
+        0.0542,
+        0.1179
+      ],
+      "touching": [
+        0.0515,
+        0.0378,
+        0.0678
+      ],
+      "inside": [
+        0.1008,
+        0.0845,
+        0.1168
+      ]
+    },
+    "photoMedian": {
+      "cut": 0.2609,
+      "partial": 0.4685,
+      "partialSpine": 0.0673,
+      "touching": 0.0339,
+      "boxesPerBand": [
+        0.9767,
+        0.9135,
+        0.9994
+      ],
+      "detectSeconds": [
+        78.45,
+        59.59,
+        86.73
+      ]
+    },
+    "vsBase": {
+      "uprightLong": [
+        1,
+        1,
+        1
+      ],
+      "boxCount": [
+        0.9596,
+        0.9517,
+        0.9726
+      ],
+      "detectSeconds": [
+        1.0015,
+        1.0014,
+        1.0016
+      ]
+    }
+  },
+  "measure-pilot-000-tall+join": {
+    "set": "pilot-000",
+    "arm": "tall+join",
+    "photos": 31,
+    "boxCount": 6503,
+    "tiles": {
+      "total": 1578,
+      "p50": 54,
+      "boxOnlyTotal": 0
+    },
+    "boxesPerPhotoP50": 209,
+    "pooled": {
+      "cut": [
+        0.0815,
+        0.0699,
+        0.0951
+      ],
+      "partial": [
+        0.5032,
+        0.4383,
+        0.5616
+      ],
+      "partialSpine": [
+        0.1037,
+        0.0751,
+        0.1368
+      ],
+      "touching": [
+        0.0216,
+        0.0145,
+        0.0303
+      ],
+      "inside": [
+        0.1771,
+        0.1518,
+        0.204
+      ]
+    },
+    "photoMedian": {
+      "cut": 0.0758,
+      "partial": 0.5029,
+      "partialSpine": 0.1163,
+      "touching": 0.0124,
+      "boxesPerBand": [
+        0.9126,
+        0.855,
+        0.9456
+      ],
+      "detectSeconds": [
+        173.48,
+        149.13,
+        193.4225
+      ]
+    },
+    "vsBase": {
+      "uprightLong": [
+        1.0694,
+        1.0415,
+        1.1676
+      ],
+      "boxCount": [
+        0.9452,
+        0.9259,
+        0.974
+      ],
+      "detectSeconds": [
+        2.3636,
+        2.0154,
+        3.2566
+      ]
+    }
+  },
+  "measure-pilot-000-tall+strips+extend": {
+    "set": "pilot-000",
+    "arm": "tall+strips+extend",
+    "photos": 31,
+    "boxCount": 5437,
+    "tiles": {
+      "total": 1578,
+      "p50": 54,
+      "boxOnlyTotal": 0
+    },
+    "boxesPerPhotoP50": 174,
+    "pooled": {
+      "cut": [
+        0.0234,
+        0.018,
+        0.0299
+      ],
+      "partial": [
+        0.3342,
+        0.2381,
+        0.4289
+      ],
+      "partialSpine": [
+        0.046,
+        0.0278,
+        0.0686
+      ],
+      "touching": [
+        0.0689,
+        0.0547,
+        0.0833
+      ],
+      "inside": [
+        0.0622,
+        0.0482,
+        0.0775
+      ]
+    },
+    "photoMedian": {
+      "cut": 0.0209,
+      "partial": 0.2353,
+      "partialSpine": 0.0339,
+      "touching": 0.057,
+      "boxesPerBand": [
+        0.9208,
+        0.9059,
+        0.9625
+      ],
+      "detectSeconds": [
+        180.74,
+        154.79,
+        198.058
+      ]
+    },
+    "vsBase": {
+      "uprightLong": [
+        1.0949,
+        1.0764,
+        1.2833
+      ],
+      "boxCount": [
+        0.7818,
+        0.7576,
+        0.8138
+      ],
+      "detectSeconds": [
+        2.4558,
+        2.081,
+        3.3569
+      ]
+    }
+  },
+  "measure-pilot-000-tall+strips": {
+    "set": "pilot-000",
+    "arm": "tall+strips",
+    "photos": 31,
+    "boxCount": 6342,
+    "tiles": {
+      "total": 1578,
+      "p50": 54,
+      "boxOnlyTotal": 0
+    },
+    "boxesPerPhotoP50": 207,
+    "pooled": {
+      "cut": [
+        0.0389,
+        0.0305,
+        0.0496
+      ],
+      "partial": [
+        0.4021,
+        0.3073,
+        0.4955
+      ],
+      "partialSpine": [
+        0.0797,
+        0.0594,
+        0.1021
+      ],
+      "touching": [
+        0.0554,
+        0.039,
+        0.0747
+      ],
+      "inside": [
+        0.1607,
+        0.1406,
+        0.1822
+      ]
+    },
+    "photoMedian": {
+      "cut": 0.0355,
+      "partial": 0.3968,
+      "partialSpine": 0.0828,
+      "touching": 0.0342,
+      "boxesPerBand": [
+        1.0353,
+        0.9677,
+        1.0598
+      ],
+      "detectSeconds": [
+        172.36,
+        148.21,
+        193.12
+      ]
+    },
+    "vsBase": {
+      "uprightLong": [
+        1.055,
+        1.0334,
+        1.1273
+      ],
+      "boxCount": [
+        0.931,
+        0.9057,
+        0.9481
+      ],
+      "detectSeconds": [
+        2.3108,
+        1.984,
+        3.2242
+      ]
+    }
+  },
+  "measure-pilot-000-tall": {
+    "set": "pilot-000",
+    "arm": "tall",
+    "photos": 31,
+    "boxCount": 6630,
+    "tiles": {
+      "total": 1578,
+      "p50": 54,
+      "boxOnlyTotal": 0
+    },
+    "boxesPerPhotoP50": 214,
+    "pooled": {
+      "cut": [
+        0.0807,
+        0.0691,
+        0.0942
+      ],
+      "partial": [
+        0.3742,
+        0.2789,
+        0.4614
+      ],
+      "partialSpine": [
+        0.08,
+        0.0598,
+        0.1032
+      ],
+      "touching": [
+        0.0556,
+        0.0391,
+        0.075
+      ],
+      "inside": [
+        0.1558,
+        0.1358,
+        0.1771
+      ]
+    },
+    "photoMedian": {
+      "cut": 0.0754,
+      "partial": 0.3659,
+      "partialSpine": 0.0828,
+      "touching": 0.0342,
+      "boxesPerBand": [
+        0.9322,
+        0.8691,
+        0.9407
+      ],
+      "detectSeconds": [
+        172.2,
+        148.08,
+        193.02
+      ]
+    },
+    "vsBase": {
+      "uprightLong": [
+        1.055,
+        1.0333,
+        1.1273
+      ],
+      "boxCount": [
+        0.974,
+        0.9452,
+        0.9863
+      ],
+      "detectSeconds": [
+        2.3092,
+        1.9825,
+        3.2215
+      ]
+    }
+  },
+  "measure-yardstick-base": {
+    "set": "yardstick",
+    "arm": "base",
+    "photos": 40,
+    "boxCount": 1132,
+    "tiles": {
+      "total": 256,
+      "p50": 6,
+      "boxOnlyTotal": 0
+    },
+    "boxesPerPhotoP50": 25,
+    "pooled": {
+      "cut": [
+        0.0733,
+        0.0394,
+        0.1151
+      ],
+      "partial": [
+        0.2514,
+        0.186,
+        0.3162
+      ],
+      "partialSpine": [
+        0.1819,
+        0.1266,
+        0.2433
+      ],
+      "touching": [
+        0.0639,
+        0.031,
+        0.1099
+      ],
+      "inside": [
+        0.227,
+        0.1917,
+        0.2591
+      ]
+    },
+    "photoMedian": {
+      "cut": 0.0119,
+      "partial": 0.2,
+      "partialSpine": 0.1224,
+      "touching": 0,
+      "boxesPerBand": [
+        0.9854,
+        0.919,
+        1.1099
+      ],
+      "detectSeconds": [
+        5.08,
+        3.69,
+        7.16
+      ]
+    },
+    "vsBase": {
+      "uprightLong": [
+        1,
+        1,
+        1
+      ],
+      "boxCount": [
+        1,
+        1,
+        1
+      ],
+      "detectSeconds": [
+        1,
+        1,
+        1
+      ]
+    }
+  },
+  "measure-yardstick-extend": {
+    "set": "yardstick",
+    "arm": "extend",
+    "photos": 40,
+    "boxCount": 883,
+    "tiles": {
+      "total": 256,
+      "p50": 6,
+      "boxOnlyTotal": 0
+    },
+    "boxesPerPhotoP50": 19,
+    "pooled": {
+      "cut": [
+        0.0442,
+        0.0233,
+        0.0663
+      ],
+      "partial": [
+        0.1748,
+        0.109,
+        0.2374
+      ],
+      "partialSpine": [
+        0.1439,
+        0.0843,
+        0.2045
+      ],
+      "touching": [
+        0.0181,
+        0.0027,
+        0.0387
+      ],
+      "inside": [
+        0.0612,
+        0.0427,
+        0.0829
+      ]
+    },
+    "photoMedian": {
+      "cut": 0,
+      "partial": 0.069,
+      "partialSpine": 0.0556,
+      "touching": 0,
+      "boxesPerBand": [
+        0.9688,
+        0.9104,
+        1.0247
+      ],
+      "detectSeconds": [
+        7.48,
+        6.47,
+        10.92
+      ]
+    },
+    "vsBase": {
+      "uprightLong": [
+        1.0408,
+        1.0153,
+        1.1305
+      ],
+      "boxCount": [
+        0.8106,
+        0.7778,
+        0.8453
+      ],
+      "detectSeconds": [
+        1.4796,
+        1.4173,
+        1.5623
+      ]
+    }
+  },
+  "measure-yardstick-join": {
+    "set": "yardstick",
+    "arm": "join",
+    "photos": 40,
+    "boxCount": 1109,
+    "tiles": {
+      "total": 256,
+      "p50": 6,
+      "boxOnlyTotal": 0
+    },
+    "boxesPerPhotoP50": 24,
+    "pooled": {
+      "cut": [
+        0.0667,
+        0.0371,
+        0.0985
+      ],
+      "partial": [
+        0.2481,
+        0.1769,
+        0.3183
+      ],
+      "partialSpine": [
+        0.1827,
+        0.1266,
+        0.2455
+      ],
+      "touching": [
+        0.0231,
+        0.0115,
+        0.0374
+      ],
+      "inside": [
+        0.2326,
+        0.195,
+        0.2689
+      ]
+    },
+    "photoMedian": {
+      "cut": 0,
+      "partial": 0.1667,
+      "partialSpine": 0.1163,
+      "touching": 0,
+      "boxesPerBand": [
+        1.0081,
+        0.925,
+        1.1137
+      ],
+      "detectSeconds": [
+        5.31,
+        4.24,
+        7.98
+      ]
+    },
+    "vsBase": {
+      "uprightLong": [
+        1,
+        1,
+        1
+      ],
+      "boxCount": [
+        1,
+        1,
+        1
+      ],
+      "detectSeconds": [
+        1.0121,
+        1.0102,
+        1.0165
+      ]
+    }
+  },
+  "measure-yardstick-strips+extend": {
+    "set": "yardstick",
+    "arm": "strips+extend",
+    "photos": 40,
+    "boxCount": 872,
+    "tiles": {
+      "total": 256,
+      "p50": 6,
+      "boxOnlyTotal": 0
+    },
+    "boxesPerPhotoP50": 18,
+    "pooled": {
+      "cut": [
+        0.0321,
+        0.0131,
+        0.0524
+      ],
+      "partial": [
+        0.1735,
+        0.1072,
+        0.2373
+      ],
+      "partialSpine": [
+        0.1423,
+        0.0822,
+        0.2031
+      ],
+      "touching": [
+        0.0157,
+        0.0015,
+        0.0363
+      ],
+      "inside": [
+        0.0619,
+        0.043,
+        0.0841
+      ]
+    },
+    "photoMedian": {
+      "cut": 0,
+      "partial": 0.069,
+      "partialSpine": 0.0556,
+      "touching": 0,
+      "boxesPerBand": [
+        0.9688,
+        0.931,
+        1.046
+      ],
+      "detectSeconds": [
+        8.16,
+        6.84,
+        11.17
+      ]
+    },
+    "vsBase": {
+      "uprightLong": [
+        1.0408,
+        1.0153,
+        1.1305
+      ],
+      "boxCount": [
+        0.808,
+        0.7712,
+        0.8378
+      ],
+      "detectSeconds": [
+        1.5615,
+        1.4837,
+        1.6358
+      ]
+    }
+  },
+  "measure-yardstick-strips": {
+    "set": "yardstick",
+    "arm": "strips",
+    "photos": 40,
+    "boxCount": 1119,
+    "tiles": {
+      "total": 256,
+      "p50": 6,
+      "boxOnlyTotal": 0
+    },
+    "boxesPerPhotoP50": 25,
+    "pooled": {
+      "cut": [
+        0.0626,
+        0.0298,
+        0.1035
+      ],
+      "partial": [
+        0.2514,
+        0.186,
+        0.3162
+      ],
+      "partialSpine": [
+        0.1835,
+        0.1266,
+        0.2435
+      ],
+      "touching": [
+        0.0639,
+        0.031,
+        0.1099
+      ],
+      "inside": [
+        0.2297,
+        0.1932,
+        0.2631
+      ]
+    },
+    "photoMedian": {
+      "cut": 0,
+      "partial": 0.2,
+      "partialSpine": 0.1224,
+      "touching": 0,
+      "boxesPerBand": [
+        0.9915,
+        0.925,
+        1.1137
+      ],
+      "detectSeconds": [
+        5.12,
+        3.72,
+        7.21
+      ]
+    },
+    "vsBase": {
+      "uprightLong": [
+        1,
+        1,
+        1
+      ],
+      "boxCount": [
+        1,
+        1,
+        1
+      ],
+      "detectSeconds": [
+        1.0079,
+        1.0072,
+        1.0089
+      ]
+    }
+  },
+  "title-yardstick-extend": {
+    "set": "yardstick",
+    "titleArm": "extend",
+    "scope": "PROXY (library shelves): title recall and precision against the dataset's own labels",
+    "images": 40,
+    "base": {
+      "recall": 0.3691,
+      "precision": 0.9269,
+      "accepted": 269,
+      "spineBoxes": 1132
+    },
+    "arm": {
+      "recall": 0.3063,
+      "precision": 0.9217,
+      "accepted": 219,
+      "spineBoxes": 883
+    },
+    "delta": {
+      "recall": [
+        -0.0628,
+        -0.1038,
+        -0.0274
+      ],
+      "precision": [
+        -0.0053,
+        -0.0273,
+        0.0177
+      ]
+    }
+  },
+  "title-yardstick-strips": {
+    "set": "yardstick",
+    "titleArm": "strips",
+    "scope": "PROXY (library shelves): title recall and precision against the dataset's own labels",
+    "images": 40,
+    "base": {
+      "recall": 0.3691,
+      "precision": 0.9269,
+      "accepted": 269,
+      "spineBoxes": 1132
+    },
+    "arm": {
+      "recall": 0.3828,
+      "precision": 0.9225,
+      "accepted": 284,
+      "spineBoxes": 1119
+    },
+    "delta": {
+      "recall": [
+        0.0138,
+        -0.0016,
+        0.028
+      ],
+      "precision": [
+        -0.0044,
+        -0.0158,
+        0.0044
+      ]
+    }
+  }
+}

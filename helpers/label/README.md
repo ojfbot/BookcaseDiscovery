@@ -10,6 +10,7 @@ uv run python detect.py < images.jsonl > detections.jsonl          # {"id", "ima
 uv run python read.py --reader ppocr < requests.jsonl > out.jsonl   # ocr-request lines (contracts/helpers/)
 uv run python read.py --reader qwen  < requests.jsonl > out.jsonl
 uv run python outline.py < boxes.jsonl > outlines.jsonl            # F-0b: {"id", "image", "polygon"} per line
+uv run python imprint.py < requests.jsonl > out.jsonl              # F-0d: read.py's requests; publisher / imprint
 ```
 
 - `detect.py`: Grounding DINO base (`book spine.`) on overlapping tiles → SAM 2.1 base-plus masks → minimum-area
@@ -23,6 +24,9 @@ uv run python outline.py < boxes.jsonl > outlines.jsonl            # F-0b: {"id"
   minimum-area rectangle).
 - `render_f0b.py` (card F-0b): private before/after renders of crops; the runner writes them under the data root's
   `private/f0b/renders/`.
+- `imprint.py` (card F-0d): the imprint read, a separate Qwen3-VL-4B variant that cuts crops with `read.py`'s `crop`
+  and answers JSON (`title`, `author`, `imprint`, `imprint_from`: `text` or `logo`). `read.py` is unchanged, so F-0's
+  cached reads stay valid. `render_f0d.py`: the private review page under `private/f0d/renders/`.
 
 Weights are read from `$BOOKCASE_DATA/models/` and never fetched or committed. stderr carries progress only, never
 recognised text. `pyproject.toml` pins OpenCV to one version: paddlex and another dependency both install `cv2`.
