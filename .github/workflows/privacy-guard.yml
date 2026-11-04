@@ -38,4 +38,5 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - run: pnpm typecheck
+      - run: pnpm exec node scripts/check-fleet-vendor.mjs
       - run: pnpm exec vitest run test/fleet.test.ts test/jobs.test.ts
