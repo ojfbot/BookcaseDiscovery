@@ -19,6 +19,7 @@ import {
   buildLabelSet,
   decide,
   detectStage,
+  probeStage,
   loadReadings,
   machineAgreement,
   pyReaderStage,
@@ -37,6 +38,7 @@ import {
   type SpineDecision,
 } from "./f0.ts";
 import { kinds } from "./f0c.ts";
+import { evidenceOf, type BoxEvidence } from "./f0f.ts";
 import { LabelSet } from "./labels.ts";
 
 const REPO_ROOT = fileURLToPath(new URL("../../", import.meta.url));
@@ -44,13 +46,21 @@ const log = (s: string): void => console.error(`[f0] ${s}`);
 
 async function pipeline(images: InputImage[], db: DatabaseSync, dir: string, qwenCap: number, arm: Arm = "b2", tiling: Tiling = CASE_TILING) {
   const dets = await detectStage(images, dir, log, arm, tiling);
+  const probes = await probeStage(images, dir, log);
   // F-0c: boxes the not-a-book rules flag (shelf lips, rows of book ends, flat strips) are labelled so and never read.
-  const kindOf = notABook(dets);
-  const readable = new Set(images.flatMap((img) => (dets.get(img.id)?.spines ?? []).flatMap((_, i) => (kindOf(img.id, i).kind === "spine" ? [`${img.id}:${i}`] : []))));
+  const flat = notABook(dets);
+  const readable = new Set(images.flatMap((img) => (dets.get(img.id)?.spines ?? []).flatMap((_, i) => (flat(img.id, i).kind === "spine" ? [`${img.id}:${i}`] : []))));
   // Per-spine provenance (producer, readers, scores, catalog id or reason) is private: decisions.jsonl beside the stages.
   await visionStage(images, dets, dir, log, CROP, readable);
   log("ppocr: reading");
   await pyReaderStage("ppocr", images, dets, dir, log, readable);
+  // F-0f: shelf labels and cards (genre strips, shelf-talkers, blank cards), from what Vision and PP-OCR read and the
+  // pixel probe, are not-a-book too and never go to Qwen.
+  const ocr = loadReadings(dir, CROP);
+  const kindOf = notABook(dets, (imageId, ref) => {
+    const r = ocr.get(`${imageId}:${ref.slice(1)}`);
+    return r ? evidenceOf(r, probes.get(`${imageId}:${ref}`)) : undefined;
+  });
   const cache = new Map<string, Candidate | undefined>();
   const decideAll = (): SpineDecision[] => {
     const readings = loadReadings(dir, CROP);
@@ -66,7 +76,7 @@ async function pipeline(images: InputImage[], db: DatabaseSync, dir: string, qwe
   const hard = new Set<string>();
   for (const img of images) {
     first
-      .filter((d) => d.imageId === img.id && d.hard && readable.has(d.id) && Object.values(d.readText).some(Boolean))
+      .filter((d) => d.imageId === img.id && d.hard && kindOf(img.id, Number(d.id.slice(img.id.length + 1))).kind === "spine" && Object.values(d.readText).some(Boolean))
       .sort((a, b) => b.boxScore - a.boxScore)
       .slice(0, qwenCap)
       .forEach((d) => hard.add(d.id));
@@ -79,11 +89,12 @@ async function pipeline(images: InputImage[], db: DatabaseSync, dir: string, qwe
 }
 
 /**
- * Each box's kind under the shipped rules: the not-a-book flags (evals/F0c, kept by its no-harm rule). The cover
+ * Each box's kind under the shipped rules: the not-a-book flags (evals/F0c, kept by its no-harm rule) and, given a
+ * box's reader text and pixel probe, the shelf-label rules (evals/F0f, which removed no confirmed book). The cover
  * pass is off by default (it did not pass its keep rule), so no box is face-out here.
  */
-function notABook(dets: Map<string, Detection>) {
-  const by = new Map([...dets].map(([id, d]) => [id, kinds({ ...d, covers: [] }).spines]));
+function notABook(dets: Map<string, Detection>, evidence?: (imageId: string, ref: string) => BoxEvidence | undefined) {
+  const by = new Map([...dets].map(([id, d]) => [id, kinds({ ...d, covers: [] }, evidence && ((ref) => evidence(id, ref))).spines]));
   return (imageId: string, i: number) => by.get(imageId)?.[i] ?? { kind: "spine" as const, why: "spine" };
 }
 

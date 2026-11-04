@@ -4,6 +4,7 @@
 // functions over one Detection: no pixels, no readers. Runner: f0c-cli.ts. Measured in evals/F0c/report.md.
 import type { DetectedSpine, Detection } from "./f0.ts";
 import { contains, geometry, SPINE_HEIGHT_Q, UPRIGHT_DEG, type Geometry } from "./f0e.ts";
+import { labelWhy, type BoxEvidence, type LabelWhy } from "./f0f.ts";
 import type { Polygon4 } from "./labels.ts";
 
 /** Cover rules, fixed before the full run (evals/F0c/report.md, Pre-registration). */
@@ -48,7 +49,8 @@ export type KindWhy =
   | "flat-strip" // flat, short and thin
   | "cover-row" // holds two or more kept covers
   | "cover-shape" // a cover-pass box that is not cover-shaped or sized
-  | "cover-group"; // a cover-pass box that is a group of spines
+  | "cover-group" // a cover-pass box that is a group of spines
+  | LabelWhy; // F-0f: a shelf label or card (genre strip, shelf-talker, blank card), from its text or pixels
 
 export interface KindedBox {
   /** `s<i>`: index into `spines`; `c<j>`: index into `covers`. Spine ids stay their F-0 positions. */
@@ -130,8 +132,12 @@ function bandSpineHeights(det: Detection, geo: Geometry[]): (number | null)[] {
   return det.bands.map((b) => quantileOf(geo.filter((g) => g.tilt <= UPRIGHT_DEG && contains(b.polygon, g.cx, g.cy)).map((g) => g.long), SPINE_HEIGHT_Q));
 }
 
-/** Every box's kind. With no `covers` (cover pass off) only the not-a-book rules apply. */
-export function kinds(det: Detection): Kinds {
+/**
+ * Every box's kind. With no `covers` (cover pass off) only the not-a-book rules apply. With `evidence` (F-0f: a
+ * box's reader text and pixel probe, by ref) a shelf label or card is `not-a-book` whatever its shape; without it
+ * the kinds are F-0c's.
+ */
+export function kinds(det: Detection, evidence?: (ref: string) => BoxEvidence | undefined): Kinds {
   const spines = det.spines;
   const geo = spines.map((s) => geometry(s.polygon));
   const upright = geo.filter((g) => g.tilt <= UPRIGHT_DEG).map((g) => g.long);
@@ -155,12 +161,16 @@ export function kinds(det: Detection): Kinds {
     const a = area(c.polygon);
     const covered = spines.reduce((s, sp, i) => s + (intersectionArea(sp.polygon, c.polygon) > 0 && geo[i]!.tilt <= UPRIGHT_DEG ? intersectionArea(sp.polygon, c.polygon) : 0), 0);
     if (covered >= COVER.groupShare * a) return void dropped.push({ ...box, kind: "not-a-book", why: "cover-group" });
+    const label = evidence && labelWhy(c.polygon, evidence(box.ref));
+    if (label) return void dropped.push({ ...box, kind: "not-a-book", why: label });
     covers.push({ ...box, kind: "face-out", why: "cover" });
   });
 
   const bandH = bandSpineHeights(det, geo);
   const out: KindedBox[] = spines.map((s, i) => {
     const box = { ref: `s${i}`, polygon: s.polygon, boxScore: s.boxScore };
+    const label = evidence && labelWhy(s.polygon, evidence(box.ref));
+    if (label) return { ...box, kind: "not-a-book", why: label };
     // Part of a kept cover's book: the cover box stands for it.
     let best: { ref: string; share: number } | null = null;
     for (const c of covers) {
