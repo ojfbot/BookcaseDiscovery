@@ -20,6 +20,7 @@ export const LAYER_KINDS = [
   "partial-flag", // boxes much shorter than their band's spines
   "box-id", // raw box index
   "box-score", // detector box score
+  "top-face", // a book's visible top face, lit as a second, dimmer shape beside its spine (H-2)
   "coverage-fill", // capture coverage per spine: filled / patchy, object-shaped (Q-0 §3)
   "highlight", // object-shaped highlight on recognised spines
   "machine-guess", // the machine's title guess, along the spine
@@ -50,7 +51,7 @@ export const MODES: Record<DisplayModeId, DisplayMode> = {
   user: {
     id: "user",
     audience: "the shopper: object-shaped highlights and capture-coverage fill; no boxes, no numbers, no labels",
-    layers: ["scrim", "coverage-fill", "highlight"],
+    layers: ["scrim", "top-face", "coverage-fill", "highlight"],
   },
 };
 
@@ -66,6 +67,11 @@ export interface ShapeSpec {
   hull: boolean;
   /** Chaikin corner-cutting passes on the outline: more passes, softer and steadier edges. */
   smoothing: number;
+  /**
+   * Cut the outline back to the spine face where the depth stage trimmed the box (H-2: the box over-selects and the
+   * trim is feasible), so the light stops at the book's top edge instead of running onto its top or a cover.
+   */
+  face?: boolean;
 }
 
 /** One paint: what fills or edges a shape. `kind` picks a primitive; every number is a parameter. */
@@ -95,7 +101,8 @@ export type LayerStyle =
   | { kind: "machine-guess"; colour: string; sizePx: number; maxShare: number }
   | { kind: "rung-tag"; filledColour: string; patchyColour: string; sizePx: number }
   | { kind: "coverage-fill"; shape: ShapeSpec; filled: Paint; patchy: Paint }
-  | { kind: "highlight"; shape: ShapeSpec; minRung: Rung; paint: Paint };
+  | { kind: "highlight"; shape: ShapeSpec; minRung: Rung; paint: Paint }
+  | { kind: "top-face"; minState: "patchy" | "filled"; smoothing: number; paint: Paint };
 
 export interface DisplayVariant {
   id: string;
@@ -161,6 +168,23 @@ export const VARIANTS: DisplayVariant[] = [
         patchy: { kind: "stipple", colour: PAPER, opacity: 0.45, spacingPx: 7, markPx: 0.9 },
       },
       { kind: "highlight", shape: { source: "mask", hull: true, smoothing: 2 }, minRung: "confirmed", paint: { kind: "rim", colour: PAPER, opacity: 0, rimPx: 1.2, rimOpacity: 0.75, haloOpacity: 0.4 } },
+    ],
+  },
+  {
+    id: "user-glow-volume",
+    mode: "user",
+    name: "User · glow, volume",
+    intent: "user-glow cut back to each spine's face (H-2's trim), with the book's visible top face lit as a second, dimmer shape",
+    layers: [
+      { kind: "scrim", colour: INK, opacity: 0.34, liftFilled: true, liftFeatherPx: 6 },
+      { kind: "top-face", minState: "filled", smoothing: 1, paint: { kind: "glow", colour: PAPER, opacity: 0.2, blurPx: 3, rimPx: 0.5, rimOpacity: 0.16 } },
+      {
+        kind: "coverage-fill",
+        shape: { source: "mask", hull: true, smoothing: 2, face: true },
+        filled: { kind: "glow", colour: PAPER, opacity: 0.4, blurPx: 5, rimPx: 0.6, rimOpacity: 0.3, haloOpacity: 0.18 },
+        patchy: { kind: "stipple", colour: PAPER, opacity: 0.45, spacingPx: 7, markPx: 0.9 },
+      },
+      { kind: "highlight", shape: { source: "mask", hull: true, smoothing: 2, face: true }, minRung: "confirmed", paint: { kind: "rim", colour: PAPER, opacity: 0, rimPx: 1.2, rimOpacity: 0.75, haloOpacity: 0.4 } },
     ],
   },
   {
@@ -240,7 +264,7 @@ export function checkRegistry(variants: DisplayVariant[] = VARIANTS): string[] {
     for (const l of v.layers) {
       const ops = "opacity" in l ? [l.opacity] : [];
       if (l.kind === "coverage-fill") ops.push(l.filled.opacity, l.patchy.opacity);
-      if (l.kind === "highlight") ops.push(l.paint.opacity);
+      if (l.kind === "highlight" || l.kind === "top-face") ops.push(l.paint.opacity);
       for (const o of ops) if (!(o >= 0 && o <= 1)) out.push(`${v.id}: ${l.kind} opacity ${o} is outside 0..1`);
     }
   }

@@ -5,6 +5,8 @@
 //
 //   node src/eval/u4-cli.ts render --source f0b   # U-4 as first shipped, for before/after comparisons
 //
+//   node src/eval/u4-cli.ts render --faces FILE --out DIR   # H-2: spine faces and top faces from the depth stage
+//
 // Inputs, all cached, no model runs: F-0e's `bands+strips` boxes (one oriented box per spine, plus bands) and
 // the catalog for the labelling mode's guess. Shapes, rungs and guesses come from one of two sources:
 // - `q2b` (default): Q-2b's SAM 2.1 mask outline of each box itself (helpers/label/outline.py on these boxes),
@@ -34,7 +36,11 @@ import type { Rung } from "./q2.ts";
 const ROOT = dataRoot();
 const SET = "pilot-000";
 const ARM = "bands+strips";
-const OUT = join(ROOT, "private", "u4", "renders", SET);
+const flag = (name: string): string | undefined => (process.argv.includes(name) ? process.argv[process.argv.indexOf(name) + 1] : undefined);
+/** H-2's per-box face file (`private/h2/pilot-000/faces.jsonl`): each box's spine-face trim and visible top face. */
+const FACES = flag("--faces");
+const OUT = flag("--out") ?? join(ROOT, "private", "u4", "renders", SET);
+if (!OUT.startsWith(join(ROOT, "private"))) throw new Error("--out must be under the data root's private/");
 /** Long edge of the study's photos: enough to judge a highlight, light enough for 31 photos on one page. */
 const STUDY_EDGE = 2000;
 /** Detector tile size and step for the bands layout (helpers/label/detect.py band_tiles, F-0e). */
@@ -141,6 +147,9 @@ function loadScenes(): { scenes: { name: string; imageId: string; source: string
   const title = (id: string): string | null => (titleStmt.get(id) as { title: string } | undefined)?.title ?? null;
   // The shipped not-a-book rules: F-0c's shapes and F-0f's shelf labels (reader text and a cached pixel probe).
   const labelEvidence = SOURCE === "q2b" ? evidenceFor(SET) : new Map<string, Parameters<typeof kinds>[1]>();
+  const faces = new Map(
+    FACES ? readJsonl<{ id: string; face3d: Pt[] | null; topFace: Pt[] | null }>(FACES).map((r) => [r.id, r]) : [],
+  );
   const maskShares: number[] = [];
   const scenes = images.map((img, n) => {
     const d = f0e.get(img.id);
@@ -163,7 +172,8 @@ function loadScenes(): { scenes: { name: string; imageId: string; source: string
       const a = attached[i]!;
       if (!a.keep) return [];
       maskShares.push(a.maskShare);
-      return [{ index: i, quad: s.polygon, pieces: a.pieces, boxScore: s.boxScore, cut: s.cut, partial: partial[i]!, rung: a.rung, guess: a.guess }];
+      const f = faces.get(`${d.id}:${i}`);
+      return [{ index: i, quad: s.polygon, pieces: a.pieces, boxScore: s.boxScore, cut: s.cut, partial: partial[i]!, rung: a.rung, guess: a.guess, ...(f?.face3d ? { face: f.face3d } : {}), ...(f?.topFace ? { topFace: f.topFace } : {}) }];
     });
     return { name: `${SET}-${String(n + 1).padStart(2, "0")}`, imageId: img.id, source: img.image, scene: { width: d.width, height: d.height, spines, bands, tiles: approxTiles(d) } };
   });
@@ -235,7 +245,7 @@ interface PhotoRow {
   shaped: number;
 }
 
-function page(rows: PhotoRow[], px: ProxySummary[], counts: Record<string, number>): string {
+function page(rows: PhotoRow[], px: ProxySummary[], counts: Record<string, number | null>): string {
   const variants = VARIANTS.map((v) => ({ id: v.id, mode: v.mode, name: v.name, intent: v.intent, hash: variantHash(v) }));
   const pxRows = px.map((p) => `<tr><td>${esc(p.variant)}</td><td>${esc(p.source)}</td><td>${p.jaggedness}</td><td>${p.wobble}</td><td>${p.areaCv}</td></tr>`).join("");
   const photos = rows
@@ -248,7 +258,7 @@ function page(rows: PhotoRow[], px: ProxySummary[], counts: Record<string, numbe
     .join("\n");
   return `<!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>U-4 display modes · ${SET} (private)</title>
+<title>${FACES ? "H-2 volume glow" : "U-4 display modes"} · ${SET} (private)</title>
 <style>
 :root{--paper:#f2efe7;--card:#fcfbf6;--ink:#17140f;--ink2:#574f44;--ground:#1d1b17;--line:rgba(252,251,246,.14)}
 *{box-sizing:border-box}body{margin:0;background:var(--ground);color:var(--card);font:14px/1.45 "Helvetica Neue",Helvetica,Arial,sans-serif}
@@ -272,7 +282,7 @@ figcaption{position:absolute;left:8px;top:8px;font:600 11px/1 "JetBrains Mono",M
 body.single #lb{grid-template-columns:1fr}
 </style></head><body>
 <header>
-<h1>U-4 display modes <small>${SET} · private · ${rows.length} photos</small></h1>
+<h1>${FACES ? "H-2 volume glow" : "U-4 display modes"} <small>${SET} · private · ${rows.length} photos</small></h1>
 ${["a", "b"]
   .map(
     (s) => `<div class="side" data-side="${s}"><b>${s.toUpperCase()}</b><span class="seg" role="group">${Object.keys(MODES)
@@ -286,6 +296,7 @@ ${["a", "b"]
 </header>
 <main>
 <div class="notes">
+${FACES ? `<p><b>H-2.</b> <code>user-glow-volume</code> cuts the glow back to each spine's face where MoGe-2's normals trimmed the box (${counts.facePct}% of spines), and lights the book's visible top face as a second, dimmer shape (${counts.topFacePct}% of spines, on read ones only). Compare it with <code>user-glow</code> (A). The owner judges it (exit d).</p>` : ""}
 <p><b>What this is.</b> Every photo drawn in each display variant (registry: <code>src/report/display-modes.ts</code>). Choose a mode and variant for A and B; click a photo to see it large. Lenses are not shown: this is the All lens, and any lens works inside any mode.</p>
 <p><b>Boxes</b> are F-0e's <code>${ARM}</code> run (one box per spine)${SOURCE === "q2b" ? ", without not-a-book boxes (F-0c shapes, F-0f shelf labels)" : ""}. <b>Object shapes</b> are ${SOURCE === "q2b" ? "SAM 2.1 mask outlines of each box itself (Q-2b), clipped to the box" : "F-0b's SAM mask outlines, which were measured on F-0's boxes; each is attached to the F-0e box holding most of it and clipped to that box"}. A box that ${SOURCE === "q2b" ? "its outline covers" : "the outlines cover"} less than 60 % of is drawn as its box (${counts.shapedPct}% of boxes are mask-shaped). <b>Coverage is per spine, not per segment.</b> Q-0's coverage segments are not built yet (Q-3). ${SOURCE === "q2b" ? "Each spine takes its own Q-2b teacher rung." : "Each spine takes the highest Q-2 rung of the F-0 boxes attached to it; a spine with none stays <code>spine-found</code> (patchy)."} Filled means <code>text-read</code> or above: ${counts.filledPct}% of spines. Tile edges in dev mode are rebuilt from the returned bands, so they are approximate. Rungs are machine agreement, not accuracy.</p>
 <table><thead><tr><th>variant</th><th>outline drawn</th><th>jaggedness p90</th><th>perturbation wobble</th><th>area CV</th></tr></thead><tbody>${pxRows}</tbody></table>
@@ -296,8 +307,8 @@ ${photos}
 <div id="lb"></div>
 <script>
 const V=${JSON.stringify(variants)};
-const state={a:"user-glow",b:"user-veil"};
-try{const s=JSON.parse(localStorage.getItem("u4")||"{}");if(V.some(v=>v.id===s.a))state.a=s.a;if(V.some(v=>v.id===s.b))state.b=s.b}catch(e){}
+const state={a:"user-glow",b:"${FACES ? "user-glow-volume" : "user-veil"}"};const KEY="${FACES ? "u4-h2" : "u4"}";
+try{const s=JSON.parse(localStorage.getItem(KEY)||"{}");if(V.some(v=>v.id===s.a))state.a=s.a;if(V.some(v=>v.id===s.b))state.b=s.b}catch(e){}
 const modeOf=id=>V.find(v=>v.id===id).mode;
 function sync(){
   for(const s of ["a","b"]){
@@ -307,7 +318,7 @@ function sync(){
     const v=V.find(x=>x.id===state[s]);sel.title=v.intent+" · "+v.hash;
     document.querySelectorAll('.panel[data-side="'+s+'"]').forEach(p=>{const n=p.closest(".photo").dataset.name;p.querySelector(".ov").src="overlays/"+n+"-"+state[s]+".svg";p.querySelector("figcaption").textContent=s.toUpperCase()+" · "+v.name});
   }
-  try{localStorage.setItem("u4",JSON.stringify(state))}catch(e){}
+  try{localStorage.setItem(KEY,JSON.stringify(state))}catch(e){}
 }
 document.querySelectorAll(".side").forEach(box=>{const s=box.dataset.side;
   box.querySelectorAll("button").forEach(b=>b.onclick=()=>{state[s]=V.find(v=>v.mode===b.dataset.mode).id;sync()});
@@ -356,7 +367,12 @@ function render(): void {
   for (const r of rows) r.scene = r.luma >= mid ? "bright" : "dim";
   const all = scenes.flatMap((s) => s.scene.spines);
   const pct = (n: number) => Math.round((1000 * n) / all.length) / 10;
-  const counts = { shapedPct: pct(all.filter((x) => x.pieces.length).length), filledPct: pct(all.filter((x) => coverageState(x.rung) === "filled").length) };
+  const counts = {
+    shapedPct: pct(all.filter((x) => x.pieces.length).length),
+    filledPct: pct(all.filter((x) => coverageState(x.rung) === "filled").length),
+    facePct: FACES ? pct(all.filter((x) => x.face).length) : null,
+    topFacePct: FACES ? pct(all.filter((x) => x.topFace).length) : null,
+  };
   const px = proxies(scenes.map((s) => s.scene));
   writeFileSync(join(OUT, "index.html"), page(rows, px, counts));
   const rungShare: Record<string, number> = {};
@@ -367,6 +383,7 @@ function render(): void {
     spines: all.length,
     maskShaped: counts.shapedPct,
     maskShareP50: Math.round(median(maskShares) * 100) / 100,
+    ...(FACES ? { faceShaped: counts.facePct, topFace: counts.topFacePct } : {}),
     filled: counts.filledPct,
     rungs: Object.fromEntries(Object.entries(rungShare).map(([k, n]) => [k, pct(n)])),
     variants: VARIANTS.map((v) => ({ id: v.id, hash: variantHash(v) })),
@@ -374,12 +391,12 @@ function render(): void {
   };
   writeFileSync(join(OUT, "summary.json"), `${JSON.stringify(summary, null, 2)}\n`);
   console.log(JSON.stringify(summary, null, 2));
-  log(`wrote the study page under the data root (private/u4/renders/${SET}/index.html)`);
+  log(`wrote the study page under the data root's ${OUT.slice(ROOT.length + 1)}/index.html`);
 }
 
 const cmd = process.argv[2];
 if (cmd === "render") render();
 else {
-  console.error("usage: node src/eval/u4-cli.ts render [--source q2b|f0b]");
+  console.error("usage: node src/eval/u4-cli.ts render [--source q2b|f0b] [--faces FILE --out DIR]");
   process.exit(2);
 }

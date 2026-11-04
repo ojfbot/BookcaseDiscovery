@@ -186,7 +186,7 @@ function asVariant<S extends Detection["spines"][number]>(v: Variant, s: S): S {
   return v.remask && s.outline ? { ...s, polygon: rectQuad(minAreaRect(s.outline)) as S["polygon"] } : s;
 }
 
-const firstPassHard = (d: SpineDecision) => d.hard && Boolean(d.readText.vision || d.readText.ppocr);
+export const firstPassHard = (d: SpineDecision) => d.hard && Boolean(d.readText.vision || d.readText.ppocr);
 
 async function run(set: SetName, variant: string): Promise<void> {
   const v = VARIANTS[variant];
@@ -240,7 +240,7 @@ async function run(set: SetName, variant: string): Promise<void> {
 
 // --- analysis --------------------------------------------------------------------------------------------
 
-interface Pair {
+export interface Pair {
   id: string;
   imageId: string;
   before: Outcome;
@@ -252,7 +252,7 @@ const confirmed = (o: Outcome) => o === "confirmed";
 const wrong = (o: Outcome) => o === "rejected/wrong";
 
 /** Paired change in a share over the same boxes, with a 95 % photo-cluster bootstrap interval, in points. */
-function delta(rows: Pair[], pred: (o: Outcome) => boolean, seed: number) {
+export function delta(rows: Pair[], pred: (o: Outcome) => boolean, seed: number) {
   const share = (rs: Pair[], k: "before" | "after") => (rs.length ? rs.filter((r) => pred(r[k])).length / rs.length : null);
   const b = clusterBootstrap(rows, (rs) => share(rs, "before"), REPS, seed);
   const a = clusterBootstrap(rows, (rs) => share(rs, "after"), REPS, seed);
@@ -262,7 +262,7 @@ function delta(rows: Pair[], pred: (o: Outcome) => boolean, seed: number) {
 }
 
 /** Reader calls (one crop at one rotation) and summed reader seconds over a set of boxes. */
-function cost(readings: Map<string, Partial<Record<ReaderName, Reading>>>, ids: Iterable<string>, qwenUsed: (id: string) => boolean) {
+export function cost(readings: Map<string, Partial<Record<ReaderName, Reading>>>, ids: Iterable<string>, qwenUsed: (id: string) => boolean) {
   const out: Record<string, { calls: number; seconds: number }> = {};
   for (const reader of ["vision", "ppocr", "qwen"] as ReaderName[]) {
     let calls = 0, seconds = 0;

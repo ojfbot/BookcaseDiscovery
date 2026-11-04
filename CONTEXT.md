@@ -25,6 +25,18 @@ The record shapes these words name are in `contracts/` and explained in `docs/co
 - **Over-selection** — (H-1) a box that takes in more than its spine face: its top, under, cover and behind pixels make up at least 15 % of it. Most common below eye level, where a box runs onto the book's top.
 - **Spine-face trim** — (H-1) the minimum-area rectangle of a box's largest connected spine-face region: the box cut back to the spine face. *Feasible* when it holds most of the face, is mostly face and keeps at least half the box's length.
 - **Book cuboid** — (H-1) one book's 3D volume: its spine face as a rectangle in the band's frame, plus a depth into the shelf seen on its own top or cover (or borrowed from its band), projected back into the photo.
+- **Depth stage** — (H-2) MoGe-2 geometry per photo plus the face split per box (`helpers/depth/stage.py`), each
+  cached under keys that name the model revision, the code and the inputs (INV-14), so a re-run is a cache hit and
+  later cards (S-1) reuse the same point maps, normals and face shares.
+- **Face share** — (H-2) the share of a box's measured pixels in each class of its face split (`front`, `edge`,
+  `top`, `under`, `cover`, `behind`; they sum to 1). Recorded per box in a private file; a field on the per-spine
+  record is a proposal for a contract card (`docs/models/3d-volumes.md` §8).
+- **`face3d` crop** — (H-2) the crop method `face3d;rot=fixed;clip=frame`: a box that over-selects and has a
+  feasible spine-face trim is read through that trim instead of its rectangle. Off by default until it passes
+  F-0b's keep rule (`evals/H2`).
+- **Top-face layer** — (H-2) the overlay layer that lights a book's top face where the camera sees it (its cuboid's
+  top, the camera above it, depth not a default), as a second, dimmer shape beside the spine: the "volume" in
+  `user-glow-volume`.
 - **Ordinal** — a spine's position on its shelf, counted from the left, from 0.
 - **Physical copy** — one book on the shelf. Two copies of the same work are two observations with the same identity; never collapsed (INV-4).
 - **Copy group** — (F-0g) a run of neighbouring spines on one shelf that look the same (one size, an appearance score at the calibrated threshold; `visuallySame` in `src/eval/f0g.ts`) and whose reads pass the series guard: copies of one edition or one look. Every copy stays its own observation (INV-4). A hardback and a paperback of one work are two groups, counted together only at the work level (copies of a work on a shelf).
@@ -152,7 +164,7 @@ These are kept apart on purpose: raw evidence is stored separately from interpre
 - **Top seam** — where a detected spine's top edge actually sits against its box's top end, measured from pixels as the strongest colour step across the spine. A box that *overshoots* runs past the top edge onto the top face or the shelf, and a box that *cuts* stops short of it (Q-2, `helpers/coverage/geometry.py`).
 - **Display mode** — who the glass is for, and so which overlay layers it may draw (U-4, `docs/capture/display-modes.md`): `dev` (boxes, ids, scores, bands, tiles, cut and partial flags), `labelling` (hairline boxes, the machine's guess and its rung) and `user` (object-shaped highlights and capture-coverage fill; no boxes, numbers or labels). *Orthogonal to the overlay lens*: the lens chooses which spines a highlight means, the display mode how glass draws them, and any lens works in any mode.
 - **Display variant** — one named style of a display mode (`user-glow`, `user-veil`, `user-ridge`, …), all data: the layers it draws and every style number. A blue/green **arm** is a variant's id plus its parameter hash, so a retuned variant is a new arm (proposal, U-4).
-- **Overlay layer** — one drawable kind on glass (scrim, box, band line, tile edge, cut flag, partial flag, box id, box score, machine guess, rung tag, coverage fill, highlight). A display mode whitelists layers; a display variant lists and styles them.
+- **Overlay layer** — one drawable kind on glass (scrim, box, band line, tile edge, cut flag, partial flag, box id, box score, machine guess, rung tag, top face, coverage fill, highlight). A display mode whitelists layers; a display variant lists and styles them.
 - **Feel metric** — a smoothness measure reported per display variant: live ones (flicker rate, edge wobble, time to fill, uncaused downgrades, target 0) measured by Q-6, and still proxies (outline jaggedness, perturbation wobble, area stability) computed on photos (U-4).
 
 ## Evidence, fixtures and honesty

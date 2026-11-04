@@ -29,7 +29,10 @@ rectangle's pixels inside the box are at least 85 % front or edge, and its long 
 (side p3–p97, up p2–p98, at the median offset). Its depth into the shelf comes from top or cover pixels of the same
 book, searched in the box and 25 % of its length past its top end, within the face's side extent: the face offset
 minus their 10th-percentile offset, when at least 10 such pixels give 3–35 cm (``seen``); else the band's median
-seen depth (``band``); else 20 cm (``default``). The 8 corners are projected with MoGe's intrinsics.
+seen depth (``band``); else 20 cm (``default``). The 8 corners are projected with MoGe's intrinsics: the front
+face, then the back, each as (side, up) = (lo, lo), (hi, lo), (hi, hi), (lo, hi) in the band frame.
+``topVisible`` says the camera is above the cuboid's top face (corners 3, 2, 6, 7), so a drawn volume can light it
+(H-2).
 
 Writes one JSON line per box, then one per photo (``photo: true``: band frames and seconds), to stdout. Private:
 they hold positions in private photos. stderr carries progress only.
@@ -335,6 +338,8 @@ def run_photo(rec: dict, z: dict) -> tuple[list[dict], dict, np.ndarray]:
             del row["cuboid"]
             continue
         cb["corners"] = project(corners, K, W, H, scale)
+        # The top face (front top edge, then the back one) faces the camera when the camera is above its plane.
+        cb["topVisible"] = bool(u @ corners[[3, 2, 6, 7]].mean(axis=0) < 0)
         cb["depthM"] = round(float(d), 4)
         for k in ("side", "up"):
             cb[k] = [round(v, 4) for v in cb[k]]
