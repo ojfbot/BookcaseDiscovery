@@ -9,6 +9,7 @@ import { join } from "node:path";
 import { createInterface } from "node:readline";
 import { fileURLToPath } from "node:url";
 import type { DatabaseSync } from "node:sqlite";
+import { guardCheck, LOOKALIKE, type GuardArm, type LookalikeGuard } from "../catalog/lookalike.ts";
 import { retrieve, type Candidate } from "../catalog/retrieve.ts";
 import { cropFor, cropName, F0_CROP, type CropMethod } from "../perceive/crop.ts";
 import { OcrHelperError, runOcr, type OcrRequest, type OcrResponse } from "../perceive/ocr.ts";
@@ -116,6 +117,8 @@ export interface SpineDecision {
   agreeing: ReaderName[];
   reason: UnknownReason | null;
   hard: boolean;
+  /** C-6: readers whose confirmation the lookalike guard withdrew, and the arm that did (absent without a guard). */
+  lookalike?: Partial<Record<ReaderName, GuardArm>>;
 }
 
 // --- stage plumbing ---------------------------------------------------------------------------
@@ -384,7 +387,56 @@ export function topFor(db: DatabaseSync, r: Reading | undefined, cache: Map<stri
   return cache.get(key);
 }
 
-/** Decide one spine from whatever readers have read it. */
+/** C-6: the lookalike guard in force and the readers' ranked candidates it reads, cached by variants like `topFor`. */
+export interface DecideGuard {
+  guard: LookalikeGuard;
+  ranked: Map<string, Candidate[]>;
+}
+
+/** One reader's ranked candidates, as deep as the lookalike guard looks; the first is `topFor`'s candidate. */
+export function rankedFor(db: DatabaseSync, r: Reading | undefined, cache: Map<string, Candidate[]>): Candidate[] {
+  const variants = variantsOf(r);
+  if (variants.length === 0) return [];
+  const key = variants.join("\u0000");
+  if (!cache.has(key)) cache.set(key, retrieve(db, variants, LOOKALIKE.depth));
+  return cache.get(key)!;
+}
+
+/** What each reader said about one spine: read any text, its top candidate, and the work it confirms (if any). */
+export interface ReaderVotes {
+  readText: SpineDecision["readText"];
+  top: SpineDecision["top"];
+  confirmed: SpineDecision["confirmed"];
+}
+
+/** F-0's vote: two readers confirming one work, uniquely, accept it; otherwise the reason it stays unknown. */
+export function vote(v: ReaderVotes): Pick<SpineDecision, "agreeing" | "reason" | "hard"> & { acceptedId: string | null } {
+  const votes = new Map<string, ReaderName[]>();
+  for (const [reader, w] of Object.entries(v.confirmed) as [ReaderName, string | null][]) {
+    if (w) votes.set(w, [...(votes.get(w) ?? []), reader]);
+  }
+  const ranked = [...votes.entries()].sort((a, b) => b[1].length - a[1].length);
+  const best = ranked[0];
+  const unique = best && (ranked.length === 1 || ranked[1]![1].length < best[1].length);
+  let acceptedId: string | null = null;
+  let agreeing: ReaderName[] = [];
+  let reason: UnknownReason | null = null;
+  if (best && best[1].length >= ACCEPT.minReaders && unique) {
+    acceptedId = best[0];
+    agreeing = best[1];
+  } else if (!Object.values(v.readText).some(Boolean)) reason = "no-text";
+  else if (votes.size === 0) reason = "no-catalog-match";
+  else if (votes.size > 1) reason = "readers-disagree";
+  else reason = "single-reader";
+  // Hard crop (OC10 rule, served by the local VLM): the two OCR readers have not settled it.
+  const hard = !(v.confirmed.vision && v.confirmed.vision === v.confirmed.ppocr);
+  return { acceptedId, agreeing, reason, hard };
+}
+
+/**
+ * Decide one spine from whatever readers have read it. With `guard` (C-6), a reader confirms its top candidate only
+ * when it also passes the lookalike guard on that reader's ranked candidates; the vote is unchanged.
+ */
 export function decide(
   db: DatabaseSync,
   id: string,
@@ -392,39 +444,27 @@ export function decide(
   boxScore: number,
   reads: Partial<Record<ReaderName, Reading>>,
   cache: Map<string, Candidate | undefined>,
+  guard?: DecideGuard,
 ): SpineDecision {
-  const confirmed: SpineDecision["confirmed"] = {};
-  const top: SpineDecision["top"] = {};
-  const readText: SpineDecision["readText"] = {};
+  const v: ReaderVotes = { readText: {}, top: {}, confirmed: {} };
   const cands = new Map<string, Candidate>();
+  const lookalike: Partial<Record<ReaderName, GuardArm>> = {};
   for (const reader of READERS) {
     if (!reads[reader]) continue;
-    readText[reader] = variantsOf(reads[reader]).length > 0;
-    const c = topFor(db, reads[reader], cache);
-    top[reader] = c?.workId ?? null;
-    confirmed[reader] = confirms(c) ? c!.workId : null;
-    if (c && confirms(c) && !cands.has(c.workId)) cands.set(c.workId, c);
+    v.readText[reader] = variantsOf(reads[reader]).length > 0;
+    const ranked = guard ? rankedFor(db, reads[reader], guard.ranked) : null;
+    const c = ranked ? ranked[0] : topFor(db, reads[reader], cache);
+    v.top[reader] = c?.workId ?? null;
+    let ok = confirms(c);
+    if (ok && guard) {
+      const why = guardCheck(guard.guard, c!, ranked!);
+      if (why) (lookalike[reader] = why), (ok = false);
+    }
+    v.confirmed[reader] = ok ? c!.workId : null;
+    if (ok && !cands.has(c!.workId)) cands.set(c!.workId, c!);
   }
-  const votes = new Map<string, ReaderName[]>();
-  for (const [reader, w] of Object.entries(confirmed) as [ReaderName, string | null][]) {
-    if (w) votes.set(w, [...(votes.get(w) ?? []), reader]);
-  }
-  const ranked = [...votes.entries()].sort((a, b) => b[1].length - a[1].length);
-  const best = ranked[0];
-  const unique = best && (ranked.length === 1 || ranked[1]![1].length < best[1].length);
-  let accepted: Candidate | null = null;
-  let agreeing: ReaderName[] = [];
-  let reason: UnknownReason | null = null;
-  if (best && best[1].length >= ACCEPT.minReaders && unique) {
-    accepted = cands.get(best[0])!;
-    agreeing = best[1];
-  } else if (!Object.values(readText).some(Boolean)) reason = "no-text";
-  else if (votes.size === 0) reason = "no-catalog-match";
-  else if (votes.size > 1) reason = "readers-disagree";
-  else reason = "single-reader";
-  // Hard crop (OC10 rule, served by the local VLM): the two OCR readers have not settled it.
-  const hard = !(confirmed.vision && confirmed.vision === confirmed.ppocr);
-  return { id, imageId, boxScore, confirmed, top, readText, accepted, agreeing, reason, hard };
+  const { acceptedId, agreeing, reason, hard } = vote(v);
+  return { id, imageId, boxScore, confirmed: v.confirmed, top: v.top, readText: v.readText, accepted: acceptedId ? cands.get(acceptedId)! : null, agreeing, reason, hard, ...(guard ? { lookalike } : {}) };
 }
 
 // --- labels -----------------------------------------------------------------------------------

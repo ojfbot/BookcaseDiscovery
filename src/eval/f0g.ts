@@ -3,7 +3,7 @@
 // evidence for an unconfirmed one (`confirmed-by-copy`), never a bypass of its own reads and never a merge: every
 // copy stays its own observation (INV-4). Pure functions over cached detections, decisions and reader tops; the
 // runner is f0g-cli.ts. Only aggregates leave $BOOKCASE_DATA (evals/F0g/). Spec: docs/machine-labelling.md.
-import { normalize, tokenize } from "../catalog/normalize.ts";
+import { sameAuthor, sameWork } from "../catalog/lookalike.ts";
 import { ACCEPT, type Detection, type ReaderName } from "./f0.ts";
 import { boxRows, median } from "./f0e.ts";
 import { predictLogistic, type Logistic } from "./q1.ts";
@@ -152,22 +152,8 @@ export type Fit = (spineId: string, reader: ReaderName, workId: string) => { sco
 
 export type GuardReason = "accepted-differ" | "reader-confirms-other" | "reads-other-title" | "reads-differ" | "imprint-differs";
 
-const titleKey = (t: string): string => tokenize(normalize(t)).join(" ");
-const surnames = (authors: string[]): Set<string> => new Set(authors.map((a) => tokenize(normalize(a)).at(-1) ?? "").filter(Boolean));
-
-/** The same work: one id, or the same normalised title by a shared surname (the catalog holds some works twice). */
-export function sameWork(a: WorkRef, b: WorkRef): boolean {
-  if (a.workId === b.workId) return true;
-  if (titleKey(a.title) !== titleKey(b.title)) return false;
-  const sb = surnames(b.authors);
-  return [...surnames(a.authors)].some((s) => sb.has(s));
-}
-
-/** Two works by a shared author (surname): a series run in matching jackets is the case the guard is for. */
-export function sameAuthor(a: WorkRef, b: WorkRef): boolean {
-  const sb = surnames(b.authors);
-  return [...surnames(a.authors)].some((s) => sb.has(s));
-}
+// The same-work and same-author tests are shared with C-6's lookalike guard (src/catalog/lookalike.ts).
+export { sameAuthor, sameWork };
 
 /**
  * Does spine `y`'s own evidence contradict work `w`? It does when F-0 accepted another work for it; when one of its
