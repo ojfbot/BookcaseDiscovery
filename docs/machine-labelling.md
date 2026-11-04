@@ -280,3 +280,30 @@ node src/eval/q3-cli.ts render          # the data root's private/q3/renders/ind
   The last four tie within their intervals.
 - **A baseline.** The box set changes with F-0m, F-0k and NB-3. Re-run `audit` and `analyse` on each new box set;
   never carry the figures over. Per-book records are private, under the data root's `private/q3/<set>/`.
+
+## Reader error overlap (TS-1)
+
+TS-0 (ledger export) and TS-2 (distilled reader) will train on labels that pass agreement and the catalog check.
+TS-1 asks whether two of three readers agreeing deserves that trust: agreement is good evidence only when the readers'
+errors are uncorrelated. It is an audit: CPU only, from cached readings, and it changes no decision. Code:
+`src/eval/ts1.ts` (pair statistics, third-reader outcomes, title rarity, the recommendation rule; pure) and
+`src/eval/ts1-cli.ts` (runner). Results: [`evals/TS1/report.md`](../evals/TS1/report.md).
+
+```
+node src/eval/ts1-cli.ts boxes pilot-000   # one record per kept box (also: yardstick); private, under private/ts1/<set>/
+node src/eval/ts1-cli.ts analyse           # evals/TS1/ (aggregates only)
+```
+
+- **Routing shapes what can be measured.** Qwen reads only hard crops (Vision and PP-OCR not agreed), so a
+  Vision+PP-OCR label never has a third reader, all three readers never agree, and every Qwen figure is conditional on
+  the OCR pair having failed. On `pilot-000`'s reference set (catalog-confirmed books) each pair holds a reader that set
+  the reference, so P(both wrong) is 0 by construction. The joint-error measures are taken on the yardstick, and
+  `pilot-000` gets **third-reader dissent** (the reader outside a two-reader label confirms another work).
+- **Measured.** On the yardstick, when two readers are both wrong they name the same wrong work every time:
+  Vision–PP-OCR lift 36.7 (21.2 to 74.9) over independence, phi 0.62. The overlap is the catalog step the readers share:
+  labels on a shared or one-word title are 38 % wrong, labels on a distinctive title 3.9 % (1.1–7.4), whichever pair
+  agreed. Qwen's confirmations are no worse than Vision's on the same crops; half of Vision+Qwen's apparent excess is
+  one book under two inventory records. On `pilot-000`, 9–10 % of Qwen+OCR labels have the other OCR reader dissenting.
+- **Recommendation** (not implemented): no agreeing pair is strong on its own. Train on two-reader labels with a
+  distinctive title and no dissent; hold shared-title labels out unless C-7's namesake test or an author read supports
+  them; exclude dissented labels. A second OCR engine adds coverage, not an independent check on the catalog.

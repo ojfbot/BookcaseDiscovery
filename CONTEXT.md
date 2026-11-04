@@ -244,6 +244,11 @@ These are kept apart on purpose: raw evidence is stored separately from interpre
 - **Spine piece** — a detector box holding only part of one spine: cut by a tile edge, or a part-of-spine detection (a label block, a colour band) inside or stacked on the rest. Whole-spine boxes have none (F-0e). Not a *fragment*, which is a piece of OCR text.
 - **Yardstick** — something the labelling stack didn't produce, used to score it (OC36): a public labelled spine dataset (PROXY; local only, never committed, never trained on), the catalog, and optional yes/no taps.
 - **Machine agreement** — how often independent readers and the catalog agree on a spine. Reported for real-use sets that have no taps; never called accuracy (INV-17).
+- **Hard crop** — (F-0) a spine on which Vision and PP-OCR have not confirmed the same work; only hard crops go to Qwen (capped per photo), so a Vision+PP-OCR label never has a third reader and all three readers never agree.
+- **Wrong confirmation** — (TS-1) a reader's top candidate that passes F-0's bar but is not the book (on the yardstick: not annotated in the image). The error that can become a wrong training label.
+- **Error overlap** — (TS-1) how much two readers' wrong confirmations co-occur beyond independence: lift (P(both) over P(A)·P(B)), phi and Yule's Q, and how often a joint error names the same wrong work.
+- **Third-reader dissent** — (TS-1) on a two-reader label, the reader outside the agreement confirming a different work. The label-free proxy, on real-use sets, for two readers agreeing on the same wrong work.
+- **Shared title** / **distinctive title** — (TS-1) a label's work is *shared* when more than one catalog work holds its own main title form, or the title is one word; otherwise *distinctive*. A cheap proxy for namesake risk, counted in C-7's statistics sidecar.
 - **Hypothesis (claim)** — in docs, a number or fact not yet measured is marked *hypothesis* (INV-17). Not to be confused with the identity hypothesis above.
 - **Gate** — an owner decision point, `G-*`. The conductor writes a packet; the owner rules; a gate is never closed silently.
 - **Task card** — one unit of delivery work in `DELIVERY-PLAN.md`, ending in a PR.
