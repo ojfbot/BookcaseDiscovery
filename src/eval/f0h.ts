@@ -396,11 +396,31 @@ export function misfiles(keys: readonly string[]): number[] {
 
 // --- shelf strips --------------------------------------------------------------------------------------------
 
+/**
+ * What F-0h knows of a row from its signage: the ordering rule, the genre or section, the letter range, and where
+ * that came from. F-0h reads only `ordering` (it weights hypotheses in a bracket, never a confirmation); the rest is
+ * recorded. Today's only source is F-0f's `shelf-strip` boxes; a dedicated shelf-context layer (SC-1: section signs,
+ * letter tabs, end caps) can supply rows through the same record without touching the logic that reads it.
+ */
+export interface RowContext {
+  ordering: "author-alphabetical" | null;
+  genre: string | null;
+  letterRange: [string, string] | null;
+  source: "f0f-shelf-strip" | (string & {});
+}
+
 /** What a shelf strip's text says: a store section, and whether it states an ordering (alphabetical by author). */
 export function stripCue(texts: readonly string[]): { strip: boolean; ordering: boolean } {
   const section = texts.some((t) => LABEL.strip[0]!.test(t));
   const ordering = texts.some((t) => LABEL.strip[1]!.test(t));
   return { strip: section || ordering, ordering };
+}
+
+/** A strip's row context: its ordering, and its section wording kept as the genre (null when it names none). */
+export function stripContext(texts: readonly string[]): RowContext {
+  const cue = stripCue(texts);
+  const section = texts.map((t) => t.match(/[\p{L} ]*fiction\s*[/|Il1]\s*[fp]an\p{L}*/iu)?.[0]?.trim() ?? null).find(Boolean) ?? null;
+  return { ordering: cue.ordering ? "author-alphabetical" : null, genre: section, letterRange: null, source: "f0f-shelf-strip" };
 }
 
 /** Does a strip (its axis-aligned extent) label a row: its top just below the row's bottom, overlapping in x? */
