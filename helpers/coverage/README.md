@@ -2,7 +2,8 @@
 
 Python (`uv`, its own `.venv`: numpy and the same pinned OpenCV as `helpers/label`) for the capture-quality cards.
 Q-1's runner is `src/eval/q1-cli.ts` ([`evals/Q1/report.md`](../../evals/Q1/report.md)); Q-2's is `src/eval/q2-cli.ts`
-([`evals/Q2/report.md`](../../evals/Q2/report.md)).
+([`evals/Q2/report.md`](../../evals/Q2/report.md)), and Q-2b's, the same analysis on the current default boxes, is
+`src/eval/q2b-cli.ts` ([`evals/Q2b/report.md`](../../evals/Q2b/report.md)).
 
 ```
 uv sync
