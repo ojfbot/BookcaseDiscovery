@@ -244,6 +244,17 @@ export async function detectStage(images: InputImage[], dir: string, log: (s: st
   return new Map(readJsonl<Detection>(out).filter((d) => !d.error).map((d) => [d.id, d]));
 }
 
+/**
+ * F-0f: the pixel probe of every box (helpers/label/probe.py: white share, edge share), which the blank-card rule
+ * reads (`labelWhy` in f0f.ts). Cached as probe.jsonl beside the detections, keyed `<image>:s<i>` / `<image>:c<j>`.
+ */
+export async function probeStage(images: InputImage[], dir: string, log: (s: string) => void): Promise<Map<string, { white: number; edges: number }>> {
+  const out = join(dir, "probe.jsonl");
+  const done = new Set(readJsonl<{ id: string }>(out).map((r) => r.id.slice(0, r.id.lastIndexOf(":"))));
+  await runHelper("probe.py", ["--detect", join(dir, "detect.jsonl")], images.filter((i) => !done.has(i.id)).map((i) => ({ id: i.id, image: i.path })), out, log);
+  return new Map(readJsonl<{ id: string; white: number; edges: number }>(out).map((r) => [r.id, r]));
+}
+
 /** One reader request per spine, cut by `method`; a spine with nothing inside the frame is not read. */
 export function spineRequests(images: InputImage[], dets: Map<string, Detection>, method: CropMethod, only?: Set<string>) {
   return images.flatMap((img) => {
