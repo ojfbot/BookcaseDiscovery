@@ -7,14 +7,19 @@
 // it returns what the catalog holds that the fragments could mean, with scores that say how well, and
 // the caller (I-1) appends `unknown`. A weak candidate has a low score; nothing here applies a threshold.
 //
-// Two stages. (1) Candidate generation: FTS5 trigram queries over title, author and series forms, using
-// the OCR tokens, their halves (so one wrong character in a long word still leaves a hit), 0/O-style
-// readings and adjacent-token joins (split words). (2) Scoring in code, per field, against the
-// normalised forms: exact, prefix (truncation), substring (cropping), skeleton (rn/m, vv/w, cl/d), and
-// edit distance 1-2 (2 for long words), with initials and "Surname, Given" order handled by
-// token-level matching, so field order never matters.
+// Two stages. (1) Candidate generation (C-8), once over all the variants' text: every run of read tokens
+// looked up as an exact normalised title first, then one small FTS5 trigram query per read token over
+// title, author and series forms, rarest token first (the catalog's df, C-7's statistics sidecar), until
+// each index has given `ftsLimit` forms. A token's query holds the token, its skeleton and, when the
+// catalog has no such word, its halves (so one wrong character in a long word still leaves a hit);
+// 0/O-style readings and adjacent-token joins (split words) are tokens of their own. (2) Scoring in
+// code, per variant and field, against the normalised forms: exact, prefix (truncation), substring
+// (cropping), skeleton (rn/m, vv/w, cl/d), and edit distance 1-2 (2 for long words), with initials and
+// "Surname, Given" order handled by token-level matching, so field order never matters.
+import { existsSync } from "node:fs";
 import type { DatabaseSync } from "node:sqlite";
 import { confusableReadings, editDistance, normalize, skeleton, STOPWORDS, tokenize } from "./normalize.ts";
+import { openStats, statsPathFor } from "./rarity.ts";
 
 export type MatchHow = "exact" | "skeleton" | "prefix" | "substring" | "fuzzy" | "initial";
 
@@ -60,10 +65,19 @@ export interface Candidate {
 }
 
 export interface RetrieveOptions {
-  /** Forms taken from each FTS query before scoring (default 250). */
+  /** Forms each FTS index (title, author, series) may give before scoring: the pool (default 250). */
   ftsLimit?: number;
   /** Most works taken from one matched author or series (default 400). */
   expandLimit?: number;
+  /** Forms one token's trigram query may add to a pool (default `GENERATION.perToken`). */
+  perToken?: number;
+  /**
+   * Other readings of the same spine (other readers' text) whose tokens may generate candidates too. They are
+   * never scored against: every candidate is scored on `variants` alone, so a reader's vote stays its own (INV-6).
+   */
+  generateFrom?: string[];
+  /** Catalog df of a token; default the statistics sidecar beside the catalog file (`catalogDf`). */
+  df?: ((token: string) => number) | null;
 }
 
 // ---------------------------------------------------------------------------------------------
@@ -85,6 +99,21 @@ export const WEIGHTS = {
    * only "DUNE" is better explained by the novel "Dune" than by "Chapterhouse: Dune". Keys are TITLE_KIND codes.
    */
   formKind: { T: 1, M: 0.95, S: 0.85, V: 0.97, W: 0.92, X: 0.8 } as Record<string, number>,
+} as const;
+
+/** Candidate generation (C-8). Fixed before C-8's measured runs (evals/C8/report.md); docs/catalog.md lists the history. */
+export const GENERATION = {
+  /** Forms one token's trigram query may add to a pool of `ftsLimit`. */
+  perToken: 40,
+  /** Works taken from one exact title lookup, most editions first. */
+  exactPerSpan: 50,
+  /** Longest run of read tokens looked up as an exact title. */
+  maxSpan: 10,
+  /** A token at least this long that the catalog does not hold as a word is also searched by its halves. */
+  halveFrom: 7,
+  /** The rarest catalog words in the reading queried together first, and the forms that query may add. */
+  cooccurWords: 4,
+  cooccur: 60,
 } as const;
 
 const KIND_NAME: Record<string, string> = { T: "title", M: "main", S: "subtitle", V: "variant", W: "variant-main", X: "variant-subtitle" };
@@ -236,49 +265,142 @@ function buildUnits(tokens: string[]): Unit[] {
   return units;
 }
 
-/** FTS5 phrases for one variant. */
-function ftsPhrases(units: Unit[]): string[] {
-  const seen = new Set<string>();
-  const add = (p: string) => {
-    if (p.length >= 3 && !STOPWORDS.has(p) && /^[\p{L}\p{N}]+$/u.test(p)) seen.add(p);
-  };
+const PHRASE = /^[\p{L}\p{N}]+$/u;
+
+/** One read token's trigram query: its phrases, and how common the token is in the catalog. */
+export interface TokenQuery {
+  token: string;
+  /** Works carrying the token as a word (C-7's df); 0 when the catalog has no such word (often a misread). */
+  df: number;
+  phrases: string[];
+}
+
+/**
+ * The trigram queries for a set of units, rarest token first (df, then the longer token, then the token). No phrase
+ * under 3 characters: the trigram index cannot match it, and a stopword never generates. A token the catalog holds as
+ * a word is searched as it stands (and by its skeleton); only an unknown read token of `halveFrom` letters or more is
+ * searched by its halves too, because a half is a substring that thousands of unrelated forms share ("tion").
+ */
+function tokenQueries(units: Unit[], df: ((t: string) => number) | null): TokenQuery[] {
+  const byToken = new Map<string, TokenQuery>();
   for (const u of units) {
     if (u.covers.length === 1 && !u.derived && STOPWORDS.has(u.text)) continue;
-    add(u.text);
-    add(skeleton(u.text)); // "neurornancer" is searched as "neuromancer" too
-    // One wrong character in a long word still leaves its other half intact.
-    if (u.text.length >= 7) {
+    if (byToken.has(u.text) || u.text.length < 3 || STOPWORDS.has(u.text) || !PHRASE.test(u.text)) continue;
+    const d = df ? df(u.text) : 0;
+    // A join ("neuro mancer") or an alternative reading ("sn0w" as "snow") is a guess about the read text: it
+    // generates only when the catalog holds it as a word. A long phrase that matches nothing still costs its
+    // trigrams' lists.
+    if (u.derived && df && d === 0) continue;
+    const phrases = new Set([u.text]);
+    const sk = skeleton(u.text); // "neurornancer" is searched as "neuromancer" too
+    if (sk.length >= 3 && PHRASE.test(sk)) phrases.add(sk);
+    // One wrong character in a long word still leaves its other half intact (one read token, not a join).
+    if (d === 0 && u.covers.length === 1 && u.text.length >= GENERATION.halveFrom) {
       const mid = Math.ceil(u.text.length / 2);
-      add(u.text.slice(0, mid));
-      add(u.text.slice(mid - 1));
+      phrases.add(u.text.slice(0, mid));
+      phrases.add(u.text.slice(mid - 1));
     }
+    byToken.set(u.text, { token: u.text, df: d, phrases: [...phrases] });
   }
-  return [...seen];
+  // Without a df table, the longer token is taken as the rarer.
+  return [...byToken.values()].sort((a, b) => a.df - b.df || b.token.length - a.token.length || (a.token < b.token ? -1 : a.token > b.token ? 1 : 0));
+}
+
+/** The trigram queries retrieval would issue for these readings, in order (for tests and C-8's report). */
+export function tokenQueriesFor(readings: string[], df: ((t: string) => number) | null): TokenQuery[] {
+  return tokenQueries(readings.flatMap((r) => buildUnits(tokenize(normalize(r)))), df);
 }
 
 const matchExpr = (phrases: string[]) => phrases.map((p) => `"${p}"`).join(" OR ");
 
-interface Prepared {
-  select: {
-    ftsTitle: ReturnType<DatabaseSync["prepare"]>;
-    ftsAuthor: ReturnType<DatabaseSync["prepare"]>;
-    ftsSeries: ReturnType<DatabaseSync["prepare"]>;
-  };
+/** Every run of up to `maxSpan` read tokens, as an exact title: "ubik philip k dick" holds "ubik". */
+function exactSpans(tokens: string[]): string[] {
+  const out = new Set<string>();
+  for (let i = 0; i < tokens.length; i++) {
+    for (let j = i + 1; j <= Math.min(tokens.length, i + GENERATION.maxSpan); j++) {
+      if (j === i + 1 && STOPWORDS.has(tokens[i]!)) continue;
+      out.add(tokens.slice(i, j).join(" "));
+    }
+  }
+  return [...out];
 }
+
+interface Prepared {
+  exact: ReturnType<DatabaseSync["prepare"]>;
+  ftsTitle: ReturnType<DatabaseSync["prepare"]>;
+  ftsAuthor: ReturnType<DatabaseSync["prepare"]>;
+  ftsSeries: ReturnType<DatabaseSync["prepare"]>;
+  expandAuthor: ReturnType<DatabaseSync["prepare"]>;
+  expandSeries: ReturnType<DatabaseSync["prepare"]>;
+}
+
+/** Every statement retrieval runs, by name (the query-plan test checks none scans a table). */
+export const RETRIEVE_SQL = {
+  exact: "SELECT tf.work_id AS work_id FROM title_forms tf JOIN works w ON w.id = tf.work_id WHERE tf.norm = ? ORDER BY w.edition_count DESC LIMIT ?",
+  ftsTitle: "SELECT f.rowid AS id, tf.work_id AS work_id, tf.norm AS norm FROM fts_title f JOIN title_forms tf ON tf.id = f.rowid WHERE fts_title MATCH ? ORDER BY f.rank LIMIT ?",
+  ftsAuthor: "SELECT f.rowid AS id, af.author_id AS author_id, af.norm AS norm FROM fts_author f JOIN author_forms af ON af.id = f.rowid WHERE fts_author MATCH ? ORDER BY f.rank LIMIT ?",
+  ftsSeries: "SELECT f.rowid AS id, sf.series_id AS series_id, sf.norm AS norm FROM fts_series f JOIN series_forms sf ON sf.id = f.rowid WHERE fts_series MATCH ? ORDER BY f.rank LIMIT ?",
+  expandAuthor: "SELECT wa.work_id AS work_id FROM work_authors wa JOIN works w ON w.id = wa.work_id WHERE wa.author_id = ? ORDER BY w.edition_count DESC LIMIT ?",
+  expandSeries: "SELECT ws.work_id AS work_id FROM work_series ws JOIN works w ON w.id = ws.work_id WHERE ws.series_id = ? ORDER BY w.edition_count DESC LIMIT ?",
+} as const;
+
 const preparedCache = new WeakMap<DatabaseSync, Prepared>();
 function prepared(db: DatabaseSync): Prepared {
   let p = preparedCache.get(db);
   if (!p) {
-    p = {
-      select: {
-        ftsTitle: db.prepare("SELECT tf.work_id AS work_id, tf.norm AS norm FROM fts_title f JOIN title_forms tf ON tf.id = f.rowid WHERE fts_title MATCH ? ORDER BY f.rank LIMIT ?"),
-        ftsAuthor: db.prepare("SELECT af.author_id AS author_id, af.norm AS norm FROM fts_author f JOIN author_forms af ON af.id = f.rowid WHERE fts_author MATCH ? ORDER BY f.rank LIMIT ?"),
-        ftsSeries: db.prepare("SELECT sf.series_id AS series_id, sf.norm AS norm FROM fts_series f JOIN series_forms sf ON sf.id = f.rowid WHERE fts_series MATCH ? ORDER BY f.rank LIMIT ?"),
-      },
-    };
+    p = Object.fromEntries(Object.entries(RETRIEVE_SQL).map(([k, sql]) => [k, db.prepare(sql)])) as unknown as Prepared;
     preparedCache.set(db, p);
   }
   return p;
+}
+
+const dfCache = new WeakMap<DatabaseSync, ((t: string) => number) | null>();
+/**
+ * The catalog df of a token, from the statistics sidecar beside the catalog file (`bookcase catalog stats`, C-7):
+ * works carrying the token in a title, author or series form. Null when the catalog has no sidecar, or one built from
+ * another state of the file (a warning, once): retrieval then takes the longer token as the rarer.
+ */
+export function catalogDf(db: DatabaseSync): ((t: string) => number) | null {
+  if (dfCache.has(db)) return dfCache.get(db)!;
+  let df: ((t: string) => number) | null = null;
+  const path = db.location();
+  if (path && existsSync(statsPathFor(path))) {
+    try {
+      const stats = openStats(statsPathFor(path), path);
+      df = (t) => stats.word(t).works;
+    } catch (e) {
+      console.error(`retrieve: ${(e as Error).message}; ordering tokens by length`);
+    }
+  }
+  dfCache.set(db, df);
+  return df;
+}
+
+/**
+ * Fills one index's pool of `limit` forms: first the forms holding several of the rarest catalog words (one query,
+ * `cooccur` forms at most), then each token's query, rarest first, adding up to `perToken` forms not already in the
+ * pool, until it is full. Common words are reached only if the rarer ones leave room.
+ */
+function fillPool<R extends { id: number }>(stmt: ReturnType<DatabaseSync["prepare"]>, queries: TokenQuery[], limit: number, perToken: number): R[] {
+  const pool = new Map<number, R>();
+  if (limit <= 0) return [];
+  const add = (expr: string, cap: number) => {
+    let added = 0;
+    for (const r of stmt.all(expr, cap + pool.size) as unknown as R[]) {
+      if (pool.has(r.id)) continue;
+      pool.set(r.id, r);
+      if (++added >= cap || pool.size >= limit) break;
+    }
+  };
+  // Ranked by one word alone, the shortest forms holding it win; a two-word title or a given name plus surname needs
+  // its words together. One query over the rarest words' short lists finds those; the commoner lists are not read.
+  const words = queries.filter((q) => q.df > 0).slice(0, GENERATION.cooccurWords);
+  if (words.length >= 2) add(matchExpr(words.map((q) => q.token)), Math.min(limit, GENERATION.cooccur));
+  for (const q of queries) {
+    if (pool.size >= limit) break;
+    add(matchExpr(q.phrases), Math.min(perToken, limit - pool.size));
+  }
+  return [...pool.values()];
 }
 
 interface WorkRow {
@@ -356,45 +478,44 @@ function fetchWorks(db: DatabaseSync, ids: string[]): WorkRow[] {
   return out;
 }
 
-function retrieveOne(db: DatabaseSync, variant: string, opts: Required<RetrieveOptions>): Scored[] {
-  const tokens = tokenize(normalize(variant));
-  if (tokens.length === 0) return [];
-  const units = buildUnits(tokens);
-  const phrases = ftsPhrases(units);
-  const p = prepared(db).select;
+/** Candidate works for a set of readings (generation only; nothing is scored against `generateFrom`). */
+function generate(db: DatabaseSync, readings: string[], opts: Required<Omit<RetrieveOptions, "generateFrom" | "df">> & { df: ((t: string) => number) | null }): Set<string> {
+  const p = prepared(db);
   const candidates = new Set<string>();
-
-  // The whole normalised variant as a title is always tried exactly: short titles ("It") have no trigram.
-  const whole = tokens.join(" ");
-  for (const r of db.prepare("SELECT work_id FROM title_forms WHERE norm = ? LIMIT 50").all(whole) as Array<{ work_id: string }>) candidates.add(r.work_id);
-
-  if (phrases.length > 0) {
-    const expr = matchExpr(phrases);
-    for (const r of p.ftsTitle.all(expr, opts.ftsLimit) as Array<{ work_id: string; norm: string }>) {
-      if (matchForm(units, r.norm).cover >= WEIGHTS.minFormScore) candidates.add(r.work_id);
-    }
-    const authorIds: Array<{ id: number; score: number }> = [];
-    for (const r of p.ftsAuthor.all(expr, opts.ftsLimit) as Array<{ author_id: number; norm: string }>) {
-      const s = authorScore(matchForm(units, r.norm));
-      if (s >= WEIGHTS.minFormScore) authorIds.push({ id: r.author_id, score: s });
-    }
-    authorIds.sort((a, b) => b.score - a.score);
-    const expandAuthor = db.prepare("SELECT wa.work_id FROM work_authors wa JOIN works w ON w.id = wa.work_id WHERE wa.author_id = ? ORDER BY w.edition_count DESC LIMIT ?");
-    for (const a of authorIds.slice(0, 12)) for (const r of expandAuthor.all(a.id, opts.expandLimit) as Array<{ work_id: string }>) candidates.add(r.work_id);
-
-    const seriesIds: Array<{ id: number; score: number }> = [];
-    for (const r of p.ftsSeries.all(expr, opts.ftsLimit) as Array<{ series_id: number; norm: string }>) {
-      const s = matchForm(units, r.norm).cover;
-      if (s >= WEIGHTS.minFormScore) seriesIds.push({ id: r.series_id, score: s });
-    }
-    seriesIds.sort((a, b) => b.score - a.score);
-    const expandSeries = db.prepare("SELECT ws.work_id FROM work_series ws JOIN works w ON w.id = ws.work_id WHERE ws.series_id = ? ORDER BY w.edition_count DESC LIMIT ?");
-    for (const s of seriesIds.slice(0, 8)) for (const r of expandSeries.all(s.id, opts.expandLimit) as Array<{ work_id: string }>) candidates.add(r.work_id);
+  const units: Unit[] = [];
+  const spans = new Set<string>();
+  for (const text of readings) {
+    const tokens = tokenize(normalize(text));
+    if (tokens.length === 0) continue;
+    units.push(...buildUnits(tokens));
+    for (const s of exactSpans(tokens)) spans.add(s);
   }
-  if (candidates.size === 0) return [];
+  // Exact titles first: a clean read is an index lookup, and short titles ("It") have no trigram.
+  for (const s of spans) for (const r of p.exact.all(s, GENERATION.exactPerSpan) as Array<{ work_id: string }>) candidates.add(r.work_id);
 
-  const works = fetchWorks(db, [...candidates]);
-  return works.map((w) => scoreWork(w, units, tokens));
+  const queries = tokenQueries(units, opts.df);
+  if (queries.length === 0) return candidates;
+  for (const r of fillPool<{ id: number; work_id: string; norm: string }>(p.ftsTitle, queries, opts.ftsLimit, opts.perToken)) {
+    if (matchForm(units, r.norm).cover >= WEIGHTS.minFormScore) candidates.add(r.work_id);
+  }
+  const authorIds: Array<{ id: number; score: number }> = [];
+  for (const r of fillPool<{ id: number; author_id: number; norm: string }>(p.ftsAuthor, queries, opts.ftsLimit, opts.perToken)) {
+    const s = authorScore(matchForm(units, r.norm));
+    if (s >= WEIGHTS.minFormScore) authorIds.push({ id: r.author_id, score: s });
+  }
+  authorIds.sort((a, b) => b.score - a.score || a.id - b.id);
+  const authors = [...new Set(authorIds.map((a) => a.id))].slice(0, 12);
+  for (const a of authors) for (const r of p.expandAuthor.all(a, opts.expandLimit) as Array<{ work_id: string }>) candidates.add(r.work_id);
+
+  const seriesIds: Array<{ id: number; score: number }> = [];
+  for (const r of fillPool<{ id: number; series_id: number; norm: string }>(p.ftsSeries, queries, opts.ftsLimit, opts.perToken)) {
+    const s = matchForm(units, r.norm).cover;
+    if (s >= WEIGHTS.minFormScore) seriesIds.push({ id: r.series_id, score: s });
+  }
+  seriesIds.sort((a, b) => b.score - a.score || a.id - b.id);
+  const series = [...new Set(seriesIds.map((s) => s.id))].slice(0, 8);
+  for (const s of series) for (const r of p.expandSeries.all(s, opts.expandLimit) as Array<{ work_id: string }>) candidates.add(r.work_id);
+  return candidates;
 }
 
 /**
@@ -403,16 +524,28 @@ function retrieveOne(db: DatabaseSync, variant: string, opts: Required<RetrieveO
  * once, with the evidence of the variant that scored it highest.
  */
 export function retrieve(db: DatabaseSync, variants: string[], k = 10, options: RetrieveOptions = {}): Candidate[] {
-  const opts: Required<RetrieveOptions> = { ftsLimit: options.ftsLimit ?? 250, expandLimit: options.expandLimit ?? 400 };
+  const opts = {
+    ftsLimit: options.ftsLimit ?? 250,
+    expandLimit: options.expandLimit ?? 400,
+    perToken: options.perToken ?? GENERATION.perToken,
+    df: options.df === undefined ? catalogDf(db) : options.df,
+  };
+  const ids = generate(db, [...variants, ...(options.generateFrom ?? [])], opts);
+  if (ids.size === 0) return [];
+  const works = fetchWorks(db, [...ids]);
   const best = new Map<string, Scored & { variant: number }>();
   variants.forEach((v, i) => {
-    for (const s of retrieveOne(db, v, opts)) {
-      const prev = best.get(s.work.id);
-      if (!prev || s.score > prev.score) best.set(s.work.id, { ...s, variant: i });
+    const tokens = tokenize(normalize(v));
+    if (tokens.length === 0) return;
+    const units = buildUnits(tokens);
+    for (const w of works) {
+      const s = scoreWork(w, units, tokens);
+      if (s.score <= 0) continue;
+      const prev = best.get(w.id);
+      if (!prev || s.score > prev.score) best.set(w.id, { ...s, variant: i });
     }
   });
   const ranked = [...best.values()]
-    .filter((s) => s.score > 0)
     .sort((a, b) => Math.round(b.score * 100) - Math.round(a.score * 100) || b.work.edition_count - a.work.edition_count || b.score - a.score || (a.work.id < b.work.id ? -1 : 1))
     .slice(0, k);
   return ranked.map(toCandidate);
