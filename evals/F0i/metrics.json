@@ -1,0 +1,1484 @@
+{
+ "runId": "F0i",
+ "card": "F-0i",
+ "date": "2026-11-04",
+ "model": {
+  "id": "facebook/sam2.1-hiera-base-plus",
+  "licence": "Apache-2.0"
+ },
+ "shippedCrop": "rect;rot=fixed;clip=frame",
+ "candidateCrops": {
+  "refit": "rect;rot=fixed;clip=frame on the refit box",
+  "own": "rect;rot=fixed;clip=frame;mask=own"
+ },
+ "bootstrap": {
+  "unit": "photo (cluster), paired: the same boxes before and after",
+  "reps": 2000,
+  "interval": "95 % percentile",
+  "units": "percentage points (works: count)"
+ },
+ "keepRule": "partition: overlap rate <= 0.5 % and no book lost by geometry, both sets; reader crop: that, plus neighbour-crop share falls (interval below 0) on both sets, pilot-000 confirmed interval excludes 0 upward, pilot-000 distinct works not down, yardstick confirmed not down and wrong not up beyond their intervals, yardstick title recall not down beyond its interval",
+ "verdict": {
+  "partition": {
+   "ships": true,
+   "overlapTargetMet": true,
+   "noBookLost": true
+  },
+  "neighbourCropsFall": false,
+  "refit": {
+   "keep": false,
+   "geometryAndNeighbourCrops": false,
+   "pilotConfirmedExcludesZero": false,
+   "pilotDistinctWorksNotDown": false,
+   "yardstickConfirmedNotDown": false,
+   "yardstickWrongNotUp": true,
+   "yardstickRecallNotDown": true
+  },
+  "own": {
+   "keep": false,
+   "geometryAndNeighbourCrops": false,
+   "pilotConfirmedExcludesZero": false,
+   "pilotDistinctWorksNotDown": false,
+   "yardstickConfirmedNotDown": true,
+   "yardstickWrongNotUp": true,
+   "yardstickRecallNotDown": true
+  },
+  "readerCropShips": null
+ },
+ "sets": {
+  "pilot-000": {
+   "scope": "real use (OC35): machine agreement, never accuracy (INV-17)",
+   "geometry": {
+    "set": "pilot-000",
+    "photos": 31,
+    "boxCount": 6121,
+    "kept": 5761,
+    "changed": 1001,
+    "refit": 1001,
+    "flagged": 67,
+    "groups": 647,
+    "windows": 3012,
+    "groupsWithoutLogits": 0,
+    "gate": {
+     "duplicate": 138,
+     "guard: piece kept": 7,
+     "remainder": 127,
+     "group: children under the cover share": 31,
+     "piece-of": 196,
+     "guard: duplicate swapped": 6,
+     "merged-parent": 18,
+     "absorbed": 8
+    },
+    "overlapRate_before": {
+     "share": 0.0933,
+     "lo": 0.078,
+     "hi": 0.109
+    },
+    "overlapRate_after": {
+     "share": 0.0005,
+     "lo": 0.0003,
+     "hi": 0.0007
+    },
+    "cropsNeighbour10pct": {
+     "before": 0.4022,
+     "after": 0.4216,
+     "delta": [0.0194,0.0071,0.0341]
+    },
+    "contestedPixels": 23417687,
+    "provenancePixelShare": {
+     "tile-argmax": 0.3708,
+     "seam": 0.3791,
+     "depth": 0.25,
+     "fallback": 0.0001
+    },
+    "boundaryLengthShare": {
+     "depth": 0.0558,
+     "fallback": 0.0001,
+     "gate": 0.0828,
+     "outline": 0.4579,
+     "seam": 0.1355,
+     "tile-argmax": 0.2679
+    },
+    "seam": {
+     "runs": 1100,
+     "strong": 490,
+     "classicalStrong": 874,
+     "classicalDiffer": 432700,
+     "seamPixels": 8878604,
+     "classicalCompared": 10207161,
+     "multiClaimPixels": 500128
+    },
+    "thresholds": {
+     "dupIou": 0.5,
+     "dupIom": 0.85,
+     "dupRatio": 1.3,
+     "nestIom": 0.8,
+     "mergedCover": 0.7,
+     "wholeWidths": 1.6,
+     "padPx": 32,
+     "padWidths": 0.3,
+     "side": [301,602],
+     "alongOverlap": 0.25,
+     "ramp": 0.15,
+     "depthClear": 0.05,
+     "seamEdgeW": 4,
+     "seamStep": 2,
+     "seamMinRows": 8,
+     "seamMargin": 1.25,
+     "alignDeg": 15,
+     "flagKeep": 0.6,
+     "absorbKeep": 0.3,
+     "changedLoss": 0.02,
+     "bootstrap": 1000,
+     "seed": 1
+    }
+   },
+   "bookLoss": {
+    "lost": 0,
+    "droppedAccepting": 5
+   },
+   "changedSet": 1001,
+   "cost": {
+    "groups": 647,
+    "encodes": 3012,
+    "groupsRun": 647,
+    "errors": 0,
+    "gpuSeconds": 1222,
+    "gpuSecondsPerPhoto": 39.4,
+    "peakMpsMb": 6089
+   },
+   "arms": {
+    "refit": {
+     "cropMethod": "rect;rot=fixed;clip=frame",
+     "against": "rect;rot=fixed;clip=frame",
+     "all": {
+      "boxCount": 1001,
+      "photos": 31,
+      "textRead": {
+       "before": 69.7,
+       "after": 69.6,
+       "delta": -0.1,
+       "lo": -2.3,
+       "hi": 1.8
+      },
+      "confirmed": {
+       "before": 6.3,
+       "after": 5.7,
+       "delta": -0.6,
+       "lo": -1.8,
+       "hi": 0.8
+      }
+     },
+     "strata": {
+      "remainders": {
+       "boxCount": 123,
+       "photos": 30,
+       "textRead": {
+        "before": 94.3,
+        "after": 90.2,
+        "delta": -4.1,
+        "lo": -9.4,
+        "hi": 0
+       },
+       "confirmed": {
+        "before": 8.1,
+        "after": 7.3,
+        "delta": -0.8,
+        "lo": -4.3,
+        "hi": 2.7
+       }
+      },
+      "other changed boxes": {
+       "boxCount": 878,
+       "photos": 31,
+       "textRead": {
+        "before": 66.3,
+        "after": 66.7,
+        "delta": 0.5,
+        "lo": -1.6,
+        "hi": 2.2
+       },
+       "confirmed": {
+        "before": 6,
+        "after": 5.5,
+        "delta": -0.6,
+        "lo": -1.8,
+        "hi": 0.7
+       }
+      },
+      "flagged": {
+       "boxCount": 67,
+       "photos": 21,
+       "textRead": {
+        "before": 74.6,
+        "after": 70.1,
+        "delta": -4.5,
+        "lo": -15.9,
+        "hi": 2.9
+       },
+       "confirmed": {
+        "before": 4.5,
+        "after": 6,
+        "delta": 1.5,
+        "lo": 0,
+        "hi": 4
+       }
+      },
+      "whole boxes": {
+       "boxCount": 534,
+       "photos": 31,
+       "textRead": {
+        "before": 81.5,
+        "after": 80.1,
+        "delta": -1.3,
+        "lo": -3.9,
+        "hi": 0.9
+       },
+       "confirmed": {
+        "before": 8.4,
+        "after": 6.9,
+        "delta": -1.5,
+        "lo": -3.1,
+        "hi": 0
+       }
+      },
+      "cut or partial boxes": {
+       "boxCount": 467,
+       "photos": 28,
+       "textRead": {
+        "before": 56.3,
+        "after": 57.6,
+        "delta": 1.3,
+        "lo": -1.9,
+        "hi": 4.2
+       },
+       "confirmed": {
+        "before": 3.9,
+        "after": 4.3,
+        "delta": 0.4,
+        "lo": -0.9,
+        "hi": 2.2
+       }
+      }
+     },
+     "distinctConfirmedWorks": {
+      "before": 629,
+      "after": 623,
+      "delta": {
+       "value": -6,
+       "lo": -10,
+       "hi": 2
+      }
+     },
+     "cost": {
+      "before": {
+       "vision": {
+        "calls": 2002,
+        "seconds": 419
+       },
+       "ppocr": {
+        "calls": 2002,
+        "seconds": 1859
+       },
+       "qwen": {
+        "calls": 200,
+        "seconds": 287
+       }
+      },
+      "after": {
+       "vision": {
+        "calls": 2002,
+        "seconds": 136
+       },
+       "ppocr": {
+        "calls": 2002,
+        "seconds": 1574
+       },
+       "qwen": {
+        "calls": 202,
+        "seconds": 217
+       }
+      }
+     }
+    },
+    "own": {
+     "cropMethod": "rect;rot=fixed;clip=frame;mask=own",
+     "against": "rect;rot=fixed;clip=frame",
+     "all": {
+      "boxCount": 1001,
+      "photos": 31,
+      "textRead": {
+       "before": 69.7,
+       "after": 61.3,
+       "delta": -8.4,
+       "lo": -11,
+       "hi": -6.1
+      },
+      "confirmed": {
+       "before": 6.3,
+       "after": 4.9,
+       "delta": -1.4,
+       "lo": -2.7,
+       "hi": -0.2
+      }
+     },
+     "strata": {
+      "remainders": {
+       "boxCount": 123,
+       "photos": 30,
+       "textRead": {
+        "before": 94.3,
+        "after": 74,
+        "delta": -20.3,
+        "lo": -30.4,
+        "hi": -11.5
+       },
+       "confirmed": {
+        "before": 8.1,
+        "after": 5.7,
+        "delta": -2.4,
+        "lo": -7.9,
+        "hi": 2.6
+       }
+      },
+      "other changed boxes": {
+       "boxCount": 878,
+       "photos": 31,
+       "textRead": {
+        "before": 66.3,
+        "after": 59.6,
+        "delta": -6.7,
+        "lo": -9.8,
+        "hi": -3.7
+       },
+       "confirmed": {
+        "before": 6,
+        "after": 4.8,
+        "delta": -1.3,
+        "lo": -2.6,
+        "hi": -0.1
+       }
+      },
+      "flagged": {
+       "boxCount": 67,
+       "photos": 21,
+       "textRead": {
+        "before": 74.6,
+        "after": 46.3,
+        "delta": -28.4,
+        "lo": -40,
+        "hi": -19.1
+       },
+       "confirmed": {
+        "before": 4.5,
+        "after": 3,
+        "delta": -1.5,
+        "lo": -6.8,
+        "hi": 3.1
+       }
+      },
+      "whole boxes": {
+       "boxCount": 534,
+       "photos": 31,
+       "textRead": {
+        "before": 81.5,
+        "after": 73.2,
+        "delta": -8.2,
+        "lo": -11.3,
+        "hi": -5.5
+       },
+       "confirmed": {
+        "before": 8.4,
+        "after": 5.6,
+        "delta": -2.8,
+        "lo": -4.8,
+        "hi": -0.8
+       }
+      },
+      "cut or partial boxes": {
+       "boxCount": 467,
+       "photos": 28,
+       "textRead": {
+        "before": 56.3,
+        "after": 47.8,
+        "delta": -8.6,
+        "lo": -12.6,
+        "hi": -5.1
+       },
+       "confirmed": {
+        "before": 3.9,
+        "after": 4.1,
+        "delta": 0.2,
+        "lo": -1,
+        "hi": 1.5
+       }
+      }
+     },
+     "distinctConfirmedWorks": {
+      "before": 629,
+      "after": 618,
+      "delta": {
+       "value": -11,
+       "lo": -13,
+       "hi": -1
+      }
+     },
+     "cost": {
+      "before": {
+       "vision": {
+        "calls": 2002,
+        "seconds": 419
+       },
+       "ppocr": {
+        "calls": 2002,
+        "seconds": 1859
+       },
+       "qwen": {
+        "calls": 200,
+        "seconds": 287
+       }
+      },
+      "after": {
+       "vision": {
+        "calls": 2002,
+        "seconds": 198
+       },
+       "ppocr": {
+        "calls": 2002,
+        "seconds": 1380
+       },
+       "qwen": {
+        "calls": 186,
+        "seconds": 212
+       }
+      }
+     }
+    }
+   },
+   "strata": {
+    "set": "pilot-000",
+    "neighbourPairs": 12680,
+    "pairsWithColour": 12648,
+    "thresholds": {
+     "lowDeltaE76": 10,
+     "topShare": 0.15,
+     "coverShare": 0.15
+    },
+    "lowContrast": {
+     "pairs": 2226,
+     "conflictBefore": {
+      "share": 0.1523,
+      "lo": 0.1297,
+      "hi": 0.1799
+     },
+     "conflictAfter": {
+      "share": 0.0013,
+      "lo": 0,
+      "hi": 0.0035
+     },
+     "pairOverlapBefore": 0.0221,
+     "pairOverlapAfter": 0.0001,
+     "contestedBefore": 11667448,
+     "contestedAfter": 56861,
+     "pairsWithADroppedMember": 230,
+     "dropReasons": {
+      "absorbed": 5,
+      "duplicate": 132,
+      "merged-parent": 10,
+      "piece-of": 101
+     },
+     "provenancePixelShare": {
+      "tile-argmax": 0.3288,
+      "seam": 0.5989,
+      "depth": 0.0724
+     },
+     "seamRuns": 291,
+     "seamStrong": {
+      "combined": 0.4674,
+      "normals": 0.4089,
+      "retinex": 0.6048,
+      "luma": 0.8385
+     }
+    },
+    "otherContrast": {
+     "pairs": 10422,
+     "conflictBefore": {
+      "share": 0.1443,
+      "lo": 0.1293,
+      "hi": 0.1625
+     },
+     "conflictAfter": {
+      "share": 0.0008,
+      "lo": 0.0003,
+      "hi": 0.0014
+     },
+     "pairOverlapBefore": 0.0246,
+     "pairOverlapAfter": 0.0001,
+     "contestedBefore": 64322869,
+     "contestedAfter": 201724,
+     "pairsWithADroppedMember": 1550,
+     "dropReasons": {
+      "absorbed": 47,
+      "duplicate": 718,
+      "merged-parent": 98,
+      "piece-of": 777
+     },
+     "provenancePixelShare": {
+      "tile-argmax": 0.3641,
+      "seam": 0.3408,
+      "depth": 0.295,
+      "fallback": 0.0001
+     },
+     "seamRuns": 807,
+     "seamStrong": {
+      "combined": 0.4374,
+      "normals": 0.3866,
+      "retinex": 0.5651,
+      "luma": 0.7782
+     }
+    },
+    "lowContrastTopFace": {
+     "pairs": 1241,
+     "conflictBefore": {
+      "share": 0.1644,
+      "lo": 0.137,
+      "hi": 0.1972
+     },
+     "conflictAfter": {
+      "share": 0.0024,
+      "lo": 0,
+      "hi": 0.006
+     },
+     "pairOverlapBefore": 0.0253,
+     "pairOverlapAfter": 0.0001,
+     "contestedBefore": 7344722,
+     "contestedAfter": 31723,
+     "pairsWithADroppedMember": 148,
+     "dropReasons": {
+      "absorbed": 2,
+      "duplicate": 90,
+      "merged-parent": 6,
+      "piece-of": 63
+     },
+     "provenancePixelShare": {
+      "tile-argmax": 0.3197,
+      "seam": 0.624,
+      "depth": 0.0563
+     },
+     "seamRuns": 184,
+     "seamStrong": {
+      "combined": 0.5489,
+      "normals": 0.4674,
+      "retinex": 0.6848,
+      "luma": 0.875
+     }
+    },
+    "lowContrastToneOnly": {
+     "pairs": 985,
+     "conflictBefore": {
+      "share": 0.1371,
+      "lo": 0.1081,
+      "hi": 0.1707
+     },
+     "conflictAfter": {
+      "share": 0,
+      "lo": 0,
+      "hi": 0
+     },
+     "pairOverlapBefore": 0.0181,
+     "pairOverlapAfter": 0.0001,
+     "contestedBefore": 4322726,
+     "contestedAfter": 25138,
+     "pairsWithADroppedMember": 82,
+     "dropReasons": {
+      "absorbed": 3,
+      "duplicate": 42,
+      "merged-parent": 4,
+      "piece-of": 38
+     },
+     "provenancePixelShare": {
+      "tile-argmax": 0.3548,
+      "seam": 0.5267,
+      "depth": 0.1185
+     },
+     "seamRuns": 107,
+     "seamStrong": {
+      "combined": 0.3271,
+      "normals": 0.3084,
+      "retinex": 0.4673,
+      "luma": 0.7757
+     }
+    },
+    "coverKind": {
+     "pairs": 2337,
+     "conflictBefore": {
+      "share": 0.1451,
+      "lo": 0.1309,
+      "hi": 0.1604
+     },
+     "conflictAfter": {
+      "share": 0.0009,
+      "lo": 0,
+      "hi": 0.0021
+     },
+     "pairOverlapBefore": 0.0223,
+     "pairOverlapAfter": 0.0002,
+     "contestedBefore": 16835218,
+     "contestedAfter": 130037,
+     "pairsWithADroppedMember": 321,
+     "dropReasons": {
+      "absorbed": 5,
+      "duplicate": 163,
+      "merged-parent": 18,
+      "piece-of": 149
+     },
+     "provenancePixelShare": {
+      "tile-argmax": 0.3632,
+      "seam": 0.339,
+      "depth": 0.2978
+     },
+     "seamRuns": 174,
+     "seamStrong": {
+      "combined": 0.4368,
+      "normals": 0.3563,
+      "retinex": 0.5632,
+      "luma": 0.8218
+     }
+    },
+    "coverKindConflicting": {
+     "pairs": 339,
+     "conflictBefore": {
+      "share": 1,
+      "lo": 1,
+      "hi": 1
+     },
+     "conflictAfter": {
+      "share": 0.0029,
+      "lo": 0,
+      "hi": 0.0109
+     },
+     "pairOverlapBefore": 0.1805,
+     "pairOverlapAfter": 0.0009,
+     "contestedBefore": 16779184,
+     "contestedAfter": 84818,
+     "pairsWithADroppedMember": 105,
+     "dropReasons": {
+      "absorbed": 1,
+      "duplicate": 46,
+      "merged-parent": 11,
+      "piece-of": 48
+     },
+     "provenancePixelShare": {
+      "tile-argmax": 0.3634,
+      "seam": 0.3392,
+      "depth": 0.2974
+     },
+     "seamRuns": 174,
+     "seamStrong": {
+      "combined": 0.4368,
+      "normals": 0.3563,
+      "retinex": 0.5632,
+      "luma": 0.8218
+     }
+    },
+    "mergedSplits": {
+     "lowContrast": {
+      "merged-parent": 2,
+      "remainder": 23
+     },
+     "lowContrastTopFace": {
+      "merged-parent": 2,
+      "remainder": 11
+     },
+     "other": {
+      "merged-parent": 16,
+      "remainder": 104
+     }
+    },
+    "ends": {
+     "top": {
+      "outline": 5676,
+      "gate": 8,
+      "tile-argmax": 31,
+      "seam": 20,
+      "depth": 26
+     },
+     "bottom": {
+      "outline": 5690,
+      "gate": 8,
+      "tile-argmax": 34,
+      "seam": 11,
+      "depth": 18
+     }
+    }
+   }
+  },
+  "yardstick-library-b2": {
+   "scope": "PROXY: Library Dataset sample, box arm B2; confirmed = accepted and annotated in the image",
+   "geometry": {
+    "set": "yardstick-library-b2",
+    "photos": 40,
+    "boxCount": 1116,
+    "kept": 1040,
+    "changed": 134,
+    "refit": 134,
+    "flagged": 9,
+    "groups": 80,
+    "windows": 719,
+    "groupsWithoutLogits": 0,
+    "gate": {
+     "piece-of": 31,
+     "remainder": 44,
+     "duplicate": 35,
+     "guard: duplicate kept": 1,
+     "group: children under the cover share": 12,
+     "guard: duplicate swapped": 8,
+     "guard: piece kept": 11,
+     "guard: absorbed kept": 1,
+     "merged-parent": 8,
+     "absorbed": 2,
+     "guard: merged parent kept": 1
+    },
+    "overlapRate_before": {
+     "share": 0.0929,
+     "lo": 0.0729,
+     "hi": 0.1128
+    },
+    "overlapRate_after": {
+     "share": 0.0015,
+     "lo": 0.0003,
+     "hi": 0.003
+    },
+    "cropsNeighbour10pct": {
+     "before": 0.3575,
+     "after": 0.349,
+     "delta": [-0.0085,-0.0247,0.0091]
+    },
+    "contestedPixels": 10290418,
+    "provenancePixelShare": {
+     "tile-argmax": 0.5856,
+     "seam": 0.1936,
+     "depth": 0.2198,
+     "fallback": 0.001
+    },
+    "boundaryLengthShare": {
+     "depth": 0.0483,
+     "fallback": 0,
+     "gate": 0.1854,
+     "outline": 0.3984,
+     "seam": 0.0601,
+     "tile-argmax": 0.3078
+    },
+    "seam": {
+     "runs": 57,
+     "strong": 29,
+     "classicalStrong": 51,
+     "classicalDiffer": 51761,
+     "seamPixels": 1991892,
+     "classicalCompared": 2179487,
+     "multiClaimPixels": 85482
+    },
+    "thresholds": {
+     "dupIou": 0.5,
+     "dupIom": 0.85,
+     "dupRatio": 1.3,
+     "nestIom": 0.8,
+     "mergedCover": 0.7,
+     "wholeWidths": 1.6,
+     "padPx": 32,
+     "padWidths": 0.3,
+     "side": [301,602],
+     "alongOverlap": 0.25,
+     "ramp": 0.15,
+     "depthClear": 0.05,
+     "seamEdgeW": 4,
+     "seamStep": 2,
+     "seamMinRows": 8,
+     "seamMargin": 1.25,
+     "alignDeg": 15,
+     "flagKeep": 0.6,
+     "absorbKeep": 0.3,
+     "changedLoss": 0.02,
+     "bootstrap": 1000,
+     "seed": 1
+    }
+   },
+   "bookLoss": {
+    "lost": 0,
+    "droppedAccepting": 3
+   },
+   "changedSet": 134,
+   "cost": {
+    "groups": 80,
+    "encodes": 719,
+    "groupsRun": 79,
+    "errors": 0,
+    "gpuSeconds": 246,
+    "gpuSecondsPerPhoto": 6.1,
+    "peakMpsMb": 4710
+   },
+   "arms": {
+    "refit": {
+     "cropMethod": "rect;rot=fixed;clip=frame",
+     "against": "rect;rot=fixed;clip=frame",
+     "all": {
+      "boxCount": 134,
+      "photos": 33,
+      "textRead": {
+       "before": 67.2,
+       "after": 66.4,
+       "delta": -0.7,
+       "lo": -3.2,
+       "hi": 1.8
+      },
+      "confirmed": {
+       "before": 16.4,
+       "after": 11.9,
+       "delta": -4.5,
+       "lo": -9,
+       "hi": -0.8
+      },
+      "wrong": {
+       "before": 0.7,
+       "after": 0,
+       "delta": -0.7,
+       "lo": -2.5,
+       "hi": 0
+      }
+     },
+     "strata": {
+      "remainders": {
+       "boxCount": 44,
+       "photos": 24,
+       "textRead": {
+        "before": 70.5,
+        "after": 68.2,
+        "delta": -2.3,
+        "lo": -7.7,
+        "hi": 0
+       },
+       "confirmed": {
+        "before": 11.4,
+        "after": 11.4,
+        "delta": 0,
+        "lo": 0,
+        "hi": 0
+       },
+       "wrong": {
+        "before": 0,
+        "after": 0,
+        "delta": 0,
+        "lo": 0,
+        "hi": 0
+       }
+      },
+      "other changed boxes": {
+       "boxCount": 90,
+       "photos": 25,
+       "textRead": {
+        "before": 65.6,
+        "after": 65.6,
+        "delta": 0,
+        "lo": -2.7,
+        "hi": 3.4
+       },
+       "confirmed": {
+        "before": 18.9,
+        "after": 12.2,
+        "delta": -6.7,
+        "lo": -13,
+        "hi": -1
+       },
+       "wrong": {
+        "before": 1.1,
+        "after": 0,
+        "delta": -1.1,
+        "lo": -4,
+        "hi": 0
+       }
+      },
+      "flagged": {
+       "boxCount": 9,
+       "photos": 8,
+       "textRead": {
+        "before": 77.8,
+        "after": 66.7,
+        "delta": -11.1,
+        "lo": -27.3,
+        "hi": 0
+       },
+       "confirmed": {
+        "before": 22.2,
+        "after": 11.1,
+        "delta": -11.1,
+        "lo": -27.3,
+        "hi": 0
+       },
+       "wrong": {
+        "before": 11.1,
+        "after": 0,
+        "delta": -11.1,
+        "lo": -37.5,
+        "hi": 0
+       }
+      },
+      "whole boxes": {
+       "boxCount": 81,
+       "photos": 32,
+       "textRead": {
+        "before": 84,
+        "after": 82.7,
+        "delta": -1.2,
+        "lo": -4.1,
+        "hi": 0
+       },
+       "confirmed": {
+        "before": 23.5,
+        "after": 18.5,
+        "delta": -4.9,
+        "lo": -11.1,
+        "hi": 1
+       },
+       "wrong": {
+        "before": 1.2,
+        "after": 0,
+        "delta": -1.2,
+        "lo": -3.8,
+        "hi": 0
+       }
+      },
+      "cut or partial boxes": {
+       "boxCount": 53,
+       "photos": 14,
+       "textRead": {
+        "before": 41.5,
+        "after": 41.5,
+        "delta": 0,
+        "lo": -4.8,
+        "hi": 6.5
+       },
+       "confirmed": {
+        "before": 5.7,
+        "after": 1.9,
+        "delta": -3.8,
+        "lo": -9.8,
+        "hi": 0
+       },
+       "wrong": {
+        "before": 0,
+        "after": 0,
+        "delta": 0,
+        "lo": 0,
+        "hi": 0
+       }
+      }
+     },
+     "titles": {
+      "before": {
+       "recall": 0.36906584992343033,
+       "precision": 0.926923076923077
+      },
+      "after": {
+       "recall": 0.36294027565084225,
+       "precision": 0.9294117647058824
+      },
+      "delta": {
+       "recall": [-0.0061,-0.0135,0.0017],
+       "precision": [0.0025,-0.0018,0.0104]
+      }
+     },
+     "cost": {
+      "before": {
+       "vision": {
+        "calls": 268,
+        "seconds": 24
+       },
+       "ppocr": {
+        "calls": 268,
+        "seconds": 505
+       },
+       "qwen": {
+        "calls": 92,
+        "seconds": 156
+       }
+      },
+      "after": {
+       "vision": {
+        "calls": 268,
+        "seconds": 31
+       },
+       "ppocr": {
+        "calls": 268,
+        "seconds": 720
+       },
+       "qwen": {
+        "calls": 102,
+        "seconds": 262
+       }
+      }
+     }
+    },
+    "own": {
+     "cropMethod": "rect;rot=fixed;clip=frame;mask=own",
+     "against": "rect;rot=fixed;clip=frame",
+     "all": {
+      "boxCount": 134,
+      "photos": 33,
+      "textRead": {
+       "before": 67.2,
+       "after": 62.7,
+       "delta": -4.5,
+       "lo": -9.7,
+       "hi": 0
+      },
+      "confirmed": {
+       "before": 16.4,
+       "after": 17.9,
+       "delta": 1.5,
+       "lo": -4.2,
+       "hi": 8.4
+      },
+      "wrong": {
+       "before": 0.7,
+       "after": 1.5,
+       "delta": 0.7,
+       "lo": -1.9,
+       "hi": 3.3
+      }
+     },
+     "strata": {
+      "remainders": {
+       "boxCount": 44,
+       "photos": 24,
+       "textRead": {
+        "before": 70.5,
+        "after": 68.2,
+        "delta": -2.3,
+        "lo": -7.3,
+        "hi": 0
+       },
+       "confirmed": {
+        "before": 11.4,
+        "after": 13.6,
+        "delta": 2.3,
+        "lo": -10.2,
+        "hi": 13.5
+       },
+       "wrong": {
+        "before": 0,
+        "after": 2.3,
+        "delta": 2.3,
+        "lo": 0,
+        "hi": 8.1
+       }
+      },
+      "other changed boxes": {
+       "boxCount": 90,
+       "photos": 25,
+       "textRead": {
+        "before": 65.6,
+        "after": 60,
+        "delta": -5.6,
+        "lo": -13.3,
+        "hi": 0
+       },
+       "confirmed": {
+        "before": 18.9,
+        "after": 20,
+        "delta": 1.1,
+        "lo": -6.1,
+        "hi": 10.6
+       },
+       "wrong": {
+        "before": 1.1,
+        "after": 1.1,
+        "delta": 0,
+        "lo": -3.5,
+        "hi": 2.8
+       }
+      },
+      "flagged": {
+       "boxCount": 9,
+       "photos": 8,
+       "textRead": {
+        "before": 77.8,
+        "after": 55.6,
+        "delta": -22.2,
+        "lo": -54.5,
+        "hi": 0
+       },
+       "confirmed": {
+        "before": 22.2,
+        "after": 22.2,
+        "delta": 0,
+        "lo": -37.5,
+        "hi": 50
+       },
+       "wrong": {
+        "before": 11.1,
+        "after": 0,
+        "delta": -11.1,
+        "lo": -37.5,
+        "hi": 0
+       }
+      },
+      "whole boxes": {
+       "boxCount": 81,
+       "photos": 32,
+       "textRead": {
+        "before": 84,
+        "after": 82.7,
+        "delta": -1.2,
+        "lo": -3.8,
+        "hi": 0
+       },
+       "confirmed": {
+        "before": 23.5,
+        "after": 28.4,
+        "delta": 4.9,
+        "lo": -5,
+        "hi": 15.4
+       },
+       "wrong": {
+        "before": 1.2,
+        "after": 1.2,
+        "delta": 0,
+        "lo": -3.2,
+        "hi": 3.8
+       }
+      },
+      "cut or partial boxes": {
+       "boxCount": 53,
+       "photos": 14,
+       "textRead": {
+        "before": 41.5,
+        "after": 32.1,
+        "delta": -9.4,
+        "lo": -23.1,
+        "hi": 0
+       },
+       "confirmed": {
+        "before": 5.7,
+        "after": 1.9,
+        "delta": -3.8,
+        "lo": -9.8,
+        "hi": 0
+       },
+       "wrong": {
+        "before": 0,
+        "after": 1.9,
+        "delta": 1.9,
+        "lo": 0,
+        "hi": 5.7
+       }
+      }
+     },
+     "titles": {
+      "before": {
+       "recall": 0.36906584992343033,
+       "precision": 0.926923076923077
+      },
+      "after": {
+       "recall": 0.3767228177641654,
+       "precision": 0.924812030075188
+      },
+      "delta": {
+       "recall": [0.0077,-0.0031,0.0195],
+       "precision": [-0.0021,-0.0146,0.009]
+      }
+     },
+     "cost": {
+      "before": {
+       "vision": {
+        "calls": 268,
+        "seconds": 24
+       },
+       "ppocr": {
+        "calls": 268,
+        "seconds": 505
+       },
+       "qwen": {
+        "calls": 92,
+        "seconds": 156
+       }
+      },
+      "after": {
+       "vision": {
+        "calls": 268,
+        "seconds": 96
+       },
+       "ppocr": {
+        "calls": 268,
+        "seconds": 645
+       },
+       "qwen": {
+        "calls": 84,
+        "seconds": 145
+       }
+      }
+     }
+    }
+   },
+   "strata": {
+    "set": "yardstick-library-b2",
+    "neighbourPairs": 2062,
+    "pairsWithColour": 2051,
+    "thresholds": {
+     "lowDeltaE76": 10,
+     "topShare": 0.15,
+     "coverShare": 0.15
+    },
+    "lowContrast": {
+     "pairs": 407,
+     "conflictBefore": {
+      "share": 0.1597,
+      "lo": 0.1223,
+      "hi": 0.2016
+     },
+     "conflictAfter": {
+      "share": 0.0025,
+      "lo": 0,
+      "hi": 0.0069
+     },
+     "pairOverlapBefore": 0.0268,
+     "pairOverlapAfter": 0.0001,
+     "contestedBefore": 9880268,
+     "contestedAfter": 36962,
+     "pairsWithADroppedMember": 65,
+     "dropReasons": {
+      "absorbed": 1,
+      "duplicate": 29,
+      "merged-parent": 13,
+      "piece-of": 23
+     },
+     "provenancePixelShare": {
+      "tile-argmax": 0.4634,
+      "seam": 0.1344,
+      "depth": 0.4016,
+      "fallback": 0.0007
+     },
+     "seamRuns": 20,
+     "seamStrong": {
+      "combined": 0.5,
+      "normals": 0.5,
+      "retinex": 0.5,
+      "luma": 0.95
+     }
+    },
+    "otherContrast": {
+     "pairs": 1644,
+     "conflictBefore": {
+      "share": 0.135,
+      "lo": 0.1101,
+      "hi": 0.16
+     },
+     "conflictAfter": {
+      "share": 0.0006,
+      "lo": 0,
+      "hi": 0.0022
+     },
+     "pairOverlapBefore": 0.0247,
+     "pairOverlapAfter": 0.0001,
+     "contestedBefore": 41253549,
+     "contestedAfter": 93372,
+     "pairsWithADroppedMember": 325,
+     "dropReasons": {
+      "absorbed": 18,
+      "duplicate": 174,
+      "merged-parent": 45,
+      "piece-of": 114
+     },
+     "provenancePixelShare": {
+      "tile-argmax": 0.6131,
+      "seam": 0.2102,
+      "depth": 0.1755,
+      "fallback": 0.0012
+     },
+     "seamRuns": 37,
+     "seamStrong": {
+      "combined": 0.5135,
+      "normals": 0.4324,
+      "retinex": 0.6216,
+      "luma": 0.8649
+     }
+    },
+    "lowContrastTopFace": {
+     "pairs": 85,
+     "conflictBefore": {
+      "share": 0.2118,
+      "lo": 0.0811,
+      "hi": 0.314
+     },
+     "conflictAfter": {
+      "share": 0.0118,
+      "lo": 0,
+      "hi": 0.0286
+     },
+     "pairOverlapBefore": 0.0344,
+     "pairOverlapAfter": 0.0001,
+     "contestedBefore": 2287782,
+     "contestedAfter": 4988,
+     "pairsWithADroppedMember": 17,
+     "dropReasons": {
+      "duplicate": 5,
+      "merged-parent": 1,
+      "piece-of": 11
+     },
+     "provenancePixelShare": {
+      "tile-argmax": 0.0135,
+      "seam": 0.484,
+      "depth": 0.5025
+     },
+     "seamRuns": 6,
+     "seamStrong": {
+      "combined": 0.6667,
+      "normals": 0.5,
+      "retinex": 0.6667,
+      "luma": 1
+     }
+    },
+    "lowContrastToneOnly": {
+     "pairs": 322,
+     "conflictBefore": {
+      "share": 0.146,
+      "lo": 0.1057,
+      "hi": 0.1832
+     },
+     "conflictAfter": {
+      "share": 0,
+      "lo": 0,
+      "hi": 0
+     },
+     "pairOverlapBefore": 0.0251,
+     "pairOverlapAfter": 0.0001,
+     "contestedBefore": 7592486,
+     "contestedAfter": 31974,
+     "pairsWithADroppedMember": 48,
+     "dropReasons": {
+      "absorbed": 1,
+      "duplicate": 24,
+      "merged-parent": 12,
+      "piece-of": 12
+     },
+     "provenancePixelShare": {
+      "tile-argmax": 0.629,
+      "seam": 0.0057,
+      "depth": 0.3644,
+      "fallback": 0.0009
+     },
+     "seamRuns": 14,
+     "seamStrong": {
+      "combined": 0.4286,
+      "normals": 0.5,
+      "retinex": 0.4286,
+      "luma": 0.9286
+     }
+    },
+    "coverKind": {
+     "pairs": 778,
+     "conflictBefore": {
+      "share": 0.1697,
+      "lo": 0.1379,
+      "hi": 0.1998
+     },
+     "conflictAfter": {
+      "share": 0.0039,
+      "lo": 0.0009,
+      "hi": 0.0085
+     },
+     "pairOverlapBefore": 0.031,
+     "pairOverlapAfter": 0.0002,
+     "contestedBefore": 26400137,
+     "contestedAfter": 208705,
+     "pairsWithADroppedMember": 179,
+     "dropReasons": {
+      "absorbed": 13,
+      "duplicate": 112,
+      "merged-parent": 20,
+      "piece-of": 46
+     },
+     "provenancePixelShare": {
+      "tile-argmax": 0.5328,
+      "seam": 0.1722,
+      "depth": 0.2926,
+      "fallback": 0.0023
+     },
+     "seamRuns": 20,
+     "seamStrong": {
+      "combined": 0.6,
+      "normals": 0.5,
+      "retinex": 0.7,
+      "luma": 0.95
+     }
+    },
+    "coverKindConflicting": {
+     "pairs": 132,
+     "conflictBefore": {
+      "share": 1,
+      "lo": 1,
+      "hi": 1
+     },
+     "conflictAfter": {
+      "share": 0.0076,
+      "lo": 0,
+      "hi": 0.0278
+     },
+     "pairOverlapBefore": 0.2154,
+     "pairOverlapAfter": 0.0012,
+     "contestedBefore": 26334906,
+     "contestedAfter": 150534,
+     "pairsWithADroppedMember": 61,
+     "dropReasons": {
+      "absorbed": 1,
+      "duplicate": 46,
+      "merged-parent": 7,
+      "piece-of": 11
+     },
+     "provenancePixelShare": {
+      "tile-argmax": 0.5328,
+      "seam": 0.1722,
+      "depth": 0.2926,
+      "fallback": 0.0023
+     },
+     "seamRuns": 20,
+     "seamStrong": {
+      "combined": 0.6,
+      "normals": 0.5,
+      "retinex": 0.7,
+      "luma": 0.95
+     }
+    },
+    "mergedSplits": {
+     "lowContrast": {
+      "merged-parent": 4,
+      "remainder": 16
+     },
+     "lowContrastTopFace": {
+      "merged-parent": 0,
+      "remainder": 3
+     },
+     "other": {
+      "merged-parent": 4,
+      "remainder": 28
+     }
+    },
+    "ends": {
+     "top": {
+      "outline": 1024,
+      "gate": 2,
+      "tile-argmax": 6,
+      "seam": 2,
+      "depth": 6
+     },
+     "bottom": {
+      "outline": 1022,
+      "gate": 3,
+      "tile-argmax": 7,
+      "seam": 1,
+      "depth": 7
+     }
+    }
+   }
+  }
+ }
+}

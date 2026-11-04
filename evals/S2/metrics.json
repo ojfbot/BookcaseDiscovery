@@ -1,0 +1,463 @@
+{
+ "card": "S-2",
+ "question": "What lies between each shelf row's book tops and the board above: empty, occluded, occupied or unknown?",
+ "model": "moge-2-vitl-normal@cb0e8bb (H-2 cache); F-0i partition (#51); S-1 shelf rows re-run on it",
+ "rule": {
+  "flatDeg": 60,
+  "explain": 0.3,
+  "inHeadroom": 0.5,
+  "recalled": 0.5,
+  "noBox": 0.5,
+  "maxUnknown": 0.25,
+  "minRecall": 0.6
+ },
+ "sets": {
+  "pilot-000": {
+   "scope": "real use (OC35): machine agreement, never accuracy (INV-17)",
+   "photos": 31,
+   "secondsPerPhotoP50": 0.41,
+   "rows": {
+    "all": 167,
+    "lip": 117,
+    "open": 45,
+    "skipped": {
+     "no-top-line": 5
+    }
+   },
+   "m1": {
+    "headroomShare": [0.1965,0.1693,0.2298],
+    "rowShare": {
+     "n": 117,
+     "p25": 0.0321,
+     "p50": 0.1403,
+     "p75": 0.2311
+    },
+    "gapM": {
+     "n": 117,
+     "p25": 0.0886,
+     "p50": 0.1037,
+     "p75": 0.1239
+    },
+    "gapOverPitch": {
+     "n": 117,
+     "p25": 0.2592,
+     "p50": 0.2927,
+     "p75": 0.3275
+    }
+   },
+   "m2": {
+    "rows": 117,
+    "headroomShare": [0.1965,0.1693,0.2298],
+    "empty": [0.4635,0.3691,0.5612],
+    "occluded": [0.3814,0.2875,0.4724],
+    "occupied": [0.1384,0.1214,0.156],
+    "unknown": [0.0163,0.0098,0.0266],
+    "unknownBy": {
+     "invalid": [0,0,0],
+     "foreground": [0.0039,0,0.0129],
+     "speckle": [0.0123,0.0092,0.0159]
+    }
+   },
+   "byElevation": {
+    "below": {
+     "rows": 77,
+     "headroomShare": [0.1361,0.093,0.1932],
+     "empty": [0.7356,0.6374,0.7964],
+     "occluded": [0.0415,0.0249,0.0722],
+     "occupied": [0.1905,0.1521,0.2487],
+     "unknown": [0.0313,0.0156,0.0627],
+     "unknownBy": {
+      "invalid": [0,0,0],
+      "foreground": [0.0099,0,0.0358],
+      "speckle": [0.0214,0.0139,0.0349]
+     }
+    },
+    "level": {
+     "rows": 28,
+     "headroomShare": [0.2998,0.2655,0.3287],
+     "empty": [0.3511,0.2623,0.4395],
+     "occluded": [0.5256,0.4365,0.6238],
+     "occupied": [0.1207,0.0882,0.1492],
+     "unknown": [0.0052,0.004,0.0067],
+     "unknownBy": {
+      "invalid": [0,0,0],
+      "foreground": [0,0,0.0001],
+      "speckle": [0.0051,0.004,0.0067]
+     }
+    },
+    "above": {
+     "rows": 12,
+     "headroomShare": [0.22,0.1866,0.2579],
+     "empty": [0.046,0.0151,0.0941],
+     "occluded": [0.8894,0.8319,0.9347],
+     "occupied": [0.0448,0.0264,0.0615],
+     "unknown": [0.0108,0.0059,0.0154],
+     "unknownBy": {
+      "invalid": [0,0,0],
+      "foreground": [0,0,0],
+      "speckle": [0.0108,0.0059,0.0154]
+     }
+    }
+   },
+   "m3": {
+    "occupied": [0.1384,0.1214,0.156],
+    "regions": 284,
+    "regionsPerRow": 2.4274,
+    "regionsPerPhoto": [9.1613,6.9669,11.4194],
+    "regionPx": {
+     "n": 284,
+     "p25": 611.75,
+     "p50": 1240,
+     "p75": 2967
+    }
+   },
+   "m4": {
+    "explained": {
+     "regions": 284,
+     "explainedShare": [0.0176,0.0043,0.0316],
+     "explainedPxShare": [0.0069,0.0009,0.0166],
+     "byKind": {
+      "stacked": 3,
+      "not-a-book": 2,
+      "on-lip": 0,
+      "dropped": 4,
+      "standing": 18,
+      "cover-pass": 107
+     },
+     "notABookBy": {
+      "blank-card": 1,
+      "spans-books": 1
+     },
+     "unexplained": 150,
+     "unexplainedNoBox": 30,
+     "dominant": {
+      "cover": 118,
+      "front": 146,
+      "top": 19,
+      "edge": 1
+     }
+    },
+    "recall": {
+     "known": {
+      "n": 71,
+      "inHeadroom": 7,
+      "recalled": 2,
+      "recall": [0.2857,0,0.8]
+     },
+     "stacked": {
+      "n": 47,
+      "inHeadroom": 7,
+      "recalled": 2,
+      "recall": [0.2857,0,0.8]
+     },
+     "notABook": {
+      "n": 24,
+      "inHeadroom": 0,
+      "recalled": 0,
+      "recall": null
+     },
+     "onLip": {
+      "n": 4,
+      "inHeadroom": 0,
+      "recalled": 0,
+      "recall": null
+     }
+    },
+    "notABookInHeadroomBy": {}
+   },
+   "open": {
+    "rows": 45,
+    "headroomShare": [0.3298,0.2321,0.4044],
+    "empty": [0.2951,0.1106,0.4021],
+    "occluded": [0.4596,0.3496,0.6262],
+    "occupied": [0.2411,0.1772,0.3262],
+    "unknown": [0.0047,0.003,0.0083],
+    "unknownBy": {
+     "invalid": [0,0,0.0001],
+     "foreground": [0.0003,0,0.001],
+     "speckle": [0.0043,0.0028,0.0076]
+    },
+    "explained": {
+     "regions": 103,
+     "explainedShare": [0.0097,0,0.0299],
+     "explainedPxShare": [0.0009,0,0.0036],
+     "byKind": {
+      "stacked": 0,
+      "not-a-book": 1,
+      "on-lip": 0,
+      "dropped": 5,
+      "standing": 9,
+      "cover-pass": 32
+     },
+     "notABookBy": {
+      "shelf-strip": 1
+     },
+     "unexplained": 56,
+     "unexplainedNoBox": 13,
+     "dominant": {
+      "front": 68,
+      "cover": 24,
+      "edge": 3,
+      "top": 8
+     }
+    },
+    "recall": {
+     "n": 71,
+     "inHeadroom": 2,
+     "recalled": 2,
+     "recall": [1,1,1]
+    }
+   },
+   "rebaseline": {
+    "rows": 167,
+    "found": {
+     "board": [0.5868,0.5248,0.6474],
+     "lip": [0.982,0.96,1],
+     "back": [0.6228,0.5409,0.7055]
+    },
+    "voidShare": [0.012,0.0039,0.0223],
+    "outlineGapShare": [0.1118,0.094,0.1313]
+   },
+   "q3": {
+    "rows": 167,
+    "stretches": {
+     "outline-gap": 400,
+     "void": 27
+    },
+    "frontNoBox": 153,
+    "frontNoBoxShare": [0.0428,0.0331,0.0558],
+    "boxShareOfOutlineGaps": {
+     "n": 400,
+     "p25": 0.1233,
+     "p50": 0.4795,
+     "p75": 1
+    },
+    "headroomFrontNoBox": 25
+   }
+  },
+  "yardstick": {
+   "scope": "PROXY (library shelves): Library Dataset sample, box arm B2; confirmed = accepted and annotated in the image",
+   "photos": 40,
+   "secondsPerPhotoP50": 0.21,
+   "rows": {
+    "all": 48,
+    "lip": 2,
+    "open": 46,
+    "skipped": {}
+   },
+   "m1": {
+    "headroomShare": [0.3208,0.1618,0.596],
+    "rowShare": {
+     "n": 2,
+     "p25": 0.2704,
+     "p50": 0.3789,
+     "p75": 0.4875
+    },
+    "gapM": {
+     "n": 2,
+     "p25": 0.1775,
+     "p50": 0.223,
+     "p75": 0.2685
+    },
+    "gapOverPitch": {
+     "n": 2,
+     "p25": 0.3642,
+     "p50": 0.4675,
+     "p75": 0.5708
+    }
+   },
+   "m2": {
+    "rows": 2,
+    "headroomShare": [0.3208,0.1618,0.596],
+    "empty": [0.2684,0.2671,0.2691],
+    "occluded": [0.004,0.0024,0.0075],
+    "occupied": [0.7066,0.7007,0.7191],
+    "unknown": [0.021,0.0063,0.0279],
+    "unknownBy": {
+     "invalid": [0,0,0],
+     "foreground": [0.0189,0,0.0278],
+     "speckle": [0.002,0,0.0063]
+    }
+   },
+   "byElevation": {
+    "below": {
+     "rows": 2,
+     "headroomShare": [0.3208,0.1618,0.596],
+     "empty": [0.2684,0.2671,0.2691],
+     "occluded": [0.004,0.0024,0.0075],
+     "occupied": [0.7066,0.7007,0.7191],
+     "unknown": [0.021,0.0063,0.0279],
+     "unknownBy": {
+      "invalid": [0,0,0],
+      "foreground": [0.0189,0,0.0278],
+      "speckle": [0.002,0,0.0063]
+     }
+    },
+    "level": {
+     "rows": 0,
+     "headroomShare": null,
+     "empty": null,
+     "occluded": null,
+     "occupied": null,
+     "unknown": null,
+     "unknownBy": {
+      "invalid": null,
+      "foreground": null,
+      "speckle": null
+     }
+    },
+    "above": {
+     "rows": 0,
+     "headroomShare": null,
+     "empty": null,
+     "occluded": null,
+     "occupied": null,
+     "unknown": null,
+     "unknownBy": {
+      "invalid": null,
+      "foreground": null,
+      "speckle": null
+     }
+    }
+   },
+   "m3": {
+    "occupied": [0.7066,0.7007,0.7191],
+    "regions": 2,
+    "regionsPerRow": 1,
+    "regionsPerPhoto": [0.05,0,0.125],
+    "regionPx": {
+     "n": 2,
+     "p25": 122968,
+     "p50": 148969,
+     "p75": 174970
+    }
+   },
+   "m4": {
+    "explained": {
+     "regions": 2,
+     "explainedShare": [0,0,0],
+     "explainedPxShare": [0,0,0],
+     "byKind": {
+      "stacked": 0,
+      "not-a-book": 0,
+      "on-lip": 0,
+      "dropped": 0,
+      "standing": 0,
+      "cover-pass": 0
+     },
+     "notABookBy": {},
+     "unexplained": 2,
+     "unexplainedNoBox": 0,
+     "dominant": {
+      "front": 2
+     }
+    },
+    "recall": {
+     "known": {
+      "n": 61,
+      "inHeadroom": 1,
+      "recalled": 1,
+      "recall": [1,1,1]
+     },
+     "stacked": {
+      "n": 45,
+      "inHeadroom": 1,
+      "recalled": 1,
+      "recall": [1,1,1]
+     },
+     "notABook": {
+      "n": 16,
+      "inHeadroom": 0,
+      "recalled": 0,
+      "recall": null
+     },
+     "onLip": {
+      "n": 2,
+      "inHeadroom": 1,
+      "recalled": 1,
+      "recall": [1,1,1]
+     }
+    },
+    "notABookInHeadroomBy": {}
+   },
+   "open": {
+    "rows": 46,
+    "headroomShare": [0.2476,0.2074,0.2875],
+    "empty": [0.5368,0.447,0.6368],
+    "occluded": [0.3594,0.2618,0.4551],
+    "occupied": [0.0927,0.0607,0.1292],
+    "unknown": [0.0112,0.0072,0.017],
+    "unknownBy": {
+     "invalid": [0,0,0],
+     "foreground": [0.0019,0,0.0068],
+     "speckle": [0.0092,0.0067,0.0124]
+    },
+    "explained": {
+     "regions": 67,
+     "explainedShare": [0.0149,0,0.0476],
+     "explainedPxShare": [0.0608,0,0.1931],
+     "byKind": {
+      "stacked": 1,
+      "not-a-book": 0,
+      "on-lip": 0,
+      "dropped": 6,
+      "standing": 12,
+      "cover-pass": 7
+     },
+     "notABookBy": {},
+     "unexplained": 41,
+     "unexplainedNoBox": 9,
+     "dominant": {
+      "front": 29,
+      "cover": 35,
+      "top": 1,
+      "edge": 2
+     }
+    },
+    "recall": {
+     "n": 61,
+     "inHeadroom": 21,
+     "recalled": 1,
+     "recall": [0.0476,0,0.1875]
+    }
+   },
+   "rebaseline": {
+    "rows": 48,
+    "found": {
+     "board": [0.6667,0.5435,0.7872],
+     "lip": [0.9792,0.9361,1],
+     "back": [0.8333,0.7391,0.92]
+    },
+    "voidShare": [0.0267,0.0095,0.0476],
+    "outlineGapShare": [0.0754,0.0537,0.0978]
+   },
+   "q3": {
+    "rows": 48,
+    "stretches": {
+     "void": 20,
+     "outline-gap": 52
+    },
+    "frontNoBox": 14,
+    "frontNoBoxShare": [0.0248,0.0097,0.0432],
+    "boxShareOfOutlineGaps": {
+     "n": 52,
+     "p25": 0.0865,
+     "p50": 0.4465,
+     "p75": 1
+    },
+    "headroomFrontNoBox": 6
+   }
+  }
+ },
+ "spotCheck": {
+  "judged": 20,
+  "yes": 4,
+  "no": 15,
+  "unclear": 1
+ },
+ "adequacy": {
+  "unknown": true,
+  "recall": false,
+  "adequate": false
+ }
+}
