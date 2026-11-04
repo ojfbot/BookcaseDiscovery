@@ -4,6 +4,8 @@ Card sessions and the conductor log deviations here (docs/plan/OPERATING-MODEL.m
 The count is a discovery rate, not a defect rate.
 
 ## Deviations
+- **2026-11-03 (C-R2).** The brief listed `evals/C3/` to read. Territory: C-3's eval folder is `evals/C3-catalog-retrieval/`. Read that.
+- **2026-11-03 (C-R2).** The brief pointed at the F-0h entry in `docs/plan/DELIVERY-PLAN.md`. Territory: main has no F-0h entry (the card is queued with the conductor, not yet in the plan); the plan's only neighbour items are I-1's "neighbour features at weight 0, stored separately" and I-2's joint shelf assignment. Went with designing F-0h against those two entries and the brief's description, and wrote the design so it can be pasted into a plan entry.
 - **2026-11-03 (C-5).** The brief put the Open Library download at "roughly 12 GB". Territory: the 2026-10-31 dumps are 17.49 GB for the three files C-5 needs (editions 12.63, works 4.08, authors 0.78 GB; MD5 from the archive.org item's `_files.xml`). Disk had 278 GB free, so went ahead and kept the dumps (the owner decides on deleting them).
 - **2026-11-03 (C-5).** The brief asked for modest download parallelism. Territory: archive.org served about 0.2 MB/s per connection, so one connection would have taken about 6 hours. Went with resumable ranged parts (6 connections for authors, 12 for works and editions, run at `nice -n 10`), joined and MD5-checked, for about 2 MB/s in all.
 - **2026-11-03 (C-5).** Layer 1 was to match resolved books by ISBN or by normalised title plus author surname. Territory: an Open Library-resolved record carries its Open Library work key, which is the exact match. Went with the key as a third, first-tried rule; the counts report which rule matched.
