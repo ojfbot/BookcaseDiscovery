@@ -1,0 +1,19 @@
+[project]
+name = "bookcase-depth"
+version = "0.1.0"
+description = "H-1 spike: monocular point maps and normals (MoGe-2) per shelf photo, spine-face splits of detected boxes, and per-band book cuboids. Standalone; not part of the default pipeline."
+license = "AGPL-3.0-only"
+requires-python = ">=3.12,<3.13"
+dependencies = [
+  "torch>=2.8",
+  "torchvision>=0.23",
+  "numpy>=2",
+  "pillow>=11",
+  "opencv-python==4.10.0.84",
+  # MoGe-2 (MIT), pinned to the last v2 commit: v3 adds CUDA-only kernels (FlexGEMM).
+  "moge @ git+https://github.com/microsoft/MoGe.git@b942f00bdc2a2a23ebb474fbe034d487e6dcceec",
+]
+
+[tool.uv]
+package = false
+override-dependencies = ["opencv-python==4.10.0.84"]
