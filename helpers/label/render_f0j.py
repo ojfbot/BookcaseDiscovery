@@ -69,7 +69,7 @@ def main() -> None:
         cv2.imwrite(str(out / "regions" / name), region_view(cache[1], it["polygon"], it["lines"]), [cv2.IMWRITE_JPEG_QUALITY, 88])
         fields = "".join(
             f"<tr><td>{html.escape(k)}</td><td>{html.escape(v.get('title') or '—')}</td><td>{html.escape(v.get('author') or '—')}</td></tr>"
-            for k, v in it.get("fields", {}).items())
+            for k, v in it.get("fields", {}).items() if v)
         decs = "".join(f"<li><b>{html.escape(a)}</b>: {html.escape(d)}</li>" for a, d in it.get("decisions", {}).items())
         flags = " ".join(f"<span class=flag>{html.escape(f)}</span>" for f in it.get("flags", []))
         rows.append(f"<section><h3>{n + 1}. {html.escape(it.get('why', ''))} {flags}</h3><img src='regions/{name}'>"

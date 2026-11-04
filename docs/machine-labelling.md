@@ -241,3 +241,36 @@ node src/eval/q3-cli.ts render          # the data root's private/q3/renders/ind
   The last four tie within their intervals.
 - **A baseline.** The box set changes with F-0m, F-0k and NB-3. Re-run `audit` and `analyse` on each new box set;
   never carry the figures over. Per-book records are private, under the data root's `private/q3/<set>/`.
+
+## Zone, read per line, emit fields (F-0j)
+
+Pass 2 on F-0i's book regions: zone each region into text lines, read each line at PP-OCR's recogniser height, and
+emit title and author as fields. Code: `helpers/label/zone.py` (lines, neighbour shares, line mosaics),
+`src/perceive/zones.ts` (groups, roles, multi-book; pure), `helpers/label/fields.py` (Qwen's transcript-first field
+read), `src/eval/f0j.ts` and `src/eval/f0j-cli.ts` (variants, the field rule, runner), `helpers/label/render_f0j.py`
+(private review page). Design: [`docs/models/per-book-extraction.md`](models/per-book-extraction.md) §5. Results:
+[`evals/F0j/report.md`](../evals/F0j/report.md).
+
+```
+node src/eval/f0j-cli.ts zone pilot-000        # PP-OCRv5 DB detector on every region at native resolution (CPU)
+node src/eval/f0j-cli.ts lines pilot-000       # Vision and PP-OCR on every kept line (crop line;h=48;clip=frame)
+node src/eval/f0j-cli.ts run pilot-000 a0      # base, then a (lines), b (fields); c after `fields` (Qwen, GPU)
+node src/eval/f0j-cli.ts analyse               # evals/F0j/ (aggregates only)
+node src/eval/f0j-cli.ts render pilot-000      # the data root's private/f0j/renders/<set>/ (private)
+```
+
+- **Zoning.** Each region is warped upright at native resolution into its reading frame; PP-OCRv5's detector finds
+  lines; a line mostly on pixels another kept box owns (F-0i's label map) is a neighbour's and dropped. Lines group
+  into lines of print; the largest group is the title, a name-like group (catalog name forms) the author, a small
+  group at either end the imprint. Two title-sized groups apart across the spine flag the region `multi-book`, handed
+  back to pass 1.
+- **Line reads.** Each kept line is cut from the working copy, turned horizontal, scaled to 48 px and read by Vision
+  and PP-OCR both ways round (column lines also a quarter turned), through lossless per-photo mosaics so `read.py` and
+  the Vision helper are unchanged. A reader's whole-crop reading and its line variants are one retrieval, one vote.
+- **Field path** (arms B, C). A reader whose whole string fails F-0's bar may confirm the candidate its title and
+  author fields alone best explain, at the same bar; an author field naming another book's author withdraws.
+- **Measured** in [`evals/F0j/report.md`](../evals/F0j/report.md): **no arm ships.** Line reads add confirmed books on
+  both sets, but the yardstick's wrong accepts rise beyond their interval in every arm. Arm A adds 7 wrong accepts,
+  mostly another book by an author on the shelf. Arms B and C add 28 and 24, mostly field-path agreement between
+  Vision and PP-OCR reading the same zoner-cut lines, so a shared zoner correlates the two OCR readers. The shipped
+  pipeline is unchanged. The response contract gained an optional `fields` object (`contracts/helpers/ocr-response.schema.json`).

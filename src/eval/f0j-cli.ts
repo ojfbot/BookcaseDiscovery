@@ -19,7 +19,7 @@ import { fileURLToPath } from "node:url";
 import { catalogPaths, openCatalog } from "../catalog/cli.ts";
 import { lookalikeGuard, type LookalikeGuard } from "../catalog/lookalike.ts";
 import { COUNTER_KINDS, counterCheck, openStats, rarityBasis, statsPathFor, type CounterKind, type RarityBasis } from "../catalog/rarity.ts";
-import { normalize, surnameFirstToGivenFirst } from "../catalog/normalize.ts";
+import { normalize, surnameFirstToGivenFirst, tokenize } from "../catalog/normalize.ts";
 import type { Candidate } from "../catalog/retrieve.ts";
 import { dataRoot } from "../ledger/images.ts";
 import { cropFor, cropName, F0_CROP, LINE_CROP } from "../perceive/crop.ts";
@@ -405,9 +405,11 @@ async function readSpines(c: Ctx, selected: Set<string>): Promise<void> {
 
 async function run(set: SetName, arm: Arm): Promise<void> {
   const c = context(set, arm);
+  const sub = arm === "c" ? subsample(set) : null;
+  if (sub) c.ids = c.ids.filter((id) => sub.has(split(id)[0]));
   const t0 = Date.now();
   // Arm C reads on arm B's selection (pre-registered); every other arm selects under its own first pass.
-  const selected = arm === "c" ? new Set(readJsonl<{ id: string }>(join(PRIV, set, "b", "selection.jsonl")).map((x) => x.id)) : selection(c);
+  const selected = arm === "c" ? new Set(readJsonl<{ id: string }>(join(PRIV, set, "b", "selection.jsonl")).map((x) => x.id).filter((id) => !sub || sub.has(split(id)[0]))) : selection(c);
   if (arm === "c" && selected.size === 0) throw new Error(`${set}: run arm b first (its selection)`);
   if (arm !== "c") await readSpines(c, selected);
   if (arm === "c") {
@@ -447,6 +449,12 @@ async function run(set: SetName, arm: Arm): Promise<void> {
 
 // --- fields: Qwen's transcript-first field read (GPU) ---------------------------------------------------------
 
+/** Arm C's declared photo subsample (`fields/subsample-photos.json`, the conductor's cap), or null for every photo. */
+function subsample(set: SetName): Set<string> | null {
+  const p = join(PRIV, set, "fields", "subsample-photos.json");
+  return existsSync(p) ? new Set(JSON.parse(readFileSync(p, "utf8")) as string[]) : null;
+}
+
 /** F-0d's no-text control boxes that are regions here (invented-field control). */
 function controlIds(set: SetName, regions: Map<string, PartRow>): string[] {
   const p = join(ROOT, "private", "f0d", set, "selection.jsonl");
@@ -458,6 +466,8 @@ async function fields(set: SetName): Promise<void> {
   const sel = join(PRIV, set, "b", "selection.jsonl");
   const want = new Set(existsSync(sel) ? readJsonl<{ id: string }>(sel).map((x) => x.id) : selection(c));
   for (const id of controlIds(set, c.regions)) want.add(id);
+  const sub = subsample(set);
+  if (sub) for (const id of [...want]) if (!sub.has(split(id)[0])) want.delete(id);
   const dir = join(PRIV, set, "fields");
   mkdirSync(dir, { recursive: true });
   const out = join(dir, "qwen.jsonl");
@@ -645,6 +655,11 @@ function fieldSummary(set: SetName, aft: Map<string, Dec>, plans: Map<string, Re
       rejected: { title: variants.filter((v) => v.rejected?.includes("title")).length, author: variants.filter((v) => v.rejected?.includes("author")).length, imprint: variants.filter((v) => v.rejected?.includes("imprint")).length },
       authorFieldWithoutZonerAuthor: used.filter((d) => d.info?.qwen?.author && !d.roles?.author).length,
       authorFieldRegions: used.filter((d) => d.info?.qwen?.author).length,
+      // Qwen's author-field coverage on the regions it read, with a photo-cluster interval (the v2 switch's question).
+      authorFieldShare: (() => {
+        const b = clusterBootstrap(used, (rs) => (rs.length ? rs.filter((d) => d.info?.qwen?.author).length / rs.length : null), REPS, 81);
+        return b && { value: b.value, lo: b.lo, hi: b.hi, photos: new Set(used.map((d) => d.imageId)).size };
+      })(),
       imprintFromLogo: variants.filter((v) => v.fields?.imprint.from === "logo").length,
       control: { regions: control.length, withAnyField: control.filter((r) => r.variants.some(anyField)).length },
       seconds: Math.round(used.reduce((s, d) => s + (fr.get(d.id)?.seconds ?? 0), 0)),
@@ -685,8 +700,9 @@ function analyse(): void {
     for (const arm of ARMS.filter((a) => a !== "a0")) {
       const aft = decisions(set, arm);
       if (!base || !aft) continue;
+      const armIds = ids.filter((id) => aft.has(id)); // arm C on pilot-000: the declared subsample's regions
       const pairs = (sel: (id: string) => boolean): Pair[] =>
-        ids.filter(sel).map((id) => ({ id, imageId: split(id)[0], before: outcomeOf(asDecision(base.get(id)!), tr?.get(split(id)[0])), after: outcomeOf(asDecision(aft.get(id)!), tr?.get(split(id)[0])) }));
+        armIds.filter(sel).map((id) => ({ id, imageId: split(id)[0], before: outcomeOf(asDecision(base.get(id)!), tr?.get(split(id)[0])), after: outcomeOf(asDecision(aft.get(id)!), tr?.get(split(id)[0])) }));
       const summary = (rs: Pair[], seed: number) => ({
         boxCount: rs.length,
         photos: new Set(rs.map((r) => r.imageId)).size,
@@ -710,8 +726,8 @@ function analyse(): void {
       let works: unknown = null;
       if (!tr) {
         // Distinct works per photo, summed; the bootstrap resamples photos' changes, so a photo drawn twice counts twice.
-        const perPhoto = [...new Set(ids.map((id) => split(id)[0]))].map((imageId) => {
-          const mine = ids.filter((id) => split(id)[0] === imageId);
+        const perPhoto = [...new Set(armIds.map((id) => split(id)[0]))].map((imageId) => {
+          const mine = armIds.filter((id) => split(id)[0] === imageId);
           const n = (m: Map<string, Dec>) => new Set(mine.map((id) => m.get(id)!.accepted).filter(Boolean)).size;
           return { imageId, b: n(base), a: n(aft) };
         });
@@ -724,11 +740,14 @@ function analyse(): void {
       const lines = loadReadings(join(PRIV, set, "lines"), LINE_CROP);
       const lineIds = ids.flatMap((id) => (p(id).read ? p(id).order : []));
       const fieldsOut = arm === "b" || arm === "c" ? fieldSummary(set, aft, plans, arm) : null;
+      const wrongs = tr ? wrongSources(base, aft, tr, ydb) : null;
       const authorAcc = tr ? { before: authorAccuracy(ydb!, base.values(), surnames!), after: authorAccuracy(ydb!, aft.values(), surnames!) } : null;
       out.arms[arm] = {
+        ...(armIds.length < ids.length ? { subsample: { photos: new Set(armIds.map((id) => split(id)[0])).size, regions: armIds.length } } : {}),
         all: summary(pairs(() => true), 11),
         ...(fieldsOut ? { fields: fieldsOut } : {}),
         ...(authorAcc ? { authorAccuracy: authorAcc } : {}),
+        ...(wrongs ? { wrongSources: wrongs } : {}),
         strata: Object.fromEntries(Object.entries(strata).map(([k, f], i) => [k, summary(pairs(f), 21 + 3 * i)])),
         ...(works ? { distinctConfirmedWorks: works } : {}),
         accepts: accepts.length,
@@ -763,6 +782,37 @@ function analyse(): void {
   const head = readFileSync(reportPath, "utf8").split(MARKER)[0]!;
   writeFileSync(reportPath, head.trimEnd() + "\n\n" + MARKER + "\n\n" + tables(m) + "\n");
   log("aggregates -> evals/F0j/{metrics.json,report.md}");
+}
+
+/**
+ * Where an arm's new wrong yardstick accepts come from (regions A0 did not accept wrongly): the route (pass-2 reads
+ * needed, a field-path vote, agreeing readers) and the kind of book (another book by an author annotated in the image,
+ * a book sharing a content title word with an annotated one, or neither).
+ */
+function wrongSources(base: Map<string, Dec>, aft: Map<string, Dec>, truth: Map<string, Set<string>>, db: ReturnType<typeof openCatalog>) {
+  const books = yardstickBooks();
+  const q = db.prepare("SELECT title, authors FROM works WHERE id = ?");
+  const words = (t: string) => new Set(tokenize(normalize(t)).filter((w) => w.length >= 4));
+  const out = { newWrong: 0, wrongGone: 0, route: { pass2Only: 0, fieldPath: 0, wholeCropAgreement: 0 }, readers: {} as Record<string, number>, kind: { sameAuthorAsAnnotated: 0, sharesTitleWord: 0, unrelated: 0 } };
+  const isWrong = (d: Dec | undefined) => Boolean(d?.accepted && !(truth.get(d.imageId) ?? new Set()).has(d.accepted));
+  for (const [id, d] of aft) {
+    const b = base.get(id);
+    if (isWrong(b) && !isWrong(d)) out.wrongGone++;
+    if (!isWrong(d) || (isWrong(b) && b!.accepted === d.accepted)) continue;
+    out.newWrong++;
+    if (d.agreeing.some((k) => d.info?.[k]?.path === "field")) out.route.fieldPath++;
+    else if (d.viaPass2.length) out.route.pass2Only++;
+    else out.route.wholeCropAgreement++;
+    const key = [...d.agreeing].sort().join("+");
+    out.readers[key] = (out.readers[key] ?? 0) + 1;
+    const w = q.get(d.accepted!) as { title: string; authors: string } | undefined;
+    const ann = books.get(d.imageId) ?? [];
+    const sur = new Set((w ? (JSON.parse(w.authors) as string[]) : []).map((a) => tokenize(normalize(a)).at(-1) ?? ""));
+    if (ann.some((t) => [...t.surnames].some((x) => sur.has(x)))) out.kind.sameAuthorAsAnnotated++;
+    else if (w && ann.some((t) => [...words(w.title)].some((x) => words(t.title).has(x)))) out.kind.sharesTitleWord++;
+    else out.kind.unrelated++;
+  }
+  return out;
 }
 
 interface V2Row { id: string; imageId: string; accepted: string | null; confirmed: Partial<Record<ReaderName, string | null>>; rarity: Partial<Record<ReaderName, CounterKind>> }
@@ -904,7 +954,7 @@ function tables(m: { verdict: Record<string, any>; sets: Record<string, any> }):
     const yard = set !== "pilot-000";
     for (const [arm, x] of Object.entries<any>(s.arms)) {
       out.push(`## ${set}: arm \`${arm}\` against A0 (${s.scope})`, "",
-        `${x.all.boxCount} regions. Shares in % of them, A0 → arm (Δ points; 95 % paired photo-bootstrap interval).`, "",
+        `${x.subsample ? `**Declared subsample (conductor's GPU cap): ${x.subsample.photos} photos, ${x.subsample.regions} regions; intervals over ${x.subsample.photos} photo clusters.** ` : ""}${x.all.boxCount} regions. Shares in % of them, A0 → arm (Δ points; 95 % paired photo-bootstrap interval).`, "",
         `| regions | n | photos | text read | confirmed |${yard ? " wrong |" : ""}`, `|---|---:|---:|---|---|${yard ? "---|" : ""}`);
       const row = (label: string, r: any) => `| ${label} | ${r.boxCount} | ${r.photos} | ${fmt(r.textRead)} | ${fmt(r.confirmed)} |${yard ? ` ${fmt(r.wrong)} |` : ""}`;
       out.push(row("**all**", x.all), ...Object.entries<any>(x.strata).map(([k, r]) => row(`  ${k}`, r)), "");
@@ -919,6 +969,10 @@ function tables(m: { verdict: Record<string, any>; sets: Record<string, any> }):
         `Line reads: Vision ${x.cost.lines.vision.calls} calls, ${x.cost.lines.vision.seconds} s; PP-OCR ${x.cost.lines.ppocr.calls} calls, ${x.cost.lines.ppocr.seconds} s. Qwen-selected regions: ${x.cost.qwenSelected.before} → ${x.cost.qwenSelected.after}.`,
         "",
       );
+      if (x.wrongSources) {
+        const w = x.wrongSources;
+        out.push(`**Where the new wrong accepts come from** (regions A0 did not accept wrongly; ${w.wrongGone} of A0's wrong accepts are gone): ${w.newWrong} new. Route: a reader's field-path vote ${w.route.fieldPath}, pass-2 line variants needed ${w.route.pass2Only}, whole-crop agreement (Qwen re-selection) ${w.route.wholeCropAgreement}. Agreeing readers: ${Object.entries(w.readers).map(([k, v]) => `${k} ${v}`).join(", ")}. Kind: another book by an author annotated in the image ${w.kind.sameAuthorAsAnnotated}, shares a title word with an annotated book ${w.kind.sharesTitleWord}, neither ${w.kind.unrelated}.`, "");
+      }
       if (x.authorAccuracy) {
         const a = x.authorAccuracy;
         out.push(`Author accuracy (F-0's: accepted labels whose author's surname is annotated in the image): ${pc(a.before.share)} (${a.before.withAuthorInImage}/${a.before.accepted}) → ${pc(a.after.share)} (${a.after.withAuthorInImage}/${a.after.accepted}).`, "");
@@ -935,6 +989,7 @@ function tables(m: { verdict: Record<string, any>; sets: Record<string, any> }):
         out.push("");
         if (f.qwen) {
           const q = f.qwen;
+          if (q.authorFieldShare) out.push(`**Qwen author-field coverage:** ${pc(q.authorFieldShare.value)} of the regions it read (${pc(q.authorFieldShare.lo)}–${pc(q.authorFieldShare.hi)}, ${q.authorFieldShare.photos} photo clusters).`, "");
           out.push(`Qwen field read: ${q.regionsRead} regions, ${q.rotations} rotations, ${q.truncated} not valid JSON; rejected (not in its own lines) title ${q.rejected.title}, author ${q.rejected.author}, imprint ${q.rejected.imprint}; imprint from a logo ${q.imprintFromLogo}. **Invented-field checks:** an author field where the zoner found no author line on ${q.authorFieldWithoutZonerAuthor} of ${q.authorFieldRegions} regions with a Qwen author field; any field on F-0d's no-text control ${q.control.withAnyField} of ${q.control.regions}. ${q.seconds} s, median ${q.tokensP50} visual tokens.`, "");
         }
       }
