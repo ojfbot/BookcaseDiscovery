@@ -234,3 +234,94 @@ C-4 measures what share of a session's readable spines ISFDB holds, using F-0's 
 
 The live APIs are verifiers, not a search backend (backend-options §2): neither tolerates OCR noise, so the queries are per text line (AND) and per reading (OR), and the resolution rule, not the engine's ranking, decides whether a record is the book.
 
+
+---
+
+# Open Library breadth import (C-5)
+
+C-4 measured that ISFDB holds 59.5 % (48.6–71.2) of `pilot-000`'s readable labels, which fires OC20's reopening
+rule, and that about three quarters of the missing books are not SF. C-5 adds Open Library to the local index in
+the two layers C-4 proposed, crosswalked to ISFDB, as a **new file**: `$BOOKCASE_DATA/catalog/catalog-v2.sqlite`.
+`catalog.sqlite` is not touched; readers pick the file with `BOOKCASE_CATALOG` (below). Results:
+[`evals/C5/report.md`](../evals/C5/report.md).
+
+| | |
+|---|---|
+| Dumps | Open Library monthly dumps of **2026-10-31**: `ol_dump_{works,editions,authors}_2026-10-31.txt.gz` from `https://archive.org/download/ol_dump_2026-10-31/` (the `_latest` links on https://openlibrary.org/developers/dumps redirect there). Sizes and MD5 checked against the item's `_files.xml`. Covers are not downloaded. |
+| Raw copy | `$BOOKCASE_DATA/catalog/ol-dumps/2026-10-31/` (kept; the owner decides on deleting them) |
+| Measurement | `$BOOKCASE_DATA/catalog/ol-measure/2026-10-31/` (per-work facts as raw arrays, `counts.json`) |
+| Staging file | `$BOOKCASE_DATA/catalog/ol-staging.sqlite` (kept works, their editions, their authors) |
+| Catalog | `$BOOKCASE_DATA/catalog/catalog-v2.sqlite`, schema version 2 |
+| Code | `src/catalog/ol-dump.ts` (streaming reader, measuring pass, layers, staging), `src/catalog/ol-merge.ts` (crosswalk and merge), `src/catalog/ol-import.ts` (CLI), `src/catalog/c5-eval.ts` (evaluation) |
+| Commands | `pnpm catalog:ol measure`, `pnpm catalog:ol stage`, `bookcase catalog build --ol-staging $BOOKCASE_DATA/catalog/ol-staging.sqlite` (writes `catalog-v2.sqlite` unless `--out` says otherwise) |
+| Tests | `test/catalog-openlibrary.test.ts`, synthetic dump in `test/helpers/mini-ol-dump.ts` (invented ids, public example books) |
+
+## Reading the dumps
+
+A dump line is `type \t key \t revision \t last_modified \t JSON`. The dumps are untrusted data: `dumpRecords`
+streams the gzip through `readline`, parses each wanted line with `JSON.parse` and nothing else, skips (and counts)
+lines that are malformed or longer than 4 MB, and never holds a file whole. On later passes a line is filtered on
+its type and key before it is parsed. Open Library ids (`/works/OL45804W`) become numbers, and the per-work facts
+the filter needs live in typed arrays indexed by that number (about 0.4 GB for every work in the dump).
+
+Measuring (`measure`): works (which exist, the work's own `first_publish_date`, shelf-held title candidates),
+authors (surnames of those candidates' authors), editions (count per work, earliest `publish_date`, any English
+edition, shelf-held ISBNs). A work's **first year** is the earliest four-digit year in 1450–2027 found in its own
+`first_publish_date` or any edition's `publish_date` (Open Library search computes `first_publish_year` from the
+editions the same way). An edition belongs to its first `works` entry; editions with no work, or a work missing from
+the works dump (redirected or deleted), are counted and dropped. **English** means at least one edition lists
+`/languages/eng`.
+
+## The two layers (C-4's proposal)
+
+1. **Shelf-held** (always on): works that match a book C-4's resolver resolved on a scanned session, read from the
+   private per-box tables `private/c4/<session>.{sample,tuning}.jsonl`. Matched by the record's Open Library work
+   key, else any of its ISBNs on any edition, else the title key (main title, trailing parenthetical dropped,
+   normalised, leading article dropped) plus one of its first three authors' surnames (C-4's `surnameOf`).
+2. **Breadth**: English-language works first published in 1960 or later with at least two editions.
+
+A kept work keeps **every** edition (all languages), with its ISBN-10/13 (`isbns`, all valid ISBN-13s; `isbn13`, the
+first), title (with subtitle), publisher (the first listed), publish year and physical format, and its authors'
+names. The layer is stored on the work's `sources` entry (`shelf`, `breadth` or `shelf+breadth`).
+
+## Crosswalk and merge
+
+`buildCatalog` builds the ISFDB catalog exactly as C-3 does, then, in the same transaction, `mergeOpenLibrary`
+walks the staged works in id order:
+
+1. **ISBN.** Each Open Library edition's ISBN-13s against ISFDB's `editions.isbn13`. The ISFDB work most of them
+   point at wins; an equal title key adds half a vote, because an omnibus edition's ISBN points at the omnibus and
+   at every novel in it. Only ISFDB works are targets.
+2. **Title plus author.** Otherwise, the work's title key equals the key of an ISFDB title form (any kind: the
+   title, its main part or subtitle, a variant), and an Open Library author's surname is one of that work's author
+   surnames. Several hits: the one with the most editions.
+3. A **crosswalked** work adds no Work. Its editions whose ISBN the ISFDB work lacks become editions of the ISFDB
+   work (`edition_id` `ol:OL<n>M`, `source` `openlibrary`), and `{source: "openlibrary", id: "OL<n>W", dump,
+   layer}` is appended to the ISFDB work's `sources`. Several Open Library works can fold into one ISFDB work.
+4. Every **other** kept work becomes a Work `ol:OL<n>W` with its own editions, title forms (whole title; main title
+   and subtitle when there is one) and authors. `ttype` is `BOOK` (Open Library has no work type), `language` is
+   `English` when an edition is, `non_genre` and `graphic` are 0 (not flagged), `tags` are empty (Open Library
+   subjects are a different vocabulary from ISFDB's user tags and are not imported), and there is no series.
+5. **Authors** are matched by normalised name: an Open Library author whose name (or "Surname, Given" turned round)
+   normalises to an existing author form reuses that author; otherwise one new author per distinct normalised name,
+   id `1_000_000_000 + <Open Library author number>`. Open Library holds many duplicate author records ("Stephen
+   King" several times), and separate rows would crowd the twelve author slots `retrieve` expands.
+
+Open Library's own duplicate works (two records for one book) are not merged with each other; they become two
+works with the same forms. `retrieve`'s ranking and scoring are unchanged.
+
+**Schema version 2** adds `editions.source` (`isfdb` or `openlibrary`); nothing else changed, so every reader accepts
+version 1 and 2 files (`READABLE_SCHEMA_VERSIONS`). `works.edition_count` is the number of edition rows the work has
+in the catalog, so a crosswalked ISFDB work's count includes the Open Library editions added to it. `meta` records
+`sources`, `openlibrary_dump_date`, `rows.isfdbWorks` and the merge counts (`openlibrary.*`).
+
+## Choosing the catalog file
+
+`BOOKCASE_CATALOG` names the catalog every reader opens (`catalogPaths().catalog`: `bookcase catalog query|eval|
+coverage`, `bookcase recommend`, the F-0 pilot and F-0b): a file name in `$BOOKCASE_DATA/catalog/` or an absolute
+path. Unset, it is `catalog.sqlite`, as before. `--db` flags still override it. `bookcase catalog build` without
+`--ol-staging` always writes `catalog.sqlite`; with it, `catalog-v2.sqlite`.
+
+```
+BOOKCASE_CATALOG=catalog-v2.sqlite bookcase catalog query "MOONWALKING EINSTEIN FOER"
+```

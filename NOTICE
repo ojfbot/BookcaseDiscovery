@@ -14,3 +14,12 @@ ISFDB (the MVP catalog, OC20)
   database are not redistributed in this repo.
   Attribution text (ours, not ISFDB's wording; ISFDB prescribes none that any agent could read):
     Catalog data from the Internet Speculative Fiction Database (ISFDB), https://www.isfdb.org/, used under CC BY 4.0.
+
+Open Library (the breadth catalog, C-5)
+  Source: Open Library monthly data dumps (works, editions, authors), https://openlibrary.org/developers/dumps
+  Terms: the Internet Archive "does not assert any new copyright or other proprietary rights" in this data and
+    asks for no attribution (https://openlibrary.org/developers/licensing; docs/licences.md). Existing rights
+    may apply to some records. This line is a courtesy, not a licence requirement.
+  Dump staged locally by card C-5: ol_dump_*_2026-10-31 (docs/catalog.md). The dumps, the staging database and
+  the catalog built from them are not redistributed in this repo. No cover images are used.
+  Courtesy text: Catalog data from Open Library (https://openlibrary.org/), an Internet Archive project.

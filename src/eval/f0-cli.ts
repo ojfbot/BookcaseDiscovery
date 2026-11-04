@@ -8,7 +8,7 @@ import { DatabaseSync } from "node:sqlite";
 import { parseArgs } from "node:util";
 import { fileURLToPath } from "node:url";
 import { buildCatalog } from "../catalog/build.ts";
-import { openCatalog } from "../catalog/cli.ts";
+import { catalogPaths, openCatalog } from "../catalog/cli.ts";
 import { createSchema } from "../catalog/isfdb-staging.ts";
 import { normalize, surnameFirstToGivenFirst } from "../catalog/normalize.ts";
 import type { Candidate } from "../catalog/retrieve.ts";
@@ -116,7 +116,7 @@ function fixtureImages(root: string, session: string): InputImage[] {
 async function pilot(session: string, limit: number, qwenCap: number, runId: string): Promise<void> {
   const root = dataRoot();
   const images = fixtureImages(root, session).slice(0, limit);
-  const db = openCatalog(join(root, "catalog", "catalog.sqlite"));
+  const db = openCatalog(catalogPaths().catalog);
   const dir = stageDir(root, session);
   const t0 = Date.now();
   const { dets, decisions, readings, hardSelected, hardTotal } = await pipeline(images, db, dir, qwenCap);
