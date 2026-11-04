@@ -231,3 +231,9 @@ the LAN pilot, and the read-vision implementation stays here.
   because Remote Login is off on Yuri. The owner keeps the firewall and local
   staging under their control. This combines the N-2 remote-worker and N-3
   queue transport proof for read-vision. The remaining card exits carry forward.
+
+- **2026-11-03 (resident worker).** The BookcaseDiscovery client keeps the
+  existing vendor layout and updates the worker to core commit
+  `973dcfdfc43129353b0ec37fc1a27fcbe97a2f85`. The unattended claim policy
+  belongs to this client. The user LaunchAgent pins the selected Node
+  runtime and leaves the host's power settings under the owner's control.

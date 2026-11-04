@@ -3,12 +3,14 @@ import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { basename, extname, join, resolve } from "node:path";
 import { dataRoot, ImageStore } from "../ledger/images.ts";
 import { defaultOcrBinary } from "../perceive/ocr.ts";
+import { isServiceWorker, workerService } from "./fleet-service.ts";
+import { mayClaim } from "./fleet-worker-policy.ts";
 import { detectCapabilities, ocrHelperId, readVisionHandler, readVisionJob } from "./job-kinds.ts";
 import { generateToken } from "./vendor/fleet-runner/auth.ts";
 import { fleetClient } from "./vendor/fleet-runner/client.ts";
-import { workOnce } from "./vendor/fleet-runner/worker.ts";
+import { runWorker, workOnce } from "./vendor/fleet-runner/worker.ts";
 
-const usage = "usage: bookcase fleet <keygen | stage PHOTO | enqueue PHOTO | work WORKER | verify WORKER>";
+const usage = "usage: bookcase fleet <keygen | stage PHOTO | enqueue PHOTO | work WORKER | serve-worker WORKER | service | report | verify WORKER>";
 
 function dimensions(photo: string): [number, number] {
   const result = execFileSync("/usr/bin/sips", ["-g", "pixelWidth", "-g", "pixelHeight", photo], {
@@ -25,6 +27,7 @@ function dimensions(photo: string): [number, number] {
 
 export async function fleetCommand(argv: string[], env: NodeJS.ProcessEnv = process.env): Promise<number> {
   const [command, arg] = argv;
+  if (command === "service") return workerService(argv.slice(1), env);
   const root = dataRoot(env);
   const fleetDir = join(root, "fleet");
   const images = new ImageStore(root);
@@ -34,8 +37,8 @@ export async function fleetCommand(argv: string[], env: NodeJS.ProcessEnv = proc
     console.log(usage);
     return 0;
   }
-  const arity = command === "keygen" ? 1 : 2;
-  if (!["keygen", "stage", "enqueue", "work", "verify"].includes(command ?? "") || argv.length !== arity) {
+  const arity = command === "keygen" || command === "report" ? 1 : 2;
+  if (!["keygen", "stage", "enqueue", "work", "serve-worker", "report", "verify"].includes(command ?? "") || argv.length !== arity) {
     console.error(usage);
     return 1;
   }
@@ -55,6 +58,11 @@ export async function fleetCommand(argv: string[], env: NodeJS.ProcessEnv = proc
       return 0;
     }
     if (!token || !endpoint) throw new Error("missing fleet configuration");
+    if (command === "report") {
+      const report = await fleetClient(endpoint, "owner", token).report();
+      console.log(JSON.stringify(report, null, 2));
+      return 0;
+    }
     const binary = defaultOcrBinary(env);
     const keyFile = join(fleetDir, "job-key");
     if (command === "enqueue") {
@@ -73,17 +81,36 @@ export async function fleetCommand(argv: string[], env: NodeJS.ProcessEnv = proc
       console.log(result.created ? "fleet job enqueued" : "fleet job already enqueued");
       return 0;
     }
-    if (command === "work") {
+    if (command === "work" || command === "serve-worker") {
+      if (arg === "owner" || (command === "serve-worker" && !isServiceWorker(arg))) {
+        console.error("fleet work needs a worker identity");
+        return 1;
+      }
       const caps = detectCapabilities(env);
       if (!caps.includes("apple-vision")) {
         console.error("fleet work needs the executable OCR helper");
         return 1;
       }
-      const result = await workOnce(fleetClient(endpoint, arg!, token), {
+      const client = fleetClient(endpoint, arg!, token);
+      const worker = {
         caps,
         handlers: { "read-vision": readVisionHandler({ binary, resolveImage: (hash) => images.find(hash) }) },
         outDir: join(fleetDir, "attempts"),
-      });
+      };
+      if (command === "serve-worker") {
+        const stop = new AbortController();
+        const drain = () => stop.abort();
+        process.on("SIGTERM", drain);
+        process.on("SIGINT", drain);
+        try {
+          await runWorker(client, { ...worker, signal: stop.signal, canClaim: () => mayClaim(arg!) });
+        } finally {
+          process.off("SIGTERM", drain);
+          process.off("SIGINT", drain);
+        }
+        return 0;
+      }
+      const result = await workOnce(client, worker);
       console.log(`fleet worker ${result}`);
       return result === "completed" ? 0 : 1;
     }
