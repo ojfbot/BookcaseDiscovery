@@ -35,7 +35,7 @@ export const NB3 = {
  * Which causes the default path applies, set by evals/NB3's verdict. A cause that failed its keep rule stays
  * available as a reported flag and is off here.
  */
-export const NB3_SHIP: Record<NB3Why, boolean> = { "on-lip": false, depth: false, pixel: false };
+export const NB3_SHIP: Record<NB3Why, boolean> = { "on-lip": true, depth: false, pixel: false };
 
 export type NB3Why = "on-lip" | "depth" | "pixel";
 export const NB3_CAUSES: NB3Why[] = ["on-lip", "depth", "pixel"];

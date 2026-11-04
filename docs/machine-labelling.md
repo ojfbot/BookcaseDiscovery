@@ -154,8 +154,45 @@ node src/eval/s1-cli.ts render pilot-000    # the data root's private/s1/renders
   - It removes 4 `pilot-000` boxes F-0f misses: all section strips or label clips in a blind spot check, none
     confirmed.
   - On the yardstick it removes 2, none confirmed, with titles unchanged.
-  - The default pipeline has no depth stage, so `f0-cli.ts` does not run it yet. Wiring it changes the default's
-    not-a-book kinds, and F-0g, Q-2b and H-2 then need re-baselining (the conductor's call).
+  - NB-3 (below) wired it into the default path.
+
+## Not-a-book v3 (NB-3)
+
+NB-3 tried three label-free evidence sources for the shelf, wood, background and sign boxes that F-0c's shapes and
+F-0f's text and whiteness miss. It ran on F-0i's partition, from cached stages only (CPU). Code:
+
+- `src/eval/nb3.ts`: the rule and post step, pure;
+- `src/eval/nb3-cli.ts`: the runner;
+- `src/eval/nb3-stage.ts`: the default path's depth stage;
+- `helpers/label/probe.py` version 2: R3-C's `edgeDensity`, `bandpass`, `warm` and `luma` per box.
+
+Results: [`evals/NB3/report.md`](../evals/NB3/report.md).
+
+```
+node src/eval/nb3-cli.ts stage pilot-000    # the depth stage on H-2's cache (stops on a geometry miss; also yardstick)
+node src/eval/nb3-cli.ts shelf pilot-000    # S-1's lip features on the partition
+node src/eval/nb3-cli.ts probe pilot-000    # the version-2 pixel probe
+node src/eval/nb3-cli.ts calibrate          # the pixel thresholds, from pilot-000's reference boxes only
+node src/eval/nb3-cli.ts spot               # the blind spot-check sheet (private)
+node src/eval/nb3-cli.ts analyse            # evals/NB3/ (aggregates only)
+```
+
+- **The rule.** A box the shipped kinds keep is `not-a-book` when one of three causes holds, taken in this order:
+  - **`on-lip`**: S-1's test.
+  - **`depth`**: no reader text, at most 20 % of the H-2 face split `front`, and at least 60 % `behind` plus `under`.
+  - **`pixel`**: no reader text, smooth, and warm: the 5th and 95th percentiles of `pilot-000`'s reader-and-depth
+    book faces.
+- **Only `on-lip` ships** (`NB3_SHIP`).
+  - It removes the same 4 `pilot-000` boxes as S-1 did, and 2 yardstick boxes. None was confirmed.
+  - `depth` and `pixel` remove no confirmed book, but only because of their text guard. In a blind spot check their
+    catches were judged *not a book* 0 of 20 (`depth`) and 5 of 18 (`pixel`): mostly unread books. `depth` misplaces
+    books seen from above, and a far shelf seen through a near one, as `behind`; `pixel` catches plain warm spines.
+- **Default path.** `f0-cli.ts` runs the depth stage when a shipped cause needs it:
+  - `helpers/depth/stage.py` on H-2's cache, which runs MoGe-2 on a geometry miss;
+  - then `helpers/shelf/shelf.py`.
+
+  The NB-3 post step runs after F-0c's and F-0f's kinds, before Qwen. The pixel probe is cached at version 2; a
+  version-1 cache is probed again.
 
 ## Copy groups (F-0g)
 
