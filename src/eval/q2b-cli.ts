@@ -20,6 +20,7 @@ import { dataRoot } from "../ledger/images.ts";
 import { readJsonl, type Detection } from "./f0.ts";
 import { kinds } from "./f0c.ts";
 import { evidenceFor } from "./f0f-cli.ts";
+import { loadBoxSet, pilotOutlines, preRb1 } from "./rb1.ts";
 import { area, clipConvex, growQuad, MASK_COVER, PIECE_INSIDE, type Pt } from "../report/display-draw.ts";
 import { quantile } from "./q1.ts";
 import { rowsFrom, type Decision as Q1Decision, type Raw, type Reading } from "./q1-cli.ts";
@@ -40,7 +41,10 @@ export function spineIds(detect: string, set: "pilot-000" | "yardstick"): Set<st
     if (d.error) continue;
     kinds({ ...d, covers: [] }, ev.get(d.id)).spines.forEach((b, i) => b.kind === "spine" && keep.add(`${d.id}:${i}`));
   }
-  return keep;
+  if (preRb1()) return keep;
+  // RB-1's box set: less the boxes F-0i's partition drops and NB-3's `on-lip` boxes.
+  const box = loadBoxSet(set);
+  return new Set([...keep].filter(box.keeps));
 }
 
 let kept: Record<string, Set<string>> | null = null;
@@ -163,7 +167,7 @@ function outlinesForU4(): Record<string, unknown> | null {
   const path = join(PRIV, "outlines", `${PILOT}.jsonl`);
   const before = join(PRIV, "u4-before-summary.json"), after = join(PRIV, "u4-after-summary.json");
   if (!existsSync(path) || !existsSync(before) || !existsSync(after)) return null;
-  const rows = readJsonl<{ id: string; outline?: Pt[]; seconds?: number; error?: string }>(path);
+  const rows: { id: string; outline?: Pt[]; seconds?: number; error?: string }[] = pilotOutlines();
   const keep = keepOf(PILOT); // outlines were run before F-0f's shelf-label rules; count only boxes kept now
   const byId = new Map(rows.filter((r) => r.outline && keep(r.id)).map((r) => [r.id, r.outline!]));
   const kind = new Map(readJsonl<{ id: string; fragment: string }>(join(PRIV, "table", `${PILOT}.jsonl`)).map((r) => [r.id, r.fragment]));
@@ -190,7 +194,7 @@ function outlinesForU4(): Record<string, unknown> | null {
     return { source: x.source ?? "f0b", spineCount: x.spines, maskShapedPct: x.maskShaped, maskShareP50: x.maskShareP50, filledPct: x.filled, rungsPct: x.rungs, proxies: x.proxies };
   };
   return {
-    run: { model: "sam2.1-hiera-base-plus, box-prompted (helpers/label/outline.py)", boxCount: rows.length, errors: rows.filter((r) => r.error).length, secondsP50: secs.length ? r4(quantile(secs, 0.5)) : null },
+    run: { model: preRb1() ? "sam2.1-hiera-base-plus, box-prompted (helpers/label/outline.py)" : "F-0i's exclusive outlines (partition, #51), cut from the SAM 2.1 box-prompted outlines", boxCount: rows.length, errors: rows.filter((r) => r.error).length, secondsP50: secs.length ? r4(quantile(secs, 0.5)) : null },
     rule: `drawn from its outline when at least ${PIECE_INSIDE * 100} % of the mask lies inside the box (grown 3 % along, 8 % across) and covers at least ${MASK_COVER * 100} % of it`,
     shaped: r4(shaped / n), maskMostlyOutsideBox: r4(outside / n), maskUnderCover: r4(under / n),
     boxShapeByKind: Object.fromEntries(Object.entries(tot).map(([k, v]) => [k, r4((fb[k] ?? 0) / v)])),

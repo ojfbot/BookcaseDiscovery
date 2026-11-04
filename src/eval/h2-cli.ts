@@ -2,6 +2,7 @@
 // against the shipped `clip=frame` crop by F-0b's procedure and keep rule (pre-registered in evals/H2/report.md).
 //
 //   node src/eval/h2-cli.ts stage <set> [--tag T]   # helpers/depth/stage.py: geometry + faces per photo, cached
+//   node src/eval/h2-cli.ts faces <set>             # the per-box face file on the kept boxes, from the latest stage run
 //   node src/eval/h2-cli.ts base <set>              # F-0's decision per box from the cached readings (once)
 //   node src/eval/h2-cli.ts run <set> <arm>         # arm: clip (before) | face3d (after), on the face3d subset
 //   node src/eval/h2-cli.ts analyse                 # evals/H2/{metrics.json,report.md}: aggregates only
@@ -66,7 +67,7 @@ function inputImages(set: SetName, dets: Map<string, Detection>): InputImage[] {
   });
 }
 
-/** Box ids the shipped not-a-book rules keep as spines (F-0c shapes, F-0f shelf labels; cover pass off). */
+/** Box ids the shipped not-a-book rules keep as spines (F-0c shapes, F-0f shelf labels; cover pass off), on RB-1's box set. */
 const keptIds = (set: SetName): Set<string> => spineIds(join(SETS[set].stage, "detect.jsonl"), SETS[set].filter);
 
 /** The depth stage's row per box id (`<photo>:<box>`), from the latest stage run. */
@@ -122,7 +123,12 @@ function stage(set: SetName, tag: string): void {
   closeSync(fd);
   if (r.status !== 0) throw new Error(`stage.py failed on ${set}`);
   writeFileSync(join(dir, "stage-latest.jsonl"), readFileSync(out));
-  // The private per-box file: face shares and the trim per kept box.
+  faces(set);
+}
+
+/** The private per-box file: face shares and the trim per kept box, from the latest stage run (no depth runs). */
+function faces(set: SetName): void {
+  const dir = join(PRIV, set);
   const kept = keptIds(set);
   const rows = [...faceRows(set)].filter(([id]) => kept.has(id));
   writeFileSync(
@@ -515,12 +521,13 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
   const [cmd, set, arg] = process.argv.slice(2);
   const tag = process.argv.includes("--tag") ? process.argv[process.argv.indexOf("--tag") + 1]! : "latest";
   if (cmd === "stage" && isSet(set)) stage(set, tag);
+  else if (cmd === "faces" && isSet(set)) faces(set);
   else if (cmd === "base" && isSet(set)) base(set);
   else if (cmd === "run" && isSet(set) && arg) await run(set, arg);
   else if (cmd === "analyse") analyse();
   else if (cmd === "render") render();
   else {
-    console.error("usage: h2-cli.ts stage <set> [--tag T] | base <set> | run <set> <clip|face3d> | analyse | render   (set: pilot-000 | yardstick-library-b2)");
+    console.error("usage: h2-cli.ts stage <set> [--tag T] | faces <set> | base <set> | run <set> <clip|face3d> | analyse | render   (set: pilot-000 | yardstick-library-b2)");
     process.exit(2);
   }
 }

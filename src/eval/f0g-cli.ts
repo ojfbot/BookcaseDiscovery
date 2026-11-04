@@ -25,6 +25,7 @@ import { imagesOf, meanCI, SETS, type SetName, type Slim } from "./f0c-cli.ts";
 import { boxImprint, runImprintHelper, type ImprintReading } from "./f0d-cli.ts";
 import { boxRows, type Tri } from "./f0e.ts";
 import { evidenceFor } from "./f0f-cli.ts";
+import { loadBoxSet, preRb1 } from "./rb1.ts";
 import {
   copyGroups,
   COPY,
@@ -72,10 +73,13 @@ export const loadDets = (set: SetName): Map<string, Detection> =>
 /**
  * The shipped box set's kinds: per photo, whether each box is a book. F-0c's not-a-book flags and F-0f's shelf
  * labels and cards (from the base's Vision and PP-OCR text and F-0f's cached pixel probe); the cover pass is off.
+ * Then RB-1's box set: boxes F-0i's partition drops and NB-3's `on-lip` boxes are not books either
+ * (`--box-set pre-rb1` for the figures as first published).
  */
 export const loadBooks = (set: SetName, dets: Map<string, Detection>): Map<string, boolean[]> => {
   const ev = evidenceFor(set);
-  return new Map([...dets].map(([id, d]) => [id, kinds({ ...d, covers: [] }, ev.get(id)).spines.map((b) => b.kind === "spine")]));
+  const keeps = preRb1() ? () => true : loadBoxSet(set).keeps;
+  return new Map([...dets].map(([id, d]) => [id, kinds({ ...d, covers: [] }, ev.get(id)).spines.map((b, i) => b.kind === "spine" && keeps(`${id}:${i}`))]));
 };
 
 // --- pairs: neighbours and appearance ----------------------------------------------------------------------

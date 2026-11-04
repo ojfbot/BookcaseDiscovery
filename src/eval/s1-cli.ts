@@ -25,6 +25,7 @@ import { coverReading, kinds } from "./f0c.ts";
 import { imagesOf, meanCI, SETS, type SetName, type Slim } from "./f0c-cli.ts";
 import { agreementChange, titleDelta, type RungCounts, type Tri } from "./f0e.ts";
 import { evidenceFor } from "./f0f-cli.ts";
+import { loadBoxSet, pilotOutlines, preRb1 } from "./rb1.ts";
 import { compactJson, yardstickTruth } from "./q1-cli.ts";
 import { clusterBootstrap, quantile, rate, rng } from "./q1.ts";
 import { applyOnLip, ELEVATIONS, spearman, elevationOf, impliedScale, onLip, ON_LIP, PITCH, pitches, STANDARD_SHELF, type Elevation, type LipFeatures, type ShelfRow } from "./s1.ts";
@@ -86,10 +87,13 @@ const geometryDir = () => {
 
 // --- shelf: planes, voids and lip features per photo ------------------------------------------------------
 
-/** Q-2b's SAM 2.1 outline per kept pilot-000 box, by `<photo>:<box>`; the yardstick has none (boxes stand in). */
+/**
+ * Each kept pilot-000 box's own outline, by `<photo>:<box>`: F-0i's exclusive outline on RB-1's box set (Q-2b's SAM 2.1
+ * outline with `--box-set pre-rb1`); the yardstick has none (boxes stand in).
+ */
 function outlines(set: SetName): Map<string, [number, number][]> {
   if (set !== "pilot-000") return new Map();
-  const rows = readJsonl<{ id: string; outline?: [number, number][] }>(join(ROOT, "private", "q2b", "outlines", "pilot-000.jsonl"));
+  const rows = pilotOutlines(ROOT);
   return new Map(rows.filter((r) => r.outline && r.outline.length >= 3).map((r) => [r.id, r.outline!]));
 }
 
@@ -99,6 +103,9 @@ function shelf(set: SetName, only?: number): void {
   const keys = stagePhotos(set);
   const ev = evidenceFor(set);
   const outs = outlines(set);
+  // RB-1's box set for the books that cover a row: the boxes F-0i's partition drops and NB-3's `on-lip` boxes are not
+  // kept. The on-lip test itself (`flags`) still runs on the shipped kinds, as pre-registered.
+  const keeps = preRb1() ? () => true : loadBoxSet(set).keeps;
   const gdir = geometryDir();
   const dir = join(PRIV, set);
   const lines: string[] = [];
@@ -119,7 +126,7 @@ function shelf(set: SetName, only?: number): void {
         npz: join(gdir, `${k.geometryKey}.npz`),
         faces: join(H2_CACHE, "faces", k.geometryKey, `${k.facesKey}.json`),
         classmap: join(H2_CACHE, "faces", k.geometryKey, `${k.facesKey}.png`),
-        spines: d.spines.map((s, i) => ({ polygon: s.polygon, kept: kd.spines[i]!.kind === "spine", why: kd.spines[i]!.why })),
+        spines: d.spines.map((s, i) => ({ polygon: s.polygon, kept: kd.spines[i]!.kind === "spine" && keeps(`${d.id}:${i}`), why: kd.spines[i]!.why })),
         outlines: ol,
         covers: (d.covers ?? []).map((c) => ({ polygon: c.polygon })),
         bands: d.bands.map((b) => ({ polygon: b.polygon })),

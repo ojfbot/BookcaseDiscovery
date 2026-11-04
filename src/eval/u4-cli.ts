@@ -9,9 +9,9 @@
 //
 // Inputs, all cached, no model runs: F-0e's `bands+strips` boxes (one oriented box per spine, plus bands) and
 // the catalog for the labelling mode's guess. Shapes, rungs and guesses come from one of two sources:
-// - `q2b` (default): Q-2b's SAM 2.1 mask outline of each box itself (helpers/label/outline.py on these boxes),
-//   Q-2b's teacher rungs and F-0's decision on these boxes; not-a-book boxes (F-0c shapes, F-0f shelf labels) are left out, as the
-//   default pipeline does;
+// - `q2b` (default): each box's own outline (F-0i's exclusive outline on RB-1's box set; Q-2b's SAM 2.1 mask
+//   outline with `--box-set pre-rb1`), Q-2b's teacher rungs and F-0's decision on these boxes; not-a-book boxes
+//   (F-0c shapes, F-0f shelf labels, NB-3's `on-lip`) and boxes the partition drops are left out;
 // - `f0b`: F-0b's outlines and Q-2's rungs and decisions, all on F-0's boxes, attached to F-0e's boxes by
 //   overlap (display-draw.ts attachPieces).
 // Everything goes under the data root's `private/u4/`; the study prints aggregates only.
@@ -29,6 +29,7 @@ import type { Piece, Pt, Scene, SceneSpine } from "../report/display-draw.ts";
 import { decide, loadReadings, readJsonl, type SpineDecision } from "./f0.ts";
 import { kinds } from "./f0c.ts";
 import { evidenceFor } from "./f0f-cli.ts";
+import { loadBoxSet, pilotOutlines, preRb1 } from "./rb1.ts";
 import type { Candidate } from "../catalog/retrieve.ts";
 import { quantile, rng } from "./q1.ts";
 import type { Rung } from "./q2.ts";
@@ -105,6 +106,9 @@ function guessOf(d: SpineDecision | undefined, title: (workId: string) => string
 /** Per F-0e box: its own shape (or none), rung and guess, and whether the default pipeline keeps it. */
 interface Attached { pieces: Pt[][]; rung: Rung; guess: string | null; maskShare: number; keep: boolean }
 
+/** RB-1's box set (F-0i's partition, NB-3's `on-lip`) on the q2b source; `--box-set pre-rb1` for U-4 as first run. */
+const rb1Keeps: (id: string) => boolean = SOURCE === "q2b" && !preRb1() ? loadBoxSet(SET).keeps : () => true;
+
 /** Q-2b: each box's own mask outline, clipped and accepted by attachPieces' rules, one box at a time. */
 function ownPieces(d: Det, outlines: Map<string, Pt[]>, rungs: Map<string, Rung>, decisions: Map<string, SpineDecision>, title: (workId: string) => string | null, evidence: Parameters<typeof kinds>[1]): Attached[] {
   const k = kinds({ ...(d as unknown as Parameters<typeof kinds>[0]), covers: [] }, evidence);
@@ -114,7 +118,7 @@ function ownPieces(d: Det, outlines: Map<string, Pt[]>, rungs: Map<string, Rung>
     const rung = rungs.get(id) ?? "spine-found";
     const guess = guessOf(decisions.get(id), title);
     const a = attachPieces([s.polygon], outline && outline.length >= 3 ? [{ outline, rung, guess }] : [])[0]!;
-    return { pieces: a.pieces, rung, guess, maskShare: a.maskShare, keep: k.spines[i]!.kind === "spine" };
+    return { pieces: a.pieces, rung, guess, maskShare: a.maskShare, keep: k.spines[i]!.kind === "spine" && rb1Keeps(id) };
   });
 }
 
@@ -123,7 +127,7 @@ function loadScenes(): { scenes: { name: string; imageId: string; source: string
   const f0e = new Map(readJsonl<Det>(join(ROOT, "f0e", SET, ARM, "detect.jsonl")).filter((d) => !d.error).map((d) => [d.id, d]));
   const f0 = new Map(readJsonl<Det>(join(ROOT, "f0", SET, "detect.jsonl")).filter((d) => !d.error).map((d) => [d.id, d]));
   const outlines = new Map(
-    readJsonl<{ id: string; outline?: Pt[] }>(SOURCE === "q2b" ? join(ROOT, "private", "q2b", "outlines", `${SET}.jsonl`) : join(ROOT, "private", "f0b", SET, "outline.jsonl"))
+    (SOURCE === "q2b" ? pilotOutlines(ROOT) : readJsonl<{ id: string; outline?: Pt[] }>(join(ROOT, "private", "f0b", SET, "outline.jsonl")))
       .filter((r) => r.outline)
       .map((r) => [r.id, r.outline!]),
   );
