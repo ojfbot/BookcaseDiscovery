@@ -11,6 +11,25 @@ Counts and shares only. Real-use figures (`pilot-000`) are machine agreement, ne
 yardstick is a PROXY (OC35), evaluated and never tuned on; the two are never pooled. No hand labels (OC36). The
 default catalog stays `catalog.sqlite` (v1): switching to v2 is not this card's call.
 
+## Answer first
+
+- **The keep rule fails, on K4: yardstick candidate recall on v2 falls 2.0 points** (15.2 % → 13.2 %, paired
+  −2.02, −3.68 to −0.61; 18 spines lost, 1 gained). On v1 it is unchanged (0 lost, 0 gained). K1 and K3 pass.
+- **So `retrieve`'s default stays C-3's generation;** C-8's is opt-in (`generation: "c8"`). F-0 and every caller run
+  exactly as before (checked: the default reproduces today's ranked lists, below). Nothing downstream re-baselines.
+- **Latency target met.** Golden p95 on v2 **238 ms** against today's 497 ms (median of three runs); v1 67 ms against
+  82 ms. Reading the per-token costs is what found the cause: C-3's one OR-query holds halves of long words and
+  3-letter fragments that FTS5 must rank in full (`tion`: 619,465 forms on v2). No statement scans a table.
+- **Golden:** clean top-5 100 % on both catalogs (K1). Noisy top-5 on v2 stays 95.6 %: `n025` (the cap loss C-8
+  targets) comes back at rank 1, and `n036` is a new loss; `n062` and `n066` stay out (K2, each explained below).
+- **F-0's decision layer barely moves.** Yardstick accepts and wrong accepts are identical on v1 (13, 6 wrong) and on
+  v2 (44, 17 wrong; 2 gained and 2 lost, all 4 wrong). `pilot-000` v2 confirmations fall from 992 to 960, paired
+  **−0.46 points (−0.80 to −0.12)**; v1 718 → 714 (−0.06, −0.15 to 0.02). Machine agreement only.
+- **The recall loss is the list's tail.** 26 of the 27 readings that lost the right work had it at rank 15-49 under
+  C-3; 20 of them still generate it, ranked below 50. 23 of the 27 are Open Library works.
+- **Other readers' tokens (`c8u`) do not help:** recall on v2 is lower still (12.9 %, −2.26), so it is not
+  recommended for F-0.
+
 ## Pre-registration
 
 Written and committed before any measured run of C-8's generation: no yardstick or `pilot-000` reading was retrieved
@@ -119,4 +138,111 @@ report names the condition and this card's change to `retrieve` does not merge a
 
 ## Results
 
-(Not run yet.)
+Run 2026-11-04 on `fc2a0c9` (the pre-registration commit) on the build Mac (12 cores, node v24.22.1). Golden ran
+alone. The readings ran as 6 (v1) and then 9 (v2) processes beside other sessions, so their latencies are under
+load. Numbers: `metrics.json`. Intervals: paired photo bootstrap, 95 %, 2,000 resamples, seed 1.
+
+**Reproduction gates.** `base`'s top work and F-0's bar match C-7's cached facts on **1.000** of readings, and its
+re-decisions match C-5's on **1.000** of spines, on both sets and both catalogs.
+
+### Golden fragments (161 queries)
+
+| catalog | generation | clean top-1 / top-5 | noisy top-1 / top-5 / top-10 | noisy test half top-5 | p50 | **p95 (3 runs)** | max |
+|---|---|---:|---:|---:|---:|---:|---:|
+| v1 | C-3 | 98.9 % / 100 % | 95.6 % / 100 % / 100 % | 100 % | 33 ms | 82.4 (81.7, 84.1, 82.4) | 117 ms |
+| v1 | **`c8`** | 98.9 % / 100 % | 95.6 % / 100 % / 100 % | 100 % | 25 ms | **67.3** (67.3, 67.4, 65.2) | 89 ms |
+| v2 | C-3 | 98.9 % / 100 % | 94.1 % / 95.6 % / 97.1 % | 94.1 % | 185 ms | 496.7 (496.7, 498.8, 495.7) | 1,662 ms |
+| v2 | **`c8`** | 98.9 % / 100 % | 94.1 % / 95.6 % / 95.6 % | 91.2 % | 111 ms | **238.0** (238.0, 237.2, 246.6) | 1,056 ms |
+
+On v1 no query's rank changed. On v2 three changed, all noisy, all in the test half except `n025`. The no-match
+queries' top scores are unchanged (v2 max 0.933).
+
+**Noisy queries out of the top 5 on v2** (K2):
+
+| query | noise | C-3 rank | `c8` rank (depth 50) | mechanism |
+|---|---|---:|---:|---|
+| `n025` | truncated author | out | **1** | the cap loss C-8 targets: the rare title word now goes first |
+| `n036` | truncated title | 1 | **not generated** | the co-occurrence query took the 4 rarest catalog words, and two of them were joins of read words that one work each holds as a word; spaced title forms never contain a join. The single-word queries for the title's common words rank shorter forms first. Scored directly, the target is 0.857 |
+| `n062` | split words, truncated author | 8 | 13 | generated, but it scores 0.38 on any generation; the exact lookups of two 2-letter fragments add works titled exactly that, which now outrank it |
+| `n066` | 1/l | 23 (depth) | 23 | C-5's crowding by same-word titles, unchanged |
+
+### Yardstick candidate recall (PROXY: 40 photos, 842 spines with read text)
+
+| catalog | arm | at 1 | at 5 | **anywhere (depth 50)** | Δ anywhere vs C-3 | spines lost / gained | per reading |
+|---|---|---:|---:|---:|---:|---:|---:|
+| v1 | C-3 | 2.97 % | 3.21 % | 3.68 % (0.14-8.73) | — | — | 3.45 % |
+| v1 | **`c8`** | 2.97 % | 3.21 % | 3.68 % | **0.00** | 0 / 0 | 3.50 % |
+| v1 | `c8u` | 2.97 % | 3.21 % | 3.56 % | −0.12 (−0.39 to 0.00) | 1 / 0 | 3.55 % |
+| v2 | C-3 | 10.21 % | 12.35 % | 15.20 % (8.30-23.42) | — | — | 13.51 % |
+| v2 | **`c8`** | 10.33 % | 11.64 % | 13.18 % (6.62-21.41) | **−2.02 (−3.68 to −0.61)** | 18 / 1 | 11.61 % |
+| v2 | `c8u` | 10.45 % | 11.52 % | 12.95 % (6.62-20.66) | −2.26 (−3.86 to −0.95) | 19 / 0 | 12.00 % |
+
+At depth 5, `c8` on v2 is −0.71 points (−1.53 to −0.12). The judge is per image, so the levels are generous (v1 holds
+few of this Barcelona library's books); the paired differences are the figures.
+
+**Where the 18 lost spines went** (27 readings that had the right work under C-3, aggregates only): the right work
+sat at rank 3 in one reading and at 15-49 in the other 26; under `c8`, 20 of the 27 still generate it but rank it
+below 50, and 7 do not generate it. 23 are Open Library works, 4 ISFDB. 20 of the 27 readings hold a token the
+catalog does not know as a word. Reading: C-3's one ranked query reached weak, deep matches that the per-token pool
+replaces with other candidates; they are below F-0's bar either way (no yardstick accept changed).
+
+### F-0's decision layer, re-voted (F-0's default rule)
+
+| set | catalog | arm | confirmed | gained / lost / switched vs C-3 | paired Δ confirmed share | wrong (correct) |
+|---|---|---|---:|---:|---:|---:|
+| yardstick | v1 | C-3, `c8`, `c8u` | 13 | 0 / 0 / 0 | 0 | 6 (7) |
+| yardstick | v2 | C-3 | 44 | — | — | 17 (27) |
+| yardstick | v2 | **`c8`** | 44 | 2 / 2 / 0 | 0.00 (−0.35 to 0.34) | 17 (27); the 2 gained and the 2 lost are all wrong |
+| yardstick | v2 | `c8u` | 44 | 2 / 2 / 0 | 0.00 | 17 (27) |
+| `pilot-000` | v1 | C-3 | 718 | — | — | |
+| `pilot-000` | v1 | **`c8`** | 714 | 2 / 6 / 2 | −0.06 (−0.15 to 0.02) | |
+| `pilot-000` | v1 | `c8u` | 718 | 4 / 4 / 2 | 0.00 (−0.06 to 0.07) | |
+| `pilot-000` | v2 | C-3 | 992 | — | — | |
+| `pilot-000` | v2 | **`c8`** | 960 | 25 / 57 / 6 | **−0.46 (−0.80 to −0.12)** | |
+| `pilot-000` | v2 | `c8u` | 985 | 30 / 37 / 6 | −0.10 (−0.37 to 0.17) | |
+
+`pilot-000` changes are machine agreement, never accuracy (INV-17). Under `c8u`, accepts that only the shared
+generation makes (the reader's own generation does not accept that work): `pilot-000` 5 on v1 and 30 on v2,
+yardstick 1 on v2. They are weaker evidence (C-R2 §1.7).
+
+**Reading latency** (under load, per `retrieve` to depth 50): `pilot-000` v2 p50 / p95 292 / 2,239 ms (C-3) against
+169 / 518 ms (`c8`) and 242 / 590 ms (`c8u`); yardstick v2 665 / 3,034 against 272 / 581 and 322 / 631. On v1,
+`pilot-000` 40 / 275 against 29 / 164.
+
+### Keep rule
+
+| condition | v1 | v2 |
+|---|:-:|:-:|
+| K1 golden clean top-5 ≥ 90 % | ✓ 100 % | ✓ 100 % |
+| K2 golden noisy top-5 100 %, or each loss explained | ✓ 100 % | explained (3 queries, above) |
+| K3 golden p95 ≤ 300 ms on v2 | (67 ms) | ✓ 238 ms |
+| K4 yardstick recall Δ ≥ −1.0 point | ✓ 0.00 | **✗ −2.02** |
+| **`c8` passes** | | **✗** |
+| `c8u` recommended (recall above `c8`'s, wrong accepts not above) | ✗ (3.56 < 3.68) | ✗ (12.95 < 13.18) |
+
+**Verdict: `c8` fails K4 on v2.** As pre-registered, the change to `retrieve`'s default does not merge: the default
+stays C-3's generation and C-8's ships opt-in, so nothing that runs today changes. After that change the default was
+checked against the measured C-3 arm: identical ranked lists to depth 50 on all 2,037 yardstick readings on v1, on every 5th on v2 (408), and on
+every 10th `pilot-000` reading on v1 (1,028) and every 20th on v2 (514); `c8` reproduces its measured lists on the
+same readings.
+
+## What would close the gap
+
+Each needs its own pre-registration; none is a retune of these numbers, and the yardstick stays untouched for tuning.
+
+1. **Co-occurrence over read tokens only.** `n036` lost because joins took two of the 4 co-occurrence slots; joins
+   (and 0/O readings) could stay per-token queries only.
+2. **Keep C-3's ranked query as a tail filler on v2.** The losses are deep, weak matches. Running C-3's OR-query with
+   only catalog words (no halves, no fragments), after the pool, would keep most of the latency gain and refill the
+   tail. Its p95 cost would have to be measured.
+3. **Skip exact lookups of 1-2 letter runs** unless the whole reading is that short (`n062`).
+4. **Measure on a recall set that is not the yardstick**, e.g. leave-one-reader-out on `pilot-000`: does a reader's
+   list hold the work two other readers agreed on (label-free, INV-17).
+
+## Caveats
+
+- **The yardstick is small and a PROXY** with a per-image judge; 18 spines decide K4. The interval (−3.68 to −0.61)
+  contains the −1 bar, so the point estimate decides, as pre-registered; the interval does exclude 0.
+- **Reading latencies ran under load** beside other sessions; golden latency ran alone and gates.
+- **The golden set shaped the design on its dev half** (development log); the test half was first run here, and its
+  noisy losses (`n036`, `n062`) are reported as found.

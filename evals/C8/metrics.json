@@ -1,0 +1,1562 @@
+{
+  "runId": "C8",
+  "card": "C-8",
+  "date": "2026-11-04",
+  "code": "fc2a0c9fb663",
+  "base": "3778d46",
+  "arms": [
+    "base",
+    "c8",
+    "c8u"
+  ],
+  "keep": {
+    "c8": {
+      "goldenClean": true,
+      "goldenNoisyFull": {
+        "v1": true,
+        "v2": false
+      },
+      "latencyV2": true,
+      "recall": false,
+      "pass": false
+    },
+    "c8u": {
+      "perCatalog": [
+        {
+          "c": "v1",
+          "moreRecall": false,
+          "noMoreWrong": true
+        },
+        {
+          "c": "v2",
+          "moreRecall": false,
+          "noMoreWrong": true
+        }
+      ],
+      "recommend": false
+    }
+  },
+  "decide-pilot-000": {
+    "set": "pilot-000",
+    "scope": "real use (OC35): machine agreement only, never accuracy (INV-17)",
+    "spineCount": 6894,
+    "images": 31,
+    "readingSet": "all-crops",
+    "accept": {
+      "minScore": 0.72,
+      "minTitleEvidence": 0.8,
+      "minCoverage": 0.5,
+      "minReaders": 2
+    },
+    "depth": 50,
+    "bootstrap": {
+      "reps": 2000,
+      "seed": 1,
+      "unit": "photo"
+    },
+    "gate": {
+      "v1": {
+        "reproducesC7Facts": 1,
+        "reproducesC5": 1,
+        "readings": {
+          "base": 10273,
+          "c8": 10273,
+          "c8u": 10378
+        }
+      },
+      "v2": {
+        "reproducesC7Facts": 1,
+        "reproducesC5": 1,
+        "readings": {
+          "base": 10273,
+          "c8": 10273,
+          "c8u": 10378
+        }
+      }
+    },
+    "v1": {
+      "latencyPerReadingMs": {
+        "base": {
+          "n": 10273,
+          "p50": 40.1,
+          "p95": 274.6,
+          "max": 1236.6
+        },
+        "c8": {
+          "n": 10273,
+          "p50": 28.8,
+          "p95": 164.1,
+          "max": 860.4
+        },
+        "c8u": {
+          "n": 10378,
+          "p50": 51.6,
+          "p95": 201,
+          "max": 957
+        }
+      },
+      "listLength": {
+        "base": {
+          "p50": 50,
+          "full": 8269
+        },
+        "c8": {
+          "p50": 50,
+          "full": 8061
+        },
+        "c8u": {
+          "p50": 50,
+          "full": 8447
+        }
+      }
+    },
+    "v2": {
+      "latencyPerReadingMs": {
+        "base": {
+          "n": 10273,
+          "p50": 292.2,
+          "p95": 2238.9,
+          "max": 13820.8
+        },
+        "c8": {
+          "n": 10273,
+          "p50": 168.6,
+          "p95": 517.9,
+          "max": 1714.7
+        },
+        "c8u": {
+          "n": 10378,
+          "p50": 242.4,
+          "p95": 589.8,
+          "max": 3587.7
+        }
+      },
+      "listLength": {
+        "base": {
+          "p50": 50,
+          "full": 8829
+        },
+        "c8": {
+          "p50": 50,
+          "full": 8790
+        },
+        "c8u": {
+          "p50": 50,
+          "full": 9066
+        }
+      }
+    },
+    "arms": {
+      "base": {
+        "v1": {
+          "confirmed": 718,
+          "confirmedShare": {
+            "value": 0.1041,
+            "lo": 0.0668,
+            "hi": 0.1397
+          },
+          "confirmedOpenLibraryWorks": 0,
+          "unknownByReason": {
+            "single-reader": 923,
+            "no-text": 1738,
+            "no-catalog-match": 3435,
+            "readers-disagree": 80
+          },
+          "vsBase": {
+            "gained": 0,
+            "lost": 0,
+            "switched": 0,
+            "same": 718,
+            "confirmedShare": {
+              "value": 0,
+              "lo": 0,
+              "hi": 0
+            }
+          }
+        },
+        "v2": {
+          "confirmed": 992,
+          "confirmedShare": {
+            "value": 0.1439,
+            "lo": 0.1129,
+            "hi": 0.1711
+          },
+          "confirmedOpenLibraryWorks": 342,
+          "unknownByReason": {
+            "single-reader": 1371,
+            "no-text": 1738,
+            "no-catalog-match": 2604,
+            "readers-disagree": 189
+          },
+          "vsBase": {
+            "gained": 0,
+            "lost": 0,
+            "switched": 0,
+            "same": 992,
+            "confirmedShare": {
+              "value": 0,
+              "lo": 0,
+              "hi": 0
+            }
+          }
+        }
+      },
+      "c8": {
+        "v1": {
+          "confirmed": 714,
+          "confirmedShare": {
+            "value": 0.1036,
+            "lo": 0.0662,
+            "hi": 0.1385
+          },
+          "confirmedOpenLibraryWorks": 0,
+          "unknownByReason": {
+            "single-reader": 932,
+            "no-text": 1738,
+            "no-catalog-match": 3427,
+            "readers-disagree": 83
+          },
+          "vsBase": {
+            "gained": 2,
+            "lost": 6,
+            "switched": 2,
+            "same": 710,
+            "confirmedShare": {
+              "value": -0.0006,
+              "lo": -0.0015,
+              "hi": 0.0002
+            }
+          }
+        },
+        "v2": {
+          "confirmed": 960,
+          "confirmedShare": {
+            "value": 0.1393,
+            "lo": 0.1097,
+            "hi": 0.165
+          },
+          "confirmedOpenLibraryWorks": 328,
+          "unknownByReason": {
+            "single-reader": 1415,
+            "no-text": 1738,
+            "no-catalog-match": 2570,
+            "readers-disagree": 211
+          },
+          "vsBase": {
+            "gained": 25,
+            "lost": 57,
+            "switched": 6,
+            "same": 929,
+            "confirmedShare": {
+              "value": -0.0046,
+              "lo": -0.008,
+              "hi": -0.0012
+            }
+          }
+        }
+      },
+      "c8u": {
+        "v1": {
+          "confirmed": 718,
+          "confirmedShare": {
+            "value": 0.1041,
+            "lo": 0.0669,
+            "hi": 0.1397
+          },
+          "confirmedOpenLibraryWorks": 0,
+          "unknownByReason": {
+            "single-reader": 926,
+            "no-text": 1738,
+            "no-catalog-match": 3429,
+            "readers-disagree": 83
+          },
+          "vsBase": {
+            "gained": 4,
+            "lost": 4,
+            "switched": 2,
+            "same": 712,
+            "confirmedShare": {
+              "value": 0,
+              "lo": -0.0006,
+              "hi": 0.0007
+            }
+          }
+        },
+        "v2": {
+          "confirmed": 985,
+          "confirmedShare": {
+            "value": 0.1429,
+            "lo": 0.1123,
+            "hi": 0.1695
+          },
+          "confirmedOpenLibraryWorks": 334,
+          "unknownByReason": {
+            "single-reader": 1352,
+            "no-text": 1738,
+            "no-catalog-match": 2614,
+            "readers-disagree": 205
+          },
+          "vsBase": {
+            "gained": 30,
+            "lost": 37,
+            "switched": 6,
+            "same": 949,
+            "confirmedShare": {
+              "value": -0.001,
+              "lo": -0.0037,
+              "hi": 0.0017
+            }
+          }
+        }
+      }
+    },
+    "acceptsFromSharedGenerationOnly": {
+      "v1": 5,
+      "v2": 30
+    }
+  },
+  "decide-yardstick-library-b2": {
+    "set": "yardstick-library-b2",
+    "scope": "yardstick (PROXY): wrong accepts and candidate recall against the annotated books of each image (C-5's judge)",
+    "spineCount": 1132,
+    "images": 40,
+    "readingSet": "all-crops",
+    "accept": {
+      "minScore": 0.72,
+      "minTitleEvidence": 0.8,
+      "minCoverage": 0.5,
+      "minReaders": 2
+    },
+    "depth": 50,
+    "bootstrap": {
+      "reps": 2000,
+      "seed": 1,
+      "unit": "photo"
+    },
+    "gate": {
+      "v1": {
+        "reproducesC7Facts": 1,
+        "reproducesC5": 1,
+        "readings": {
+          "base": 2037,
+          "c8": 2037,
+          "c8u": 2052
+        }
+      },
+      "v2": {
+        "reproducesC7Facts": 1,
+        "reproducesC5": 1,
+        "readings": {
+          "base": 2037,
+          "c8": 2037,
+          "c8u": 2052
+        }
+      }
+    },
+    "v1": {
+      "latencyPerReadingMs": {
+        "base": {
+          "n": 2037,
+          "p50": 99.4,
+          "p95": 412.2,
+          "max": 3222.4
+        },
+        "c8": {
+          "n": 2037,
+          "p50": 67.4,
+          "p95": 236.3,
+          "max": 1682
+        },
+        "c8u": {
+          "n": 2052,
+          "p50": 106.2,
+          "p95": 328.3,
+          "max": 2189.8
+        }
+      },
+      "listLength": {
+        "base": {
+          "p50": 50,
+          "full": 1887
+        },
+        "c8": {
+          "p50": 50,
+          "full": 1867
+        },
+        "c8u": {
+          "p50": 50,
+          "full": 1871
+        }
+      },
+      "candidateRecall": {
+        "base": {
+          "at1": {
+            "value": 0.0297,
+            "lo": 0.0014,
+            "hi": 0.0683
+          },
+          "at5": {
+            "value": 0.0321,
+            "lo": 0.0014,
+            "hi": 0.0752
+          },
+          "anywhere": {
+            "value": 0.0368,
+            "lo": 0.0014,
+            "hi": 0.0873
+          },
+          "perReadingAnywhere": 0.0345,
+          "deltaVsBase": null,
+          "spineCount": 842
+        },
+        "c8": {
+          "at1": {
+            "value": 0.0297,
+            "lo": 0.0014,
+            "hi": 0.0683
+          },
+          "at5": {
+            "value": 0.0321,
+            "lo": 0.0014,
+            "hi": 0.0752
+          },
+          "anywhere": {
+            "value": 0.0368,
+            "lo": 0.0014,
+            "hi": 0.0873
+          },
+          "perReadingAnywhere": 0.035,
+          "deltaVsBase": {
+            "anywhere": {
+              "value": 0,
+              "lo": 0,
+              "hi": 0
+            },
+            "at5": {
+              "value": 0,
+              "lo": 0,
+              "hi": 0
+            },
+            "gainedAnywhere": 0,
+            "lostAnywhere": 0
+          },
+          "spineCount": 842
+        },
+        "c8u": {
+          "at1": {
+            "value": 0.0297,
+            "lo": 0.0014,
+            "hi": 0.0683
+          },
+          "at5": {
+            "value": 0.0321,
+            "lo": 0.0014,
+            "hi": 0.0752
+          },
+          "anywhere": {
+            "value": 0.0356,
+            "lo": 0.0014,
+            "hi": 0.0835
+          },
+          "perReadingAnywhere": 0.0355,
+          "deltaVsBase": {
+            "anywhere": {
+              "value": -0.0012,
+              "lo": -0.0039,
+              "hi": 0
+            },
+            "at5": {
+              "value": 0,
+              "lo": 0,
+              "hi": 0
+            },
+            "gainedAnywhere": 0,
+            "lostAnywhere": 1
+          },
+          "spineCount": 842
+        }
+      }
+    },
+    "v2": {
+      "latencyPerReadingMs": {
+        "base": {
+          "n": 2037,
+          "p50": 665.2,
+          "p95": 3033.7,
+          "max": 32260.7
+        },
+        "c8": {
+          "n": 2037,
+          "p50": 272,
+          "p95": 580.9,
+          "max": 2202.3
+        },
+        "c8u": {
+          "n": 2052,
+          "p50": 322.4,
+          "p95": 630.9,
+          "max": 3018.5
+        }
+      },
+      "listLength": {
+        "base": {
+          "p50": 50,
+          "full": 1964
+        },
+        "c8": {
+          "p50": 50,
+          "full": 1963
+        },
+        "c8u": {
+          "p50": 50,
+          "full": 1975
+        }
+      },
+      "candidateRecall": {
+        "base": {
+          "at1": {
+            "value": 0.1021,
+            "lo": 0.0484,
+            "hi": 0.1734
+          },
+          "at5": {
+            "value": 0.1235,
+            "lo": 0.0604,
+            "hi": 0.2006
+          },
+          "anywhere": {
+            "value": 0.152,
+            "lo": 0.083,
+            "hi": 0.2342
+          },
+          "perReadingAnywhere": 0.1351,
+          "deltaVsBase": null,
+          "spineCount": 842
+        },
+        "c8": {
+          "at1": {
+            "value": 0.1033,
+            "lo": 0.0493,
+            "hi": 0.1744
+          },
+          "at5": {
+            "value": 0.1164,
+            "lo": 0.0573,
+            "hi": 0.192
+          },
+          "anywhere": {
+            "value": 0.1318,
+            "lo": 0.0662,
+            "hi": 0.2141
+          },
+          "perReadingAnywhere": 0.1161,
+          "deltaVsBase": {
+            "anywhere": {
+              "value": -0.0202,
+              "lo": -0.0368,
+              "hi": -0.0061
+            },
+            "at5": {
+              "value": -0.0071,
+              "lo": -0.0153,
+              "hi": -0.0012
+            },
+            "gainedAnywhere": 1,
+            "lostAnywhere": 18
+          },
+          "spineCount": 842
+        },
+        "c8u": {
+          "at1": {
+            "value": 0.1045,
+            "lo": 0.0501,
+            "hi": 0.1765
+          },
+          "at5": {
+            "value": 0.1152,
+            "lo": 0.0569,
+            "hi": 0.1876
+          },
+          "anywhere": {
+            "value": 0.1295,
+            "lo": 0.0662,
+            "hi": 0.2066
+          },
+          "perReadingAnywhere": 0.12,
+          "deltaVsBase": {
+            "anywhere": {
+              "value": -0.0226,
+              "lo": -0.0386,
+              "hi": -0.0095
+            },
+            "at5": {
+              "value": -0.0083,
+              "lo": -0.0166,
+              "hi": -0.0022
+            },
+            "gainedAnywhere": 0,
+            "lostAnywhere": 19
+          },
+          "spineCount": 842
+        }
+      }
+    },
+    "arms": {
+      "base": {
+        "v1": {
+          "confirmed": 13,
+          "confirmedShare": {
+            "value": 0.0115,
+            "lo": 0.0033,
+            "hi": 0.024
+          },
+          "confirmedOpenLibraryWorks": 0,
+          "unknownByReason": {
+            "no-catalog-match": 811,
+            "no-text": 290,
+            "single-reader": 18
+          },
+          "vsBase": {
+            "gained": 0,
+            "lost": 0,
+            "switched": 0,
+            "same": 13,
+            "confirmedShare": {
+              "value": 0,
+              "lo": 0,
+              "hi": 0
+            },
+            "wrongPerSpine": {
+              "value": 0,
+              "lo": 0,
+              "hi": 0
+            },
+            "wrongAmongGained": 0,
+            "wrongAmongLost": 0
+          },
+          "wrongAccepts": 6,
+          "correctAccepts": 7,
+          "wrongAcceptShareOfAccepted": {
+            "value": 0.4615,
+            "lo": 0.2308,
+            "hi": 0.8339
+          },
+          "wrongAcceptShareOfSpines": {
+            "value": 0.0053,
+            "lo": 0.001,
+            "hi": 0.0105
+          }
+        },
+        "v2": {
+          "confirmed": 44,
+          "confirmedShare": {
+            "value": 0.0389,
+            "lo": 0.021,
+            "hi": 0.0648
+          },
+          "confirmedOpenLibraryWorks": 34,
+          "unknownByReason": {
+            "no-catalog-match": 737,
+            "no-text": 290,
+            "single-reader": 53,
+            "readers-disagree": 8
+          },
+          "vsBase": {
+            "gained": 0,
+            "lost": 0,
+            "switched": 0,
+            "same": 44,
+            "confirmedShare": {
+              "value": 0,
+              "lo": 0,
+              "hi": 0
+            },
+            "wrongPerSpine": {
+              "value": 0,
+              "lo": 0,
+              "hi": 0
+            },
+            "wrongAmongGained": 0,
+            "wrongAmongLost": 0
+          },
+          "wrongAccepts": 17,
+          "correctAccepts": 27,
+          "wrongAcceptShareOfAccepted": {
+            "value": 0.3864,
+            "lo": 0.204,
+            "hi": 0.6222
+          },
+          "wrongAcceptShareOfSpines": {
+            "value": 0.015,
+            "lo": 0.0066,
+            "hi": 0.0246
+          }
+        }
+      },
+      "c8": {
+        "v1": {
+          "confirmed": 13,
+          "confirmedShare": {
+            "value": 0.0115,
+            "lo": 0.0033,
+            "hi": 0.024
+          },
+          "confirmedOpenLibraryWorks": 0,
+          "unknownByReason": {
+            "no-catalog-match": 812,
+            "no-text": 290,
+            "single-reader": 17
+          },
+          "vsBase": {
+            "gained": 0,
+            "lost": 0,
+            "switched": 0,
+            "same": 13,
+            "confirmedShare": {
+              "value": 0,
+              "lo": 0,
+              "hi": 0
+            },
+            "wrongPerSpine": {
+              "value": 0,
+              "lo": 0,
+              "hi": 0
+            },
+            "wrongAmongGained": 0,
+            "wrongAmongLost": 0
+          },
+          "wrongAccepts": 6,
+          "correctAccepts": 7,
+          "wrongAcceptShareOfAccepted": {
+            "value": 0.4615,
+            "lo": 0.2308,
+            "hi": 0.8339
+          },
+          "wrongAcceptShareOfSpines": {
+            "value": 0.0053,
+            "lo": 0.001,
+            "hi": 0.0105
+          }
+        },
+        "v2": {
+          "confirmed": 44,
+          "confirmedShare": {
+            "value": 0.0389,
+            "lo": 0.0221,
+            "hi": 0.0629
+          },
+          "confirmedOpenLibraryWorks": 34,
+          "unknownByReason": {
+            "no-catalog-match": 733,
+            "no-text": 290,
+            "single-reader": 58,
+            "readers-disagree": 7
+          },
+          "vsBase": {
+            "gained": 2,
+            "lost": 2,
+            "switched": 0,
+            "same": 42,
+            "confirmedShare": {
+              "value": 0,
+              "lo": -0.0035,
+              "hi": 0.0034
+            },
+            "wrongPerSpine": {
+              "value": 0,
+              "lo": -0.0035,
+              "hi": 0.0034
+            },
+            "wrongAmongGained": 2,
+            "wrongAmongLost": 2
+          },
+          "wrongAccepts": 17,
+          "correctAccepts": 27,
+          "wrongAcceptShareOfAccepted": {
+            "value": 0.3864,
+            "lo": 0.2033,
+            "hi": 0.64
+          },
+          "wrongAcceptShareOfSpines": {
+            "value": 0.015,
+            "lo": 0.007,
+            "hi": 0.0235
+          }
+        }
+      },
+      "c8u": {
+        "v1": {
+          "confirmed": 13,
+          "confirmedShare": {
+            "value": 0.0115,
+            "lo": 0.0033,
+            "hi": 0.024
+          },
+          "confirmedOpenLibraryWorks": 0,
+          "unknownByReason": {
+            "no-catalog-match": 812,
+            "no-text": 290,
+            "single-reader": 17
+          },
+          "vsBase": {
+            "gained": 0,
+            "lost": 0,
+            "switched": 0,
+            "same": 13,
+            "confirmedShare": {
+              "value": 0,
+              "lo": 0,
+              "hi": 0
+            },
+            "wrongPerSpine": {
+              "value": 0,
+              "lo": 0,
+              "hi": 0
+            },
+            "wrongAmongGained": 0,
+            "wrongAmongLost": 0
+          },
+          "wrongAccepts": 6,
+          "correctAccepts": 7,
+          "wrongAcceptShareOfAccepted": {
+            "value": 0.4615,
+            "lo": 0.2308,
+            "hi": 0.8339
+          },
+          "wrongAcceptShareOfSpines": {
+            "value": 0.0053,
+            "lo": 0.001,
+            "hi": 0.0105
+          }
+        },
+        "v2": {
+          "confirmed": 44,
+          "confirmedShare": {
+            "value": 0.0389,
+            "lo": 0.0221,
+            "hi": 0.0629
+          },
+          "confirmedOpenLibraryWorks": 35,
+          "unknownByReason": {
+            "no-catalog-match": 734,
+            "no-text": 290,
+            "single-reader": 56,
+            "readers-disagree": 8
+          },
+          "vsBase": {
+            "gained": 2,
+            "lost": 2,
+            "switched": 0,
+            "same": 42,
+            "confirmedShare": {
+              "value": 0,
+              "lo": -0.0035,
+              "hi": 0.0034
+            },
+            "wrongPerSpine": {
+              "value": 0,
+              "lo": -0.0035,
+              "hi": 0.0034
+            },
+            "wrongAmongGained": 2,
+            "wrongAmongLost": 2
+          },
+          "wrongAccepts": 17,
+          "correctAccepts": 27,
+          "wrongAcceptShareOfAccepted": {
+            "value": 0.3864,
+            "lo": 0.2033,
+            "hi": 0.64
+          },
+          "wrongAcceptShareOfSpines": {
+            "value": 0.015,
+            "lo": 0.007,
+            "hi": 0.0235
+          }
+        }
+      }
+    },
+    "acceptsFromSharedGenerationOnly": {
+      "v1": 0,
+      "v2": 1
+    }
+  },
+  "golden": {
+    "goldenFile": "evals/golden/fragments.jsonl",
+    "repeats": 3,
+    "generation": {
+      "perToken": 40,
+      "exactPerSpan": 50,
+      "maxSpan": 10,
+      "halveFrom": 7,
+      "cooccurWords": 4,
+      "cooccur": 60
+    },
+    "v1": {
+      "catalog": "catalog.sqlite:426409984:1793651835495",
+      "stats": "catalog.stats.sqlite:34385920:1793764365314",
+      "gaps": [],
+      "rates": {
+        "base": {
+          "clean": {
+            "n": 87,
+            "top1": 0.989,
+            "top5": 1,
+            "top10": 1,
+            "mrr": 0.992
+          },
+          "noisy": {
+            "n": 68,
+            "top1": 0.956,
+            "top5": 1,
+            "top10": 1,
+            "mrr": 0.967
+          },
+          "clean.dev": {
+            "n": 44,
+            "top1": 1,
+            "top5": 1,
+            "top10": 1,
+            "mrr": 1
+          },
+          "clean.test": {
+            "n": 43,
+            "top1": 0.977,
+            "top5": 1,
+            "top10": 1,
+            "mrr": 0.984
+          },
+          "noisy.dev": {
+            "n": 34,
+            "top1": 0.971,
+            "top5": 1,
+            "top10": 1,
+            "mrr": 0.978
+          },
+          "noisy.test": {
+            "n": 34,
+            "top1": 0.941,
+            "top5": 1,
+            "top10": 1,
+            "mrr": 0.957
+          },
+          "noise.initials": {
+            "n": 2,
+            "top1": 1,
+            "top5": 1,
+            "top10": 1,
+            "mrr": 1
+          },
+          "noise.multi-variant": {
+            "n": 3,
+            "top1": 1,
+            "top5": 1,
+            "top10": 1,
+            "mrr": 1
+          },
+          "noise.ocr-0O": {
+            "n": 15,
+            "top1": 1,
+            "top5": 1,
+            "top10": 1,
+            "mrr": 1
+          },
+          "noise.ocr-1l": {
+            "n": 5,
+            "top1": 0.8,
+            "top5": 1,
+            "top10": 1,
+            "mrr": 0.84
+          },
+          "noise.ocr-rn-m": {
+            "n": 2,
+            "top1": 1,
+            "top5": 1,
+            "top10": 1,
+            "mrr": 1
+          },
+          "noise.series-larger": {
+            "n": 8,
+            "top1": 1,
+            "top5": 1,
+            "top10": 1,
+            "mrr": 1
+          },
+          "noise.split-words": {
+            "n": 16,
+            "top1": 0.938,
+            "top5": 1,
+            "top10": 1,
+            "mrr": 0.958
+          },
+          "noise.surname-first": {
+            "n": 6,
+            "top1": 1,
+            "top5": 1,
+            "top10": 1,
+            "mrr": 1
+          },
+          "noise.truncated-author": {
+            "n": 14,
+            "top1": 0.929,
+            "top5": 1,
+            "top10": 1,
+            "mrr": 0.952
+          },
+          "noise.truncated-title": {
+            "n": 6,
+            "top1": 0.833,
+            "top5": 1,
+            "top10": 1,
+            "mrr": 0.875
+          }
+        },
+        "c8": {
+          "clean": {
+            "n": 87,
+            "top1": 0.989,
+            "top5": 1,
+            "top10": 1,
+            "mrr": 0.992
+          },
+          "noisy": {
+            "n": 68,
+            "top1": 0.956,
+            "top5": 1,
+            "top10": 1,
+            "mrr": 0.967
+          },
+          "clean.dev": {
+            "n": 44,
+            "top1": 1,
+            "top5": 1,
+            "top10": 1,
+            "mrr": 1
+          },
+          "clean.test": {
+            "n": 43,
+            "top1": 0.977,
+            "top5": 1,
+            "top10": 1,
+            "mrr": 0.984
+          },
+          "noisy.dev": {
+            "n": 34,
+            "top1": 0.971,
+            "top5": 1,
+            "top10": 1,
+            "mrr": 0.978
+          },
+          "noisy.test": {
+            "n": 34,
+            "top1": 0.941,
+            "top5": 1,
+            "top10": 1,
+            "mrr": 0.957
+          },
+          "noise.initials": {
+            "n": 2,
+            "top1": 1,
+            "top5": 1,
+            "top10": 1,
+            "mrr": 1
+          },
+          "noise.multi-variant": {
+            "n": 3,
+            "top1": 1,
+            "top5": 1,
+            "top10": 1,
+            "mrr": 1
+          },
+          "noise.ocr-0O": {
+            "n": 15,
+            "top1": 1,
+            "top5": 1,
+            "top10": 1,
+            "mrr": 1
+          },
+          "noise.ocr-1l": {
+            "n": 5,
+            "top1": 0.8,
+            "top5": 1,
+            "top10": 1,
+            "mrr": 0.84
+          },
+          "noise.ocr-rn-m": {
+            "n": 2,
+            "top1": 1,
+            "top5": 1,
+            "top10": 1,
+            "mrr": 1
+          },
+          "noise.series-larger": {
+            "n": 8,
+            "top1": 1,
+            "top5": 1,
+            "top10": 1,
+            "mrr": 1
+          },
+          "noise.split-words": {
+            "n": 16,
+            "top1": 0.938,
+            "top5": 1,
+            "top10": 1,
+            "mrr": 0.958
+          },
+          "noise.surname-first": {
+            "n": 6,
+            "top1": 1,
+            "top5": 1,
+            "top10": 1,
+            "mrr": 1
+          },
+          "noise.truncated-author": {
+            "n": 14,
+            "top1": 0.929,
+            "top5": 1,
+            "top10": 1,
+            "mrr": 0.952
+          },
+          "noise.truncated-title": {
+            "n": 6,
+            "top1": 0.833,
+            "top5": 1,
+            "top10": 1,
+            "mrr": 0.875
+          }
+        }
+      },
+      "none": {
+        "base": {
+          "n": 6,
+          "topScoreMax": 0.721,
+          "topScoreMedian": 0.578
+        },
+        "c8": {
+          "n": 6,
+          "topScoreMax": 0.721,
+          "topScoreMedian": 0.578
+        }
+      },
+      "outOfTop5": {
+        "base": [],
+        "c8": []
+      },
+      "rankChanged": [],
+      "latencyMs": {
+        "runs": {
+          "base": [
+            {
+              "p50": 33.6,
+              "p95": 81.7,
+              "max": 116.5,
+              "mean": 38.5
+            },
+            {
+              "p50": 32.4,
+              "p95": 84.1,
+              "max": 116.9,
+              "mean": 37.8
+            },
+            {
+              "p50": 33.1,
+              "p95": 82.4,
+              "max": 115.8,
+              "mean": 38.1
+            }
+          ],
+          "c8": [
+            {
+              "p50": 25.6,
+              "p95": 67.3,
+              "max": 88.7,
+              "mean": 28
+            },
+            {
+              "p50": 24.6,
+              "p95": 67.4,
+              "max": 87.5,
+              "mean": 27.4
+            },
+            {
+              "p50": 24.5,
+              "p95": 65.2,
+              "max": 88.9,
+              "mean": 27.3
+            }
+          ]
+        },
+        "medianP95": {
+          "base": 82.4,
+          "c8": 67.3
+        }
+      }
+    },
+    "v2": {
+      "catalog": "catalog-v2.sqlite:6178123776:1793751638739",
+      "stats": "catalog-v2.stats.sqlite:404279296:1793764458879",
+      "gaps": [],
+      "rates": {
+        "base": {
+          "clean": {
+            "n": 87,
+            "top1": 0.989,
+            "top5": 1,
+            "top10": 1,
+            "mrr": 0.992
+          },
+          "noisy": {
+            "n": 68,
+            "top1": 0.941,
+            "top5": 0.956,
+            "top10": 0.971,
+            "mrr": 0.947
+          },
+          "clean.dev": {
+            "n": 44,
+            "top1": 1,
+            "top5": 1,
+            "top10": 1,
+            "mrr": 1
+          },
+          "clean.test": {
+            "n": 43,
+            "top1": 0.977,
+            "top5": 1,
+            "top10": 1,
+            "mrr": 0.984
+          },
+          "noisy.dev": {
+            "n": 34,
+            "top1": 0.941,
+            "top5": 0.971,
+            "top10": 0.971,
+            "mrr": 0.949
+          },
+          "noisy.test": {
+            "n": 34,
+            "top1": 0.941,
+            "top5": 0.941,
+            "top10": 0.971,
+            "mrr": 0.945
+          },
+          "noise.initials": {
+            "n": 2,
+            "top1": 1,
+            "top5": 1,
+            "top10": 1,
+            "mrr": 1
+          },
+          "noise.multi-variant": {
+            "n": 3,
+            "top1": 1,
+            "top5": 1,
+            "top10": 1,
+            "mrr": 1
+          },
+          "noise.ocr-0O": {
+            "n": 15,
+            "top1": 1,
+            "top5": 1,
+            "top10": 1,
+            "mrr": 1
+          },
+          "noise.ocr-1l": {
+            "n": 5,
+            "top1": 0.8,
+            "top5": 0.8,
+            "top10": 0.8,
+            "mrr": 0.8
+          },
+          "noise.ocr-rn-m": {
+            "n": 2,
+            "top1": 1,
+            "top5": 1,
+            "top10": 1,
+            "mrr": 1
+          },
+          "noise.series-larger": {
+            "n": 8,
+            "top1": 1,
+            "top5": 1,
+            "top10": 1,
+            "mrr": 1
+          },
+          "noise.split-words": {
+            "n": 16,
+            "top1": 0.938,
+            "top5": 0.938,
+            "top10": 1,
+            "mrr": 0.945
+          },
+          "noise.surname-first": {
+            "n": 6,
+            "top1": 1,
+            "top5": 1,
+            "top10": 1,
+            "mrr": 1
+          },
+          "noise.truncated-author": {
+            "n": 14,
+            "top1": 0.857,
+            "top5": 0.857,
+            "top10": 0.929,
+            "mrr": 0.866
+          },
+          "noise.truncated-title": {
+            "n": 6,
+            "top1": 0.833,
+            "top5": 1,
+            "top10": 1,
+            "mrr": 0.875
+          }
+        },
+        "c8": {
+          "clean": {
+            "n": 87,
+            "top1": 0.989,
+            "top5": 1,
+            "top10": 1,
+            "mrr": 0.992
+          },
+          "noisy": {
+            "n": 68,
+            "top1": 0.941,
+            "top5": 0.956,
+            "top10": 0.956,
+            "mrr": 0.945
+          },
+          "clean.dev": {
+            "n": 44,
+            "top1": 1,
+            "top5": 1,
+            "top10": 1,
+            "mrr": 1
+          },
+          "clean.test": {
+            "n": 43,
+            "top1": 0.977,
+            "top5": 1,
+            "top10": 1,
+            "mrr": 0.984
+          },
+          "noisy.dev": {
+            "n": 34,
+            "top1": 0.971,
+            "top5": 1,
+            "top10": 1,
+            "mrr": 0.978
+          },
+          "noisy.test": {
+            "n": 34,
+            "top1": 0.912,
+            "top5": 0.912,
+            "top10": 0.912,
+            "mrr": 0.912
+          },
+          "noise.initials": {
+            "n": 2,
+            "top1": 1,
+            "top5": 1,
+            "top10": 1,
+            "mrr": 1
+          },
+          "noise.multi-variant": {
+            "n": 3,
+            "top1": 1,
+            "top5": 1,
+            "top10": 1,
+            "mrr": 1
+          },
+          "noise.ocr-0O": {
+            "n": 15,
+            "top1": 1,
+            "top5": 1,
+            "top10": 1,
+            "mrr": 1
+          },
+          "noise.ocr-1l": {
+            "n": 5,
+            "top1": 0.8,
+            "top5": 0.8,
+            "top10": 0.8,
+            "mrr": 0.8
+          },
+          "noise.ocr-rn-m": {
+            "n": 2,
+            "top1": 1,
+            "top5": 1,
+            "top10": 1,
+            "mrr": 1
+          },
+          "noise.series-larger": {
+            "n": 8,
+            "top1": 1,
+            "top5": 1,
+            "top10": 1,
+            "mrr": 1
+          },
+          "noise.split-words": {
+            "n": 16,
+            "top1": 0.938,
+            "top5": 0.938,
+            "top10": 0.938,
+            "mrr": 0.938
+          },
+          "noise.surname-first": {
+            "n": 6,
+            "top1": 1,
+            "top5": 1,
+            "top10": 1,
+            "mrr": 1
+          },
+          "noise.truncated-author": {
+            "n": 14,
+            "top1": 0.929,
+            "top5": 0.929,
+            "top10": 0.929,
+            "mrr": 0.929
+          },
+          "noise.truncated-title": {
+            "n": 6,
+            "top1": 0.667,
+            "top5": 0.833,
+            "top10": 0.833,
+            "mrr": 0.708
+          }
+        }
+      },
+      "none": {
+        "base": {
+          "n": 6,
+          "topScoreMax": 0.933,
+          "topScoreMedian": 0.812
+        },
+        "c8": {
+          "n": 6,
+          "topScoreMax": 0.933,
+          "topScoreMedian": 0.812
+        }
+      },
+      "outOfTop5": {
+        "base": [
+          {
+            "id": "n025",
+            "top10Rank": null,
+            "rankAtDepth": null
+          },
+          {
+            "id": "n062",
+            "top10Rank": 8,
+            "rankAtDepth": 8
+          },
+          {
+            "id": "n066",
+            "top10Rank": null,
+            "rankAtDepth": 23
+          }
+        ],
+        "c8": [
+          {
+            "id": "n036",
+            "top10Rank": null,
+            "rankAtDepth": null
+          },
+          {
+            "id": "n062",
+            "top10Rank": null,
+            "rankAtDepth": 13
+          },
+          {
+            "id": "n066",
+            "top10Rank": null,
+            "rankAtDepth": 23
+          }
+        ]
+      },
+      "rankChanged": [
+        {
+          "id": "n025",
+          "class": "noisy",
+          "noise": [
+            "truncated-author"
+          ],
+          "base": null,
+          "c8": 1
+        },
+        {
+          "id": "n036",
+          "class": "noisy",
+          "noise": [
+            "truncated-title"
+          ],
+          "base": 1,
+          "c8": null
+        },
+        {
+          "id": "n062",
+          "class": "noisy",
+          "noise": [
+            "split-words",
+            "truncated-author"
+          ],
+          "base": 8,
+          "c8": null
+        }
+      ],
+      "latencyMs": {
+        "runs": {
+          "base": [
+            {
+              "p50": 180.8,
+              "p95": 496.7,
+              "max": 1658.3,
+              "mean": 233.8
+            },
+            {
+              "p50": 184.9,
+              "p95": 498.8,
+              "max": 1631.7,
+              "mean": 234
+            },
+            {
+              "p50": 187.1,
+              "p95": 495.7,
+              "max": 1662.5,
+              "mean": 232.4
+            }
+          ],
+          "c8": [
+            {
+              "p50": 108.1,
+              "p95": 238,
+              "max": 1052.9,
+              "mean": 123.6
+            },
+            {
+              "p50": 110.8,
+              "p95": 237.2,
+              "max": 1055.5,
+              "mean": 124
+            },
+            {
+              "p50": 110.7,
+              "p95": 246.6,
+              "max": 1041.9,
+              "mean": 125
+            }
+          ]
+        },
+        "medianP95": {
+          "base": 496.7,
+          "c8": 238
+        }
+      }
+    },
+    "host": {
+      "cpu": "Apple M4 Pro",
+      "cores": 12,
+      "node": "v24.22.1"
+    }
+  }
+}

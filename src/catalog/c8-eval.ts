@@ -1,8 +1,8 @@
-// C-8 evaluation: candidate generation in src/catalog/retrieve.ts (exact titles first, then per-token trigram queries
-// rarest first) against today's generation (C-3's, `retrieve.ts` as it stood at `BASE`, materialised from git), on
-// C-3's golden fragments and on F-0's cached readings, re-decided offline on v1 (`catalog.sqlite`) and v2
-// (`catalog-v2.sqlite`). No detection, no reading, no GPU, no network. Pre-registration and keep rule:
-// evals/C8/report.md.
+// C-8 evaluation: candidate generation in src/catalog/retrieve.ts (`generation: "c8"`: exact titles first, then
+// per-token trigram queries rarest first) against today's (C-3's, `retrieve`'s default; for the gates, the file as it
+// stood at `BASE`, materialised from git), on C-3's golden fragments and on F-0's cached readings, re-decided
+// offline on v1 (`catalog.sqlite`) and v2 (`catalog-v2.sqlite`). No detection, no reading, no GPU, no network.
+// Pre-registration and keep rule: evals/C8/report.md.
 //
 //   node src/catalog/c8-eval.ts readings --set <pilot-000|yardstick-library-b2> --catalog <v1|v2> --arm <base|c8|c8u> [--shard k/n]
 //                                        one retrieve per reading: its top work, F-0's bar, its ranked works
@@ -69,8 +69,11 @@ async function baseRetrieve(): Promise<RetrieveFn> {
   return mod.retrieve;
 }
 
+/** C-8's generation, opt-in in `retrieve`. */
+export const retrieveC8: RetrieveFn = (db, variants, k) => retrieve(db, variants, k, { generation: "c8" });
+
 async function retrieverFor(arm: Arm): Promise<RetrieveFn> {
-  return arm === "base" ? baseRetrieve() : retrieve;
+  return arm === "base" ? baseRetrieve() : retrieveC8;
 }
 
 // ---------------------------------------------------------------------------------------------
@@ -131,7 +134,7 @@ async function readingsStage(set: string, cat: CatalogName, path: string, arm: A
   let n = 0;
   for (const j of mine) {
     const t0 = performance.now();
-    const ranked = arm === "c8u" ? retrieve(db, j.own, DEPTH, { generateFrom: j.others }) : run(db, j.own, DEPTH);
+    const ranked = arm === "c8u" ? retrieve(db, j.own, DEPTH, { generation: "c8", generateFrom: j.others }) : run(db, j.own, DEPTH);
     const ms = performance.now() - t0;
     out[j.key] = { top: ranked[0]?.workId ?? null, conf: confirms(ranked[0]), ranked: ranked.map((c) => c.workId), ms: Math.round(ms * 10) / 10 };
     if (++n % 500 === 0) log(`  ${n}/${mine.length}`);
@@ -280,7 +283,7 @@ function decideStage(set: string, paths: Record<CatalogName, string>): void {
         const readers = rows[a].flatMap((r) => r.readerRanks);
         const paired = rows[a].map((r, i) => ({ imageId: r.imageId, a: rows.base[i]!, b: r }));
         recall[a] = {
-          spines: rows[a].length,
+          spineCount: rows[a].length,
           at1: ci(rows[a], (x) => recallAt(x, 1)),
           at5: ci(rows[a], (x) => recallAt(x, 5)),
           anywhere: ci(rows[a], (x) => recallAt(x, DEPTH)),
@@ -348,7 +351,7 @@ async function goldenStage(paths: Record<CatalogName, string>): Promise<void> {
   const file = "evals/golden/fragments.jsonl";
   const queries = loadGolden(join(REPO, file));
   const runs: Record<string, Record<string, unknown>> = {};
-  const fns: Record<"base" | "c8", RetrieveFn> = { base: await baseRetrieve(), c8: retrieve };
+  const fns: Record<"base" | "c8", RetrieveFn> = { base: await baseRetrieve(), c8: retrieveC8 };
   for (const cat of ["v1", "v2"] as const) {
     const db = openCatalog(paths[cat]);
     if (!catalogDf(db)) throw new Error(`${paths[cat]}: no statistics sidecar in force`);

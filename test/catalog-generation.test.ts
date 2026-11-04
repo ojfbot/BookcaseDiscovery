@@ -24,7 +24,7 @@ afterAll(() => {
 });
 
 const dfOf = (table: Record<string, number>) => (t: string) => table[t] ?? 0;
-const ids = (variants: string[], opts: Parameters<typeof retrieve>[3]) => retrieve(db, variants, 10, opts).map((c) => c.workId);
+const ids = (variants: string[], opts: Parameters<typeof retrieve>[3]) => retrieve(db, variants, 10, { generation: "c8", ...opts }).map((c) => c.workId);
 
 describe("tokenQueriesFor", () => {
   it("orders tokens rarest first, unknown words before known ones, the longer first on a tie", () => {
@@ -77,7 +77,7 @@ describe("candidate generation", () => {
   it("lets other readings generate candidates but scores them on the reader's own text only", () => {
     const opts = { ftsLimit: 0, expandLimit: 0 };
     expect(ids(["NEUROM"], opts)).toEqual([]);
-    const r = retrieve(db, ["NEUROM"], 10, { ...opts, generateFrom: ["NEUROMANCER", "SOLARIS"] });
+    const r = retrieve(db, ["NEUROM"], 10, { generation: "c8", ...opts, generateFrom: ["NEUROMANCER", "SOLARIS"] });
     // Solaris is generated but "NEUROM" does not explain it, so it is not a candidate.
     expect(r.map((c) => c.workId)).toEqual(["isfdb:201"]);
     expect(r[0]!.variant).toBe(0);
@@ -86,7 +86,8 @@ describe("candidate generation", () => {
 
   it("runs no statement that scans a catalog table", () => {
     for (const [name, sql] of Object.entries(RETRIEVE_SQL)) {
-      const plan = (db.prepare(`EXPLAIN QUERY PLAN ${sql}`).all("x", 1) as Array<{ detail: string }>).map((r) => r.detail);
+      const params = ["x", 1].slice(0, (sql.match(/\?/g) ?? []).length);
+      const plan = (db.prepare(`EXPLAIN QUERY PLAN ${sql}`).all(...params) as Array<{ detail: string }>).map((r) => r.detail);
       for (const step of plan) expect(`${name}: ${step}`).not.toMatch(/: SCAN (?!.*VIRTUAL TABLE)/);
     }
   });

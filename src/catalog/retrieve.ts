@@ -7,15 +7,15 @@
 // it returns what the catalog holds that the fragments could mean, with scores that say how well, and
 // the caller (I-1) appends `unknown`. A weak candidate has a low score; nothing here applies a threshold.
 //
-// Two stages. (1) Candidate generation (C-8), once over all the variants' text: every run of read tokens
-// looked up as an exact normalised title first, then one small FTS5 trigram query per read token over
-// title, author and series forms, rarest token first (the catalog's df, C-7's statistics sidecar), until
-// each index has given `ftsLimit` forms. A token's query holds the token, its skeleton and, when the
-// catalog has no such word, its halves (so one wrong character in a long word still leaves a hit);
-// 0/O-style readings and adjacent-token joins (split words) are tokens of their own. (2) Scoring in
-// code, per variant and field, against the normalised forms: exact, prefix (truncation), substring
-// (cropping), skeleton (rn/m, vv/w, cl/d), and edit distance 1-2 (2 for long words), with initials and
-// "Surname, Given" order handled by token-level matching, so field order never matters.
+// Two stages. (1) Candidate generation. By default C-3's: per variant, one FTS5 trigram OR-query per index
+// over the tokens, their skeletons, halves of long words, 0/O readings and joins, the best 250 forms by
+// bm25, plus the whole variant as an exact title. With `generation: "c8"` (opt-in: its keep rule failed,
+// evals/C8/report.md), once over all the variants' text: every run of read tokens as an exact title first,
+// then one small trigram query per read token, rarest first by the catalog's df (C-7's sidecar), until each
+// index has given `ftsLimit` forms. (2) Scoring in code, per variant and field, against the normalised
+// forms: exact, prefix (truncation), substring (cropping), skeleton (rn/m, vv/w, cl/d), and edit distance
+// 1-2 (2 for long words), with initials and "Surname, Given" order handled by token-level matching, so
+// field order never matters.
 import { existsSync } from "node:fs";
 import type { DatabaseSync } from "node:sqlite";
 import { confusableReadings, editDistance, normalize, skeleton, STOPWORDS, tokenize } from "./normalize.ts";
@@ -78,6 +78,12 @@ export interface RetrieveOptions {
   generateFrom?: string[];
   /** Catalog df of a token; default the statistics sidecar beside the catalog file (`catalogDf`). */
   df?: ((token: string) => number) | null;
+  /**
+   * Candidate generation: `c3` (default), C-3's one OR-query per index and variant; `c8`, rare words first. C-8's keep
+   * rule failed on yardstick candidate recall on v2 (evals/C8/report.md), so `c8` is opt-in. `perToken`, `df` and
+   * `generateFrom` apply to `c8` only.
+   */
+  generation?: "c3" | "c8";
 }
 
 // ---------------------------------------------------------------------------------------------
@@ -327,6 +333,7 @@ function exactSpans(tokens: string[]): string[] {
 
 interface Prepared {
   exact: ReturnType<DatabaseSync["prepare"]>;
+  c3Exact: ReturnType<DatabaseSync["prepare"]>;
   ftsTitle: ReturnType<DatabaseSync["prepare"]>;
   ftsAuthor: ReturnType<DatabaseSync["prepare"]>;
   ftsSeries: ReturnType<DatabaseSync["prepare"]>;
@@ -337,6 +344,7 @@ interface Prepared {
 /** Every statement retrieval runs, by name (the query-plan test checks none scans a table). */
 export const RETRIEVE_SQL = {
   exact: "SELECT tf.work_id AS work_id FROM title_forms tf JOIN works w ON w.id = tf.work_id WHERE tf.norm = ? ORDER BY w.edition_count DESC LIMIT ?",
+  c3Exact: "SELECT work_id FROM title_forms WHERE norm = ? LIMIT 50",
   ftsTitle: "SELECT f.rowid AS id, tf.work_id AS work_id, tf.norm AS norm FROM fts_title f JOIN title_forms tf ON tf.id = f.rowid WHERE fts_title MATCH ? ORDER BY f.rank LIMIT ?",
   ftsAuthor: "SELECT f.rowid AS id, af.author_id AS author_id, af.norm AS norm FROM fts_author f JOIN author_forms af ON af.id = f.rowid WHERE fts_author MATCH ? ORDER BY f.rank LIMIT ?",
   ftsSeries: "SELECT f.rowid AS id, sf.series_id AS series_id, sf.norm AS norm FROM fts_series f JOIN series_forms sf ON sf.id = f.rowid WHERE fts_series MATCH ? ORDER BY f.rank LIMIT ?",
@@ -478,8 +486,68 @@ function fetchWorks(db: DatabaseSync, ids: string[]): WorkRow[] {
   return out;
 }
 
+/** C-3: FTS5 phrases for one variant. */
+function c3Phrases(units: Unit[]): string[] {
+  const seen = new Set<string>();
+  const add = (p: string) => {
+    if (p.length >= 3 && !STOPWORDS.has(p) && /^[\p{L}\p{N}]+$/u.test(p)) seen.add(p);
+  };
+  for (const u of units) {
+    if (u.covers.length === 1 && !u.derived && STOPWORDS.has(u.text)) continue;
+    add(u.text);
+    add(skeleton(u.text)); // "neurornancer" is searched as "neuromancer" too
+    // One wrong character in a long word still leaves its other half intact.
+    if (u.text.length >= 7) {
+      const mid = Math.ceil(u.text.length / 2);
+      add(u.text.slice(0, mid));
+      add(u.text.slice(mid - 1));
+    }
+  }
+  return [...seen];
+}
+
+/** C-3: generation and scoring for one variant (one OR-query per index over all its phrases, the best 250 forms). */
+function c3One(db: DatabaseSync, variant: string, opts: { ftsLimit: number; expandLimit: number }): Scored[] {
+  const tokens = tokenize(normalize(variant));
+  if (tokens.length === 0) return [];
+  const units = buildUnits(tokens);
+  const phrases = c3Phrases(units);
+  const p = prepared(db);
+  const candidates = new Set<string>();
+
+  // The whole normalised variant as a title is always tried exactly: short titles ("It") have no trigram.
+  const whole = tokens.join(" ");
+  for (const r of p.c3Exact.all(whole) as Array<{ work_id: string }>) candidates.add(r.work_id);
+
+  if (phrases.length > 0) {
+    const expr = matchExpr(phrases);
+    for (const r of p.ftsTitle.all(expr, opts.ftsLimit) as Array<{ work_id: string; norm: string }>) {
+      if (matchForm(units, r.norm).cover >= WEIGHTS.minFormScore) candidates.add(r.work_id);
+    }
+    const authorIds: Array<{ id: number; score: number }> = [];
+    for (const r of p.ftsAuthor.all(expr, opts.ftsLimit) as Array<{ author_id: number; norm: string }>) {
+      const s = authorScore(matchForm(units, r.norm));
+      if (s >= WEIGHTS.minFormScore) authorIds.push({ id: r.author_id, score: s });
+    }
+    authorIds.sort((a, b) => b.score - a.score);
+    for (const a of authorIds.slice(0, 12)) for (const r of p.expandAuthor.all(a.id, opts.expandLimit) as Array<{ work_id: string }>) candidates.add(r.work_id);
+
+    const seriesIds: Array<{ id: number; score: number }> = [];
+    for (const r of p.ftsSeries.all(expr, opts.ftsLimit) as Array<{ series_id: number; norm: string }>) {
+      const s = matchForm(units, r.norm).cover;
+      if (s >= WEIGHTS.minFormScore) seriesIds.push({ id: r.series_id, score: s });
+    }
+    seriesIds.sort((a, b) => b.score - a.score);
+    for (const s of seriesIds.slice(0, 8)) for (const r of p.expandSeries.all(s.id, opts.expandLimit) as Array<{ work_id: string }>) candidates.add(r.work_id);
+  }
+  if (candidates.size === 0) return [];
+
+  const works = fetchWorks(db, [...candidates]);
+  return works.map((w) => scoreWork(w, units, tokens));
+}
+
 /** Candidate works for a set of readings (generation only; nothing is scored against `generateFrom`). */
-function generate(db: DatabaseSync, readings: string[], opts: Required<Omit<RetrieveOptions, "generateFrom" | "df">> & { df: ((t: string) => number) | null }): Set<string> {
+function generate(db: DatabaseSync, readings: string[], opts: { ftsLimit: number; expandLimit: number; perToken: number; df: ((t: string) => number) | null }): Set<string> {
   const p = prepared(db);
   const candidates = new Set<string>();
   const units: Unit[] = [];
@@ -524,16 +592,22 @@ function generate(db: DatabaseSync, readings: string[], opts: Required<Omit<Retr
  * once, with the evidence of the variant that scored it highest.
  */
 export function retrieve(db: DatabaseSync, variants: string[], k = 10, options: RetrieveOptions = {}): Candidate[] {
-  const opts = {
-    ftsLimit: options.ftsLimit ?? 250,
-    expandLimit: options.expandLimit ?? 400,
-    perToken: options.perToken ?? GENERATION.perToken,
-    df: options.df === undefined ? catalogDf(db) : options.df,
-  };
+  const best = new Map<string, Scored & { variant: number }>();
+  const ftsLimit = options.ftsLimit ?? 250;
+  const expandLimit = options.expandLimit ?? 400;
+  if ((options.generation ?? "c3") === "c3") {
+    variants.forEach((v, i) => {
+      for (const s of c3One(db, v, { ftsLimit, expandLimit })) {
+        const prev = best.get(s.work.id);
+        if (!prev || s.score > prev.score) best.set(s.work.id, { ...s, variant: i });
+      }
+    });
+    return rank(best, k);
+  }
+  const opts = { ftsLimit, expandLimit, perToken: options.perToken ?? GENERATION.perToken, df: options.df === undefined ? catalogDf(db) : options.df };
   const ids = generate(db, [...variants, ...(options.generateFrom ?? [])], opts);
   if (ids.size === 0) return [];
   const works = fetchWorks(db, [...ids]);
-  const best = new Map<string, Scored & { variant: number }>();
   variants.forEach((v, i) => {
     const tokens = tokenize(normalize(v));
     if (tokens.length === 0) return;
@@ -545,10 +619,15 @@ export function retrieve(db: DatabaseSync, variants: string[], k = 10, options: 
       if (!prev || s.score > prev.score) best.set(w.id, { ...s, variant: i });
     }
   });
-  const ranked = [...best.values()]
+  return rank(best, k);
+}
+
+function rank(best: Map<string, Scored & { variant: number }>, k: number): Candidate[] {
+  return [...best.values()]
+    .filter((s) => s.score > 0)
     .sort((a, b) => Math.round(b.score * 100) - Math.round(a.score * 100) || b.work.edition_count - a.work.edition_count || b.score - a.score || (a.work.id < b.work.id ? -1 : 1))
-    .slice(0, k);
-  return ranked.map(toCandidate);
+    .slice(0, k)
+    .map(toCandidate);
 }
 
 function toCandidate(s: Scored & { variant: number }): Candidate {
