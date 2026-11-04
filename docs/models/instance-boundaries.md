@@ -267,6 +267,12 @@ Inputs:
 
 ## 5. Proposed card F-0i · instance partition
 
+**Status (2026-11-03):** built and measured as card F-0i: code `helpers/coverage/resolve.py`,
+`helpers/label/partition.py`, `src/eval/f0i-cli.ts`; pre-registration, results and verdicts in
+[`evals/F0i/report.md`](../../evals/F0i/report.md). Where the build departs from this section (windows run only
+where pixels are contested, a numpy seam instead of scikit-image, the accepted-work guard, only contested pixels
+changing hands) is logged in `implementation-notes.md`.
+
 **Goal.** Every visible pixel belongs to at most one book. Measure what that does for readers, and ship the reader
 change only if it helps.
 

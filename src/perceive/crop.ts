@@ -292,6 +292,12 @@ export interface CropMethod {
    * where one is known: only boxes that over-select and whose trim is feasible carry one.
    */
   face3d?: boolean;
+  /**
+   * F-0i's `mask=own` arm: pixels another book owns in the instance partition are filled with the crop's background
+   * before reading. The pixels change, not the polygon, so the runner hands the readers a masked image; this flag only
+   * names the readings (`;mask=own`) so they never mix with unmasked ones.
+   */
+  own?: boolean;
 }
 
 /**
@@ -309,12 +315,15 @@ export const COVER_CROP: CropMethod = { orient: "cover", clip: true, face: false
 /** H-2's crop: the spine-face trim, clipped to the frame, at F-0's rotations. Off by default (evals/H2). */
 export const FACE3D_CROP: CropMethod = { orient: "fixed", clip: true, face: false, pad: 0, face3d: true };
 
+/** F-0i's `refit+own` crop: the shipped crop on the refit box, neighbour-owned pixels filled. Off by default (evals/F0i). */
+export const OWN_CROP: CropMethod = { orient: "fixed", clip: true, face: false, pad: 0, own: true };
+
 /** F-0 as shipped in #23. Records without a crop string were read this way. */
 export const F0_CROP: CropMethod = { orient: "fixed", clip: false, face: false, pad: 0 };
 
 /** The provenance string each reading record carries, e.g. `rect;rot=long-axis;clip=frame`. */
 export function cropName(m: CropMethod): string {
-  return [m.face3d ? "face3d" : m.face ? "face" : "rect", `rot=${m.orient}`, ...(m.clip ? ["clip=frame"] : []), ...(m.pad ? [`pad=${m.pad}`] : [])].join(";");
+  return [m.face3d ? "face3d" : m.face ? "face" : "rect", `rot=${m.orient}`, ...(m.clip ? ["clip=frame"] : []), ...(m.pad ? [`pad=${m.pad}`] : []), ...(m.own ? ["mask=own"] : [])].join(";");
 }
 
 export interface SpineCrop {
