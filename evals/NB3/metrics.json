@@ -1,0 +1,291 @@
+{
+ "card": "NB-3",
+ "model": "moge-2-vitl-normal@cb0e8bb (H-2 cache); F-0i partition (#51); S-1 lip features on it; probe version 2",
+ "thresholds": {
+  "depth": {
+   "minPx": 15,
+   "maxFront": 0.2,
+   "minOff": 0.6
+  },
+  "pixel": {
+   "maxEdgeDensity": 0.042,
+   "maxBandpass": 0.0211,
+   "minWarm": 0.4674
+  },
+  "reference": {
+   "minFront": 0.8,
+   "lowQ": 0.05,
+   "highQ": 0.95
+  }
+ },
+ "calibrationReferenceCount": 2304,
+ "sets": {
+  "pilot-000": {
+   "scope": "real use (OC35): machine agreement, never accuracy (INV-17)",
+   "photos": 31,
+   "keptBoxCount": 5761,
+   "evidence": {
+    "faces": 5761,
+    "lip": 5761,
+    "probe": 5761,
+    "noText": 1239
+   },
+   "causes": {
+    "on-lip": {
+     "removed": [4,0,9],
+     "any": 4,
+     "removedConfirmed": 0,
+     "removedAnnotated": null,
+     "removedTextRead": 1,
+     "removedTextPresent": 3,
+     "removedNoDecision": 0
+    },
+    "depth": {
+     "removed": [45,21,74],
+     "any": 45,
+     "removedConfirmed": 0,
+     "removedAnnotated": null,
+     "removedTextRead": 0,
+     "removedTextPresent": 0,
+     "removedNoDecision": 0
+    },
+    "pixel": {
+     "removed": [32,22,44],
+     "any": 33,
+     "removedConfirmed": 0,
+     "removedAnnotated": null,
+     "removedTextRead": 0,
+     "removedTextPresent": 0,
+     "removedNoDecision": 0
+    },
+    "rule": {
+     "removed": [81,53,113],
+     "any": 81,
+     "removedConfirmed": 0,
+     "removedAnnotated": null,
+     "removedTextRead": 1,
+     "removedTextPresent": 3,
+     "removedNoDecision": 0
+    }
+   },
+   "combos": {
+    "depth+pixel": 1
+   },
+   "pixelValues": {
+    "kept": {
+     "edgeDensity": 0.0767,
+     "bandpass": 0.0395,
+     "warm": 0.3513,
+     "luma": 0.4059
+    },
+    "on-lip": {
+     "edgeDensity": 0.0675,
+     "bandpass": 0.0393,
+     "warm": 0.3317,
+     "luma": 0.8454
+    },
+    "depth": {
+     "edgeDensity": 0.0477,
+     "bandpass": 0.0252,
+     "warm": 0.3577,
+     "luma": 0.4302
+    },
+    "pixel": {
+     "edgeDensity": 0.0315,
+     "bandpass": 0.0147,
+     "warm": 0.4981,
+     "luma": 0.2981
+    }
+   },
+   "reads": {
+    "base": {
+     "boxCount": 5761,
+     "textPresentShare": 0.7855,
+     "textReadShare": 0.2781,
+     "confirmedShare": 0.126,
+     "confirmedPerPhoto": 23.4194,
+     "worksPerPhoto": 20.2903
+    },
+    "arm": {
+     "boxCount": 5680,
+     "textPresentShare": 0.7961,
+     "textReadShare": 0.2819,
+     "confirmedShare": 0.1278,
+     "confirmedPerPhoto": 23.4194,
+     "worksPerPhoto": 20.2903
+    },
+    "delta": {
+     "textReadShare": [0.0038,0.0023,0.0054],
+     "confirmedShare": [0.0018,0.0011,0.0025],
+     "textReadPerPhoto": [-0.0323,-0.0968,0],
+     "confirmedPerPhoto": [0,0,0],
+     "worksPerPhoto": [0,0,0],
+     "boxesPerPhoto": [-2.6129,-3.6774,-1.7097]
+    }
+   },
+   "titles": null
+  },
+  "yardstick": {
+   "scope": "PROXY (library shelves): Library Dataset sample, box arm B2; confirmed = accepted and annotated in the image",
+   "photos": 40,
+   "keptBoxCount": 1040,
+   "evidence": {
+    "faces": 1040,
+    "lip": 1040,
+    "probe": 1040,
+    "noText": 261
+   },
+   "causes": {
+    "on-lip": {
+     "removed": [2,0,5],
+     "any": 2,
+     "removedConfirmed": 0,
+     "removedAnnotated": 0,
+     "removedTextRead": 0,
+     "removedTextPresent": 1,
+     "removedNoDecision": 0
+    },
+    "depth": {
+     "removed": [100,50,164.025],
+     "any": 100,
+     "removedConfirmed": 0,
+     "removedAnnotated": 0,
+     "removedTextRead": 0,
+     "removedTextPresent": 0,
+     "removedNoDecision": 0
+    },
+    "pixel": {
+     "removed": [6,2,12],
+     "any": 15,
+     "removedConfirmed": 0,
+     "removedAnnotated": 0,
+     "removedTextRead": 0,
+     "removedTextPresent": 0,
+     "removedNoDecision": 0
+    },
+    "rule": {
+     "removed": [108,58,173],
+     "any": 108,
+     "removedConfirmed": 0,
+     "removedAnnotated": 0,
+     "removedTextRead": 0,
+     "removedTextPresent": 1,
+     "removedNoDecision": 0
+    }
+   },
+   "combos": {
+    "depth+pixel": 9
+   },
+   "pixelValues": {
+    "kept": {
+     "edgeDensity": 0.0545,
+     "bandpass": 0.0283,
+     "warm": 0.3737,
+     "luma": 0.4969
+    },
+    "on-lip": {
+     "edgeDensity": 0.0555,
+     "bandpass": 0.0308,
+     "warm": 0.3496,
+     "luma": 0.7909
+    },
+    "depth": {
+     "edgeDensity": 0.0264,
+     "bandpass": 0.0132,
+     "warm": 0.399,
+     "luma": 0.4707
+    },
+    "pixel": {
+     "edgeDensity": 0.0251,
+     "bandpass": 0.0114,
+     "warm": 0.496,
+     "luma": 0.2582
+    }
+   },
+   "reads": {
+    "base": {
+     "boxCount": 1040,
+     "textPresentShare": 0.751,
+     "textReadShare": 0.3981,
+     "confirmedShare": 0.2558,
+     "confirmedPerPhoto": 6.65,
+     "worksPerPhoto": 6.5
+    },
+    "arm": {
+     "boxCount": 932,
+     "textPresentShare": 0.8369,
+     "textReadShare": 0.4442,
+     "confirmedShare": 0.2854,
+     "confirmedPerPhoto": 6.65,
+     "worksPerPhoto": 6.5
+    },
+    "delta": {
+     "textReadShare": [0.0461,0.0271,0.0696],
+     "confirmedShare": [0.0296,0.017,0.0456],
+     "textReadPerPhoto": [0,0,0],
+     "confirmedPerPhoto": [0,0,0],
+     "worksPerPhoto": [0,0,0],
+     "boxesPerPhoto": [-2.7,-4.325,-1.45]
+    }
+   },
+   "titles": {
+    "delta": {
+     "recall": [0,0,0],
+     "precision": [0,0,0]
+    },
+    "wrongPerImage": [0,0,0],
+    "worksPerImage": [0,0,0]
+   }
+  }
+ },
+ "spot": {
+  "on-lip": {
+   "shown": 4,
+   "unclear": 0,
+   "notABook": 4,
+   "judged": 4,
+   "share": 1
+  },
+  "depth": {
+   "shown": 20,
+   "unclear": 0,
+   "notABook": 0,
+   "judged": 20,
+   "share": 0
+  },
+  "pixel": {
+   "shown": 20,
+   "unclear": 2,
+   "notABook": 5,
+   "judged": 18,
+   "share": 0.2778
+  },
+  "control": {
+   "shown": 20,
+   "unclear": 0,
+   "notABook": 0,
+   "judged": 20,
+   "share": 0
+  }
+ },
+ "verdict": {
+  "causes": {
+   "on-lip": {
+    "noConfirmedRemoved": true,
+    "spotCheck": true,
+    "ships": true
+   },
+   "depth": {
+    "noConfirmedRemoved": true,
+    "spotCheck": false,
+    "ships": false
+   },
+   "pixel": {
+    "noConfirmedRemoved": true,
+    "spotCheck": false,
+    "ships": false
+   }
+  },
+  "noConfirmedRemovedRule": true
+ }
+}

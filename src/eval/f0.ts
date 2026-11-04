@@ -256,11 +256,23 @@ export async function detectStage(images: InputImage[], dir: string, log: (s: st
  * F-0f: the pixel probe of every box (helpers/label/probe.py: white share, edge share), which the blank-card rule
  * reads (`labelWhy` in f0f.ts). Cached as probe.jsonl beside the detections, keyed `<image>:s<i>` / `<image>:c<j>`.
  */
-export async function probeStage(images: InputImage[], dir: string, log: (s: string) => void): Promise<Map<string, { white: number; edges: number }>> {
+/** One box's pixel probe (helpers/label/probe.py); version 2 adds NB-3's values, version 1 lines carry no `version`. */
+export interface PixelProbe {
+  version?: number;
+  white: number;
+  edges: number;
+  edgeDensity?: number;
+  bandpass?: number;
+  warm?: number;
+  luma?: number;
+}
+
+export async function probeStage(images: InputImage[], dir: string, log: (s: string) => void): Promise<Map<string, PixelProbe>> {
   const out = join(dir, "probe.jsonl");
-  const done = new Set(readJsonl<{ id: string }>(out).map((r) => r.id.slice(0, r.id.lastIndexOf(":"))));
+  // A photo probed only at version 1 is probed again; its version-2 lines come later and win.
+  const done = new Set(readJsonl<{ id: string; version?: number }>(out).filter((r) => r.version === 2).map((r) => r.id.slice(0, r.id.lastIndexOf(":"))));
   await runHelper("probe.py", ["--detect", join(dir, "detect.jsonl")], images.filter((i) => !done.has(i.id)).map((i) => ({ id: i.id, image: i.path })), out, log);
-  return new Map(readJsonl<{ id: string; white: number; edges: number }>(out).map((r) => [r.id, r]));
+  return new Map(readJsonl<PixelProbe & { id: string }>(out).map((r) => [r.id, r]));
 }
 
 /** One reader request per spine, cut by `method`; a spine with nothing inside the frame is not read. */
