@@ -14,7 +14,7 @@ import { appendFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } fr
 import { join } from "node:path";
 import { createInterface } from "node:readline";
 import { fileURLToPath } from "node:url";
-import { openCatalog } from "../catalog/cli.ts";
+import { catalogPaths, openCatalog } from "../catalog/cli.ts";
 import { buildImprintTable, imprintKey, imprintMatches, publisherKeys, type ImprintTable } from "../catalog/imprint.ts";
 import type { Candidate } from "../catalog/retrieve.ts";
 import { dataRoot } from "../ledger/images.ts";
@@ -74,7 +74,7 @@ function draw(ids: string[], n: number, seed: number): string[] {
 const TABLE_PATH = join(ROOT, "catalog", "imprint-table.json");
 
 function buildTable(): ImprintTable {
-  const db = openCatalog(join(ROOT, "catalog", "catalog.sqlite"));
+  const db = openCatalog(catalogPaths().catalog);
   const rows = db.prepare("SELECT publisher, count(*) AS n FROM editions WHERE publisher IS NOT NULL AND publisher != '' GROUP BY publisher").all() as { publisher: string; n: number }[];
   db.close();
   return buildImprintTable(rows.map((r) => [r.publisher, r.n] as const));
@@ -107,7 +107,7 @@ function loadTable(): ImprintTable {
 export const REGISTRANT = { minLen: 7, maxLen: 10, minEditions: 3, minShare: 0.9 } as const;
 
 function yardstickPublishers(): Map<string, string> {
-  const db = openCatalog(join(ROOT, "catalog", "catalog.sqlite"));
+  const db = openCatalog(catalogPaths().catalog);
   const lib = join(ROOT, "proxy", "library-dataset");
   const inv = parseCsv(readFileSync(join(lib, "data", "target_lists", "library_books.csv"), "utf8"));
   const groups = new Set(inv.map((b) => (b.isbn ?? "").replace(/\D/g, "").slice(0, 5)).filter((g) => g.length === 5));

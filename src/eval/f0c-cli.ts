@@ -16,7 +16,7 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import type { Candidate } from "../catalog/retrieve.ts";
-import { openCatalog } from "../catalog/cli.ts";
+import { catalogPaths, openCatalog } from "../catalog/cli.ts";
 import { dataRoot, ImageStore } from "../ledger/images.ts";
 import { COVER_CROP, cropFor, cropName, cropSize } from "../perceive/crop.ts";
 import { decide, loadReadings, pyReaderStage, readJsonl, visionStage, type Detection, type InputImage, type Reading, type ReaderName, type SpineDecision } from "./f0.ts";
@@ -37,7 +37,7 @@ export const SETS: Record<SetName, { scope: string; base: string; f0: string; ca
     // F-0e's shipped whole-case default (bands+strips), read by F-0's readers with the shipped crop.
     base: join(ROOT, "f0e", "pilot-000", "bands+strips"),
     f0: join(ROOT, "f0", "pilot-000"),
-    catalog: join(ROOT, "catalog", "catalog.sqlite"),
+    catalog: catalogPaths().catalog,
     qwenCap: 40,
   },
   yardstick: {

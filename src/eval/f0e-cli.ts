@@ -9,7 +9,7 @@ import { join } from "node:path";
 import { parseArgs } from "node:util";
 import { fileURLToPath } from "node:url";
 import { dataRoot, ImageStore } from "../ledger/images.ts";
-import { openCatalog } from "../catalog/cli.ts";
+import { catalogPaths, openCatalog } from "../catalog/cli.ts";
 import type { Candidate } from "../catalog/retrieve.ts";
 import { CASE_TILING, decide, loadReadings, pyReaderStage, readJsonl, visionStage, type Detection, type InputImage, type SpineDecision } from "./f0.ts";
 import { agreementChange, diagnose, measure, rungCounts, titleDelta } from "./f0e.ts";
@@ -88,7 +88,7 @@ async function readArm(set: string, arm: string, qwenCap = 40): Promise<SpineDec
   const dir = arm === "base" ? join(dataRoot(), "f0", set) : join(armPath(set, arm), "..");
   const dets = new Map(loadDets(armPath(set, arm)).map((d) => [d.id, d]));
   const images: InputImage[] = imagesOf(set).map((r) => ({ id: r.id, photoHash: "", path: r.image, setting: "" }));
-  const db = openCatalog(join(dataRoot(), "catalog", "catalog.sqlite"));
+  const db = openCatalog(catalogPaths().catalog);
   const cache = new Map<string, Candidate | undefined>();
   const decideAll = (): SpineDecision[] => {
     const readings = loadReadings(dir);

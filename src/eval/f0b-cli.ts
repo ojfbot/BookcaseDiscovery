@@ -13,7 +13,7 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import type { Candidate } from "../catalog/retrieve.ts";
-import { openCatalog } from "../catalog/cli.ts";
+import { catalogPaths, openCatalog } from "../catalog/cli.ts";
 import { dataRoot, ImageStore } from "../ledger/images.ts";
 import {
   AMBIGUOUS_ASPECT,
@@ -49,7 +49,7 @@ const r4 = (x: number) => Math.round(x * 10000) / 10000;
 
 export type SetName = "pilot-000" | "yardstick-library-b2";
 export const SETS: Record<SetName, { scope: string; qwenCap: number; catalog: string }> = {
-  "pilot-000": { scope: "real use (OC35): machine agreement, never accuracy (INV-17)", qwenCap: 40, catalog: join(ROOT, "catalog", "catalog.sqlite") },
+  "pilot-000": { scope: "real use (OC35): machine agreement, never accuracy (INV-17)", qwenCap: 40, catalog: catalogPaths().catalog },
   "yardstick-library-b2": {
     scope: "PROXY: Library Dataset sample, box arm B2; confirmed = accepted and annotated in the image",
     qwenCap: 15,

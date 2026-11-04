@@ -3,11 +3,11 @@ import { createHash } from "node:crypto";
 import { execFileSync } from "node:child_process";
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { cpus } from "node:os";
-import { join } from "node:path";
+import { isAbsolute, join } from "node:path";
 import { parseArgs } from "node:util";
 import { DatabaseSync } from "node:sqlite";
 import { dataRoot } from "../ledger/images.ts";
-import { buildCatalog, catalogFileSize, CATALOG_SCHEMA_VERSION } from "./build.ts";
+import { buildCatalog, catalogFileSize, READABLE_SCHEMA_VERSIONS } from "./build.ts";
 import { loadGolden, runGolden } from "./golden.ts";
 import type { GoldenRun } from "./golden.ts";
 import { retrieve, WEIGHTS } from "./retrieve.ts";
@@ -15,29 +15,40 @@ import type { Candidate } from "./retrieve.ts";
 
 const usage = `usage: bookcase catalog <command>
 
-  build  [--staging <file>] [--out <file>]       build catalog.sqlite from the ISFDB staging file
+  build  [--staging <file>] [--out <file>] [--ol-staging <file>]
+                                                 build catalog.sqlite from the ISFDB staging file; --ol-staging also merges
+                                                 the Open Library staging file (C-5; then --out defaults to catalog-v2.sqlite)
   query  <text>... [-k N] [--json] [--db <file>] retrieve candidates; each <text> is one reading (variant) of the spine
   eval   [--golden <file>] [--db <file>] [--run-id <id>] [--k N]
                                                  score retrieve on the golden fragments; --run-id writes evals/<id>/{metrics.json,report.md}
   coverage [--tune] [--session <name>] [--offline] [--db <file>] [--run-id <id>]
                                                  catalog gap on an F-0 session through Open Library and LoC (C-4); --run-id writes evals/<id>/metrics.json
 
-Files default to $BOOKCASE_DATA/catalog/{isfdb-staging,catalog}.sqlite (default root ~/data/bookcase-discovery/).`;
+Files default to $BOOKCASE_DATA/catalog/{isfdb-staging,catalog}.sqlite (default root ~/data/bookcase-discovery/).
+BOOKCASE_CATALOG selects the catalog file every reader opens: a file name under $BOOKCASE_DATA/catalog/
+(e.g. catalog-v2.sqlite) or an absolute path. Default catalog.sqlite.`;
 
 const fmt = (n: number) => n.toLocaleString("en-US");
 
+/** The catalog file readers open: `BOOKCASE_CATALOG` (a file name in the catalog folder, or an absolute path), else catalog.sqlite. */
 export function catalogPaths(env: NodeJS.ProcessEnv = process.env) {
   const dir = join(dataRoot(env), "catalog");
-  return { staging: join(dir, "isfdb-staging.sqlite"), catalog: join(dir, "catalog.sqlite") };
+  const chosen = env.BOOKCASE_CATALOG?.trim();
+  return {
+    staging: join(dir, "isfdb-staging.sqlite"),
+    olStaging: join(dir, "ol-staging.sqlite"),
+    catalog: chosen ? (isAbsolute(chosen) ? chosen : join(dir, chosen)) : join(dir, "catalog.sqlite"),
+    catalogV2: join(dir, "catalog-v2.sqlite"),
+  };
 }
 
 export function openCatalog(path: string): DatabaseSync {
   if (!existsSync(path)) throw new Error(`${path} does not exist; run \`bookcase catalog build\` first`);
   const db = new DatabaseSync(path, { readOnly: true });
   const v = (db.prepare("PRAGMA user_version").get() as { user_version: number }).user_version;
-  if (v !== CATALOG_SCHEMA_VERSION) {
+  if (!READABLE_SCHEMA_VERSIONS.includes(v)) {
     db.close();
-    throw new Error(`${path} has schema version ${v}, this code reads ${CATALOG_SCHEMA_VERSION}; rebuild with \`bookcase catalog build\``);
+    throw new Error(`${path} has schema version ${v}, this code reads ${READABLE_SCHEMA_VERSIONS.join(" and ")}; rebuild with \`bookcase catalog build\``);
   }
   return db;
 }
@@ -131,10 +142,15 @@ export function catalogCommand(argv: string[], env: NodeJS.ProcessEnv = process.
   }
   try {
     if (cmd === "build") {
-      const { values } = parseArgs({ args: rest, options: { staging: { type: "string" }, out: { type: "string" } } });
-      const r = buildCatalog({ staging: values.staging ?? paths.staging, out: values.out ?? paths.catalog, log: (s) => console.error(s) });
+      const { values } = parseArgs({ args: rest, options: { staging: { type: "string" }, out: { type: "string" }, "ol-staging": { type: "string" } } });
+      const ol = values["ol-staging"];
+      // Never write the default catalog.sqlite with Open Library merged in: readers may have it open (C-5).
+      const out = values.out ?? (ol ? paths.catalogV2 : join(dataRoot(env), "catalog", "catalog.sqlite"));
+      const t = (s: string) => console.error(`${new Date().toISOString().slice(11, 19)} ${s}`);
+      const r = buildCatalog({ staging: values.staging ?? paths.staging, out, ...(ol ? { openLibrary: ol } : {}), log: t });
       console.log(`built ${r.out} in ${r.seconds.toFixed(1)} s (${fmt(catalogFileSize(r.out))} bytes)`);
       for (const [k, v] of Object.entries(r.counts)) console.log(`  ${k.padEnd(14)} ${fmt(v).padStart(10)}`);
+      if (r.openLibrary) for (const [k, v] of Object.entries(r.openLibrary)) console.log(`  openlibrary.${k.padEnd(26)} ${fmt(v).padStart(10)}`);
       console.log(`  staging content hash ${r.stagingHash}`);
       return 0;
     }

@@ -1,13 +1,19 @@
 // Build `catalog/catalog.sqlite` from the ISFDB staging file (C-3). The staging file keeps ISFDB's own
 // tables; this step decides what a *work* is, folds variants in, normalises, and builds the three FTS5
-// trigram indexes that `retrieve` reads. docs/catalog.md has the rules and the reasons.
+// trigram indexes that `retrieve` reads. docs/catalog.md has the rules and the reasons. With `openLibrary` set
+// (C-5), the Open Library staging file is crosswalked and merged in the same transaction (`ol-merge.ts`).
 import { existsSync, mkdirSync, renameSync, rmSync, statSync } from "node:fs";
 import { dirname } from "node:path";
 import { DatabaseSync } from "node:sqlite";
 import { decodeEntities, normalize, splitSubtitle, surnameFirstToGivenFirst } from "./normalize.ts";
+import { attachOpenLibrary, mergeOpenLibrary, type MergeCounts } from "./ol-merge.ts";
 
-/** Bump when a table or column of catalog.sqlite changes. `PRAGMA user_version` and `meta.schema_version` hold it. */
-export const CATALOG_SCHEMA_VERSION = 1;
+/**
+ * Bump when a table or column of catalog.sqlite changes. `PRAGMA user_version` and `meta.schema_version` hold it.
+ * 2 (C-5): `editions.source`. Version 1 files have no other difference, so readers accept both (`READABLE_SCHEMA_VERSIONS`).
+ */
+export const CATALOG_SCHEMA_VERSION = 2;
+export const READABLE_SCHEMA_VERSIONS: readonly number[] = [1, 2];
 
 /**
  * ISFDB `title_ttype` values that count as a *work* on a shelf: whole books. Short fiction, essays, poems,
@@ -54,7 +60,8 @@ CREATE TABLE editions (
   publisher   TEXT,
   year        INTEGER,
   title       TEXT,                 -- the title printed on this edition
-  format      TEXT,                 -- ISFDB pub_ptype: pb, tp, hc, ...
+  format      TEXT,                 -- ISFDB pub_ptype: pb, tp, hc, ...; Open Library physical_format as recorded
+  source      TEXT NOT NULL DEFAULT 'isfdb', -- 'isfdb' or 'openlibrary' (edition_id 'ol:OL<n>M')
   PRIMARY KEY (work_id, edition_id)
 ) WITHOUT ROWID;
 CREATE INDEX editions_isbn13 ON editions(isbn13);
@@ -83,6 +90,7 @@ export interface BuildResult {
   out: string;
   counts: Record<string, number>;
   stagingHash: string | null;
+  openLibrary: MergeCounts | null;
   seconds: number;
 }
 
@@ -96,10 +104,11 @@ function yearOf(date: string | null | undefined): number | null {
   return Number.isInteger(y) && y > 0 && y < 8000 ? y : null;
 }
 
-export function buildCatalog(opts: { staging: string; out: string; now?: () => Date; log?: (s: string) => void }): BuildResult {
+export function buildCatalog(opts: { staging: string; out: string; openLibrary?: string; now?: () => Date; log?: (s: string) => void }): BuildResult {
   const log = opts.log ?? (() => {});
   const t0 = Date.now();
   if (!existsSync(opts.staging)) throw new Error(`staging file not found: ${opts.staging} (run pnpm catalog:import)`);
+  if (opts.openLibrary && !existsSync(opts.openLibrary)) throw new Error(`Open Library staging file not found: ${opts.openLibrary} (run pnpm catalog:ol stage)`);
   mkdirSync(dirname(opts.out), { recursive: true });
   const partial = `${opts.out}.partial`;
   rmSync(partial, { force: true });
@@ -111,6 +120,7 @@ export function buildCatalog(opts: { staging: string; out: string; now?: () => D
     db.exec(`ATTACH DATABASE 'file:${opts.staging.replace(/\\/g, "/")}?mode=ro' AS st`);
     const stMeta = Object.fromEntries((db.prepare("SELECT key, value FROM st.meta").all() as Array<{ key: string; value: string }>).map((r) => [r.key, r.value]));
     if (Number(stMeta.schema_version) !== 1) throw new Error(`unsupported staging schema_version ${stMeta.schema_version}`);
+    const olDumpDate = opts.openLibrary ? attachOpenLibrary(db, opts.openLibrary) : null;
 
     db.exec("BEGIN");
 
@@ -315,7 +325,10 @@ export function buildCatalog(opts: { staging: string; out: string; now?: () => D
       workCount++;
     }
 
-    const counts: Record<string, number> = { works: workCount };
+    // 7. Open Library (C-5): crosswalk to the ISFDB works above, add the rest as works of their own
+    const ol = olDumpDate !== null ? { dumpDate: olDumpDate, counts: mergeOpenLibrary(db, olDumpDate, log) } : null;
+
+    const counts: Record<string, number> = { works: (db.prepare("SELECT COUNT(*) AS n FROM works").get() as { n: number }).n, isfdbWorks: workCount };
     for (const t of ["editions", "authors", "work_authors", "series", "work_series", "title_forms", "author_forms", "series_forms"]) {
       counts[t] = (db.prepare(`SELECT COUNT(*) AS n FROM ${t}`).get() as { n: number }).n;
     }
@@ -326,16 +339,22 @@ export function buildCatalog(opts: { staging: string; out: string; now?: () => D
     insMeta.run("staging_dump_date", dumpDate ?? "");
     insMeta.run("work_ttypes", WORK_TTYPES.join(","));
     for (const [k, v] of Object.entries(counts)) insMeta.run(`rows.${k}`, String(v));
+    insMeta.run("sources", ol ? "isfdb,openlibrary" : "isfdb");
+    if (ol) {
+      insMeta.run("openlibrary_dump_date", ol.dumpDate);
+      for (const [k, v] of Object.entries(ol.counts)) insMeta.run(`openlibrary.${k}`, String(v));
+    }
 
     db.exec("COMMIT");
     log("optimising");
     db.exec("INSERT INTO fts_title(fts_title) VALUES('optimize'); INSERT INTO fts_author(fts_author) VALUES('optimize'); INSERT INTO fts_series(fts_series) VALUES('optimize');");
     db.exec("DETACH DATABASE st");
+    if (ol) db.exec("DETACH DATABASE ol");
     db.exec(`PRAGMA user_version = ${CATALOG_SCHEMA_VERSION}`);
     db.close();
     rmSync(opts.out, { force: true });
     renameSync(partial, opts.out);
-    return { out: opts.out, counts, stagingHash: stMeta.content_hash ?? null, seconds: (Date.now() - t0) / 1000 };
+    return { out: opts.out, counts, stagingHash: stMeta.content_hash ?? null, openLibrary: ol?.counts ?? null, seconds: (Date.now() - t0) / 1000 };
   } catch (e) {
     try {
       db.close();
