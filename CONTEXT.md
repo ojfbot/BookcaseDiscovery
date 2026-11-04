@@ -59,6 +59,17 @@ The record shapes these words name are in `contracts/` and explained in `docs/co
   inside the frame whose pixels lie mostly on a row's lip face, not behind the lip and in front of the books' faces.
   It catches shelf strips and cards clipped to the lip. It is a post step after F-0c's and F-0f's kinds, with its
   default set by `evals/S1`'s keep rule.
+- **Headroom** — (S-2, `helpers/shelf/headroom.py`, [`evals/S2`](evals/S2/report.md)) the strip of a photo between one
+  shelf row's book tops and the board above: per map column, from the row's **top curve** (F-0f's fitted top lines,
+  recomputed on F-0i's partition) up to its **board line** (the lower edge of the board above's lip face). Standing
+  books' pixels in it are not headroom. Each headroom pixel is **empty** (the back panel or the case's inside shows,
+  more than 8 cm behind the spine plane), **occluded** (the board's underside or lip: unseen, not empty), **occupied**
+  (a surface at the books' depth above their tops) or **unknown**. A row with no board line is **open**, reported
+  apart.
+- **Occupied region** — (S-2) a connected run of occupied headroom pixels: a book lying flat, a sign, a shelf-talker,
+  something else. It is **explained** when a stacked or not-a-book box covers at least 30 % of it; an unexplained one
+  is a candidate for F-0k's missed-book recovery. **Stacked box**: a box the partition keeps lying flat (long side
+  more than 60° from vertical).
 - **Ordinal** — a spine's position on its shelf, counted from the left, from 0.
 - **Physical copy** — one book on the shelf. Two copies of the same work are two observations with the same identity; never collapsed (INV-4).
 - **Copy group** — (F-0g) a run of neighbouring spines on one shelf that look the same (one size, an appearance score at the calibrated threshold; `visuallySame` in `src/eval/f0g.ts`) and whose reads pass the series guard: copies of one edition or one look. Every copy stays its own observation (INV-4). A hardback and a paperback of one work are two groups, counted together only at the work level (copies of a work on a shelf).
@@ -200,6 +211,18 @@ These are kept apart on purpose: raw evidence is stored separately from interpre
 - **Capture coverage** — how well each place on a bookcase has been captured for reading, shown as fill while panning (proposal, Q-0, `docs/capture/coverage.md`). *Not* recognition coverage: a fully captured shelf can still hold `unknown`s whose cause is the catalog.
 - **Coverage segment** — the unit capture coverage colours: a piece of one shelf band about two median spine widths long, anchored to working-copy pixels in a still and to stable tracks live (proposal, Q-0).
 - **Coverage rung** — a spine's or segment's place on the capture ladder: `not-seen` → `seen` → `spine-found` → `text-present` → `text-read` → `matched` → `confirmed`. Filled from `text-read` up; the top two restate bands (proposal, Q-0).
+- **Gap audit** — (Q-3, [`evals/Q3`](evals/Q3/report.md)) for every book a person can see on a still, the coverage
+  rung where the machine stopped and why, ranked by books lost. A book is a kept box, a book counted in a row gap
+  with a spine-like face and no box (S-2's `frontNoBox` stretches, one per median spine width), or a face-out cover
+  the default does not box. A **lost** book stops below `confirmed`.
+- **Stop rung** — (Q-3) a book's coverage rung on one still: the highest rung the machine reached for it, with the
+  decision bases `confirmed-by-copy` and `confirmed-by-context` counting as `confirmed`. A book with no box stops at
+  `seen`.
+- **Loss cause** — (Q-3) why a lost book stopped where it did: one **primary cause** per book, the first rule that
+  holds in its stop rung's pre-registered list (`frame-edge`, `tiling-or-side-case`, `shape-filter`, `top-face`,
+  `dark-or-low-contrast`, `occlusion`, `catalog-gap`, `misread`, `single-reader`, and the residuals `lying-flat`,
+  `doubtful-box`, `unattributed`), with every other rule that holds recorded beside it. Capture causes come first at
+  `spine-found` and `text-present`; at `text-read` and `matched` the stop is the catalog or the accept rule.
 - **Top seam** — where a detected spine's top edge actually sits against its box's top end, measured from pixels as the strongest colour step across the spine. A box that *overshoots* runs past the top edge onto the top face or the shelf, and a box that *cuts* stops short of it (Q-2, `helpers/coverage/geometry.py`).
 - **Display mode** — who the glass is for, and so which overlay layers it may draw (U-4, `docs/capture/display-modes.md`): `dev` (boxes, ids, scores, bands, tiles, cut and partial flags), `labelling` (hairline boxes, the machine's guess and its rung) and `user` (object-shaped highlights and capture-coverage fill; no boxes, numbers or labels). *Orthogonal to the overlay lens*: the lens chooses which spines a highlight means, the display mode how glass draws them, and any lens works in any mode.
 - **Display variant** — one named style of a display mode (`user-glow`, `user-veil`, `user-ridge`, …), all data: the layers it draws and every style number. A blue/green **arm** is a variant's id plus its parameter hash, so a retuned variant is a new arm (proposal, U-4).
