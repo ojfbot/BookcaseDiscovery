@@ -42,10 +42,19 @@ python -I render.py --images … --detect … --faces … --geometry GEOM --clas
   front region. The cuboid takes the spine face's 3D extent, plus a depth measured on the book's visible top or
   cover, or else the band's median depth; `topVisible` says the camera sees its top face. Every threshold is in
   the module docstring.
+- `ends.py` (F-0m, **spine end edges**; runner `src/eval/f0m-cli.ts`, results [`evals/F0m`](../../evals/F0m/report.md)):
+  per kept box of F-0i's partition, its top end snapped to the **top crease** (where the normals turn from `front` to
+  `top` along the spine's axis) and its bottom end to the **board contact** (S-1's board top at the book's own depth,
+  or the lip's top edge where the lip hides the books' feet), each end line along the projected shelf direction. The
+  exclusive outline is cut to the end lines and grown to them through unowned pixels; the box is the detection
+  rectangle with its snapped ends moved. Writes per-box rows, per-photo overlap counts and a new label map. CPU only,
+  from the depth cache and S-2's rows (`shelf.py` on the partition). Every threshold is a constant at the top.
+- `render_f0m.py` (F-0m): before and after outlines with the snapped end lines, the owner's examples first. Private.
 - `summarize.py`: H-1's counts, shares, percentiles and runtimes, with 95 % photo bootstraps. No ids, positions or
   titles.
 - `render.py`: H-1's JPEGs (photo, normals, depth, faces, trim, cuboids) and an `index.html`.
 
 The `.npz` maps, class maps, per-box rows and renders all hold private photo geometry and stay under the data
 root's `private/`. stderr carries progress only. `test/h1.test.ts` runs `faces.py` on a synthetic map, and
-`test/h2.test.ts` runs the stage's cache on one (both skipped when `.venv` is absent).
+`test/h2.test.ts` runs the stage's cache on one and `test/f0m.test.ts` runs `ends.py` on a synthetic shelf (all
+skipped when `.venv` is absent).

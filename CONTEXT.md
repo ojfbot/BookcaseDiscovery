@@ -225,6 +225,14 @@ These are kept apart on purpose: raw evidence is stored separately from interpre
   `dark-or-low-contrast`, `occlusion`, `catalog-gap`, `misread`, `single-reader`, and the residuals `lying-flat`,
   `doubtful-box`, `unattributed`), with every other rule that holds recorded beside it. Capture causes come first at
   `spine-found` and `text-present`; at `text-read` and `matched` the stop is the catalog or the accept rule.
+- **Top crease** — (F-0m, `helpers/depth/ends.py`) where a spine face turns its corner into the book's top face: the
+  place along the spine's axis where the depth stage's normals change from `front` to `top`. Seen only from above. A
+  spine's top end snapped to it stops at the spine, not at the far edge of its pages. Not Q-2's *top seam*, a colour
+  step.
+- **Board contact** — (F-0m) where a spine meets its shelf: S-1's board-top level at the book's own depth, projected
+  into the photo; from below, the lip's top edge, which hides the books' feet. A spine's bottom end snapped to it.
+- **Row-end residual** — (F-0m) how far a box's top or bottom end lies from its row's line (F-0f's `rowFits`), along
+  the box's axis, in row spine heights. Low on bottoms means the row's books stand on one line.
 - **Top seam** — where a detected spine's top edge actually sits against its box's top end, measured from pixels as the strongest colour step across the spine. A box that *overshoots* runs past the top edge onto the top face or the shelf, and a box that *cuts* stops short of it (Q-2, `helpers/coverage/geometry.py`).
 - **Display mode** — who the glass is for, and so which overlay layers it may draw (U-4, `docs/capture/display-modes.md`): `dev` (boxes, ids, scores, bands, tiles, cut and partial flags), `labelling` (hairline boxes, the machine's guess and its rung) and `user` (object-shaped highlights and capture-coverage fill; no boxes, numbers or labels). *Orthogonal to the overlay lens*: the lens chooses which spines a highlight means, the display mode how glass draws them, and any lens works in any mode.
 - **Display variant** — one named style of a display mode (`user-glow`, `user-veil`, `user-ridge`, …), all data: the layers it draws and every style number. A blue/green **arm** is a variant's id plus its parameter hash, so a retuned variant is a new arm (proposal, U-4).
