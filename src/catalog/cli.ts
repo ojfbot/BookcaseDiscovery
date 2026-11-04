@@ -9,6 +9,7 @@ import { DatabaseSync } from "node:sqlite";
 import { dataRoot } from "../ledger/images.ts";
 import { buildCatalog, catalogFileSize, READABLE_SCHEMA_VERSIONS } from "./build.ts";
 import { loadGolden, runGolden } from "./golden.ts";
+import { buildStats, statsPathFor } from "./rarity.ts";
 import type { GoldenRun } from "./golden.ts";
 import { retrieve, WEIGHTS } from "./retrieve.ts";
 import type { Candidate } from "./retrieve.ts";
@@ -18,6 +19,8 @@ const usage = `usage: bookcase catalog <command>
   build  [--staging <file>] [--out <file>] [--ol-staging <file>]
                                                  build catalog.sqlite from the ISFDB staging file; --ol-staging also merges
                                                  the Open Library staging file (C-5; then --out defaults to catalog-v2.sqlite)
+  stats  [--db <file>]                           build the statistics sidecar beside a catalog (C-7: <catalog>.stats.sqlite;
+                                                 the catalog file itself is not written)
   query  <text>... [-k N] [--json] [--db <file>] retrieve candidates; each <text> is one reading (variant) of the spine
   eval   [--golden <file>] [--db <file>] [--run-id <id>] [--k N]
                                                  score retrieve on the golden fragments; --run-id writes evals/<id>/{metrics.json,report.md}
@@ -152,6 +155,15 @@ export function catalogCommand(argv: string[], env: NodeJS.ProcessEnv = process.
       for (const [k, v] of Object.entries(r.counts)) console.log(`  ${k.padEnd(14)} ${fmt(v).padStart(10)}`);
       if (r.openLibrary) for (const [k, v] of Object.entries(r.openLibrary)) console.log(`  openlibrary.${k.padEnd(26)} ${fmt(v).padStart(10)}`);
       console.log(`  staging content hash ${r.stagingHash}`);
+      return 0;
+    }
+    if (cmd === "stats") {
+      const { values } = parseArgs({ args: rest, options: { db: { type: "string" } } });
+      const catalog = values.db ?? paths.catalog;
+      const t = (s: string) => console.error(`${new Date().toISOString().slice(11, 19)} ${s}`);
+      const c = buildStats(catalog, statsPathFor(catalog), t);
+      console.log(`built ${statsPathFor(catalog)} in ${c.seconds} s`);
+      for (const [k, v] of Object.entries(c)) if (k !== "seconds") console.log(`  ${k.padEnd(12)} ${fmt(v).padStart(10)}`);
       return 0;
     }
     if (cmd === "query") {

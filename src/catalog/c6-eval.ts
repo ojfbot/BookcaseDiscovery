@@ -159,7 +159,7 @@ export function decideFromFacts(reads: Partial<Record<ReaderName, { variants: st
 }
 
 /** C-5's cached unguarded re-decisions (private), for the reproduction gate. */
-function c5Cache(set: string, cat: CatalogName): Map<string, { accepted: string | null; reason: string | null }> | null {
+export function c5Cache(set: string, cat: CatalogName): Map<string, { accepted: string | null; reason: string | null }> | null {
   const dir = join(dataRoot(), "catalog", "c5", "private");
   if (!existsSync(dir)) return null;
   const file = cat === "v2" ? `${set}.all-crops.catalog-v2.sqlite.` : set.startsWith("yardstick") ? `${set}.all-crops.catalog.sqlite.` : `${set}.all-crops.base.catalog.sqlite.`;
