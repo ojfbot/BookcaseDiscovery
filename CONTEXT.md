@@ -59,6 +59,17 @@ The record shapes these words name are in `contracts/` and explained in `docs/co
   inside the frame whose pixels lie mostly on a row's lip face, not behind the lip and in front of the books' faces.
   It catches shelf strips and cards clipped to the lip. It is a post step after F-0c's and F-0f's kinds, with its
   default set by `evals/S1`'s keep rule.
+- **Headroom** — (S-2, `helpers/shelf/headroom.py`, [`evals/S2`](evals/S2/report.md)) the strip of a photo between one
+  shelf row's book tops and the board above: per map column, from the row's **top curve** (F-0f's fitted top lines,
+  recomputed on F-0i's partition) up to its **board line** (the lower edge of the board above's lip face). Standing
+  books' pixels in it are not headroom. Each headroom pixel is **empty** (the back panel or the case's inside shows,
+  more than 8 cm behind the spine plane), **occluded** (the board's underside or lip: unseen, not empty), **occupied**
+  (a surface at the books' depth above their tops) or **unknown**. A row with no board line is **open**, reported
+  apart.
+- **Occupied region** — (S-2) a connected run of occupied headroom pixels: a book lying flat, a sign, a shelf-talker,
+  something else. It is **explained** when a stacked or not-a-book box covers at least 30 % of it; an unexplained one
+  is a candidate for F-0k's missed-book recovery. **Stacked box**: a box the partition keeps lying flat (long side
+  more than 60° from vertical).
 - **Ordinal** — a spine's position on its shelf, counted from the left, from 0.
 - **Physical copy** — one book on the shelf. Two copies of the same work are two observations with the same identity; never collapsed (INV-4).
 - **Copy group** — (F-0g) a run of neighbouring spines on one shelf that look the same (one size, an appearance score at the calibrated threshold; `visuallySame` in `src/eval/f0g.ts`) and whose reads pass the series guard: copies of one edition or one look. Every copy stays its own observation (INV-4). A hardback and a paperback of one work are two groups, counted together only at the work level (copies of a work on a shelf).

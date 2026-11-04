@@ -171,5 +171,5 @@ describe.skipIf(!existsSync(PY))("helpers/depth stage cache", () => {
     } finally {
       rmSync(dir, { recursive: true, force: true });
     }
-  });
+  }, 60_000); // three Python processes; slower than the default 5 s when the whole suite runs in parallel
 });

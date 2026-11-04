@@ -357,7 +357,11 @@ function analyseSet(set: SetName) {
   const rowShare = lipRows.flatMap((r) => (r.headroomPx! + r.standingPx! > 0 ? [r.headroomPx! / (r.headroomPx! + r.standingPx!)] : []));
   const gapOverPitch = lipRows.flatMap((r) => (r.gapM != null && r.pitchUpM != null && r.pitchUpM > 0 ? [r.gapM / r.pitchUpM] : []));
   const perRow = lipRegions.length / Math.max(lipRows.length, 1);
-  const regionsPerPhoto = (rs: { imageId: string }[]) => (photos: { imageId: string }[]) => (photos.length ? rs.filter((r) => photos.some((p) => p.imageId === r.imageId)).length / photos.length : null);
+  // Per drawn photo, so a photo drawn twice by the bootstrap counts its regions twice.
+  const regionsPerPhoto = (rs: { imageId: string }[]) => {
+    const n = countBy(rs, (r) => r.imageId);
+    return (photos: { imageId: string }[]) => (photos.length ? photos.reduce((s, p) => s + (n[p.imageId] ?? 0), 0) / photos.length : null);
+  };
 
   // M4: agreement with the default's own boxes (rows with a board line; open rows apart).
   const kinds4 = ["stacked", "not-a-book", "on-lip", "dropped", "standing", "cover-pass"] as const;
@@ -376,7 +380,7 @@ function analyseSet(set: SetName) {
   });
   const recallOf = (ks: KnownRec[]) => {
     const inn = ks.filter(inHeadroom);
-    return { boxes: ks.length, inHeadroom: inn.length, recalled: inn.filter(recalled).length, recall: boot(inn, rate(recalled)) };
+    return { n: ks.length, inHeadroom: inn.length, recalled: inn.filter(recalled).length, recall: boot(inn, rate(recalled)) };
   };
   const openKnown = known.map((k) => ({ ...k, headroomPx: k.openHeadroomPx ?? 0, occupiedPx: k.openOccupiedPx ?? 0 }));
   const knownDefault = known.filter((k) => k.kind === "stacked" || k.kind === "not-a-book");
@@ -510,7 +514,7 @@ function tablesMd(m: { sets: Record<SetName, SetMetrics>; spotCheck: ReturnType<
     out.push(`| explained by kind | ${kv(ex.byKind)}; unexplained ${ex.unexplained} (${ex.unexplainedNoBox} overlap no box at all) |`);
     out.push(`| not-a-book explainers by sub-reason | ${kv(ex.notABookBy)} |`);
     const rc = s.m4.recall;
-    const rline = (name: string, x: typeof rc.known) => `| recall of ${name}: in headroom → occupied | ${x.boxes} boxes, ${x.inHeadroom} in headroom, ${x.recalled} recalled: ${pct(x.recall)} |`;
+    const rline = (name: string, x: typeof rc.known) => `| recall of ${name}: in headroom → occupied | ${x.n} boxes, ${x.inHeadroom} in headroom, ${x.recalled} recalled: ${pct(x.recall)} |`;
     out.push(rline("stacked + not-a-book", rc.known));
     out.push(rline("stacked (kept, lying flat)", rc.stacked));
     out.push(rline("not-a-book (shipped filter)", rc.notABook));

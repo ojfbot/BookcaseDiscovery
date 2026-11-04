@@ -273,3 +273,25 @@ not reading:
 - (c) median 3.2 s a photo on MPS, but the first photo of the first run took 5.8 s (MPS warm-up,
   *hypothesis*), so it is not met as pre-registered.
 - (d) is the owner's.
+
+## 9. S-2: the headroom map
+
+Card S-2 maps what lies above each shelf row's books: [`evals/S2/report.md`](../../evals/S2/report.md), with its
+measures and an adequacy check committed before the first full run. It runs on the CPU from H-2's cache and F-0i's
+partition (`helpers/shelf/headroom.py`).
+
+- **Region.** Per row, from the books' top curve up to the board line. The top curve is F-0f's fitted top lines,
+  recomputed on the partition. The board line is the lower edge of the board above's lip face, from S-1's pitch
+  partner. Standing books' pixels are left out.
+- **Classes.** Each headroom pixel is *empty* (more than 8 cm behind the spine plane), *occluded* (the board's
+  underside or lip), *occupied* (a surface at the books' depth above their tops) or *unknown*.
+- **Result on `pilot-000`** (machine measurement):
+  - headroom is 19.7 % of a bay, a gap of 10.4 cm or 29 % of the pitch;
+  - it is 46 % empty, 38 % occluded, 14 % occupied;
+  - below eye level it is mostly empty, above eye level 89 % occluded.
+- **Occupied regions are mostly the case.**
+  - Uprights between bays and the board's front edge account for 15 of the 20 regions spot-checked; 4 were real
+    objects.
+  - The regions agree little with the default's boxes, and recall 2 of the 7 flat books in the headroom.
+  - So the map fails its adequacy check: F-0k reads it as a candidate list only.
+- **Next** (hypotheses): split rows at uprights, bound *empty* by the back-panel plane, and trim the board's edge.
