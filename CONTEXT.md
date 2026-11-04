@@ -37,6 +37,9 @@ The record shapes these words name are in `contracts/` and explained in `docs/co
 - **Top-face layer** — (H-2) the overlay layer that lights a book's top face where the camera sees it (its cuboid's
   top, the camera above it, depth not a default), as a second, dimmer shape beside the spine: the "volume" in
   `user-glow-volume`.
+- **Image representation** — (F-R3) a label-free re-rendering of a photo that a stage may read instead of, or beside, its RGB pixels: a colour space (Lab, HSV, chromaticity), an illumination invariant (the log-chromaticity image), a classical albedo/shading split (Retinex), an edge, line or band-pass map, or H-2's depth and normals. Survey and measures: `docs/models/image-representations.md`, `evals/FR3`.
+- **Spine seam** — (F-R3) the line between two neighbouring upright spines of one row, placed midway between the left box's right side and the right box's left side. Not Q-2's *top seam* (a box's top end). A representation's **seam hit** is a height at which its edge map peaks on the seam.
+- **Seam evidence** — (F-R3) the measured signals that say where a spine seam is: normal discontinuities from the depth stage, a Retinex edge map, line segments along the spine axis. Proposed as the input for splitting and re-prompting conflicting masks (R3-A).
 - **Shelf plane** — (S-1) one of three planes fitted per shelf row from the depth stage's point map
   (`helpers/shelf/shelf.py`, RANSAC with the band's frame as the prior):
   - the **board top**, facing up at the books' base;
