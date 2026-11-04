@@ -655,10 +655,15 @@ function analyse(): void {
       };
       let works: unknown = null;
       if (!tr) {
-        const rows = ids.map((id) => ({ imageId: split(id)[0], b: base.get(id)!.accepted, a: aft.get(id)!.accepted }));
-        const count = (rs: typeof rows, k: "a" | "b") => new Set(rs.flatMap((r) => (r[k] ? [`${r.imageId}\u0000${r[k]}`] : []))).size;
-        const d = clusterBootstrap(rows, (rs) => count(rs, "a") - count(rs, "b"), REPS, 61);
-        works = { before: count(rows, "b"), after: count(rows, "a"), delta: d && { value: d.value, lo: d.lo, hi: d.hi } };
+        // Distinct works per photo, summed; the bootstrap resamples photos' changes, so a photo drawn twice counts twice.
+        const perPhoto = [...new Set(ids.map((id) => split(id)[0]))].map((imageId) => {
+          const mine = ids.filter((id) => split(id)[0] === imageId);
+          const n = (m: Map<string, Dec>) => new Set(mine.map((id) => m.get(id)!.accepted).filter(Boolean)).size;
+          return { imageId, b: n(base), a: n(aft) };
+        });
+        const sum = (rs: typeof perPhoto, k: "a" | "b") => rs.reduce((t, r) => t + r[k], 0);
+        const d = clusterBootstrap(perPhoto, (rs) => sum(rs, "a") - sum(rs, "b"), REPS, 61);
+        works = { before: sum(perPhoto, "b"), after: sum(perPhoto, "a"), delta: d && { value: d.value, lo: d.lo, hi: d.hi } };
       }
       const accepts = [...aft.values()].filter((d) => d.accepted);
       const loro = loroSummary(accepts.flatMap((d) => Object.values(d.loro ?? {})));
