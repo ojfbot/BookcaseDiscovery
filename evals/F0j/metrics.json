@@ -1,0 +1,2218 @@
+{
+ "runId": "F0j",
+ "card": "F-0j",
+ "date": "2026-11-04",
+ "regions": "F-0i's kept boxes (partition geometry cache), detection rectangles",
+ "wholeCrop": "rect;rot=fixed",
+ "lineCrop": "line;h=48;clip=frame",
+ "zoner": "PP-OCRv5_server_det (CPU, PaddleX defaults), native resolution; roles src/perceive/zones.ts",
+ "bootstrap": {
+  "unit": "photo (cluster), paired: the same regions in A0 and the arm",
+  "reps": 2000,
+  "interval": "95 % percentile",
+  "units": "percentage points (works: count)"
+ },
+ "keepRule": "pilot-000 confirmed interval excludes 0 upward; pilot-000 distinct works not down; yardstick confirmed not down and wrong not up beyond their intervals; leave one reader out switches at most 5 % of (accept, reader) cases to another work on each set",
+ "verdict": {
+  "a": {
+   "keep": false,
+   "pilotConfirmedExcludesZero": true,
+   "pilotDistinctWorksNotDown": true,
+   "yardstickConfirmedNotDown": true,
+   "yardstickWrongNotUp": false,
+   "leaveOneReaderOut": true
+  },
+  "b": {
+   "keep": false,
+   "pilotConfirmedExcludesZero": true,
+   "pilotDistinctWorksNotDown": true,
+   "yardstickConfirmedNotDown": true,
+   "yardstickWrongNotUp": false,
+   "leaveOneReaderOut": true
+  },
+  "c": {
+   "keep": false,
+   "pilotConfirmedExcludesZero": true,
+   "pilotDistinctWorksNotDown": true,
+   "yardstickConfirmedNotDown": true,
+   "yardstickWrongNotUp": false,
+   "leaveOneReaderOut": true
+  }
+ },
+ "sets": {
+  "pilot-000": {
+   "scope": "real use (OC35): machine agreement, never accuracy (INV-17)",
+   "regions": 5761,
+   "zones": {
+    "zoned": 5761,
+    "errors": 0,
+    "notZoned": 0,
+    "linesDetected": 12929,
+    "linesNeighbour": 1511,
+    "linesKept": 11418,
+    "noiseDropped": 1,
+    "linesPerRegion": 1.9819475785453915,
+    "linesUnder32": 3440,
+    "columnLines": 1076,
+    "noLine": 1631,
+    "multiBook": 13,
+    "read": 4117,
+    "groupsPerReadRegion": 2.0823415108088414,
+    "noLineByF0iRole": {
+     "member": 1113,
+     "member, changed": 384,
+     "group-child": 47,
+     "member, changed, flagged": 36,
+     "remainder, changed": 38,
+     "group-child, changed": 9,
+     "remainder, changed, flagged": 4
+    },
+    "multiBookByF0iRole": {
+     "member, changed": 2,
+     "member": 11
+    },
+    "art": 1212,
+    "imprintLogoEnds": 4428,
+    "cost": {
+     "regionSecondsP50": 0.382,
+     "regionSecondsTotal": 2500
+    }
+   },
+   "arms": {
+    "a": {
+     "all": {
+      "boxCount": 5761,
+      "photos": 31,
+      "textRead": {
+       "before": 78.5,
+       "after": 79,
+       "delta": 0.4,
+       "lo": 0.2,
+       "hi": 0.7
+      },
+      "confirmed": {
+       "before": 12.6,
+       "after": 16.6,
+       "delta": 3.9,
+       "lo": 2.7,
+       "hi": 5.1
+      }
+     },
+     "strata": {
+      "read by pass 2": {
+       "boxCount": 4117,
+       "photos": 31,
+       "textRead": {
+        "before": 98.2,
+        "after": 98.8,
+        "delta": 0.6,
+        "lo": 0.3,
+        "hi": 1
+       },
+       "confirmed": {
+        "before": 17.4,
+        "after": 22.9,
+        "delta": 5.5,
+        "lo": 4,
+        "hi": 6.9
+       }
+      },
+      "not read (no line or multi-book)": {
+       "boxCount": 1644,
+       "photos": 31,
+       "textRead": {
+        "before": 29.3,
+        "after": 29.3,
+        "delta": 0,
+        "lo": 0,
+        "hi": 0
+       },
+       "confirmed": {
+        "before": 0.6,
+        "after": 0.6,
+        "delta": 0,
+        "lo": 0,
+        "hi": 0
+       }
+      },
+      "smallest line < 32 px": {
+       "boxCount": 1735,
+       "photos": 31,
+       "textRead": {
+        "before": 98.6,
+        "after": 98.9,
+        "delta": 0.3,
+        "lo": 0,
+        "hi": 0.9
+       },
+       "confirmed": {
+        "before": 15.9,
+        "after": 21.4,
+        "delta": 5.5,
+        "lo": 3.4,
+        "hi": 7.5
+       }
+      },
+      "smallest line ≥ 32 px": {
+       "boxCount": 2382,
+       "photos": 31,
+       "textRead": {
+        "before": 97.9,
+        "after": 98.7,
+        "delta": 0.8,
+        "lo": 0.4,
+        "hi": 1.2
+       },
+       "confirmed": {
+        "before": 18.6,
+        "after": 24.1,
+        "delta": 5.5,
+        "lo": 4,
+        "hi": 6.9
+       }
+      },
+      "with a column line": {
+       "boxCount": 512,
+       "photos": 28,
+       "textRead": {
+        "before": 100,
+        "after": 100,
+        "delta": 0,
+        "lo": 0,
+        "hi": 0
+       },
+       "confirmed": {
+        "before": 17.6,
+        "after": 21.9,
+        "delta": 4.3,
+        "lo": 1.8,
+        "hi": 7
+       }
+      },
+      "no column line": {
+       "boxCount": 3605,
+       "photos": 31,
+       "textRead": {
+        "before": 97.9,
+        "after": 98.6,
+        "delta": 0.7,
+        "lo": 0.3,
+        "hi": 1.1
+       },
+       "confirmed": {
+        "before": 17.4,
+        "after": 23.1,
+        "delta": 5.7,
+        "lo": 4.2,
+        "hi": 7.1
+       }
+      },
+      "contrast < 60": {
+       "boxCount": 96,
+       "photos": 26,
+       "textRead": {
+        "before": 96.9,
+        "after": 96.9,
+        "delta": 0,
+        "lo": 0,
+        "hi": 0
+       },
+       "confirmed": {
+        "before": 6.3,
+        "after": 9.4,
+        "delta": 3.1,
+        "lo": 0,
+        "hi": 8.9
+       }
+      },
+      "contrast ≥ 60": {
+       "boxCount": 4021,
+       "photos": 31,
+       "textRead": {
+        "before": 98.2,
+        "after": 98.8,
+        "delta": 0.6,
+        "lo": 0.3,
+        "hi": 1
+       },
+       "confirmed": {
+        "before": 17.7,
+        "after": 23.3,
+        "delta": 5.5,
+        "lo": 4,
+        "hi": 7
+       }
+      },
+      "whole boxes": {
+       "boxCount": 3638,
+       "photos": 31,
+       "textRead": {
+        "before": 84.2,
+        "after": 84.7,
+        "delta": 0.5,
+        "lo": 0.2,
+        "hi": 0.8
+       },
+       "confirmed": {
+        "before": 13.4,
+        "after": 17.1,
+        "delta": 3.8,
+        "lo": 2.4,
+        "hi": 5.2
+       }
+      },
+      "cut or partial boxes": {
+       "boxCount": 2123,
+       "photos": 31,
+       "textRead": {
+        "before": 68.8,
+        "after": 69.1,
+        "delta": 0.3,
+        "lo": 0.1,
+        "hi": 0.7
+       },
+       "confirmed": {
+        "before": 11.4,
+        "after": 15.6,
+        "delta": 4.2,
+        "lo": 2.4,
+        "hi": 5.7
+       }
+      }
+     },
+     "distinctConfirmedWorks": {
+      "before": 631,
+      "after": 830,
+      "delta": {
+       "value": 199,
+       "lo": 126,
+       "hi": 278
+      }
+     },
+     "accepts": 954,
+     "acceptsOnlyThroughPass2": 276,
+     "loro": {
+      "cases": 2084,
+      "same": 176,
+      "other": 0,
+      "none": 1908,
+      "otherShare": 0,
+      "otherWilsonUpper": 0.0018399863284647646
+     },
+     "cost": {
+      "lines": {
+       "vision": {
+        "calls": 24880,
+        "seconds": 1592
+       },
+       "ppocr": {
+        "calls": 24880,
+        "seconds": 3974
+       },
+       "qwen": {
+        "calls": 0,
+        "seconds": 0
+       }
+      },
+      "qwenSelected": {
+       "before": 1224,
+       "after": 1220
+      }
+     }
+    },
+    "b": {
+     "all": {
+      "boxCount": 5761,
+      "photos": 31,
+      "textRead": {
+       "before": 78.5,
+       "after": 79,
+       "delta": 0.4,
+       "lo": 0.2,
+       "hi": 0.7
+      },
+      "confirmed": {
+       "before": 12.6,
+       "after": 17.3,
+       "delta": 4.6,
+       "lo": 3.3,
+       "hi": 5.8
+      }
+     },
+     "fields": {
+      "readRegions": 4117,
+      "withAuthorGroup": 877,
+      "withTitleGroup": 4117,
+      "perReader": {
+       "vision": {
+        "regions": 5761,
+        "titleField": 3655,
+        "authorField": 865,
+        "fieldPathConfirmations": 59,
+        "authorCounterWithdrawals": 28,
+        "onAccepts": {
+         "titleField": 963,
+         "titleMatches": 694,
+         "authorField": 307,
+         "authorMatches": 256
+        }
+       },
+       "ppocr": {
+        "regions": 5761,
+        "titleField": 3816,
+        "authorField": 860,
+        "fieldPathConfirmations": 76,
+        "authorCounterWithdrawals": 17,
+        "onAccepts": {
+         "titleField": 970,
+         "titleMatches": 619,
+         "authorField": 306,
+         "authorMatches": 215
+        }
+       },
+       "qwen": {
+        "regions": 1220,
+        "titleField": 0,
+        "authorField": 0,
+        "fieldPathConfirmations": 0,
+        "authorCounterWithdrawals": 0,
+        "onAccepts": {
+         "titleField": 0,
+         "titleMatches": 0,
+         "authorField": 0,
+         "authorMatches": 0
+        }
+       }
+      }
+     },
+     "strata": {
+      "read by pass 2": {
+       "boxCount": 4117,
+       "photos": 31,
+       "textRead": {
+        "before": 98.2,
+        "after": 98.8,
+        "delta": 0.6,
+        "lo": 0.3,
+        "hi": 1
+       },
+       "confirmed": {
+        "before": 17.4,
+        "after": 23.9,
+        "delta": 6.5,
+        "lo": 4.9,
+        "hi": 8
+       }
+      },
+      "not read (no line or multi-book)": {
+       "boxCount": 1644,
+       "photos": 31,
+       "textRead": {
+        "before": 29.3,
+        "after": 29.3,
+        "delta": 0,
+        "lo": 0,
+        "hi": 0
+       },
+       "confirmed": {
+        "before": 0.6,
+        "after": 0.6,
+        "delta": 0,
+        "lo": 0,
+        "hi": 0
+       }
+      },
+      "smallest line < 32 px": {
+       "boxCount": 1735,
+       "photos": 31,
+       "textRead": {
+        "before": 98.6,
+        "after": 98.9,
+        "delta": 0.3,
+        "lo": 0,
+        "hi": 0.9
+       },
+       "confirmed": {
+        "before": 15.9,
+        "after": 23.2,
+        "delta": 7.3,
+        "lo": 5.1,
+        "hi": 9.4
+       }
+      },
+      "smallest line ≥ 32 px": {
+       "boxCount": 2382,
+       "photos": 31,
+       "textRead": {
+        "before": 97.9,
+        "after": 98.7,
+        "delta": 0.8,
+        "lo": 0.4,
+        "hi": 1.2
+       },
+       "confirmed": {
+        "before": 18.6,
+        "after": 24.5,
+        "delta": 5.9,
+        "lo": 4.5,
+        "hi": 7.3
+       }
+      },
+      "with a column line": {
+       "boxCount": 512,
+       "photos": 28,
+       "textRead": {
+        "before": 100,
+        "after": 100,
+        "delta": 0,
+        "lo": 0,
+        "hi": 0
+       },
+       "confirmed": {
+        "before": 17.6,
+        "after": 22.7,
+        "delta": 5.1,
+        "lo": 2,
+        "hi": 8.3
+       }
+      },
+      "no column line": {
+       "boxCount": 3605,
+       "photos": 31,
+       "textRead": {
+        "before": 97.9,
+        "after": 98.6,
+        "delta": 0.7,
+        "lo": 0.3,
+        "hi": 1.1
+       },
+       "confirmed": {
+        "before": 17.4,
+        "after": 24.1,
+        "delta": 6.7,
+        "lo": 5.1,
+        "hi": 8.1
+       }
+      },
+      "contrast < 60": {
+       "boxCount": 96,
+       "photos": 26,
+       "textRead": {
+        "before": 96.9,
+        "after": 96.9,
+        "delta": 0,
+        "lo": 0,
+        "hi": 0
+       },
+       "confirmed": {
+        "before": 6.3,
+        "after": 10.4,
+        "delta": 4.2,
+        "lo": 0,
+        "hi": 10.4
+       }
+      },
+      "contrast ≥ 60": {
+       "boxCount": 4021,
+       "photos": 31,
+       "textRead": {
+        "before": 98.2,
+        "after": 98.8,
+        "delta": 0.6,
+        "lo": 0.3,
+        "hi": 1
+       },
+       "confirmed": {
+        "before": 17.7,
+        "after": 24.2,
+        "delta": 6.5,
+        "lo": 5,
+        "hi": 8
+       }
+      },
+      "whole boxes": {
+       "boxCount": 3638,
+       "photos": 31,
+       "textRead": {
+        "before": 84.2,
+        "after": 84.7,
+        "delta": 0.5,
+        "lo": 0.2,
+        "hi": 0.8
+       },
+       "confirmed": {
+        "before": 13.4,
+        "after": 17.9,
+        "delta": 4.6,
+        "lo": 3.1,
+        "hi": 6.2
+       }
+      },
+      "cut or partial boxes": {
+       "boxCount": 2123,
+       "photos": 31,
+       "textRead": {
+        "before": 68.8,
+        "after": 69.1,
+        "delta": 0.3,
+        "lo": 0.1,
+        "hi": 0.7
+       },
+       "confirmed": {
+        "before": 11.4,
+        "after": 16.2,
+        "delta": 4.8,
+        "lo": 3.1,
+        "hi": 6.1
+       }
+      }
+     },
+     "distinctConfirmedWorks": {
+      "before": 631,
+      "after": 868,
+      "delta": {
+       "value": 237,
+       "lo": 157,
+       "hi": 323
+      }
+     },
+     "accepts": 995,
+     "acceptsOnlyThroughPass2": 337,
+     "loro": {
+      "cases": 2159,
+      "same": 169,
+      "other": 0,
+      "none": 1990,
+      "otherShare": 0,
+      "otherWilsonUpper": 0.0017761818526146344
+     },
+     "cost": {
+      "lines": {
+       "vision": {
+        "calls": 24880,
+        "seconds": 1592
+       },
+       "ppocr": {
+        "calls": 24880,
+        "seconds": 3974
+       },
+       "qwen": {
+        "calls": 0,
+        "seconds": 0
+       }
+      },
+      "qwenSelected": {
+       "before": 1224,
+       "after": 1220
+      }
+     }
+    },
+    "c": {
+     "subsample": {
+      "photos": 6,
+      "regions": 1530
+     },
+     "all": {
+      "boxCount": 1530,
+      "photos": 6,
+      "textRead": {
+       "before": 80.7,
+       "after": 81.2,
+       "delta": 0.5,
+       "lo": 0.1,
+       "hi": 1
+      },
+      "confirmed": {
+       "before": 12.5,
+       "after": 16.2,
+       "delta": 3.7,
+       "lo": 2,
+       "hi": 5.9
+      }
+     },
+     "fields": {
+      "readRegions": 1112,
+      "withAuthorGroup": 192,
+      "withTitleGroup": 1112,
+      "perReader": {
+       "vision": {
+        "regions": 1530,
+        "titleField": 981,
+        "authorField": 188,
+        "fieldPathConfirmations": 6,
+        "authorCounterWithdrawals": 3,
+        "onAccepts": {
+         "titleField": 237,
+         "titleMatches": 172,
+         "authorField": 64,
+         "authorMatches": 57
+        }
+       },
+       "ppocr": {
+        "regions": 1530,
+        "titleField": 1016,
+        "authorField": 189,
+        "fieldPathConfirmations": 17,
+        "authorCounterWithdrawals": 2,
+        "onAccepts": {
+         "titleField": 240,
+         "titleMatches": 159,
+         "authorField": 64,
+         "authorMatches": 47
+        }
+       },
+       "qwen": {
+        "regions": 240,
+        "titleField": 175,
+        "authorField": 178,
+        "fieldPathConfirmations": 7,
+        "authorCounterWithdrawals": 3,
+        "onAccepts": {
+         "titleField": 29,
+         "titleMatches": 29,
+         "authorField": 34,
+         "authorMatches": 32
+        }
+       }
+      },
+      "qwen": {
+       "regionsRead": 240,
+       "rotations": 480,
+       "truncated": 34,
+       "rejected": {
+        "title": 95,
+        "author": 32,
+        "imprint": 142
+       },
+       "authorFieldWithoutZonerAuthor": 136,
+       "authorFieldRegions": 178,
+       "authorFieldShare": {
+        "value": 0.7416666666666667,
+        "lo": 0.6708333333333333,
+        "hi": 0.8125,
+        "photos": 6
+       },
+       "imprintFromLogo": 244,
+       "control": {
+        "regions": 14,
+        "withAnyField": 13
+       },
+       "seconds": 1915,
+       "tokensP50": 180
+      }
+     },
+     "strata": {
+      "read by pass 2": {
+       "boxCount": 1112,
+       "photos": 6,
+       "textRead": {
+        "before": 97.8,
+        "after": 98.5,
+        "delta": 0.6,
+        "lo": 0.1,
+        "hi": 1.6
+       },
+       "confirmed": {
+        "before": 16.7,
+        "after": 21.9,
+        "delta": 5.1,
+        "lo": 2.6,
+        "hi": 8.1
+       }
+      },
+      "not read (no line or multi-book)": {
+       "boxCount": 418,
+       "photos": 6,
+       "textRead": {
+        "before": 35.2,
+        "after": 35.2,
+        "delta": 0,
+        "lo": 0,
+        "hi": 0
+       },
+       "confirmed": {
+        "before": 1.2,
+        "after": 1.2,
+        "delta": 0,
+        "lo": 0,
+        "hi": 0
+       }
+      },
+      "smallest line < 32 px": {
+       "boxCount": 498,
+       "photos": 6,
+       "textRead": {
+        "before": 97.6,
+        "after": 98.2,
+        "delta": 0.6,
+        "lo": 0,
+        "hi": 2.2
+       },
+       "confirmed": {
+        "before": 13.5,
+        "after": 18.3,
+        "delta": 4.8,
+        "lo": 1.5,
+        "hi": 9.5
+       }
+      },
+      "smallest line ≥ 32 px": {
+       "boxCount": 614,
+       "photos": 6,
+       "textRead": {
+        "before": 98,
+        "after": 98.7,
+        "delta": 0.7,
+        "lo": 0,
+        "hi": 1.8
+       },
+       "confirmed": {
+        "before": 19.4,
+        "after": 24.8,
+        "delta": 5.4,
+        "lo": 2.9,
+        "hi": 8.2
+       }
+      },
+      "with a column line": {
+       "boxCount": 96,
+       "photos": 6,
+       "textRead": {
+        "before": 100,
+        "after": 100,
+        "delta": 0,
+        "lo": 0,
+        "hi": 0
+       },
+       "confirmed": {
+        "before": 20.8,
+        "after": 21.9,
+        "delta": 1,
+        "lo": -3.9,
+        "hi": 6.8
+       }
+      },
+      "no column line": {
+       "boxCount": 1016,
+       "photos": 6,
+       "textRead": {
+        "before": 97.6,
+        "after": 98.3,
+        "delta": 0.7,
+        "lo": 0.1,
+        "hi": 1.7
+       },
+       "confirmed": {
+        "before": 16.3,
+        "after": 21.9,
+        "delta": 5.5,
+        "lo": 3,
+        "hi": 8.4
+       }
+      },
+      "contrast < 60": {
+       "boxCount": 32,
+       "photos": 6,
+       "textRead": {
+        "before": 100,
+        "after": 100,
+        "delta": 0,
+        "lo": 0,
+        "hi": 0
+       },
+       "confirmed": {
+        "before": 12.5,
+        "after": 9.4,
+        "delta": -3.1,
+        "lo": -13,
+        "hi": 0
+       }
+      },
+      "contrast ≥ 60": {
+       "boxCount": 1080,
+       "photos": 6,
+       "textRead": {
+        "before": 97.8,
+        "after": 98.4,
+        "delta": 0.6,
+        "lo": 0.1,
+        "hi": 1.6
+       },
+       "confirmed": {
+        "before": 16.9,
+        "after": 22.2,
+        "delta": 5.4,
+        "lo": 2.9,
+        "hi": 8.2
+       }
+      },
+      "whole boxes": {
+       "boxCount": 939,
+       "photos": 6,
+       "textRead": {
+        "before": 85.1,
+        "after": 85.5,
+        "delta": 0.4,
+        "lo": 0,
+        "hi": 1.3
+       },
+       "confirmed": {
+        "before": 12.8,
+        "after": 15.5,
+        "delta": 2.8,
+        "lo": 1.5,
+        "hi": 5.3
+       }
+      },
+      "cut or partial boxes": {
+       "boxCount": 591,
+       "photos": 6,
+       "textRead": {
+        "before": 73.8,
+        "after": 74.3,
+        "delta": 0.5,
+        "lo": 0,
+        "hi": 1.2
+       },
+       "confirmed": {
+        "before": 12,
+        "after": 17.3,
+        "delta": 5.2,
+        "lo": 1.9,
+        "hi": 8.5
+       }
+      }
+     },
+     "distinctConfirmedWorks": {
+      "before": 166,
+      "after": 212,
+      "delta": {
+       "value": 46,
+       "lo": 25,
+       "hi": 70
+      }
+     },
+     "accepts": 248,
+     "acceptsOnlyThroughPass2": 78,
+     "loro": {
+      "cases": 534,
+      "same": 38,
+      "other": 0,
+      "none": 496,
+      "otherShare": 0,
+      "otherWilsonUpper": 0.00714262340436292
+     },
+     "cost": {
+      "lines": {
+       "vision": {
+        "calls": 24880,
+        "seconds": 1592
+       },
+       "ppocr": {
+        "calls": 24880,
+        "seconds": 3974
+       },
+       "qwen": {
+        "calls": 0,
+        "seconds": 0
+       }
+      },
+      "qwenSelected": {
+       "before": 1224,
+       "after": 240
+      }
+     }
+    }
+   },
+   "v2": {
+    "a0": {
+     "accepts": 645,
+     "counterKinds": {
+      "namesake": 530,
+      "author": 93,
+      "unexplained": 11,
+      "language": 6
+     },
+     "namesakeWithdrawnInA0": 530,
+     "namesakeTurnedIntoConfirmation": 0,
+     "k3AgainstV1A0": {
+      "before": 12.6,
+      "after": 11.2,
+      "delta": -1.4,
+      "lo": -3.9,
+      "hi": 1.5
+     }
+    },
+    "a": {
+     "accepts": 1101,
+     "counterKinds": {
+      "author": 247,
+      "namesake": 888,
+      "unexplained": 10,
+      "language": 3
+     },
+     "namesakeWithdrawnInA0": 530,
+     "namesakeTurnedIntoConfirmation": 23,
+     "k3AgainstV1A0": {
+      "before": 12.6,
+      "after": 19.1,
+      "delta": 6.5,
+      "lo": 3.7,
+      "hi": 9.6
+     }
+    },
+    "b": {
+     "accepts": 1121,
+     "counterKinds": {
+      "author": 283,
+      "namesake": 946,
+      "unexplained": 12,
+      "language": 3
+     },
+     "namesakeWithdrawnInA0": 530,
+     "namesakeTurnedIntoConfirmation": 20,
+     "k3AgainstV1A0": {
+      "before": 12.6,
+      "after": 19.5,
+      "delta": 6.8,
+      "lo": 4,
+      "hi": 10.1
+     }
+    }
+   }
+  },
+  "yardstick-library-b2": {
+   "scope": "PROXY: Library Dataset sample, box arm B2; confirmed = accepted and annotated in the image",
+   "regions": 1040,
+   "zones": {
+    "zoned": 1040,
+    "errors": 0,
+    "notZoned": 0,
+    "linesDetected": 3682,
+    "linesNeighbour": 654,
+    "linesKept": 3028,
+    "noiseDropped": 0,
+    "linesPerRegion": 2.9115384615384614,
+    "linesUnder32": 83,
+    "columnLines": 268,
+    "noLine": 294,
+    "multiBook": 10,
+    "read": 736,
+    "groupsPerReadRegion": 2.7214673913043477,
+    "noLineByF0iRole": {
+     "member": 216,
+     "member, changed": 28,
+     "group-child": 24,
+     "group-child, changed": 7,
+     "member, changed, flagged": 4,
+     "remainder, changed": 15
+    },
+    "multiBookByF0iRole": {
+     "member": 6,
+     "remainder, changed": 3,
+     "member, changed": 1
+    },
+    "art": 14,
+    "imprintLogoEnds": 91,
+    "cost": {
+     "regionSecondsP50": 0.458,
+     "regionSecondsTotal": 566
+    }
+   },
+   "arms": {
+    "a": {
+     "all": {
+      "boxCount": 1040,
+      "photos": 40,
+      "textRead": {
+       "before": 75.1,
+       "after": 75.2,
+       "delta": 0.1,
+       "lo": 0,
+       "hi": 0.3
+      },
+      "confirmed": {
+       "before": 23.8,
+       "after": 28.7,
+       "delta": 4.9,
+       "lo": 2.9,
+       "hi": 7.2
+      },
+      "wrong": {
+       "before": 2.1,
+       "after": 2.8,
+       "delta": 0.7,
+       "lo": 0.2,
+       "hi": 1.3
+      }
+     },
+     "authorAccuracy": {
+      "before": {
+       "accepted": 269,
+       "withAuthorInImage": 249,
+       "share": 0.9256505576208178
+      },
+      "after": {
+       "accepted": 327,
+       "withAuthorInImage": 304,
+       "share": 0.9296636085626911
+      }
+     },
+     "wrongSources": {
+      "newWrong": 7,
+      "wrongGone": 0,
+      "route": {
+       "pass2Only": 7,
+       "fieldPath": 0,
+       "wholeCropAgreement": 0
+      },
+      "readers": {
+       "qwen+vision": 2,
+       "ppocr+qwen": 2,
+       "ppocr+vision": 3
+      },
+      "kind": {
+       "sameAuthorAsAnnotated": 4,
+       "sharesTitleWord": 2,
+       "unrelated": 1
+      }
+     },
+     "strata": {
+      "read by pass 2": {
+       "boxCount": 736,
+       "photos": 40,
+       "textRead": {
+        "before": 99.6,
+        "after": 99.7,
+        "delta": 0.1,
+        "lo": 0,
+        "hi": 0.4
+       },
+       "confirmed": {
+        "before": 33,
+        "after": 39.9,
+        "delta": 6.9,
+        "lo": 4.3,
+        "hi": 9.9
+       },
+       "wrong": {
+        "before": 3,
+        "after": 3.9,
+        "delta": 1,
+        "lo": 0.3,
+        "hi": 1.7
+       }
+      },
+      "not read (no line or multi-book)": {
+       "boxCount": 304,
+       "photos": 39,
+       "textRead": {
+        "before": 15.8,
+        "after": 15.8,
+        "delta": 0,
+        "lo": 0,
+        "hi": 0
+       },
+       "confirmed": {
+        "before": 1.3,
+        "after": 1.3,
+        "delta": 0,
+        "lo": 0,
+        "hi": 0
+       },
+       "wrong": {
+        "before": 0,
+        "after": 0,
+        "delta": 0,
+        "lo": 0,
+        "hi": 0
+       }
+      },
+      "smallest line < 32 px": {
+       "boxCount": 53,
+       "photos": 22,
+       "textRead": {
+        "before": 98.1,
+        "after": 100,
+        "delta": 1.9,
+        "lo": 0,
+        "hi": 6.7
+       },
+       "confirmed": {
+        "before": 15.1,
+        "after": 26.4,
+        "delta": 11.3,
+        "lo": 4.5,
+        "hi": 17.2
+       },
+       "wrong": {
+        "before": 1.9,
+        "after": 1.9,
+        "delta": 0,
+        "lo": 0,
+        "hi": 0
+       }
+      },
+      "smallest line ≥ 32 px": {
+       "boxCount": 683,
+       "photos": 40,
+       "textRead": {
+        "before": 99.7,
+        "after": 99.7,
+        "delta": 0,
+        "lo": 0,
+        "hi": 0
+       },
+       "confirmed": {
+        "before": 34.4,
+        "after": 41,
+        "delta": 6.6,
+        "lo": 3.9,
+        "hi": 9.5
+       },
+       "wrong": {
+        "before": 3.1,
+        "after": 4.1,
+        "delta": 1,
+        "lo": 0.3,
+        "hi": 1.9
+       }
+      },
+      "with a column line": {
+       "boxCount": 85,
+       "photos": 37,
+       "textRead": {
+        "before": 100,
+        "after": 100,
+        "delta": 0,
+        "lo": 0,
+        "hi": 0
+       },
+       "confirmed": {
+        "before": 28.2,
+        "after": 35.3,
+        "delta": 7.1,
+        "lo": 2.4,
+        "hi": 12.5
+       },
+       "wrong": {
+        "before": 4.7,
+        "after": 4.7,
+        "delta": 0,
+        "lo": 0,
+        "hi": 0
+       }
+      },
+      "no column line": {
+       "boxCount": 651,
+       "photos": 40,
+       "textRead": {
+        "before": 99.5,
+        "after": 99.7,
+        "delta": 0.2,
+        "lo": 0,
+        "hi": 0.5
+       },
+       "confirmed": {
+        "before": 33.6,
+        "after": 40.6,
+        "delta": 6.9,
+        "lo": 4.1,
+        "hi": 9.9
+       },
+       "wrong": {
+        "before": 2.8,
+        "after": 3.8,
+        "delta": 1.1,
+        "lo": 0.3,
+        "hi": 1.9
+       }
+      },
+      "contrast < 60": {
+       "boxCount": 31,
+       "photos": 24,
+       "textRead": {
+        "before": 93.5,
+        "after": 93.5,
+        "delta": 0,
+        "lo": 0,
+        "hi": 0
+       },
+       "confirmed": {
+        "before": 51.6,
+        "after": 51.6,
+        "delta": 0,
+        "lo": 0,
+        "hi": 0
+       },
+       "wrong": {
+        "before": 3.2,
+        "after": 3.2,
+        "delta": 0,
+        "lo": 0,
+        "hi": 0
+       }
+      },
+      "contrast ≥ 60": {
+       "boxCount": 705,
+       "photos": 40,
+       "textRead": {
+        "before": 99.9,
+        "after": 100,
+        "delta": 0.1,
+        "lo": 0,
+        "hi": 0.4
+       },
+       "confirmed": {
+        "before": 32.2,
+        "after": 39.4,
+        "delta": 7.2,
+        "lo": 4.6,
+        "hi": 10.4
+       },
+       "wrong": {
+        "before": 3,
+        "after": 4,
+        "delta": 1,
+        "lo": 0.3,
+        "hi": 1.8
+       }
+      },
+      "whole boxes": {
+       "boxCount": 720,
+       "photos": 40,
+       "textRead": {
+        "before": 88.5,
+        "after": 88.5,
+        "delta": 0,
+        "lo": 0,
+        "hi": 0
+       },
+       "confirmed": {
+        "before": 30.6,
+        "after": 37.2,
+        "delta": 6.7,
+        "lo": 4.1,
+        "hi": 9.5
+       },
+       "wrong": {
+        "before": 2.9,
+        "after": 3.8,
+        "delta": 0.8,
+        "lo": 0.1,
+        "hi": 1.6
+       }
+      },
+      "cut or partial boxes": {
+       "boxCount": 320,
+       "photos": 32,
+       "textRead": {
+        "before": 45,
+        "after": 45.3,
+        "delta": 0.3,
+        "lo": 0,
+        "hi": 1.2
+       },
+       "confirmed": {
+        "before": 8.4,
+        "after": 9.4,
+        "delta": 0.9,
+        "lo": 0,
+        "hi": 2.2
+       },
+       "wrong": {
+        "before": 0.3,
+        "after": 0.6,
+        "delta": 0.3,
+        "lo": 0,
+        "hi": 1
+       }
+      }
+     },
+     "accepts": 327,
+     "acceptsOnlyThroughPass2": 94,
+     "loro": {
+      "cases": 738,
+      "same": 84,
+      "other": 0,
+      "none": 654,
+      "otherShare": 0,
+      "otherWilsonUpper": 0.00517846397398043
+     },
+     "cost": {
+      "lines": {
+       "vision": {
+        "calls": 6460,
+        "seconds": 358
+       },
+       "ppocr": {
+        "calls": 6460,
+        "seconds": 1029
+       },
+       "qwen": {
+        "calls": 0,
+        "seconds": 0
+       }
+      },
+      "qwenSelected": {
+       "before": 468,
+       "after": 422
+      }
+     }
+    },
+    "b": {
+     "all": {
+      "boxCount": 1040,
+      "photos": 40,
+      "textRead": {
+       "before": 75.1,
+       "after": 75.2,
+       "delta": 0.1,
+       "lo": 0,
+       "hi": 0.3
+      },
+      "confirmed": {
+       "before": 23.8,
+       "after": 32.7,
+       "delta": 8.9,
+       "lo": 6.3,
+       "hi": 11.4
+      },
+      "wrong": {
+       "before": 2.1,
+       "after": 4.8,
+       "delta": 2.7,
+       "lo": 1.5,
+       "hi": 4
+      }
+     },
+     "fields": {
+      "readRegions": 736,
+      "withAuthorGroup": 164,
+      "withTitleGroup": 736,
+      "perReader": {
+       "vision": {
+        "regions": 1040,
+        "titleField": 713,
+        "authorField": 164,
+        "fieldPathConfirmations": 69,
+        "authorCounterWithdrawals": 12,
+        "onAccepts": {
+         "titleField": 384,
+         "titleMatches": 312,
+         "authorField": 89,
+         "authorMatches": 86
+        }
+       },
+       "ppocr": {
+        "regions": 1040,
+        "titleField": 725,
+        "authorField": 164,
+        "fieldPathConfirmations": 70,
+        "authorCounterWithdrawals": 10,
+        "onAccepts": {
+         "titleField": 385,
+         "titleMatches": 253,
+         "authorField": 89,
+         "authorMatches": 81
+        }
+       },
+       "qwen": {
+        "regions": 391,
+        "titleField": 0,
+        "authorField": 0,
+        "fieldPathConfirmations": 0,
+        "authorCounterWithdrawals": 0,
+        "onAccepts": {
+         "titleField": 0,
+         "titleMatches": 0,
+         "authorField": 0,
+         "authorMatches": 0
+        }
+       }
+      }
+     },
+     "authorAccuracy": {
+      "before": {
+       "accepted": 269,
+       "withAuthorInImage": 249,
+       "share": 0.9256505576208178
+      },
+      "after": {
+       "accepted": 390,
+       "withAuthorInImage": 345,
+       "share": 0.8846153846153846
+      }
+     },
+     "wrongSources": {
+      "newWrong": 28,
+      "wrongGone": 0,
+      "route": {
+       "pass2Only": 6,
+       "fieldPath": 22,
+       "wholeCropAgreement": 0
+      },
+      "readers": {
+       "qwen+vision": 3,
+       "ppocr+qwen": 2,
+       "ppocr+vision": 23
+      },
+      "kind": {
+       "sameAuthorAsAnnotated": 11,
+       "sharesTitleWord": 8,
+       "unrelated": 9
+      }
+     },
+     "strata": {
+      "read by pass 2": {
+       "boxCount": 736,
+       "photos": 40,
+       "textRead": {
+        "before": 99.6,
+        "after": 99.7,
+        "delta": 0.1,
+        "lo": 0,
+        "hi": 0.4
+       },
+       "confirmed": {
+        "before": 33,
+        "after": 45.7,
+        "delta": 12.6,
+        "lo": 9.4,
+        "hi": 15.7
+       },
+       "wrong": {
+        "before": 3,
+        "after": 6.8,
+        "delta": 3.8,
+        "lo": 2.2,
+        "hi": 5.5
+       }
+      },
+      "not read (no line or multi-book)": {
+       "boxCount": 304,
+       "photos": 39,
+       "textRead": {
+        "before": 15.8,
+        "after": 15.8,
+        "delta": 0,
+        "lo": 0,
+        "hi": 0
+       },
+       "confirmed": {
+        "before": 1.3,
+        "after": 1.3,
+        "delta": 0,
+        "lo": 0,
+        "hi": 0
+       },
+       "wrong": {
+        "before": 0,
+        "after": 0,
+        "delta": 0,
+        "lo": 0,
+        "hi": 0
+       }
+      },
+      "smallest line < 32 px": {
+       "boxCount": 53,
+       "photos": 22,
+       "textRead": {
+        "before": 98.1,
+        "after": 100,
+        "delta": 1.9,
+        "lo": 0,
+        "hi": 6.7
+       },
+       "confirmed": {
+        "before": 15.1,
+        "after": 34,
+        "delta": 18.9,
+        "lo": 5.1,
+        "hi": 28.6
+       },
+       "wrong": {
+        "before": 1.9,
+        "after": 7.5,
+        "delta": 5.7,
+        "lo": 0,
+        "hi": 15
+       }
+      },
+      "smallest line ≥ 32 px": {
+       "boxCount": 683,
+       "photos": 40,
+       "textRead": {
+        "before": 99.7,
+        "after": 99.7,
+        "delta": 0,
+        "lo": 0,
+        "hi": 0
+       },
+       "confirmed": {
+        "before": 34.4,
+        "after": 46.6,
+        "delta": 12.2,
+        "lo": 9,
+        "hi": 15.4
+       },
+       "wrong": {
+        "before": 3.1,
+        "after": 6.7,
+        "delta": 3.7,
+        "lo": 2,
+        "hi": 5.4
+       }
+      },
+      "with a column line": {
+       "boxCount": 85,
+       "photos": 37,
+       "textRead": {
+        "before": 100,
+        "after": 100,
+        "delta": 0,
+        "lo": 0,
+        "hi": 0
+       },
+       "confirmed": {
+        "before": 28.2,
+        "after": 42.4,
+        "delta": 14.1,
+        "lo": 7.5,
+        "hi": 22.9
+       },
+       "wrong": {
+        "before": 4.7,
+        "after": 10.6,
+        "delta": 5.9,
+        "lo": 0,
+        "hi": 12.8
+       }
+      },
+      "no column line": {
+       "boxCount": 651,
+       "photos": 40,
+       "textRead": {
+        "before": 99.5,
+        "after": 99.7,
+        "delta": 0.2,
+        "lo": 0,
+        "hi": 0.5
+       },
+       "confirmed": {
+        "before": 33.6,
+        "after": 46.1,
+        "delta": 12.4,
+        "lo": 8.8,
+        "hi": 16.1
+       },
+       "wrong": {
+        "before": 2.8,
+        "after": 6.3,
+        "delta": 3.5,
+        "lo": 1.9,
+        "hi": 5.4
+       }
+      },
+      "contrast < 60": {
+       "boxCount": 31,
+       "photos": 24,
+       "textRead": {
+        "before": 93.5,
+        "after": 93.5,
+        "delta": 0,
+        "lo": 0,
+        "hi": 0
+       },
+       "confirmed": {
+        "before": 51.6,
+        "after": 48.4,
+        "delta": -3.2,
+        "lo": -10.7,
+        "hi": 0
+       },
+       "wrong": {
+        "before": 3.2,
+        "after": 3.2,
+        "delta": 0,
+        "lo": 0,
+        "hi": 0
+       }
+      },
+      "contrast ≥ 60": {
+       "boxCount": 705,
+       "photos": 40,
+       "textRead": {
+        "before": 99.9,
+        "after": 100,
+        "delta": 0.1,
+        "lo": 0,
+        "hi": 0.4
+       },
+       "confirmed": {
+        "before": 32.2,
+        "after": 45.5,
+        "delta": 13.3,
+        "lo": 9.8,
+        "hi": 16.6
+       },
+       "wrong": {
+        "before": 3,
+        "after": 7,
+        "delta": 4,
+        "lo": 2.3,
+        "hi": 5.9
+       }
+      },
+      "whole boxes": {
+       "boxCount": 720,
+       "photos": 40,
+       "textRead": {
+        "before": 88.5,
+        "after": 88.5,
+        "delta": 0,
+        "lo": 0,
+        "hi": 0
+       },
+       "confirmed": {
+        "before": 30.6,
+        "after": 42.8,
+        "delta": 12.2,
+        "lo": 9,
+        "hi": 15.4
+       },
+       "wrong": {
+        "before": 2.9,
+        "after": 6.1,
+        "delta": 3.2,
+        "lo": 1.8,
+        "hi": 4.8
+       }
+      },
+      "cut or partial boxes": {
+       "boxCount": 320,
+       "photos": 32,
+       "textRead": {
+        "before": 45,
+        "after": 45.3,
+        "delta": 0.3,
+        "lo": 0,
+        "hi": 1.2
+       },
+       "confirmed": {
+        "before": 8.4,
+        "after": 10,
+        "delta": 1.6,
+        "lo": 0.3,
+        "hi": 3.2
+       },
+       "wrong": {
+        "before": 0.3,
+        "after": 1.9,
+        "delta": 1.6,
+        "lo": 0.3,
+        "hi": 3.6
+       }
+      }
+     },
+     "accepts": 390,
+     "acceptsOnlyThroughPass2": 167,
+     "loro": {
+      "cases": 866,
+      "same": 88,
+      "other": 0,
+      "none": 778,
+      "otherShare": 0,
+      "otherWilsonUpper": 0.0044164362798927975
+     },
+     "cost": {
+      "lines": {
+       "vision": {
+        "calls": 6460,
+        "seconds": 358
+       },
+       "ppocr": {
+        "calls": 6460,
+        "seconds": 1029
+       },
+       "qwen": {
+        "calls": 0,
+        "seconds": 0
+       }
+      },
+      "qwenSelected": {
+       "before": 468,
+       "after": 391
+      }
+     }
+    },
+    "c": {
+     "all": {
+      "boxCount": 1040,
+      "photos": 40,
+      "textRead": {
+       "before": 75.1,
+       "after": 75.2,
+       "delta": 0.1,
+       "lo": 0,
+       "hi": 0.3
+      },
+      "confirmed": {
+       "before": 23.8,
+       "after": 30.9,
+       "delta": 7.1,
+       "lo": 4.6,
+       "hi": 9.6
+      },
+      "wrong": {
+       "before": 2.1,
+       "after": 4.4,
+       "delta": 2.3,
+       "lo": 1.2,
+       "hi": 3.5
+      }
+     },
+     "fields": {
+      "readRegions": 736,
+      "withAuthorGroup": 164,
+      "withTitleGroup": 736,
+      "perReader": {
+       "vision": {
+        "regions": 1040,
+        "titleField": 713,
+        "authorField": 164,
+        "fieldPathConfirmations": 69,
+        "authorCounterWithdrawals": 12,
+        "onAccepts": {
+         "titleField": 362,
+         "titleMatches": 296,
+         "authorField": 82,
+         "authorMatches": 80
+        }
+       },
+       "ppocr": {
+        "regions": 1040,
+        "titleField": 725,
+        "authorField": 164,
+        "fieldPathConfirmations": 70,
+        "authorCounterWithdrawals": 10,
+        "onAccepts": {
+         "titleField": 363,
+         "titleMatches": 247,
+         "authorField": 82,
+         "authorMatches": 76
+        }
+       },
+       "qwen": {
+        "regions": 391,
+        "titleField": 263,
+        "authorField": 266,
+        "fieldPathConfirmations": 30,
+        "authorCounterWithdrawals": 14,
+        "onAccepts": {
+         "titleField": 57,
+         "titleMatches": 55,
+         "authorField": 51,
+         "authorMatches": 48
+        }
+       }
+      },
+      "qwen": {
+       "regionsRead": 391,
+       "rotations": 782,
+       "truncated": 74,
+       "rejected": {
+        "title": 108,
+        "author": 45,
+        "imprint": 147
+       },
+       "authorFieldWithoutZonerAuthor": 206,
+       "authorFieldRegions": 266,
+       "authorFieldShare": {
+        "value": 0.680306905370844,
+        "lo": 0.6040532328633933,
+        "hi": 0.7506120326082174,
+        "photos": 40
+       },
+       "imprintFromLogo": 502,
+       "control": {
+        "regions": 33,
+        "withAnyField": 1
+       },
+       "seconds": 4375,
+       "tokensP50": 748
+      }
+     },
+     "authorAccuracy": {
+      "before": {
+       "accepted": 269,
+       "withAuthorInImage": 249,
+       "share": 0.9256505576208178
+      },
+      "after": {
+       "accepted": 367,
+       "withAuthorInImage": 325,
+       "share": 0.885558583106267
+      }
+     },
+     "wrongSources": {
+      "newWrong": 24,
+      "wrongGone": 0,
+      "route": {
+       "pass2Only": 4,
+       "fieldPath": 20,
+       "wholeCropAgreement": 0
+      },
+      "readers": {
+       "qwen+vision": 1,
+       "ppocr+vision": 23
+      },
+      "kind": {
+       "sameAuthorAsAnnotated": 8,
+       "sharesTitleWord": 8,
+       "unrelated": 8
+      }
+     },
+     "strata": {
+      "read by pass 2": {
+       "boxCount": 736,
+       "photos": 40,
+       "textRead": {
+        "before": 99.6,
+        "after": 99.7,
+        "delta": 0.1,
+        "lo": 0,
+        "hi": 0.4
+       },
+       "confirmed": {
+        "before": 33,
+        "after": 43.2,
+        "delta": 10.2,
+        "lo": 6.9,
+        "hi": 13.2
+       },
+       "wrong": {
+        "before": 3,
+        "after": 6.3,
+        "delta": 3.3,
+        "lo": 1.7,
+        "hi": 4.9
+       }
+      },
+      "not read (no line or multi-book)": {
+       "boxCount": 304,
+       "photos": 39,
+       "textRead": {
+        "before": 15.8,
+        "after": 15.8,
+        "delta": 0,
+        "lo": 0,
+        "hi": 0
+       },
+       "confirmed": {
+        "before": 1.3,
+        "after": 1,
+        "delta": -0.3,
+        "lo": -1.1,
+        "hi": 0
+       },
+       "wrong": {
+        "before": 0,
+        "after": 0,
+        "delta": 0,
+        "lo": 0,
+        "hi": 0
+       }
+      },
+      "smallest line < 32 px": {
+       "boxCount": 53,
+       "photos": 22,
+       "textRead": {
+        "before": 98.1,
+        "after": 100,
+        "delta": 1.9,
+        "lo": 0,
+        "hi": 6.7
+       },
+       "confirmed": {
+        "before": 15.1,
+        "after": 28.3,
+        "delta": 13.2,
+        "lo": 0,
+        "hi": 22.2
+       },
+       "wrong": {
+        "before": 1.9,
+        "after": 7.5,
+        "delta": 5.7,
+        "lo": 0,
+        "hi": 15
+       }
+      },
+      "smallest line ≥ 32 px": {
+       "boxCount": 683,
+       "photos": 40,
+       "textRead": {
+        "before": 99.7,
+        "after": 99.7,
+        "delta": 0,
+        "lo": 0,
+        "hi": 0
+       },
+       "confirmed": {
+        "before": 34.4,
+        "after": 44.4,
+        "delta": 10,
+        "lo": 6.9,
+        "hi": 13.1
+       },
+       "wrong": {
+        "before": 3.1,
+        "after": 6.1,
+        "delta": 3.1,
+        "lo": 1.7,
+        "hi": 4.7
+       }
+      },
+      "with a column line": {
+       "boxCount": 85,
+       "photos": 37,
+       "textRead": {
+        "before": 100,
+        "after": 100,
+        "delta": 0,
+        "lo": 0,
+        "hi": 0
+       },
+       "confirmed": {
+        "before": 28.2,
+        "after": 41.2,
+        "delta": 12.9,
+        "lo": 5.1,
+        "hi": 22.5
+       },
+       "wrong": {
+        "before": 4.7,
+        "after": 10.6,
+        "delta": 5.9,
+        "lo": 0,
+        "hi": 12.8
+       }
+      },
+      "no column line": {
+       "boxCount": 651,
+       "photos": 40,
+       "textRead": {
+        "before": 99.5,
+        "after": 99.7,
+        "delta": 0.2,
+        "lo": 0,
+        "hi": 0.5
+       },
+       "confirmed": {
+        "before": 33.6,
+        "after": 43.5,
+        "delta": 9.8,
+        "lo": 6.2,
+        "hi": 13.6
+       },
+       "wrong": {
+        "before": 2.8,
+        "after": 5.7,
+        "delta": 2.9,
+        "lo": 1.5,
+        "hi": 4.7
+       }
+      },
+      "contrast < 60": {
+       "boxCount": 31,
+       "photos": 24,
+       "textRead": {
+        "before": 93.5,
+        "after": 93.5,
+        "delta": 0,
+        "lo": 0,
+        "hi": 0
+       },
+       "confirmed": {
+        "before": 51.6,
+        "after": 48.4,
+        "delta": -3.2,
+        "lo": -10.7,
+        "hi": 0
+       },
+       "wrong": {
+        "before": 3.2,
+        "after": 3.2,
+        "delta": 0,
+        "lo": 0,
+        "hi": 0
+       }
+      },
+      "contrast ≥ 60": {
+       "boxCount": 705,
+       "photos": 40,
+       "textRead": {
+        "before": 99.9,
+        "after": 100,
+        "delta": 0.1,
+        "lo": 0,
+        "hi": 0.4
+       },
+       "confirmed": {
+        "before": 32.2,
+        "after": 43,
+        "delta": 10.8,
+        "lo": 7.5,
+        "hi": 14.1
+       },
+       "wrong": {
+        "before": 3,
+        "after": 6.4,
+        "delta": 3.4,
+        "lo": 1.9,
+        "hi": 5.3
+       }
+      },
+      "whole boxes": {
+       "boxCount": 720,
+       "photos": 40,
+       "textRead": {
+        "before": 88.5,
+        "after": 88.5,
+        "delta": 0,
+        "lo": 0,
+        "hi": 0
+       },
+       "confirmed": {
+        "before": 30.6,
+        "after": 40.3,
+        "delta": 9.7,
+        "lo": 6.3,
+        "hi": 13.1
+       },
+       "wrong": {
+        "before": 2.9,
+        "after": 5.6,
+        "delta": 2.6,
+        "lo": 1.4,
+        "hi": 4
+       }
+      },
+      "cut or partial boxes": {
+       "boxCount": 320,
+       "photos": 32,
+       "textRead": {
+        "before": 45,
+        "after": 45.3,
+        "delta": 0.3,
+        "lo": 0,
+        "hi": 1.2
+       },
+       "confirmed": {
+        "before": 8.4,
+        "after": 9.7,
+        "delta": 1.2,
+        "lo": 0,
+        "hi": 2.8
+       },
+       "wrong": {
+        "before": 0.3,
+        "after": 1.9,
+        "delta": 1.6,
+        "lo": 0.3,
+        "hi": 3.6
+       }
+      }
+     },
+     "accepts": 367,
+     "acceptsOnlyThroughPass2": 154,
+     "loro": {
+      "cases": 797,
+      "same": 64,
+      "other": 0,
+      "none": 733,
+      "otherShare": 0,
+      "otherWilsonUpper": 0.004796953604807743
+     },
+     "cost": {
+      "lines": {
+       "vision": {
+        "calls": 6460,
+        "seconds": 358
+       },
+       "ppocr": {
+        "calls": 6460,
+        "seconds": 1029
+       },
+       "qwen": {
+        "calls": 0,
+        "seconds": 0
+       }
+      },
+      "qwenSelected": {
+       "before": 468,
+       "after": 391
+      }
+     }
+    }
+   },
+   "v2": {
+    "a0": {
+     "accepts": 33,
+     "counterKinds": {
+      "namesake": 26,
+      "author": 4,
+      "language": 3,
+      "unexplained": 1
+     },
+     "namesakeWithdrawnInA0": 26,
+     "namesakeTurnedIntoConfirmation": 0,
+     "wrongPerRegion": {
+      "value": 0.006730769230769231,
+      "lo": 0.0011235639793692228,
+      "hi": 0.012658936331003208
+     },
+     "wrong": 7,
+     "correct": 26
+    },
+    "a": {
+     "accepts": 36,
+     "counterKinds": {
+      "namesake": 29,
+      "author": 9,
+      "language": 4,
+      "unexplained": 1
+     },
+     "namesakeWithdrawnInA0": 26,
+     "namesakeTurnedIntoConfirmation": 1,
+     "wrongPerRegion": {
+      "value": 0.006730769230769231,
+      "lo": 0.0011235639793692228,
+      "hi": 0.012658936331003208
+     },
+     "wrong": 7,
+     "correct": 29
+    },
+    "b": {
+     "accepts": 63,
+     "counterKinds": {
+      "namesake": 53,
+      "author": 33,
+      "language": 2,
+      "unexplained": 5
+     },
+     "namesakeWithdrawnInA0": 26,
+     "namesakeTurnedIntoConfirmation": 1,
+     "wrongPerRegion": {
+      "value": 0.027884615384615386,
+      "lo": 0.013844024675726211,
+      "hi": 0.041353620778311416
+     },
+     "wrong": 29,
+     "correct": 34
+    }
+   }
+  }
+ }
+}

@@ -2,7 +2,110 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "$id": "https://github.com/ojfbot/BookcaseDiscovery/blob/main/contracts/helpers/ocr-response.schema.json",
   "title": "ocr response",
-  "description": "One JSON Lines record on the OCR helper's stdout: one variant per (rotation x language-correction), or an error for that id.",
+  "description": "One JSON Lines record on the OCR helper's stdout: one variant per (rotation x language-correction), or an error for that id. A variant may carry a field read (F-0j): the reader's transcript lines and which of them give the title, author and imprint.",
+  "definitions": {
+    "Fields": {
+      "description": "F-0j field read (optional, OC13): transcript first, then fields pointing at its lines. A field whose text is not a substring of its own lines is null with no line ids, so nothing is forced into a field.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "lines",
+        "title",
+        "author",
+        "imprint"
+      ],
+      "properties": {
+        "lines": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "i",
+              "text"
+            ],
+            "properties": {
+              "i": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "text": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "title": {
+          "$ref": "#/definitions/Field"
+        },
+        "author": {
+          "$ref": "#/definitions/Field"
+        },
+        "imprint": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "lineIds",
+            "text",
+            "from"
+          ],
+          "properties": {
+            "lineIds": {
+              "type": "array",
+              "items": {
+                "type": "integer",
+                "minimum": 0
+              }
+            },
+            "text": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "from": {
+              "description": "Printed text or a publisher's mark (as F-0d); null when no imprint was read.",
+              "enum": [
+                "text",
+                "logo",
+                null
+              ]
+            }
+          }
+        },
+        "unassigned": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "minimum": 0
+          }
+        }
+      }
+    },
+    "Field": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "lineIds",
+        "text"
+      ],
+      "properties": {
+        "lineIds": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "minimum": 0
+          }
+        },
+        "text": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    }
+  },
   "oneOf": [
     {
       "type": "object",
@@ -39,6 +142,9 @@
               },
               "confidence": {
                 "$ref": "../common.schema.json#/definitions/Confidence"
+              },
+              "fields": {
+                "$ref": "#/definitions/Fields"
               }
             }
           }

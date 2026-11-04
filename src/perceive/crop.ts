@@ -278,9 +278,10 @@ export function spineFace(outline: readonly Point[], opts: Partial<typeof FACE> 
 export interface CropMethod {
   /**
    * "fixed": F-0's 90°/270° for every crop; "long-axis": from the polygon's long axis (`longAxisRotations`);
-   * "cover": a face-out cover's whole face, read as it stands (`coverRotations`).
+   * "cover": a face-out cover's whole face, read as it stands (`coverRotations`); "line": one text line cell (F-0j,
+   * `lineRotations`).
    */
-  orient: "fixed" | "long-axis" | "cover";
+  orient: "fixed" | "long-axis" | "cover" | "line";
   /** Trim a polygon that runs past the photo's edge to the part inside it. */
   clip: boolean;
   /** Read the spine face from the mask outline (`spineFace`) instead of the minimum-area rectangle, when one is known. */
@@ -298,6 +299,11 @@ export interface CropMethod {
    * names the readings (`;mask=own`) so they never mix with unmasked ones.
    */
   own?: boolean;
+  /**
+   * F-0j's line crop: the polygon is one detected text line's cell, cut from the working copy with its long axis
+   * horizontal and scaled so the line is this many px high (helpers/label/zone.py). Names readings `line;h=<n>`.
+   */
+  line?: number;
 }
 
 /**
@@ -318,11 +324,23 @@ export const FACE3D_CROP: CropMethod = { orient: "fixed", clip: true, face: fals
 /** F-0i's `refit+own` crop: the shipped crop on the refit box, neighbour-owned pixels filled. Off by default (evals/F0i). */
 export const OWN_CROP: CropMethod = { orient: "fixed", clip: true, face: false, pad: 0, own: true };
 
+/**
+ * A line cell (F-0j) is read both ways round; a column line (set across the spine, or stacked letters) also turned a
+ * quarter, its unrotated view. Within a reader these choose its best reading, they are not votes (INV-6).
+ */
+export function lineRotations(column: boolean): Rotation[] {
+  return column ? [0, 90, 180, 270] : [0, 180];
+}
+
+/** F-0j's line crop (`line;h=48;clip=frame`): a text line at PP-OCR's recogniser height. */
+export const LINE_CROP: CropMethod = { orient: "line", clip: true, face: false, pad: 0, line: 48 };
+
 /** F-0 as shipped in #23. Records without a crop string were read this way. */
 export const F0_CROP: CropMethod = { orient: "fixed", clip: false, face: false, pad: 0 };
 
 /** The provenance string each reading record carries, e.g. `rect;rot=long-axis;clip=frame`. */
 export function cropName(m: CropMethod): string {
+  if (m.line) return ["line", `h=${m.line}`, ...(m.clip ? ["clip=frame"] : [])].join(";");
   return [m.face3d ? "face3d" : m.face ? "face" : "rect", `rot=${m.orient}`, ...(m.clip ? ["clip=frame"] : []), ...(m.pad ? [`pad=${m.pad}`] : []), ...(m.own ? ["mask=own"] : [])].join(";");
 }
 
@@ -334,7 +352,7 @@ export interface SpineCrop {
 
 /** The polygon and rotations one spine is read with under `method`, or null when nothing of it is in the frame. */
 export function cropFor(
-  spine: { polygon: readonly Point[]; outline?: readonly Point[]; face3d?: readonly Point[] },
+  spine: { polygon: readonly Point[]; outline?: readonly Point[]; face3d?: readonly Point[]; column?: boolean },
   frame: { width: number; height: number },
   method: CropMethod,
 ): SpineCrop | null {
@@ -350,6 +368,7 @@ export function cropFor(
     if (!c) return null;
     q = c.quad;
   }
-  const rotations = method.orient === "long-axis" ? longAxisRotations(q) : method.orient === "cover" ? coverRotations(q) : [...FIXED_ROTATIONS];
+  const rotations =
+    method.orient === "long-axis" ? longAxisRotations(q) : method.orient === "cover" ? coverRotations(q) : method.orient === "line" ? lineRotations(Boolean(spine.column)) : [...FIXED_ROTATIONS];
   return { polygon: q, rotations, crop: cropName(method) };
 }
