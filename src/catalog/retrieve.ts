@@ -415,21 +415,46 @@ export function retrieve(db: DatabaseSync, variants: string[], k = 10, options: 
     .filter((s) => s.score > 0)
     .sort((a, b) => Math.round(b.score * 100) - Math.round(a.score * 100) || b.work.edition_count - a.work.edition_count || b.score - a.score || (a.work.id < b.work.id ? -1 : 1))
     .slice(0, k);
-  return ranked.map((s) => {
-    return {
-      workId: s.work.id,
-      title: s.work.title,
-      subtitle: s.work.subtitle,
-      authors: JSON.parse(s.work.authors) as string[],
-      series: s.work.series,
-      seriesNum: s.work.series_num,
-      year: s.work.year,
-      ttype: s.work.ttype,
-      editionCount: s.work.edition_count,
-      score: Math.round(s.score * 1000) / 1000,
-      queryCoverage: Math.round(s.coverage * 1000) / 1000,
-      variant: s.variant,
-      evidence: s.evidence,
-    };
+  return ranked.map(toCandidate);
+}
+
+function toCandidate(s: Scored & { variant: number }): Candidate {
+  return {
+    workId: s.work.id,
+    title: s.work.title,
+    subtitle: s.work.subtitle,
+    authors: JSON.parse(s.work.authors) as string[],
+    series: s.work.series,
+    seriesNum: s.work.series_num,
+    year: s.work.year,
+    ttype: s.work.ttype,
+    editionCount: s.work.edition_count,
+    score: Math.round(s.score * 1000) / 1000,
+    queryCoverage: Math.round(s.coverage * 1000) / 1000,
+    variant: s.variant,
+    evidence: s.evidence,
+  };
+}
+
+/**
+ * Score named works against one spine's readings, with retrieval's own scoring and no candidate generation: how
+ * well each work explains the text, whether or not retrieval would have ranked it (F-0g asks this of a copy's
+ * reads for its neighbour's work). Works the catalog does not hold are absent; a work no variant explains at all
+ * comes back with score 0.
+ */
+export function scoreWorks(db: DatabaseSync, variants: string[], workIds: string[]): Map<string, Candidate> {
+  const works = fetchWorks(db, [...new Set(workIds)]);
+  const best = new Map<string, Scored & { variant: number }>();
+  variants.forEach((v, i) => {
+    const tokens = tokenize(normalize(v));
+    if (tokens.length === 0) return;
+    const units = buildUnits(tokens);
+    for (const w of works) {
+      const s = scoreWork(w, units, tokens);
+      const prev = best.get(w.id);
+      if (!prev || s.score > prev.score) best.set(w.id, { ...s, variant: i });
+    }
   });
+  for (const w of works) if (!best.has(w.id)) best.set(w.id, { work: w, score: 0, coverage: 0, evidence: [], variant: -1 });
+  return new Map([...best].map(([id, s]) => [id, toCandidate(s)]));
 }
