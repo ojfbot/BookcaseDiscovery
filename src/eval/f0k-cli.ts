@@ -378,7 +378,7 @@ async function read(set: SetName, noQwen: boolean): Promise<void> {
       const r = { ...(readings.get(id) ?? {}) };
       if (!selected.has(id)) delete r.qwen;
       const x = k.kind === "spine" ? decide(db, id, p, s.boxScore, r, cache) : null;
-      return { id, imageId: p, source: s.source, region: s.region, kind: k.kind, why: k.why, qwenSelected: selected.has(id), accepted: x?.accepted ? { workId: x.accepted.workId, score: x.accepted.score } : null, reason: x?.reason ?? "not-a-book", readText: x?.readText ?? {}, agreeing: x?.agreeing ?? [] };
+      return { id, imageId: p, source: s.source, region: s.region, kind: k.kind, why: k.why, qwenSelected: selected.has(id), accepted: x?.accepted ? { workId: x.accepted.workId, score: x.accepted.score } : null, reason: x ? x.reason : "not-a-book", readText: x?.readText ?? {}, agreeing: x?.agreeing ?? [] };
     });
     const disp = [...displaced].map((id) => {
       const r = { ...(stageReads.get(id) ?? {}) };
@@ -397,7 +397,7 @@ async function read(set: SetName, noQwen: boolean): Promise<void> {
 const workOf = (d: { accepted: string | { workId: string } | null } | undefined): string | null =>
   !d?.accepted ? null : typeof d.accepted === "string" ? d.accepted : d.accepted.workId;
 
-interface Dec { id: string; imageId: string; source?: Source; kind?: string; why?: string; qwenSelected?: boolean; displaced?: boolean; accepted: { workId: string } | null; reason: string; readText?: Record<string, boolean> }
+interface Dec { id: string; imageId: string; source?: Source; region?: string; kind?: string; why?: string; qwenSelected?: boolean; displaced?: boolean; accepted: { workId: string } | null; reason: string; readText?: Record<string, boolean> }
 
 const interval = (rows: { imageId: string; b: number; a: number }[]) => {
   const d = clusterBootstrap(rows, (rs) => rs.reduce((s, r) => s + r.a - r.b, 0), F0K.reps, F0K.seed);
@@ -420,6 +420,14 @@ export function armFigures(set: SetName, arm: string, truth?: Map<string, Set<st
   const echo = rec.filter((d) => d.accepted && pairsBefore.has(`${d.imageId}\u0000${d.accepted.workId}`)).length;
   const gateTotals = JSON.parse(readFileSync(join(dir, "gate.json"), "utf8")) as Record<string, number>;
   const readMeta = JSON.parse(readFileSync(join(dir, "read.json"), "utf8"));
+  // Recovered boxes by H-1 elevation of their region's row (S-2's rows: below < -10°, above > 10°).
+  const elev = new Map(readJsonl<Shelf>(join(SETS[set].s2, "shelf.jsonl")).flatMap((x) => x.rows.map((r): [string, number | undefined] => [`${x.id}|${r.band}`, r.elevationDeg])));
+  const regionBand = new Map(readJsonl<Region>(join(PRIV, set, "regions.jsonl")).map((r) => [r.id, r.band]));
+  const elevOf = (d: Dec): string => {
+    const e = elev.get(`${d.imageId}|${regionBand.get(d.region ?? "")}`);
+    return e === undefined || e === null ? "unknown" : e < -10 ? "below" : e > 10 ? "above" : "level";
+  };
+  const byElevation = Object.fromEntries(["below", "level", "above", "unknown"].map((k) => [k, { recovered: rec.filter((d) => elevOf(d) === k).length, accepted: rec.filter((d) => elevOf(d) === k && d.accepted).length }]));
   const bySource = Object.fromEntries(ARMS[arm]!.map((s) => [s, {
     recovered: rec.filter((d) => d.source === s).length,
     accepted: rec.filter((d) => d.source === s && d.accepted).length,
@@ -437,6 +445,7 @@ export function armFigures(set: SetName, arm: string, truth?: Map<string, Set<st
     echoAccepts: echo,
     pairsLostToDisplacement: [...pairsBefore].filter((k) => !pairsAfter.has(k)).length,
     bySource,
+    byElevation,
     noQwen: readMeta.noQwen,
     cost: readMeta.cost,
   };
@@ -525,10 +534,11 @@ function tables(m: Record<string, any>): string {
     else {
       row("**M2 wrong accepts (95 % interval)**", (a) => fmt(a.wrongAccepts));
       row("right accepts", (a) => fmt(a.rightAccepts));
-      row("wrong share of read boxes", (a) => `${pc(a.wrongShare.before)} → ${pc(a.wrongShare.after)}`);
+      row("wrong accepts per box (kept, plus recovered read)", (a) => `${pc(a.wrongShare.before)} → ${pc(a.wrongShare.after)}`);
       row("title recall / precision", (a) => `${pc(a.titles.before.recall)} → ${pc(a.titles.after.recall)} / ${pc(a.titles.before.precision)} → ${pc(a.titles.after.precision)}`);
     }
     row("by source: recovered / accepts" + (set === "pilot-000" ? "" : " / wrong"), (a) => Object.entries(a.bySource).map(([k, v]: [string, any]) => `${k} ${v.recovered} / ${v.accepted}${v.wrong === undefined ? "" : ` / ${v.wrong}`}`).join("; "));
+    row("by row elevation: recovered / accepts", (a) => Object.entries(a.byElevation).filter(([, v]: [string, any]) => v.recovered).map(([k, v]: [string, any]) => `${k} ${v.recovered} / ${v.accepted}`).join("; ") || "—");
     row("reader calls (vision, ppocr, qwen)", (a) => `${a.cost.vision.calls}, ${a.cost.ppocr.calls}, ${a.cost.qwen.calls}`);
     out.push("");
   }
