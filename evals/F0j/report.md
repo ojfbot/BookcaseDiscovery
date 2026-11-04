@@ -247,7 +247,29 @@ unchanged: F-0's whole-crop readers, `decide` and catalog bar, `rect;rot=fixed;c
 
 ## The author-field question (the v2 switch)
 
-V2_PLACEHOLDER
+C-6 lost six golden titles and C-7 one (two on v2) for lack of author evidence. The v2 view (generated table below)
+re-decides A0, A and B on `catalog-v2.sqlite` with C-7's `c7` basis.
+
+- **The golden losses cannot move.** C-3's golden queries are text fixtures with no photo, so no pass-2 read reaches
+  them; c075 and c079 are bare common-word titles. C-7's K5 fails exactly as before, so **neither arm B nor arm C
+  closes the golden gap**, and nothing here supports switching the default to v2 on its own.
+- **On the photos, the author evidence comes from the line reads, not from the field structure.** Of A0's 530
+  `pilot-000` reader votes that C-7's namesake test withdraws on v2 (no surname read), arm A turns 23 into
+  confirmations, because a line read carries the author's line into the whole string. Arm B, with the zoner's author
+  field, turns 20 (yardstick: 1 and 1 of 26).
+- **Arm A alone clears the two conditions C-7's switch failed, on this data.** On v2 with the `c7` basis it confirms
+  +6.5 points of `pilot-000` regions against v1's A0 (3.7 to 9.6; C-7's K3 needs the lower end above 0). Its
+  yardstick wrong rate is 0.67 % a region (0.11–1.27 %), under v1's bound of 1.05 % (K1b), with 29 right accepts
+  against A0's 26. Arm B does not: 2.79 % wrong (1.38–4.14 %).
+- **This is a post-hoc reading, not a pass.** The view was reported, not ruled; C-5's judge is C-7's on another
+  region set (F-0i's partition, re-run Qwen selection); A0 itself scores −1.4 points here (−3.9 to 1.5), where C-7 had
+  +1.35 (−0.55 to 3.54) on F-0's 6,894 boxes. And K5 still fails. The next step is a fresh pre-registration of "line
+  reads plus `c7` on v2", with K5 resolved by an owner ruling on title-only golden refusals (C-7's "what would close
+  the gap", item 3).
+- **Arm C was not re-decided on v2:** its `pilot-000` reads are a 6-photo subsample under the GPU cap. Qwen does
+  write an author field on about 70 % of the regions it reads (finding 7), and that field matches the accepted work's
+  author 94 % of the time. That is the strongest author signal measured here, but it comes from the reader whose
+  transcripts the no-text control cannot vouch for.
 
 ## Quality signal for F-0i
 
@@ -498,7 +520,11 @@ Qwen field read: 391 regions, 782 rotations, 74 not valid JSON; rejected (not in
 | set | arm | accepts | K3: confirmed vs v1 A0 (points) | K1b: wrong per region | counter-evidence (reader votes withdrawn) | A0's namesake withdrawals / turned into a confirmation |
 |---|---|---:|---|---|---|---|
 | pilot-000 | a0 | 645 | 12.6 → 11.2 (-1.4; -3.9 to 1.5) | — | namesake 530, author 93, unexplained 11, language 6 | 530 / 0 |
+| pilot-000 | a | 1101 | 12.6 → 19.1 (+6.5; 3.7 to 9.6) | — | author 247, namesake 888, unexplained 10, language 3 | 530 / 23 |
+| pilot-000 | b | 1121 | 12.6 → 19.5 (+6.8; 4 to 10.1) | — | author 283, namesake 946, unexplained 12, language 3 | 530 / 20 |
 | yardstick-library-b2 | a0 | 33 | — | 0.67 % (0.11 %–1.27 %); 7 wrong, 26 right | namesake 26, author 4, language 3, unexplained 1 | 26 / 0 |
+| yardstick-library-b2 | a | 36 | — | 0.67 % (0.11 %–1.27 %); 7 wrong, 29 right | namesake 29, author 9, language 4, unexplained 1 | 26 / 1 |
+| yardstick-library-b2 | b | 63 | — | 2.79 % (1.38 %–4.14 %); 29 wrong, 34 right | namesake 53, author 33, language 2, unexplained 5 | 26 / 1 |
 
 ## Verdict
 

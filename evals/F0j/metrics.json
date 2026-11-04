@@ -942,6 +942,42 @@
       "lo": -3.9,
       "hi": 1.5
      }
+    },
+    "a": {
+     "accepts": 1101,
+     "counterKinds": {
+      "author": 247,
+      "namesake": 888,
+      "unexplained": 10,
+      "language": 3
+     },
+     "namesakeWithdrawnInA0": 530,
+     "namesakeTurnedIntoConfirmation": 23,
+     "k3AgainstV1A0": {
+      "before": 12.6,
+      "after": 19.1,
+      "delta": 6.5,
+      "lo": 3.7,
+      "hi": 9.6
+     }
+    },
+    "b": {
+     "accepts": 1121,
+     "counterKinds": {
+      "author": 283,
+      "namesake": 946,
+      "unexplained": 12,
+      "language": 3
+     },
+     "namesakeWithdrawnInA0": 530,
+     "namesakeTurnedIntoConfirmation": 20,
+     "k3AgainstV1A0": {
+      "before": 12.6,
+      "after": 19.5,
+      "delta": 6.8,
+      "lo": 4,
+      "hi": 10.1
+     }
     }
    }
   },
@@ -2139,6 +2175,42 @@
      },
      "wrong": 7,
      "correct": 26
+    },
+    "a": {
+     "accepts": 36,
+     "counterKinds": {
+      "namesake": 29,
+      "author": 9,
+      "language": 4,
+      "unexplained": 1
+     },
+     "namesakeWithdrawnInA0": 26,
+     "namesakeTurnedIntoConfirmation": 1,
+     "wrongPerRegion": {
+      "value": 0.006730769230769231,
+      "lo": 0.0011235639793692228,
+      "hi": 0.012658936331003208
+     },
+     "wrong": 7,
+     "correct": 29
+    },
+    "b": {
+     "accepts": 63,
+     "counterKinds": {
+      "namesake": 53,
+      "author": 33,
+      "language": 2,
+      "unexplained": 5
+     },
+     "namesakeWithdrawnInA0": 26,
+     "namesakeTurnedIntoConfirmation": 1,
+     "wrongPerRegion": {
+      "value": 0.027884615384615386,
+      "lo": 0.013844024675726211,
+      "hi": 0.041353620778311416
+     },
+     "wrong": 29,
+     "correct": 34
     }
    }
   }
