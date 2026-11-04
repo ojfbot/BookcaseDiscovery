@@ -23,9 +23,9 @@ export const NB3 = {
    * computed once by `nb3-cli.ts calibrate` before the full run and written here. Applied unchanged to every set.
    */
   pixel: {
-    maxEdgeDensity: 0,
-    maxBandpass: 0,
-    minWarm: 1,
+    maxEdgeDensity: 0.042,
+    maxBandpass: 0.0211,
+    minWarm: 0.4674,
   },
   /** The reference population the pixel thresholds come from. */
   reference: { minFront: 0.8, lowQ: 0.05, highQ: 0.95 },
