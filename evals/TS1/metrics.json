@@ -1,0 +1,4550 @@
+{
+ "card": "TS-1",
+ "question": "Are F-0's readers' errors uncorrelated enough for two-of-three agreement to serve as a training label?",
+ "constants": {
+  "reps": 2000,
+  "seed": 1,
+  "minCell": 30,
+  "darkBar": {
+   "pilot-000": {
+    "luma": 57.4,
+    "contrast": 39.7
+   },
+   "yardstick": {
+    "luma": 61.8,
+    "contrast": 27.2
+   }
+  },
+  "strongMax": 0.1,
+  "weakMax": 0.2
+ },
+ "sets": {
+  "pilot-000": {
+   "scope": "real use (OC35): machine agreement, never accuracy (INV-17)",
+   "photos": 31,
+   "boxCount": 5761,
+   "reference": {
+    "count": {
+     "value": 726,
+     "lo": 437.95,
+     "hi": 1056,
+     "draws": 2000
+    },
+    "perPhoto": 23.419,
+    "shareOfBoxes": 0.126
+   },
+   "labels": {
+    "all": {
+     "n": 726
+    },
+    "vision+ppocr": {
+     "n": 544
+    },
+    "vision+qwen": {
+     "n": 144
+    },
+    "ppocr+qwen": {
+     "n": 38
+    },
+    "vision+ppocr+qwen": {
+     "n": 0
+    }
+   },
+   "readBy": {
+    "vision": 5761,
+    "ppocr": 5761,
+    "qwen": 1209
+   },
+   "coConfirm": {
+    "vision+ppocr": {
+     "readByBoth": 5761,
+     "bothConfirm": 594,
+     "differ": 50
+    },
+    "vision+qwen": {
+     "readByBoth": 1209,
+     "bothConfirm": 169,
+     "differ": 25
+    },
+    "ppocr+qwen": {
+     "readByBoth": 1209,
+     "bothConfirm": 60,
+     "differ": 22
+    }
+   },
+   "third": {
+    "vision+ppocr": {
+     "labels": 544,
+     "outcomes": {
+      "dissents": 0,
+      "contradicts": 0,
+      "supports": 0,
+      "read-nothing": 0,
+      "not-read": 544
+     },
+     "dissent": {
+      "n": 0,
+      "k": 0,
+      "share": null
+     }
+    },
+    "vision+qwen": {
+     "labels": 144,
+     "outcomes": {
+      "dissents": 13,
+      "contradicts": 60,
+      "supports": 62,
+      "read-nothing": 9,
+      "not-read": 0
+     },
+     "dissent": {
+      "n": 144,
+      "k": 13,
+      "share": {
+       "value": 0.09,
+       "lo": 0.044,
+       "hi": 0.143,
+       "draws": 2000
+      }
+     }
+    },
+    "ppocr+qwen": {
+     "labels": 38,
+     "outcomes": {
+      "dissents": 4,
+      "contradicts": 12,
+      "supports": 12,
+      "read-nothing": 10,
+      "not-read": 0
+     },
+     "dissent": {
+      "n": 38,
+      "k": 4,
+      "share": {
+       "value": 0.105,
+       "lo": 0.025,
+       "hi": 0.2,
+       "draws": 2000
+      }
+     }
+    }
+   },
+   "rarity": {
+    "all|shared": {
+     "labels": 243,
+     "dissent": null
+    },
+    "all|distinctive": {
+     "labels": 483,
+     "dissent": null
+    },
+    "vision+ppocr|shared": {
+     "labels": 184,
+     "dissent": {
+      "n": 0,
+      "k": 0,
+      "share": null
+     }
+    },
+    "vision+ppocr|distinctive": {
+     "labels": 360,
+     "dissent": {
+      "n": 0,
+      "k": 0,
+      "share": null
+     }
+    },
+    "vision+qwen|shared": {
+     "labels": 43,
+     "dissent": {
+      "n": 43,
+      "k": 5,
+      "share": {
+       "value": 0.116,
+       "lo": 0.024,
+       "hi": 0.238,
+       "draws": 2000
+      }
+     }
+    },
+    "vision+qwen|distinctive": {
+     "labels": 101,
+     "dissent": {
+      "n": 101,
+      "k": 8,
+      "share": {
+       "value": 0.079,
+       "lo": 0.035,
+       "hi": 0.136,
+       "draws": 2000
+      }
+     }
+    },
+    "ppocr+qwen|shared": {
+     "labels": 16,
+     "dissent": {
+      "n": 16,
+      "k": 1,
+      "share": null
+     }
+    },
+    "ppocr+qwen|distinctive": {
+     "labels": 22,
+     "dissent": {
+      "n": 22,
+      "k": 3,
+      "share": null
+     }
+    },
+    "vision+ppocr+qwen|shared": {
+     "labels": 0,
+     "dissent": null
+    },
+    "vision+ppocr+qwen|distinctive": {
+     "labels": 0,
+     "dissent": null
+    }
+   },
+   "strata": [
+    {
+     "stratum": "elevation",
+     "value": "above",
+     "boxCount": 1477,
+     "labels": {
+      "all": {
+       "n": 240
+      },
+      "vision+ppocr": {
+       "n": 171
+      },
+      "vision+qwen": {
+       "n": 58
+      },
+      "ppocr+qwen": {
+       "n": 11
+      },
+      "vision+ppocr+qwen": {
+       "n": 0
+      }
+     },
+     "third": {
+      "vision+ppocr": {
+       "labels": 171,
+       "outcomes": {
+        "dissents": 0,
+        "contradicts": 0,
+        "supports": 0,
+        "read-nothing": 0,
+        "not-read": 171
+       },
+       "dissent": {
+        "n": 0,
+        "k": 0,
+        "share": null
+       }
+      },
+      "vision+qwen": {
+       "labels": 58,
+       "outcomes": {
+        "dissents": 5,
+        "contradicts": 25,
+        "supports": 26,
+        "read-nothing": 2,
+        "not-read": 0
+       },
+       "dissent": {
+        "n": 58,
+        "k": 5,
+        "share": {
+         "value": 0.086,
+         "lo": 0.019,
+         "hi": 0.18,
+         "draws": 2000
+        }
+       }
+      },
+      "ppocr+qwen": {
+       "labels": 11,
+       "outcomes": {
+        "dissents": 1,
+        "contradicts": 6,
+        "supports": 2,
+        "read-nothing": 2,
+        "not-read": 0
+       },
+       "dissent": {
+        "n": 11,
+        "k": 1,
+        "share": null
+       }
+      }
+     }
+    },
+    {
+     "stratum": "elevation",
+     "value": "below",
+     "boxCount": 3170,
+     "labels": {
+      "all": {
+       "n": 312
+      },
+      "vision+ppocr": {
+       "n": 254
+      },
+      "vision+qwen": {
+       "n": 40
+      },
+      "ppocr+qwen": {
+       "n": 18
+      },
+      "vision+ppocr+qwen": {
+       "n": 0
+      }
+     },
+     "third": {
+      "vision+ppocr": {
+       "labels": 254,
+       "outcomes": {
+        "dissents": 0,
+        "contradicts": 0,
+        "supports": 0,
+        "read-nothing": 0,
+        "not-read": 254
+       },
+       "dissent": {
+        "n": 0,
+        "k": 0,
+        "share": null
+       }
+      },
+      "vision+qwen": {
+       "labels": 40,
+       "outcomes": {
+        "dissents": 6,
+        "contradicts": 17,
+        "supports": 14,
+        "read-nothing": 3,
+        "not-read": 0
+       },
+       "dissent": {
+        "n": 40,
+        "k": 6,
+        "share": {
+         "value": 0.15,
+         "lo": 0.079,
+         "hi": 0.229,
+         "draws": 2000
+        }
+       }
+      },
+      "ppocr+qwen": {
+       "labels": 18,
+       "outcomes": {
+        "dissents": 2,
+        "contradicts": 5,
+        "supports": 5,
+        "read-nothing": 6,
+        "not-read": 0
+       },
+       "dissent": {
+        "n": 18,
+        "k": 2,
+        "share": null
+       }
+      }
+     }
+    },
+    {
+     "stratum": "elevation",
+     "value": "level",
+     "boxCount": 1114,
+     "labels": {
+      "all": {
+       "n": 174
+      },
+      "vision+ppocr": {
+       "n": 119
+      },
+      "vision+qwen": {
+       "n": 46
+      },
+      "ppocr+qwen": {
+       "n": 9
+      },
+      "vision+ppocr+qwen": {
+       "n": 0
+      }
+     },
+     "third": {
+      "vision+ppocr": {
+       "labels": 119,
+       "outcomes": {
+        "dissents": 0,
+        "contradicts": 0,
+        "supports": 0,
+        "read-nothing": 0,
+        "not-read": 119
+       },
+       "dissent": {
+        "n": 0,
+        "k": 0,
+        "share": null
+       }
+      },
+      "vision+qwen": {
+       "labels": 46,
+       "outcomes": {
+        "dissents": 2,
+        "contradicts": 18,
+        "supports": 22,
+        "read-nothing": 4,
+        "not-read": 0
+       },
+       "dissent": {
+        "n": 46,
+        "k": 2,
+        "share": {
+         "value": 0.043,
+         "lo": 0,
+         "hi": 0.094,
+         "draws": 2000
+        }
+       }
+      },
+      "ppocr+qwen": {
+       "labels": 9,
+       "outcomes": {
+        "dissents": 1,
+        "contradicts": 1,
+        "supports": 5,
+        "read-nothing": 2,
+        "not-read": 0
+       },
+       "dissent": {
+        "n": 9,
+        "k": 1,
+        "share": null
+       }
+      }
+     }
+    },
+    {
+     "stratum": "dark or low contrast",
+     "value": "dark/low",
+     "boxCount": 928,
+     "labels": {
+      "all": {
+       "n": 68
+      },
+      "vision+ppocr": {
+       "n": 46
+      },
+      "vision+qwen": {
+       "n": 18
+      },
+      "ppocr+qwen": {
+       "n": 4
+      },
+      "vision+ppocr+qwen": {
+       "n": 0
+      }
+     },
+     "third": {
+      "vision+ppocr": {
+       "labels": 46,
+       "outcomes": {
+        "dissents": 0,
+        "contradicts": 0,
+        "supports": 0,
+        "read-nothing": 0,
+        "not-read": 46
+       },
+       "dissent": {
+        "n": 0,
+        "k": 0,
+        "share": null
+       }
+      },
+      "vision+qwen": {
+       "labels": 18,
+       "outcomes": {
+        "dissents": 0,
+        "contradicts": 5,
+        "supports": 11,
+        "read-nothing": 2,
+        "not-read": 0
+       },
+       "dissent": {
+        "n": 18,
+        "k": 0,
+        "share": null
+       }
+      },
+      "ppocr+qwen": {
+       "labels": 4,
+       "outcomes": {
+        "dissents": 2,
+        "contradicts": 1,
+        "supports": 0,
+        "read-nothing": 1,
+        "not-read": 0
+       },
+       "dissent": {
+        "n": 4,
+        "k": 2,
+        "share": null
+       }
+      }
+     }
+    },
+    {
+     "stratum": "dark or low contrast",
+     "value": "not",
+     "boxCount": 4833,
+     "labels": {
+      "all": {
+       "n": 658
+      },
+      "vision+ppocr": {
+       "n": 498
+      },
+      "vision+qwen": {
+       "n": 126
+      },
+      "ppocr+qwen": {
+       "n": 34
+      },
+      "vision+ppocr+qwen": {
+       "n": 0
+      }
+     },
+     "third": {
+      "vision+ppocr": {
+       "labels": 498,
+       "outcomes": {
+        "dissents": 0,
+        "contradicts": 0,
+        "supports": 0,
+        "read-nothing": 0,
+        "not-read": 498
+       },
+       "dissent": {
+        "n": 0,
+        "k": 0,
+        "share": null
+       }
+      },
+      "vision+qwen": {
+       "labels": 126,
+       "outcomes": {
+        "dissents": 13,
+        "contradicts": 55,
+        "supports": 51,
+        "read-nothing": 7,
+        "not-read": 0
+       },
+       "dissent": {
+        "n": 126,
+        "k": 13,
+        "share": {
+         "value": 0.103,
+         "lo": 0.054,
+         "hi": 0.161,
+         "draws": 2000
+        }
+       }
+      },
+      "ppocr+qwen": {
+       "labels": 34,
+       "outcomes": {
+        "dissents": 2,
+        "contradicts": 11,
+        "supports": 12,
+        "read-nothing": 9,
+        "not-read": 0
+       },
+       "dissent": {
+        "n": 34,
+        "k": 2,
+        "share": {
+         "value": 0.059,
+         "lo": 0,
+         "hi": 0.128,
+         "draws": 2000
+        }
+       }
+      }
+     }
+    },
+    {
+     "stratum": "case",
+     "value": "main",
+     "boxCount": 4681,
+     "labels": {
+      "all": {
+       "n": 656
+      },
+      "vision+ppocr": {
+       "n": 488
+      },
+      "vision+qwen": {
+       "n": 134
+      },
+      "ppocr+qwen": {
+       "n": 34
+      },
+      "vision+ppocr+qwen": {
+       "n": 0
+      }
+     },
+     "third": {
+      "vision+ppocr": {
+       "labels": 488,
+       "outcomes": {
+        "dissents": 0,
+        "contradicts": 0,
+        "supports": 0,
+        "read-nothing": 0,
+        "not-read": 488
+       },
+       "dissent": {
+        "n": 0,
+        "k": 0,
+        "share": null
+       }
+      },
+      "vision+qwen": {
+       "labels": 134,
+       "outcomes": {
+        "dissents": 12,
+        "contradicts": 56,
+        "supports": 58,
+        "read-nothing": 8,
+        "not-read": 0
+       },
+       "dissent": {
+        "n": 134,
+        "k": 12,
+        "share": {
+         "value": 0.09,
+         "lo": 0.045,
+         "hi": 0.139,
+         "draws": 2000
+        }
+       }
+      },
+      "ppocr+qwen": {
+       "labels": 34,
+       "outcomes": {
+        "dissents": 4,
+        "contradicts": 12,
+        "supports": 11,
+        "read-nothing": 7,
+        "not-read": 0
+       },
+       "dissent": {
+        "n": 34,
+        "k": 4,
+        "share": {
+         "value": 0.118,
+         "lo": 0.029,
+         "hi": 0.226,
+         "draws": 2000
+        }
+       }
+      }
+     }
+    },
+    {
+     "stratum": "case",
+     "value": "side",
+     "boxCount": 1080,
+     "labels": {
+      "all": {
+       "n": 70
+      },
+      "vision+ppocr": {
+       "n": 56
+      },
+      "vision+qwen": {
+       "n": 10
+      },
+      "ppocr+qwen": {
+       "n": 4
+      },
+      "vision+ppocr+qwen": {
+       "n": 0
+      }
+     },
+     "third": {
+      "vision+ppocr": {
+       "labels": 56,
+       "outcomes": {
+        "dissents": 0,
+        "contradicts": 0,
+        "supports": 0,
+        "read-nothing": 0,
+        "not-read": 56
+       },
+       "dissent": {
+        "n": 0,
+        "k": 0,
+        "share": null
+       }
+      },
+      "vision+qwen": {
+       "labels": 10,
+       "outcomes": {
+        "dissents": 1,
+        "contradicts": 4,
+        "supports": 4,
+        "read-nothing": 1,
+        "not-read": 0
+       },
+       "dissent": {
+        "n": 10,
+        "k": 1,
+        "share": null
+       }
+      },
+      "ppocr+qwen": {
+       "labels": 4,
+       "outcomes": {
+        "dissents": 0,
+        "contradicts": 0,
+        "supports": 1,
+        "read-nothing": 3,
+        "not-read": 0
+       },
+       "dissent": {
+        "n": 4,
+        "k": 0,
+        "share": null
+       }
+      }
+     }
+    }
+   ]
+  },
+  "yardstick": {
+   "scope": "PROXY (library shelves): Library Dataset sample, box arm B2; truth = the image's annotated inventory works",
+   "photos": 40,
+   "boxCount": 1040,
+   "reference": {
+    "count": {
+     "value": 266,
+     "lo": 202,
+     "hi": 331,
+     "draws": 2000
+    },
+    "perPhoto": 6.65,
+    "shareOfBoxes": 0.256
+   },
+   "labels": {
+    "all": {
+     "n": 266,
+     "k": 22,
+     "share": {
+      "value": 0.083,
+      "lo": 0.037,
+      "hi": 0.142,
+      "draws": 2000
+     }
+    },
+    "vision+ppocr": {
+     "n": 167,
+     "k": 11,
+     "share": {
+      "value": 0.066,
+      "lo": 0.027,
+      "hi": 0.112,
+      "draws": 2000
+     }
+    },
+    "vision+qwen": {
+     "n": 80,
+     "k": 10,
+     "share": {
+      "value": 0.125,
+      "lo": 0.027,
+      "hi": 0.257,
+      "draws": 2000
+     }
+    },
+    "ppocr+qwen": {
+     "n": 19,
+     "k": 1,
+     "share": null
+    },
+    "vision+ppocr+qwen": {
+     "n": 0,
+     "k": 0,
+     "share": null
+    }
+   },
+   "readBy": {
+    "vision": 1040,
+    "ppocr": 1040,
+    "qwen": 459
+   },
+   "coConfirm": {
+    "vision+ppocr": {
+     "readByBoth": 1040,
+     "bothConfirm": 167,
+     "differ": 0
+    },
+    "vision+qwen": {
+     "readByBoth": 459,
+     "bothConfirm": 81,
+     "differ": 1
+    },
+    "ppocr+qwen": {
+     "readByBoth": 459,
+     "bothConfirm": 19,
+     "differ": 0
+    }
+   },
+   "third": {
+    "vision+ppocr": {
+     "labels": 167,
+     "outcomes": {
+      "dissents": 0,
+      "contradicts": 0,
+      "supports": 0,
+      "read-nothing": 0,
+      "not-read": 167
+     },
+     "dissent": {
+      "n": 0,
+      "k": 0,
+      "share": null
+     },
+     "wrongBy": {
+      "dissents": {
+       "n": 0,
+       "k": 0,
+       "share": null
+      },
+      "contradicts": {
+       "n": 0,
+       "k": 0,
+       "share": null
+      },
+      "supports": {
+       "n": 0,
+       "k": 0,
+       "share": null
+      },
+      "read-nothing": {
+       "n": 0,
+       "k": 0,
+       "share": null
+      },
+      "not-read": {
+       "n": 167,
+       "k": 11,
+       "share": {
+        "value": 0.066,
+        "lo": 0.026,
+        "hi": 0.111,
+        "draws": 2000
+       }
+      }
+     }
+    },
+    "vision+qwen": {
+     "labels": 80,
+     "outcomes": {
+      "dissents": 0,
+      "contradicts": 10,
+      "supports": 69,
+      "read-nothing": 1,
+      "not-read": 0
+     },
+     "dissent": {
+      "n": 80,
+      "k": 0,
+      "share": {
+       "value": 0,
+       "lo": 0,
+       "hi": 0,
+       "draws": 2000
+      }
+     },
+     "wrongBy": {
+      "dissents": {
+       "n": 0,
+       "k": 0,
+       "share": null
+      },
+      "contradicts": {
+       "n": 10,
+       "k": 0,
+       "share": null
+      },
+      "supports": {
+       "n": 69,
+       "k": 10,
+       "share": {
+        "value": 0.145,
+        "lo": 0.033,
+        "hi": 0.295,
+        "draws": 2000
+       }
+      },
+      "read-nothing": {
+       "n": 1,
+       "k": 0,
+       "share": null
+      },
+      "not-read": {
+       "n": 0,
+       "k": 0,
+       "share": null
+      }
+     }
+    },
+    "ppocr+qwen": {
+     "labels": 19,
+     "outcomes": {
+      "dissents": 0,
+      "contradicts": 0,
+      "supports": 8,
+      "read-nothing": 11,
+      "not-read": 0
+     },
+     "dissent": {
+      "n": 19,
+      "k": 0,
+      "share": null
+     },
+     "wrongBy": {
+      "dissents": {
+       "n": 0,
+       "k": 0,
+       "share": null
+      },
+      "contradicts": {
+       "n": 0,
+       "k": 0,
+       "share": null
+      },
+      "supports": {
+       "n": 8,
+       "k": 0,
+       "share": null
+      },
+      "read-nothing": {
+       "n": 11,
+       "k": 1,
+       "share": null
+      },
+      "not-read": {
+       "n": 0,
+       "k": 0,
+       "share": null
+      }
+     }
+    }
+   },
+   "rarity": {
+    "all|shared": {
+     "n": 34,
+     "k": 13,
+     "share": {
+      "value": 0.382,
+      "lo": 0.132,
+      "hi": 0.686,
+      "draws": 2000
+     }
+    },
+    "all|distinctive": {
+     "n": 232,
+     "k": 9,
+     "share": {
+      "value": 0.039,
+      "lo": 0.011,
+      "hi": 0.074,
+      "draws": 2000
+     }
+    },
+    "vision+ppocr|shared": {
+     "n": 22,
+     "k": 6,
+     "share": null
+    },
+    "vision+ppocr|distinctive": {
+     "n": 145,
+     "k": 5,
+     "share": {
+      "value": 0.034,
+      "lo": 0,
+      "hi": 0.08,
+      "draws": 2000
+     }
+    },
+    "vision+qwen|shared": {
+     "n": 10,
+     "k": 7,
+     "share": null
+    },
+    "vision+qwen|distinctive": {
+     "n": 70,
+     "k": 3,
+     "share": {
+      "value": 0.043,
+      "lo": 0,
+      "hi": 0.085,
+      "draws": 2000
+     }
+    },
+    "ppocr+qwen|shared": {
+     "n": 2,
+     "k": 0,
+     "share": null
+    },
+    "ppocr+qwen|distinctive": {
+     "n": 17,
+     "k": 1,
+     "share": null
+    },
+    "vision+ppocr+qwen|shared": {
+     "n": 0,
+     "k": 0,
+     "share": null
+    },
+    "vision+ppocr+qwen|distinctive": {
+     "n": 0,
+     "k": 0,
+     "share": null
+    }
+   },
+   "pairsE": {
+    "vision+ppocr": {
+     "counts": {
+      "n": 1040,
+      "a": 11,
+      "b": 13,
+      "c": 2,
+      "d": 1014,
+      "sameWrong": 11,
+      "agree": 167,
+      "agreeWrong": 11,
+      "haldane": false
+     },
+     "stats": {
+      "pA": {
+       "value": 0.023,
+       "lo": 0.011,
+       "hi": 0.038,
+       "draws": 2000
+      },
+      "pB": {
+       "value": 0.013,
+       "lo": 0.006,
+       "hi": 0.02,
+       "draws": 2000
+      },
+      "pBoth": {
+       "value": 0.011,
+       "lo": 0.004,
+       "hi": 0.018,
+       "draws": 2000
+      },
+      "product": {
+       "value": 0,
+       "lo": 0,
+       "hi": 0.001,
+       "draws": 2000
+      },
+      "lift": {
+       "value": 36.667,
+       "lo": 21.238,
+       "hi": 74.892,
+       "draws": 2000
+      },
+      "phi": {
+       "value": 0.617,
+       "lo": 0.374,
+       "hi": 0.816,
+       "draws": 2000
+      },
+      "yuleQ": {
+       "value": 0.995,
+       "lo": 0.978,
+       "hi": 0.999,
+       "draws": 2000
+      },
+      "pSameWrong": {
+       "value": 0.011,
+       "lo": 0.004,
+       "hi": 0.018,
+       "draws": 2000
+      },
+      "sameOfJoint": {
+       "value": 1,
+       "lo": 1,
+       "hi": 1,
+       "draws": 2000
+      },
+      "agreeWrongShare": {
+       "value": 0.066,
+       "lo": 0.027,
+       "hi": 0.112,
+       "draws": 2000
+      }
+     }
+    },
+    "vision+qwen": {
+     "counts": {
+      "n": 459,
+      "a": 10,
+      "b": 1,
+      "c": 14,
+      "d": 434,
+      "sameWrong": 10,
+      "agree": 80,
+      "agreeWrong": 10,
+      "haldane": false
+     },
+     "stats": {
+      "pA": {
+       "value": 0.024,
+       "lo": 0.006,
+       "hi": 0.051,
+       "draws": 2000
+      },
+      "pB": {
+       "value": 0.052,
+       "lo": 0.027,
+       "hi": 0.084,
+       "draws": 2000
+      },
+      "pBoth": {
+       "value": 0.022,
+       "lo": 0.004,
+       "hi": 0.048,
+       "draws": 2000
+      },
+      "product": {
+       "value": 0.001,
+       "lo": 0,
+       "hi": 0.004,
+       "draws": 2000
+      },
+      "lift": {
+       "value": 17.386,
+       "lo": 10.638,
+       "hi": 31.705,
+       "draws": 1999
+      },
+      "phi": {
+       "value": 0.603,
+       "lo": 0.277,
+       "hi": 0.794,
+       "draws": 1999
+      },
+      "yuleQ": {
+       "value": 0.994,
+       "lo": 0.947,
+       "hi": 0.999,
+       "draws": 2000
+      },
+      "pSameWrong": {
+       "value": 0.022,
+       "lo": 0.004,
+       "hi": 0.048,
+       "draws": 2000
+      },
+      "sameOfJoint": {
+       "value": 1,
+       "lo": 1,
+       "hi": 1,
+       "draws": 1995
+      },
+      "agreeWrongShare": {
+       "value": 0.125,
+       "lo": 0.027,
+       "hi": 0.257,
+       "draws": 2000
+      }
+     }
+    },
+    "ppocr+qwen": {
+     "counts": {
+      "n": 459,
+      "a": 1,
+      "b": 1,
+      "c": 23,
+      "d": 434,
+      "sameWrong": 1,
+      "agree": 19,
+      "agreeWrong": 1,
+      "haldane": false
+     },
+     "stats": {
+      "pA": {
+       "value": 0.004,
+       "lo": 0,
+       "hi": 0.011,
+       "draws": 2000
+      },
+      "pB": {
+       "value": 0.052,
+       "lo": 0.027,
+       "hi": 0.084,
+       "draws": 2000
+      },
+      "pBoth": {
+       "value": 0.002,
+       "lo": 0,
+       "hi": 0.007,
+       "draws": 2000
+      },
+      "product": {
+       "value": 0,
+       "lo": 0,
+       "hi": 0.001,
+       "draws": 2000
+      },
+      "lift": {
+       "value": 9.563,
+       "lo": 0,
+       "hi": 26.145,
+       "draws": 1749
+      },
+      "phi": {
+       "value": 0.133,
+       "lo": -0.017,
+       "hi": 0.348,
+       "draws": 1749
+      },
+      "yuleQ": {
+       "value": 0.899,
+       "lo": 0.495,
+       "hi": 0.985,
+       "draws": 2000
+      },
+      "pSameWrong": {
+       "value": 0.002,
+       "lo": 0,
+       "hi": 0.007,
+       "draws": 2000
+      },
+      "sameOfJoint": {
+       "value": 1,
+       "lo": 1,
+       "hi": 1,
+       "draws": 1266
+      },
+      "agreeWrongShare": {
+       "value": 0.053,
+       "lo": 0,
+       "hi": 0.167,
+       "draws": 2000
+      }
+     }
+    }
+   },
+   "pairsF": {
+    "vision+ppocr": {
+     "counts": {
+      "n": 1040,
+      "a": 770,
+      "b": 25,
+      "c": 89,
+      "d": 156,
+      "sameWrong": 11,
+      "agree": 167,
+      "agreeWrong": 11,
+      "haldane": false
+     },
+     "stats": {
+      "pA": {
+       "value": 0.764,
+       "lo": 0.703,
+       "hi": 0.822,
+       "draws": 2000
+      },
+      "pB": {
+       "value": 0.826,
+       "lo": 0.772,
+       "hi": 0.872,
+       "draws": 2000
+      },
+      "pBoth": {
+       "value": 0.74,
+       "lo": 0.676,
+       "hi": 0.798,
+       "draws": 2000
+      },
+      "product": {
+       "value": 0.631,
+       "lo": 0.546,
+       "hi": 0.715,
+       "draws": 2000
+      },
+      "lift": {
+       "value": 1.173,
+       "lo": 1.116,
+       "hi": 1.244,
+       "draws": 2000
+      },
+      "phi": {
+       "value": 0.677,
+       "lo": 0.61,
+       "hi": 0.74,
+       "draws": 2000
+      },
+      "yuleQ": {
+       "value": 0.964,
+       "lo": 0.939,
+       "hi": 0.98,
+       "draws": 2000
+      },
+      "pSameWrong": {
+       "value": 0.011,
+       "lo": 0.004,
+       "hi": 0.018,
+       "draws": 2000
+      },
+      "sameOfJoint": {
+       "value": 0.014,
+       "lo": 0.006,
+       "hi": 0.024,
+       "draws": 2000
+      },
+      "agreeWrongShare": {
+       "value": 0.066,
+       "lo": 0.027,
+       "hi": 0.112,
+       "draws": 2000
+      }
+     }
+    },
+    "vision+qwen": {
+     "counts": {
+      "n": 459,
+      "a": 260,
+      "b": 124,
+      "c": 5,
+      "d": 70,
+      "sameWrong": 10,
+      "agree": 80,
+      "agreeWrong": 10,
+      "haldane": false
+     },
+     "stats": {
+      "pA": {
+       "value": 0.837,
+       "lo": 0.792,
+       "hi": 0.878,
+       "draws": 2000
+      },
+      "pB": {
+       "value": 0.577,
+       "lo": 0.506,
+       "hi": 0.65,
+       "draws": 2000
+      },
+      "pBoth": {
+       "value": 0.566,
+       "lo": 0.495,
+       "hi": 0.638,
+       "draws": 2000
+      },
+      "product": {
+       "value": 0.483,
+       "lo": 0.405,
+       "hi": 0.563,
+       "draws": 2000
+      },
+      "lift": {
+       "value": 1.173,
+       "lo": 1.119,
+       "hi": 1.237,
+       "draws": 2000
+      },
+      "phi": {
+       "value": 0.457,
+       "lo": 0.38,
+       "hi": 0.527,
+       "draws": 2000
+      },
+      "yuleQ": {
+       "value": 0.934,
+       "lo": 0.854,
+       "hi": 0.987,
+       "draws": 2000
+      },
+      "pSameWrong": {
+       "value": 0.022,
+       "lo": 0.004,
+       "hi": 0.048,
+       "draws": 2000
+      },
+      "sameOfJoint": {
+       "value": 0.038,
+       "lo": 0.008,
+       "hi": 0.082,
+       "draws": 2000
+      },
+      "agreeWrongShare": {
+       "value": 0.125,
+       "lo": 0.027,
+       "hi": 0.257,
+       "draws": 2000
+      }
+     }
+    },
+    "ppocr+qwen": {
+     "counts": {
+      "n": 459,
+      "a": 264,
+      "b": 176,
+      "c": 1,
+      "d": 18,
+      "sameWrong": 1,
+      "agree": 19,
+      "agreeWrong": 1,
+      "haldane": false
+     },
+     "stats": {
+      "pA": {
+       "value": 0.959,
+       "lo": 0.935,
+       "hi": 0.977,
+       "draws": 2000
+      },
+      "pB": {
+       "value": 0.577,
+       "lo": 0.506,
+       "hi": 0.65,
+       "draws": 2000
+      },
+      "pBoth": {
+       "value": 0.575,
+       "lo": 0.504,
+       "hi": 0.648,
+       "draws": 2000
+      },
+      "product": {
+       "value": 0.553,
+       "lo": 0.482,
+       "hi": 0.627,
+       "draws": 2000
+      },
+      "lift": {
+       "value": 1.039,
+       "lo": 1.019,
+       "hi": 1.065,
+       "draws": 2000
+      },
+      "phi": {
+       "value": 0.221,
+       "lo": 0.138,
+       "hi": 0.294,
+       "draws": 2000
+      },
+      "yuleQ": {
+       "value": 0.929,
+       "lo": 0.74,
+       "hi": 0.975,
+       "draws": 2000
+      },
+      "pSameWrong": {
+       "value": 0.002,
+       "lo": 0,
+       "hi": 0.007,
+       "draws": 2000
+      },
+      "sameOfJoint": {
+       "value": 0.004,
+       "lo": 0,
+       "hi": 0.013,
+       "draws": 2000
+      },
+      "agreeWrongShare": {
+       "value": 0.053,
+       "lo": 0,
+       "hi": 0.167,
+       "draws": 2000
+      }
+     }
+    }
+   },
+   "readers": {
+    "vision": {
+     "all": {
+      "n": 269,
+      "k": 24,
+      "share": {
+       "value": 0.089,
+       "lo": 0.045,
+       "hi": 0.143,
+       "draws": 2000
+      }
+     },
+     "qwenRead": {
+      "n": 86,
+      "k": 11,
+      "share": {
+       "value": 0.128,
+       "lo": 0.036,
+       "hi": 0.253,
+       "draws": 2000
+      }
+     }
+    },
+    "ppocr": {
+     "all": {
+      "n": 194,
+      "k": 13,
+      "share": {
+       "value": 0.067,
+       "lo": 0.032,
+       "hi": 0.108,
+       "draws": 2000
+      }
+     },
+     "qwenRead": {
+      "n": 21,
+      "k": 2,
+      "share": null
+     }
+    },
+    "qwen": {
+     "all": {
+      "n": 218,
+      "k": 24,
+      "share": {
+       "value": 0.11,
+       "lo": 0.057,
+       "hi": 0.179,
+       "draws": 2000
+      }
+     },
+     "qwenRead": {
+      "n": 218,
+      "k": 24,
+      "share": {
+       "value": 0.11,
+       "lo": 0.057,
+       "hi": 0.179,
+       "draws": 2000
+      }
+     }
+    }
+   },
+   "strata": [
+    {
+     "stratum": "elevation",
+     "value": "above",
+     "boxCount": 67,
+     "labels": {
+      "all": {
+       "n": 4,
+       "k": 0,
+       "share": null
+      },
+      "vision+ppocr": {
+       "n": 1,
+       "k": 0,
+       "share": null
+      },
+      "vision+qwen": {
+       "n": 1,
+       "k": 0,
+       "share": null
+      },
+      "ppocr+qwen": {
+       "n": 2,
+       "k": 0,
+       "share": null
+      },
+      "vision+ppocr+qwen": {
+       "n": 0,
+       "k": 0,
+       "share": null
+      }
+     },
+     "third": {
+      "vision+ppocr": {
+       "labels": 1,
+       "outcomes": {
+        "dissents": 0,
+        "contradicts": 0,
+        "supports": 0,
+        "read-nothing": 0,
+        "not-read": 1
+       },
+       "dissent": {
+        "n": 0,
+        "k": 0,
+        "share": null
+       },
+       "wrongBy": {
+        "dissents": {
+         "n": 0,
+         "k": 0,
+         "share": null
+        },
+        "contradicts": {
+         "n": 0,
+         "k": 0,
+         "share": null
+        },
+        "supports": {
+         "n": 0,
+         "k": 0,
+         "share": null
+        },
+        "read-nothing": {
+         "n": 0,
+         "k": 0,
+         "share": null
+        },
+        "not-read": {
+         "n": 1,
+         "k": 0,
+         "share": null
+        }
+       }
+      },
+      "vision+qwen": {
+       "labels": 1,
+       "outcomes": {
+        "dissents": 0,
+        "contradicts": 0,
+        "supports": 1,
+        "read-nothing": 0,
+        "not-read": 0
+       },
+       "dissent": {
+        "n": 1,
+        "k": 0,
+        "share": null
+       },
+       "wrongBy": {
+        "dissents": {
+         "n": 0,
+         "k": 0,
+         "share": null
+        },
+        "contradicts": {
+         "n": 0,
+         "k": 0,
+         "share": null
+        },
+        "supports": {
+         "n": 1,
+         "k": 0,
+         "share": null
+        },
+        "read-nothing": {
+         "n": 0,
+         "k": 0,
+         "share": null
+        },
+        "not-read": {
+         "n": 0,
+         "k": 0,
+         "share": null
+        }
+       }
+      },
+      "ppocr+qwen": {
+       "labels": 2,
+       "outcomes": {
+        "dissents": 0,
+        "contradicts": 0,
+        "supports": 2,
+        "read-nothing": 0,
+        "not-read": 0
+       },
+       "dissent": {
+        "n": 2,
+        "k": 0,
+        "share": null
+       },
+       "wrongBy": {
+        "dissents": {
+         "n": 0,
+         "k": 0,
+         "share": null
+        },
+        "contradicts": {
+         "n": 0,
+         "k": 0,
+         "share": null
+        },
+        "supports": {
+         "n": 2,
+         "k": 0,
+         "share": null
+        },
+        "read-nothing": {
+         "n": 0,
+         "k": 0,
+         "share": null
+        },
+        "not-read": {
+         "n": 0,
+         "k": 0,
+         "share": null
+        }
+       }
+      }
+     },
+     "pairsE": {
+      "vision+ppocr": {
+       "counts": {
+        "n": 67,
+        "a": 0,
+        "b": 0,
+        "c": 0,
+        "d": 67,
+        "sameWrong": 0,
+        "agree": 1,
+        "agreeWrong": 0,
+        "haldane": true
+       },
+       "stats": {
+        "pA": {
+         "value": 0,
+         "lo": 0,
+         "hi": 0,
+         "draws": 2000
+        },
+        "pB": {
+         "value": 0,
+         "lo": 0,
+         "hi": 0,
+         "draws": 2000
+        },
+        "pBoth": {
+         "value": 0,
+         "lo": 0,
+         "hi": 0,
+         "draws": 2000
+        },
+        "product": {
+         "value": 0,
+         "lo": 0,
+         "hi": 0,
+         "draws": 2000
+        },
+        "lift": null,
+        "phi": null,
+        "yuleQ": {
+         "value": 0.985,
+         "lo": 0.966,
+         "hi": 0.992,
+         "draws": 2000
+        },
+        "pSameWrong": {
+         "value": 0,
+         "lo": 0,
+         "hi": 0,
+         "draws": 2000
+        },
+        "sameOfJoint": null,
+        "agreeWrongShare": {
+         "value": 0,
+         "lo": 0,
+         "hi": 0,
+         "draws": 1285
+        }
+       }
+      },
+      "vision+qwen": {
+       "counts": {
+        "n": 23,
+        "a": 0,
+        "b": 0,
+        "c": 1,
+        "d": 22,
+        "sameWrong": 0,
+        "agree": 1,
+        "agreeWrong": 0,
+        "haldane": true
+       },
+       "stats": null
+      },
+      "ppocr+qwen": {
+       "counts": {
+        "n": 23,
+        "a": 0,
+        "b": 0,
+        "c": 1,
+        "d": 22,
+        "sameWrong": 0,
+        "agree": 2,
+        "agreeWrong": 0,
+        "haldane": true
+       },
+       "stats": null
+      }
+     }
+    },
+    {
+     "stratum": "elevation",
+     "value": "below",
+     "boxCount": 382,
+     "labels": {
+      "all": {
+       "n": 105,
+       "k": 6,
+       "share": {
+        "value": 0.057,
+        "lo": 0.015,
+        "hi": 0.1,
+        "draws": 2000
+       }
+      },
+      "vision+ppocr": {
+       "n": 70,
+       "k": 5,
+       "share": {
+        "value": 0.071,
+        "lo": 0.016,
+        "hi": 0.118,
+        "draws": 2000
+       }
+      },
+      "vision+qwen": {
+       "n": 25,
+       "k": 0,
+       "share": null
+      },
+      "ppocr+qwen": {
+       "n": 10,
+       "k": 1,
+       "share": null
+      },
+      "vision+ppocr+qwen": {
+       "n": 0,
+       "k": 0,
+       "share": null
+      }
+     },
+     "third": {
+      "vision+ppocr": {
+       "labels": 70,
+       "outcomes": {
+        "dissents": 0,
+        "contradicts": 0,
+        "supports": 0,
+        "read-nothing": 0,
+        "not-read": 70
+       },
+       "dissent": {
+        "n": 0,
+        "k": 0,
+        "share": null
+       },
+       "wrongBy": {
+        "dissents": {
+         "n": 0,
+         "k": 0,
+         "share": null
+        },
+        "contradicts": {
+         "n": 0,
+         "k": 0,
+         "share": null
+        },
+        "supports": {
+         "n": 0,
+         "k": 0,
+         "share": null
+        },
+        "read-nothing": {
+         "n": 0,
+         "k": 0,
+         "share": null
+        },
+        "not-read": {
+         "n": 70,
+         "k": 5,
+         "share": {
+          "value": 0.071,
+          "lo": 0.016,
+          "hi": 0.121,
+          "draws": 2000
+         }
+        }
+       }
+      },
+      "vision+qwen": {
+       "labels": 25,
+       "outcomes": {
+        "dissents": 0,
+        "contradicts": 4,
+        "supports": 21,
+        "read-nothing": 0,
+        "not-read": 0
+       },
+       "dissent": {
+        "n": 25,
+        "k": 0,
+        "share": null
+       },
+       "wrongBy": {
+        "dissents": {
+         "n": 0,
+         "k": 0,
+         "share": null
+        },
+        "contradicts": {
+         "n": 4,
+         "k": 0,
+         "share": null
+        },
+        "supports": {
+         "n": 21,
+         "k": 0,
+         "share": null
+        },
+        "read-nothing": {
+         "n": 0,
+         "k": 0,
+         "share": null
+        },
+        "not-read": {
+         "n": 0,
+         "k": 0,
+         "share": null
+        }
+       }
+      },
+      "ppocr+qwen": {
+       "labels": 10,
+       "outcomes": {
+        "dissents": 0,
+        "contradicts": 0,
+        "supports": 3,
+        "read-nothing": 7,
+        "not-read": 0
+       },
+       "dissent": {
+        "n": 10,
+        "k": 0,
+        "share": null
+       },
+       "wrongBy": {
+        "dissents": {
+         "n": 0,
+         "k": 0,
+         "share": null
+        },
+        "contradicts": {
+         "n": 0,
+         "k": 0,
+         "share": null
+        },
+        "supports": {
+         "n": 3,
+         "k": 0,
+         "share": null
+        },
+        "read-nothing": {
+         "n": 7,
+         "k": 1,
+         "share": null
+        },
+        "not-read": {
+         "n": 0,
+         "k": 0,
+         "share": null
+        }
+       }
+      }
+     },
+     "pairsE": {
+      "vision+ppocr": {
+       "counts": {
+        "n": 382,
+        "a": 5,
+        "b": 2,
+        "c": 2,
+        "d": 373,
+        "sameWrong": 5,
+        "agree": 70,
+        "agreeWrong": 5,
+        "haldane": false
+       },
+       "stats": {
+        "pA": {
+         "value": 0.018,
+         "lo": 0.006,
+         "hi": 0.031,
+         "draws": 2000
+        },
+        "pB": {
+         "value": 0.018,
+         "lo": 0.006,
+         "hi": 0.032,
+         "draws": 2000
+        },
+        "pBoth": {
+         "value": 0.013,
+         "lo": 0.002,
+         "hi": 0.025,
+         "draws": 2000
+        },
+        "product": {
+         "value": 0,
+         "lo": 0,
+         "hi": 0.001,
+         "draws": 2000
+        },
+        "lift": {
+         "value": 38.98,
+         "lo": 18.026,
+         "hi": 89.225,
+         "draws": 1992
+        },
+        "phi": {
+         "value": 0.709,
+         "lo": 0.241,
+         "hi": 0.943,
+         "draws": 1992
+        },
+        "yuleQ": {
+         "value": 0.996,
+         "lo": 0.948,
+         "hi": 1,
+         "draws": 2000
+        },
+        "pSameWrong": {
+         "value": 0.013,
+         "lo": 0.002,
+         "hi": 0.025,
+         "draws": 2000
+        },
+        "sameOfJoint": {
+         "value": 1,
+         "lo": 1,
+         "hi": 1,
+         "draws": 1961
+        },
+        "agreeWrongShare": {
+         "value": 0.071,
+         "lo": 0.016,
+         "hi": 0.118,
+         "draws": 2000
+        }
+       }
+      },
+      "vision+qwen": {
+       "counts": {
+        "n": 161,
+        "a": 0,
+        "b": 0,
+        "c": 5,
+        "d": 156,
+        "sameWrong": 0,
+        "agree": 25,
+        "agreeWrong": 0,
+        "haldane": true
+       },
+       "stats": {
+        "pA": {
+         "value": 0,
+         "lo": 0,
+         "hi": 0,
+         "draws": 2000
+        },
+        "pB": {
+         "value": 0.031,
+         "lo": 0.005,
+         "hi": 0.066,
+         "draws": 2000
+        },
+        "pBoth": {
+         "value": 0,
+         "lo": 0,
+         "hi": 0,
+         "draws": 2000
+        },
+        "product": {
+         "value": 0,
+         "lo": 0,
+         "hi": 0,
+         "draws": 2000
+        },
+        "lift": null,
+        "phi": null,
+        "yuleQ": {
+         "value": 0.932,
+         "lo": 0.861,
+         "hi": 0.985,
+         "draws": 2000
+        },
+        "pSameWrong": {
+         "value": 0,
+         "lo": 0,
+         "hi": 0,
+         "draws": 2000
+        },
+        "sameOfJoint": null,
+        "agreeWrongShare": {
+         "value": 0,
+         "lo": 0,
+         "hi": 0,
+         "draws": 2000
+        }
+       }
+      },
+      "ppocr+qwen": {
+       "counts": {
+        "n": 161,
+        "a": 1,
+        "b": 1,
+        "c": 4,
+        "d": 155,
+        "sameWrong": 1,
+        "agree": 10,
+        "agreeWrong": 1,
+        "haldane": false
+       },
+       "stats": {
+        "pA": {
+         "value": 0.012,
+         "lo": 0,
+         "hi": 0.031,
+         "draws": 2000
+        },
+        "pB": {
+         "value": 0.031,
+         "lo": 0.005,
+         "hi": 0.066,
+         "draws": 2000
+        },
+        "pBoth": {
+         "value": 0.006,
+         "lo": 0,
+         "hi": 0.023,
+         "draws": 2000
+        },
+        "product": {
+         "value": 0,
+         "lo": 0,
+         "hi": 0.002,
+         "draws": 2000
+        },
+        "lift": {
+         "value": 16.1,
+         "lo": 0,
+         "hi": 72.112,
+         "draws": 1712
+        },
+        "phi": {
+         "value": 0.303,
+         "lo": -0.022,
+         "hi": 0.814,
+         "draws": 1712
+        },
+        "yuleQ": {
+         "value": 0.95,
+         "lo": 0.665,
+         "hi": 0.996,
+         "draws": 2000
+        },
+        "pSameWrong": {
+         "value": 0.006,
+         "lo": 0,
+         "hi": 0.023,
+         "draws": 2000
+        },
+        "sameOfJoint": {
+         "value": 1,
+         "lo": 1,
+         "hi": 1,
+         "draws": 1250
+        },
+        "agreeWrongShare": {
+         "value": 0.1,
+         "lo": 0,
+         "hi": 0.333,
+         "draws": 2000
+        }
+       }
+      }
+     }
+    },
+    {
+     "stratum": "elevation",
+     "value": "level",
+     "boxCount": 591,
+     "labels": {
+      "all": {
+       "n": 157,
+       "k": 16,
+       "share": {
+        "value": 0.102,
+        "lo": 0.037,
+        "hi": 0.196,
+        "draws": 2000
+       }
+      },
+      "vision+ppocr": {
+       "n": 96,
+       "k": 6,
+       "share": {
+        "value": 0.063,
+        "lo": 0.015,
+        "hi": 0.136,
+        "draws": 2000
+       }
+      },
+      "vision+qwen": {
+       "n": 54,
+       "k": 10,
+       "share": {
+        "value": 0.185,
+        "lo": 0.045,
+        "hi": 0.364,
+        "draws": 2000
+       }
+      },
+      "ppocr+qwen": {
+       "n": 7,
+       "k": 0,
+       "share": null
+      },
+      "vision+ppocr+qwen": {
+       "n": 0,
+       "k": 0,
+       "share": null
+      }
+     },
+     "third": {
+      "vision+ppocr": {
+       "labels": 96,
+       "outcomes": {
+        "dissents": 0,
+        "contradicts": 0,
+        "supports": 0,
+        "read-nothing": 0,
+        "not-read": 96
+       },
+       "dissent": {
+        "n": 0,
+        "k": 0,
+        "share": null
+       },
+       "wrongBy": {
+        "dissents": {
+         "n": 0,
+         "k": 0,
+         "share": null
+        },
+        "contradicts": {
+         "n": 0,
+         "k": 0,
+         "share": null
+        },
+        "supports": {
+         "n": 0,
+         "k": 0,
+         "share": null
+        },
+        "read-nothing": {
+         "n": 0,
+         "k": 0,
+         "share": null
+        },
+        "not-read": {
+         "n": 96,
+         "k": 6,
+         "share": {
+          "value": 0.063,
+          "lo": 0.015,
+          "hi": 0.141,
+          "draws": 2000
+         }
+        }
+       }
+      },
+      "vision+qwen": {
+       "labels": 54,
+       "outcomes": {
+        "dissents": 0,
+        "contradicts": 6,
+        "supports": 47,
+        "read-nothing": 1,
+        "not-read": 0
+       },
+       "dissent": {
+        "n": 54,
+        "k": 0,
+        "share": {
+         "value": 0,
+         "lo": 0,
+         "hi": 0,
+         "draws": 2000
+        }
+       },
+       "wrongBy": {
+        "dissents": {
+         "n": 0,
+         "k": 0,
+         "share": null
+        },
+        "contradicts": {
+         "n": 6,
+         "k": 0,
+         "share": null
+        },
+        "supports": {
+         "n": 47,
+         "k": 10,
+         "share": {
+          "value": 0.213,
+          "lo": 0.054,
+          "hi": 0.429,
+          "draws": 2000
+         }
+        },
+        "read-nothing": {
+         "n": 1,
+         "k": 0,
+         "share": null
+        },
+        "not-read": {
+         "n": 0,
+         "k": 0,
+         "share": null
+        }
+       }
+      },
+      "ppocr+qwen": {
+       "labels": 7,
+       "outcomes": {
+        "dissents": 0,
+        "contradicts": 0,
+        "supports": 3,
+        "read-nothing": 4,
+        "not-read": 0
+       },
+       "dissent": {
+        "n": 7,
+        "k": 0,
+        "share": null
+       },
+       "wrongBy": {
+        "dissents": {
+         "n": 0,
+         "k": 0,
+         "share": null
+        },
+        "contradicts": {
+         "n": 0,
+         "k": 0,
+         "share": null
+        },
+        "supports": {
+         "n": 3,
+         "k": 0,
+         "share": null
+        },
+        "read-nothing": {
+         "n": 4,
+         "k": 0,
+         "share": null
+        },
+        "not-read": {
+         "n": 0,
+         "k": 0,
+         "share": null
+        }
+       }
+      }
+     },
+     "pairsE": {
+      "vision+ppocr": {
+       "counts": {
+        "n": 591,
+        "a": 6,
+        "b": 11,
+        "c": 0,
+        "d": 574,
+        "sameWrong": 6,
+        "agree": 96,
+        "agreeWrong": 6,
+        "haldane": true
+       },
+       "stats": {
+        "pA": {
+         "value": 0.029,
+         "lo": 0.011,
+         "hi": 0.051,
+         "draws": 2000
+        },
+        "pB": {
+         "value": 0.01,
+         "lo": 0.003,
+         "hi": 0.02,
+         "draws": 2000
+        },
+        "pBoth": {
+         "value": 0.01,
+         "lo": 0.003,
+         "hi": 0.02,
+         "draws": 2000
+        },
+        "product": {
+         "value": 0,
+         "lo": 0,
+         "hi": 0.001,
+         "draws": 2000
+        },
+        "lift": {
+         "value": 34.765,
+         "lo": 19.659,
+         "hi": 87.902,
+         "draws": 1986
+        },
+        "phi": {
+         "value": 0.588,
+         "lo": 0.33,
+         "hi": 0.814,
+         "draws": 1986
+        },
+        "yuleQ": {
+         "value": 0.997,
+         "lo": 0.987,
+         "hi": 0.999,
+         "draws": 2000
+        },
+        "pSameWrong": {
+         "value": 0.01,
+         "lo": 0.003,
+         "hi": 0.02,
+         "draws": 2000
+        },
+        "sameOfJoint": {
+         "value": 1,
+         "lo": 1,
+         "hi": 1,
+         "draws": 1986
+        },
+        "agreeWrongShare": {
+         "value": 0.063,
+         "lo": 0.015,
+         "hi": 0.136,
+         "draws": 2000
+        }
+       }
+      },
+      "vision+qwen": {
+       "counts": {
+        "n": 275,
+        "a": 10,
+        "b": 1,
+        "c": 8,
+        "d": 256,
+        "sameWrong": 10,
+        "agree": 54,
+        "agreeWrong": 10,
+        "haldane": false
+       },
+       "stats": {
+        "pA": {
+         "value": 0.04,
+         "lo": 0.011,
+         "hi": 0.081,
+         "draws": 2000
+        },
+        "pB": {
+         "value": 0.065,
+         "lo": 0.031,
+         "hi": 0.107,
+         "draws": 2000
+        },
+        "pBoth": {
+         "value": 0.036,
+         "lo": 0.008,
+         "hi": 0.079,
+         "draws": 2000
+        },
+        "product": {
+         "value": 0.003,
+         "lo": 0,
+         "hi": 0.008,
+         "draws": 2000
+        },
+        "lift": {
+         "value": 13.889,
+         "lo": 8.555,
+         "hi": 26.35,
+         "draws": 1999
+        },
+        "phi": {
+         "value": 0.696,
+         "lo": 0.336,
+         "hi": 0.879,
+         "draws": 1999
+        },
+        "yuleQ": {
+         "value": 0.994,
+         "lo": 0.948,
+         "hi": 0.999,
+         "draws": 2000
+        },
+        "pSameWrong": {
+         "value": 0.036,
+         "lo": 0.008,
+         "hi": 0.079,
+         "draws": 2000
+        },
+        "sameOfJoint": {
+         "value": 1,
+         "lo": 1,
+         "hi": 1,
+         "draws": 1996
+        },
+        "agreeWrongShare": {
+         "value": 0.185,
+         "lo": 0.045,
+         "hi": 0.364,
+         "draws": 2000
+        }
+       }
+      },
+      "ppocr+qwen": {
+       "counts": {
+        "n": 275,
+        "a": 0,
+        "b": 0,
+        "c": 18,
+        "d": 257,
+        "sameWrong": 0,
+        "agree": 7,
+        "agreeWrong": 0,
+        "haldane": true
+       },
+       "stats": {
+        "pA": {
+         "value": 0,
+         "lo": 0,
+         "hi": 0,
+         "draws": 2000
+        },
+        "pB": {
+         "value": 0.065,
+         "lo": 0.031,
+         "hi": 0.107,
+         "draws": 2000
+        },
+        "pBoth": {
+         "value": 0,
+         "lo": 0,
+         "hi": 0,
+         "draws": 2000
+        },
+        "product": {
+         "value": 0,
+         "lo": 0,
+         "hi": 0,
+         "draws": 2000
+        },
+        "lift": null,
+        "phi": null,
+        "yuleQ": {
+         "value": 0.866,
+         "lo": 0.783,
+         "hi": 0.935,
+         "draws": 2000
+        },
+        "pSameWrong": {
+         "value": 0,
+         "lo": 0,
+         "hi": 0,
+         "draws": 2000
+        },
+        "sameOfJoint": null,
+        "agreeWrongShare": {
+         "value": 0,
+         "lo": 0,
+         "hi": 0,
+         "draws": 1995
+        }
+       }
+      }
+     }
+    },
+    {
+     "stratum": "dark or low contrast",
+     "value": "dark/low",
+     "boxCount": 136,
+     "labels": {
+      "all": {
+       "n": 27,
+       "k": 6,
+       "share": null
+      },
+      "vision+ppocr": {
+       "n": 13,
+       "k": 2,
+       "share": null
+      },
+      "vision+qwen": {
+       "n": 10,
+       "k": 3,
+       "share": null
+      },
+      "ppocr+qwen": {
+       "n": 4,
+       "k": 1,
+       "share": null
+      },
+      "vision+ppocr+qwen": {
+       "n": 0,
+       "k": 0,
+       "share": null
+      }
+     },
+     "third": {
+      "vision+ppocr": {
+       "labels": 13,
+       "outcomes": {
+        "dissents": 0,
+        "contradicts": 0,
+        "supports": 0,
+        "read-nothing": 0,
+        "not-read": 13
+       },
+       "dissent": {
+        "n": 0,
+        "k": 0,
+        "share": null
+       },
+       "wrongBy": {
+        "dissents": {
+         "n": 0,
+         "k": 0,
+         "share": null
+        },
+        "contradicts": {
+         "n": 0,
+         "k": 0,
+         "share": null
+        },
+        "supports": {
+         "n": 0,
+         "k": 0,
+         "share": null
+        },
+        "read-nothing": {
+         "n": 0,
+         "k": 0,
+         "share": null
+        },
+        "not-read": {
+         "n": 13,
+         "k": 2,
+         "share": null
+        }
+       }
+      },
+      "vision+qwen": {
+       "labels": 10,
+       "outcomes": {
+        "dissents": 0,
+        "contradicts": 1,
+        "supports": 9,
+        "read-nothing": 0,
+        "not-read": 0
+       },
+       "dissent": {
+        "n": 10,
+        "k": 0,
+        "share": null
+       },
+       "wrongBy": {
+        "dissents": {
+         "n": 0,
+         "k": 0,
+         "share": null
+        },
+        "contradicts": {
+         "n": 1,
+         "k": 0,
+         "share": null
+        },
+        "supports": {
+         "n": 9,
+         "k": 3,
+         "share": null
+        },
+        "read-nothing": {
+         "n": 0,
+         "k": 0,
+         "share": null
+        },
+        "not-read": {
+         "n": 0,
+         "k": 0,
+         "share": null
+        }
+       }
+      },
+      "ppocr+qwen": {
+       "labels": 4,
+       "outcomes": {
+        "dissents": 0,
+        "contradicts": 0,
+        "supports": 0,
+        "read-nothing": 4,
+        "not-read": 0
+       },
+       "dissent": {
+        "n": 4,
+        "k": 0,
+        "share": null
+       },
+       "wrongBy": {
+        "dissents": {
+         "n": 0,
+         "k": 0,
+         "share": null
+        },
+        "contradicts": {
+         "n": 0,
+         "k": 0,
+         "share": null
+        },
+        "supports": {
+         "n": 0,
+         "k": 0,
+         "share": null
+        },
+        "read-nothing": {
+         "n": 4,
+         "k": 1,
+         "share": null
+        },
+        "not-read": {
+         "n": 0,
+         "k": 0,
+         "share": null
+        }
+       }
+      }
+     },
+     "pairsE": {
+      "vision+ppocr": {
+       "counts": {
+        "n": 136,
+        "a": 2,
+        "b": 3,
+        "c": 1,
+        "d": 130,
+        "sameWrong": 2,
+        "agree": 13,
+        "agreeWrong": 2,
+        "haldane": false
+       },
+       "stats": {
+        "pA": {
+         "value": 0.037,
+         "lo": 0.007,
+         "hi": 0.076,
+         "draws": 2000
+        },
+        "pB": {
+         "value": 0.022,
+         "lo": 0,
+         "hi": 0.051,
+         "draws": 2000
+        },
+        "pBoth": {
+         "value": 0.015,
+         "lo": 0,
+         "hi": 0.037,
+         "draws": 2000
+        },
+        "product": {
+         "value": 0.001,
+         "lo": 0,
+         "hi": 0.003,
+         "draws": 2000
+        },
+        "lift": {
+         "value": 18.133,
+         "lo": 0,
+         "hi": 67.5,
+         "draws": 1891
+        },
+        "phi": {
+         "value": 0.503,
+         "lo": -0.019,
+         "hi": 1,
+         "draws": 1891
+        },
+        "yuleQ": {
+         "value": 0.977,
+         "lo": 0.734,
+         "hi": 0.998,
+         "draws": 2000
+        },
+        "pSameWrong": {
+         "value": 0.015,
+         "lo": 0,
+         "hi": 0.037,
+         "draws": 2000
+        },
+        "sameOfJoint": {
+         "value": 1,
+         "lo": 1,
+         "hi": 1,
+         "draws": 1741
+        },
+        "agreeWrongShare": {
+         "value": 0.154,
+         "lo": 0,
+         "hi": 0.385,
+         "draws": 2000
+        }
+       }
+      },
+      "vision+qwen": {
+       "counts": {
+        "n": 32,
+        "a": 3,
+        "b": 0,
+        "c": 1,
+        "d": 28,
+        "sameWrong": 3,
+        "agree": 10,
+        "agreeWrong": 3,
+        "haldane": true
+       },
+       "stats": {
+        "pA": {
+         "value": 0.094,
+         "lo": 0,
+         "hi": 0.225,
+         "draws": 2000
+        },
+        "pB": {
+         "value": 0.125,
+         "lo": 0,
+         "hi": 0.267,
+         "draws": 2000
+        },
+        "pBoth": {
+         "value": 0.094,
+         "lo": 0,
+         "hi": 0.225,
+         "draws": 2000
+        },
+        "product": {
+         "value": 0.012,
+         "lo": 0,
+         "hi": 0.058,
+         "draws": 2000
+        },
+        "lift": {
+         "value": 8,
+         "lo": 3.667,
+         "hi": 29,
+         "draws": 1721
+        },
+        "phi": {
+         "value": 0.851,
+         "lo": 0.556,
+         "hi": 1,
+         "draws": 1721
+        },
+        "yuleQ": {
+         "value": 0.985,
+         "lo": 0.815,
+         "hi": 0.998,
+         "draws": 2000
+        },
+        "pSameWrong": {
+         "value": 0.094,
+         "lo": 0,
+         "hi": 0.225,
+         "draws": 2000
+        },
+        "sameOfJoint": {
+         "value": 1,
+         "lo": 1,
+         "hi": 1,
+         "draws": 1721
+        },
+        "agreeWrongShare": {
+         "value": 0.3,
+         "lo": 0,
+         "hi": 0.667,
+         "draws": 1997
+        }
+       }
+      },
+      "ppocr+qwen": {
+       "counts": {
+        "n": 32,
+        "a": 1,
+        "b": 0,
+        "c": 3,
+        "d": 28,
+        "sameWrong": 1,
+        "agree": 4,
+        "agreeWrong": 1,
+        "haldane": true
+       },
+       "stats": {
+        "pA": {
+         "value": 0.031,
+         "lo": 0,
+         "hi": 0.118,
+         "draws": 2000
+        },
+        "pB": {
+         "value": 0.125,
+         "lo": 0,
+         "hi": 0.267,
+         "draws": 2000
+        },
+        "pBoth": {
+         "value": 0.031,
+         "lo": 0,
+         "hi": 0.118,
+         "draws": 2000
+        },
+        "product": {
+         "value": 0.004,
+         "lo": 0,
+         "hi": 0.024,
+         "draws": 2000
+        },
+        "lift": {
+         "value": 8,
+         "lo": 3.667,
+         "hi": 31,
+         "draws": 1292
+        },
+        "phi": {
+         "value": 0.475,
+         "lo": 0.311,
+         "hi": 1,
+         "draws": 1292
+        },
+        "yuleQ": {
+         "value": 0.921,
+         "lo": 0.606,
+         "hi": 0.993,
+         "draws": 2000
+        },
+        "pSameWrong": {
+         "value": 0.031,
+         "lo": 0,
+         "hi": 0.118,
+         "draws": 2000
+        },
+        "sameOfJoint": {
+         "value": 1,
+         "lo": 1,
+         "hi": 1,
+         "draws": 1292
+        },
+        "agreeWrongShare": {
+         "value": 0.25,
+         "lo": 0,
+         "hi": 1,
+         "draws": 1919
+        }
+       }
+      }
+     }
+    },
+    {
+     "stratum": "dark or low contrast",
+     "value": "not",
+     "boxCount": 904,
+     "labels": {
+      "all": {
+       "n": 239,
+       "k": 16,
+       "share": {
+        "value": 0.067,
+        "lo": 0.029,
+        "hi": 0.114,
+        "draws": 2000
+       }
+      },
+      "vision+ppocr": {
+       "n": 154,
+       "k": 9,
+       "share": {
+        "value": 0.058,
+        "lo": 0.021,
+        "hi": 0.103,
+        "draws": 2000
+       }
+      },
+      "vision+qwen": {
+       "n": 70,
+       "k": 7,
+       "share": {
+        "value": 0.1,
+        "lo": 0.021,
+        "hi": 0.207,
+        "draws": 2000
+       }
+      },
+      "ppocr+qwen": {
+       "n": 15,
+       "k": 0,
+       "share": null
+      },
+      "vision+ppocr+qwen": {
+       "n": 0,
+       "k": 0,
+       "share": null
+      }
+     },
+     "third": {
+      "vision+ppocr": {
+       "labels": 154,
+       "outcomes": {
+        "dissents": 0,
+        "contradicts": 0,
+        "supports": 0,
+        "read-nothing": 0,
+        "not-read": 154
+       },
+       "dissent": {
+        "n": 0,
+        "k": 0,
+        "share": null
+       },
+       "wrongBy": {
+        "dissents": {
+         "n": 0,
+         "k": 0,
+         "share": null
+        },
+        "contradicts": {
+         "n": 0,
+         "k": 0,
+         "share": null
+        },
+        "supports": {
+         "n": 0,
+         "k": 0,
+         "share": null
+        },
+        "read-nothing": {
+         "n": 0,
+         "k": 0,
+         "share": null
+        },
+        "not-read": {
+         "n": 154,
+         "k": 9,
+         "share": {
+          "value": 0.058,
+          "lo": 0.02,
+          "hi": 0.102,
+          "draws": 2000
+         }
+        }
+       }
+      },
+      "vision+qwen": {
+       "labels": 70,
+       "outcomes": {
+        "dissents": 0,
+        "contradicts": 9,
+        "supports": 60,
+        "read-nothing": 1,
+        "not-read": 0
+       },
+       "dissent": {
+        "n": 70,
+        "k": 0,
+        "share": {
+         "value": 0,
+         "lo": 0,
+         "hi": 0,
+         "draws": 2000
+        }
+       },
+       "wrongBy": {
+        "dissents": {
+         "n": 0,
+         "k": 0,
+         "share": null
+        },
+        "contradicts": {
+         "n": 9,
+         "k": 0,
+         "share": null
+        },
+        "supports": {
+         "n": 60,
+         "k": 7,
+         "share": {
+          "value": 0.117,
+          "lo": 0.03,
+          "hi": 0.238,
+          "draws": 2000
+         }
+        },
+        "read-nothing": {
+         "n": 1,
+         "k": 0,
+         "share": null
+        },
+        "not-read": {
+         "n": 0,
+         "k": 0,
+         "share": null
+        }
+       }
+      },
+      "ppocr+qwen": {
+       "labels": 15,
+       "outcomes": {
+        "dissents": 0,
+        "contradicts": 0,
+        "supports": 8,
+        "read-nothing": 7,
+        "not-read": 0
+       },
+       "dissent": {
+        "n": 15,
+        "k": 0,
+        "share": null
+       },
+       "wrongBy": {
+        "dissents": {
+         "n": 0,
+         "k": 0,
+         "share": null
+        },
+        "contradicts": {
+         "n": 0,
+         "k": 0,
+         "share": null
+        },
+        "supports": {
+         "n": 8,
+         "k": 0,
+         "share": null
+        },
+        "read-nothing": {
+         "n": 7,
+         "k": 0,
+         "share": null
+        },
+        "not-read": {
+         "n": 0,
+         "k": 0,
+         "share": null
+        }
+       }
+      }
+     },
+     "pairsE": {
+      "vision+ppocr": {
+       "counts": {
+        "n": 904,
+        "a": 9,
+        "b": 10,
+        "c": 1,
+        "d": 884,
+        "sameWrong": 9,
+        "agree": 154,
+        "agreeWrong": 9,
+        "haldane": false
+       },
+       "stats": {
+        "pA": {
+         "value": 0.021,
+         "lo": 0.01,
+         "hi": 0.035,
+         "draws": 2000
+        },
+        "pB": {
+         "value": 0.011,
+         "lo": 0.004,
+         "hi": 0.019,
+         "draws": 2000
+        },
+        "pBoth": {
+         "value": 0.01,
+         "lo": 0.003,
+         "hi": 0.018,
+         "draws": 2000
+        },
+        "product": {
+         "value": 0,
+         "lo": 0,
+         "hi": 0.001,
+         "draws": 2000
+        },
+        "lift": {
+         "value": 42.821,
+         "lo": 26.21,
+         "hi": 88.922,
+         "draws": 2000
+        },
+        "phi": {
+         "value": 0.648,
+         "lo": 0.414,
+         "hi": 0.816,
+         "draws": 2000
+        },
+        "yuleQ": {
+         "value": 0.997,
+         "lo": 0.986,
+         "hi": 0.999,
+         "draws": 2000
+        },
+        "pSameWrong": {
+         "value": 0.01,
+         "lo": 0.003,
+         "hi": 0.018,
+         "draws": 2000
+        },
+        "sameOfJoint": {
+         "value": 1,
+         "lo": 1,
+         "hi": 1,
+         "draws": 2000
+        },
+        "agreeWrongShare": {
+         "value": 0.058,
+         "lo": 0.021,
+         "hi": 0.103,
+         "draws": 2000
+        }
+       }
+      },
+      "vision+qwen": {
+       "counts": {
+        "n": 427,
+        "a": 7,
+        "b": 1,
+        "c": 13,
+        "d": 406,
+        "sameWrong": 7,
+        "agree": 70,
+        "agreeWrong": 7,
+        "haldane": false
+       },
+       "stats": {
+        "pA": {
+         "value": 0.019,
+         "lo": 0.005,
+         "hi": 0.039,
+         "draws": 2000
+        },
+        "pB": {
+         "value": 0.047,
+         "lo": 0.025,
+         "hi": 0.073,
+         "draws": 2000
+        },
+        "pBoth": {
+         "value": 0.016,
+         "lo": 0.003,
+         "hi": 0.035,
+         "draws": 2000
+        },
+        "product": {
+         "value": 0.001,
+         "lo": 0,
+         "hi": 0.003,
+         "draws": 2000
+        },
+        "lift": {
+         "value": 18.681,
+         "lo": 10.772,
+         "hi": 33.233,
+         "draws": 1997
+        },
+        "phi": {
+         "value": 0.542,
+         "lo": 0.229,
+         "hi": 0.748,
+         "draws": 1997
+        },
+        "yuleQ": {
+         "value": 0.991,
+         "lo": 0.932,
+         "hi": 0.998,
+         "draws": 2000
+        },
+        "pSameWrong": {
+         "value": 0.016,
+         "lo": 0.003,
+         "hi": 0.035,
+         "draws": 2000
+        },
+        "sameOfJoint": {
+         "value": 1,
+         "lo": 1,
+         "hi": 1,
+         "draws": 1989
+        },
+        "agreeWrongShare": {
+         "value": 0.1,
+         "lo": 0.021,
+         "hi": 0.207,
+         "draws": 2000
+        }
+       }
+      },
+      "ppocr+qwen": {
+       "counts": {
+        "n": 427,
+        "a": 0,
+        "b": 1,
+        "c": 20,
+        "d": 406,
+        "sameWrong": 0,
+        "agree": 15,
+        "agreeWrong": 0,
+        "haldane": true
+       },
+       "stats": {
+        "pA": {
+         "value": 0.002,
+         "lo": 0,
+         "hi": 0.008,
+         "draws": 2000
+        },
+        "pB": {
+         "value": 0.047,
+         "lo": 0.025,
+         "hi": 0.073,
+         "draws": 2000
+        },
+        "pBoth": {
+         "value": 0,
+         "lo": 0,
+         "hi": 0,
+         "draws": 2000
+        },
+        "product": {
+         "value": 0,
+         "lo": 0,
+         "hi": 0,
+         "draws": 2000
+        },
+        "lift": {
+         "value": 0,
+         "lo": 0,
+         "hi": 0,
+         "draws": 1292
+        },
+        "phi": {
+         "value": -0.011,
+         "lo": -0.021,
+         "hi": -0.008,
+         "draws": 1292
+        },
+        "yuleQ": {
+         "value": 0.737,
+         "lo": 0.407,
+         "hi": 0.935,
+         "draws": 2000
+        },
+        "pSameWrong": {
+         "value": 0,
+         "lo": 0,
+         "hi": 0,
+         "draws": 2000
+        },
+        "sameOfJoint": null,
+        "agreeWrongShare": {
+         "value": 0,
+         "lo": 0,
+         "hi": 0,
+         "draws": 2000
+        }
+       }
+      }
+     }
+    },
+    {
+     "stratum": "case",
+     "value": "main",
+     "boxCount": 968,
+     "labels": {
+      "all": {
+       "n": 262,
+       "k": 22,
+       "share": {
+        "value": 0.084,
+        "lo": 0.037,
+        "hi": 0.143,
+        "draws": 2000
+       }
+      },
+      "vision+ppocr": {
+       "n": 166,
+       "k": 11,
+       "share": {
+        "value": 0.066,
+        "lo": 0.027,
+        "hi": 0.113,
+        "draws": 2000
+       }
+      },
+      "vision+qwen": {
+       "n": 77,
+       "k": 10,
+       "share": {
+        "value": 0.13,
+        "lo": 0.029,
+        "hi": 0.266,
+        "draws": 2000
+       }
+      },
+      "ppocr+qwen": {
+       "n": 19,
+       "k": 1,
+       "share": null
+      },
+      "vision+ppocr+qwen": {
+       "n": 0,
+       "k": 0,
+       "share": null
+      }
+     },
+     "third": {
+      "vision+ppocr": {
+       "labels": 166,
+       "outcomes": {
+        "dissents": 0,
+        "contradicts": 0,
+        "supports": 0,
+        "read-nothing": 0,
+        "not-read": 166
+       },
+       "dissent": {
+        "n": 0,
+        "k": 0,
+        "share": null
+       },
+       "wrongBy": {
+        "dissents": {
+         "n": 0,
+         "k": 0,
+         "share": null
+        },
+        "contradicts": {
+         "n": 0,
+         "k": 0,
+         "share": null
+        },
+        "supports": {
+         "n": 0,
+         "k": 0,
+         "share": null
+        },
+        "read-nothing": {
+         "n": 0,
+         "k": 0,
+         "share": null
+        },
+        "not-read": {
+         "n": 166,
+         "k": 11,
+         "share": {
+          "value": 0.066,
+          "lo": 0.026,
+          "hi": 0.112,
+          "draws": 2000
+         }
+        }
+       }
+      },
+      "vision+qwen": {
+       "labels": 77,
+       "outcomes": {
+        "dissents": 0,
+        "contradicts": 9,
+        "supports": 67,
+        "read-nothing": 1,
+        "not-read": 0
+       },
+       "dissent": {
+        "n": 77,
+        "k": 0,
+        "share": {
+         "value": 0,
+         "lo": 0,
+         "hi": 0,
+         "draws": 2000
+        }
+       },
+       "wrongBy": {
+        "dissents": {
+         "n": 0,
+         "k": 0,
+         "share": null
+        },
+        "contradicts": {
+         "n": 9,
+         "k": 0,
+         "share": null
+        },
+        "supports": {
+         "n": 67,
+         "k": 10,
+         "share": {
+          "value": 0.149,
+          "lo": 0.034,
+          "hi": 0.306,
+          "draws": 2000
+         }
+        },
+        "read-nothing": {
+         "n": 1,
+         "k": 0,
+         "share": null
+        },
+        "not-read": {
+         "n": 0,
+         "k": 0,
+         "share": null
+        }
+       }
+      },
+      "ppocr+qwen": {
+       "labels": 19,
+       "outcomes": {
+        "dissents": 0,
+        "contradicts": 0,
+        "supports": 8,
+        "read-nothing": 11,
+        "not-read": 0
+       },
+       "dissent": {
+        "n": 19,
+        "k": 0,
+        "share": null
+       },
+       "wrongBy": {
+        "dissents": {
+         "n": 0,
+         "k": 0,
+         "share": null
+        },
+        "contradicts": {
+         "n": 0,
+         "k": 0,
+         "share": null
+        },
+        "supports": {
+         "n": 8,
+         "k": 0,
+         "share": null
+        },
+        "read-nothing": {
+         "n": 11,
+         "k": 1,
+         "share": null
+        },
+        "not-read": {
+         "n": 0,
+         "k": 0,
+         "share": null
+        }
+       }
+      }
+     },
+     "pairsE": {
+      "vision+ppocr": {
+       "counts": {
+        "n": 968,
+        "a": 11,
+        "b": 13,
+        "c": 1,
+        "d": 943,
+        "sameWrong": 11,
+        "agree": 166,
+        "agreeWrong": 11,
+        "haldane": false
+       },
+       "stats": {
+        "pA": {
+         "value": 0.025,
+         "lo": 0.012,
+         "hi": 0.041,
+         "draws": 2000
+        },
+        "pB": {
+         "value": 0.012,
+         "lo": 0.006,
+         "hi": 0.021,
+         "draws": 2000
+        },
+        "pBoth": {
+         "value": 0.011,
+         "lo": 0.005,
+         "hi": 0.019,
+         "draws": 2000
+        },
+        "product": {
+         "value": 0,
+         "lo": 0,
+         "hi": 0.001,
+         "draws": 2000
+        },
+        "lift": {
+         "value": 36.972,
+         "lo": 21.485,
+         "hi": 76.601,
+         "draws": 2000
+        },
+        "phi": {
+         "value": 0.643,
+         "lo": 0.413,
+         "hi": 0.838,
+         "draws": 2000
+        },
+        "yuleQ": {
+         "value": 0.997,
+         "lo": 0.984,
+         "hi": 1,
+         "draws": 2000
+        },
+        "pSameWrong": {
+         "value": 0.011,
+         "lo": 0.005,
+         "hi": 0.019,
+         "draws": 2000
+        },
+        "sameOfJoint": {
+         "value": 1,
+         "lo": 1,
+         "hi": 1,
+         "draws": 2000
+        },
+        "agreeWrongShare": {
+         "value": 0.066,
+         "lo": 0.027,
+         "hi": 0.113,
+         "draws": 2000
+        }
+       }
+      },
+      "vision+qwen": {
+       "counts": {
+        "n": 443,
+        "a": 10,
+        "b": 1,
+        "c": 14,
+        "d": 418,
+        "sameWrong": 10,
+        "agree": 77,
+        "agreeWrong": 10,
+        "haldane": false
+       },
+       "stats": {
+        "pA": {
+         "value": 0.025,
+         "lo": 0.006,
+         "hi": 0.053,
+         "draws": 2000
+        },
+        "pB": {
+         "value": 0.054,
+         "lo": 0.028,
+         "hi": 0.087,
+         "draws": 2000
+        },
+        "pBoth": {
+         "value": 0.023,
+         "lo": 0.005,
+         "hi": 0.05,
+         "draws": 2000
+        },
+        "product": {
+         "value": 0.001,
+         "lo": 0,
+         "hi": 0.004,
+         "draws": 2000
+        },
+        "lift": {
+         "value": 16.78,
+         "lo": 10.336,
+         "hi": 30.414,
+         "draws": 1999
+        },
+        "phi": {
+         "value": 0.603,
+         "lo": 0.276,
+         "hi": 0.793,
+         "draws": 1999
+        },
+        "yuleQ": {
+         "value": 0.993,
+         "lo": 0.945,
+         "hi": 0.998,
+         "draws": 2000
+        },
+        "pSameWrong": {
+         "value": 0.023,
+         "lo": 0.005,
+         "hi": 0.05,
+         "draws": 2000
+        },
+        "sameOfJoint": {
+         "value": 1,
+         "lo": 1,
+         "hi": 1,
+         "draws": 1995
+        },
+        "agreeWrongShare": {
+         "value": 0.13,
+         "lo": 0.029,
+         "hi": 0.266,
+         "draws": 2000
+        }
+       }
+      },
+      "ppocr+qwen": {
+       "counts": {
+        "n": 443,
+        "a": 1,
+        "b": 0,
+        "c": 23,
+        "d": 419,
+        "sameWrong": 1,
+        "agree": 19,
+        "agreeWrong": 1,
+        "haldane": true
+       },
+       "stats": {
+        "pA": {
+         "value": 0.002,
+         "lo": 0,
+         "hi": 0.007,
+         "draws": 2000
+        },
+        "pB": {
+         "value": 0.054,
+         "lo": 0.028,
+         "hi": 0.087,
+         "draws": 2000
+        },
+        "pBoth": {
+         "value": 0.002,
+         "lo": 0,
+         "hi": 0.007,
+         "draws": 2000
+        },
+        "product": {
+         "value": 0,
+         "lo": 0,
+         "hi": 0.001,
+         "draws": 2000
+        },
+        "lift": {
+         "value": 18.458,
+         "lo": 11.241,
+         "hi": 32.249,
+         "draws": 1266
+        },
+        "phi": {
+         "value": 0.199,
+         "lo": 0.16,
+         "hi": 0.388,
+         "draws": 1266
+        },
+        "yuleQ": {
+         "value": 0.963,
+         "lo": 0.853,
+         "hi": 0.987,
+         "draws": 2000
+        },
+        "pSameWrong": {
+         "value": 0.002,
+         "lo": 0,
+         "hi": 0.007,
+         "draws": 2000
+        },
+        "sameOfJoint": {
+         "value": 1,
+         "lo": 1,
+         "hi": 1,
+         "draws": 1266
+        },
+        "agreeWrongShare": {
+         "value": 0.053,
+         "lo": 0,
+         "hi": 0.167,
+         "draws": 2000
+        }
+       }
+      }
+     }
+    },
+    {
+     "stratum": "case",
+     "value": "side",
+     "boxCount": 72,
+     "labels": {
+      "all": {
+       "n": 4,
+       "k": 0,
+       "share": null
+      },
+      "vision+ppocr": {
+       "n": 1,
+       "k": 0,
+       "share": null
+      },
+      "vision+qwen": {
+       "n": 3,
+       "k": 0,
+       "share": null
+      },
+      "ppocr+qwen": {
+       "n": 0,
+       "k": 0,
+       "share": null
+      },
+      "vision+ppocr+qwen": {
+       "n": 0,
+       "k": 0,
+       "share": null
+      }
+     },
+     "third": {
+      "vision+ppocr": {
+       "labels": 1,
+       "outcomes": {
+        "dissents": 0,
+        "contradicts": 0,
+        "supports": 0,
+        "read-nothing": 0,
+        "not-read": 1
+       },
+       "dissent": {
+        "n": 0,
+        "k": 0,
+        "share": null
+       },
+       "wrongBy": {
+        "dissents": {
+         "n": 0,
+         "k": 0,
+         "share": null
+        },
+        "contradicts": {
+         "n": 0,
+         "k": 0,
+         "share": null
+        },
+        "supports": {
+         "n": 0,
+         "k": 0,
+         "share": null
+        },
+        "read-nothing": {
+         "n": 0,
+         "k": 0,
+         "share": null
+        },
+        "not-read": {
+         "n": 1,
+         "k": 0,
+         "share": null
+        }
+       }
+      },
+      "vision+qwen": {
+       "labels": 3,
+       "outcomes": {
+        "dissents": 0,
+        "contradicts": 1,
+        "supports": 2,
+        "read-nothing": 0,
+        "not-read": 0
+       },
+       "dissent": {
+        "n": 3,
+        "k": 0,
+        "share": null
+       },
+       "wrongBy": {
+        "dissents": {
+         "n": 0,
+         "k": 0,
+         "share": null
+        },
+        "contradicts": {
+         "n": 1,
+         "k": 0,
+         "share": null
+        },
+        "supports": {
+         "n": 2,
+         "k": 0,
+         "share": null
+        },
+        "read-nothing": {
+         "n": 0,
+         "k": 0,
+         "share": null
+        },
+        "not-read": {
+         "n": 0,
+         "k": 0,
+         "share": null
+        }
+       }
+      },
+      "ppocr+qwen": {
+       "labels": 0,
+       "outcomes": {
+        "dissents": 0,
+        "contradicts": 0,
+        "supports": 0,
+        "read-nothing": 0,
+        "not-read": 0
+       },
+       "dissent": {
+        "n": 0,
+        "k": 0,
+        "share": null
+       },
+       "wrongBy": {
+        "dissents": {
+         "n": 0,
+         "k": 0,
+         "share": null
+        },
+        "contradicts": {
+         "n": 0,
+         "k": 0,
+         "share": null
+        },
+        "supports": {
+         "n": 0,
+         "k": 0,
+         "share": null
+        },
+        "read-nothing": {
+         "n": 0,
+         "k": 0,
+         "share": null
+        },
+        "not-read": {
+         "n": 0,
+         "k": 0,
+         "share": null
+        }
+       }
+      }
+     },
+     "pairsE": {
+      "vision+ppocr": {
+       "counts": {
+        "n": 72,
+        "a": 0,
+        "b": 0,
+        "c": 1,
+        "d": 71,
+        "sameWrong": 0,
+        "agree": 1,
+        "agreeWrong": 0,
+        "haldane": true
+       },
+       "stats": {
+        "pA": {
+         "value": 0,
+         "lo": 0,
+         "hi": 0,
+         "draws": 2000
+        },
+        "pB": {
+         "value": 0.014,
+         "lo": 0,
+         "hi": 0.045,
+         "draws": 2000
+        },
+        "pBoth": {
+         "value": 0,
+         "lo": 0,
+         "hi": 0,
+         "draws": 2000
+        },
+        "product": {
+         "value": 0,
+         "lo": 0,
+         "hi": 0,
+         "draws": 2000
+        },
+        "lift": null,
+        "phi": null,
+        "yuleQ": {
+         "value": 0.959,
+         "lo": 0.897,
+         "hi": 0.989,
+         "draws": 2000
+        },
+        "pSameWrong": {
+         "value": 0,
+         "lo": 0,
+         "hi": 0,
+         "draws": 2000
+        },
+        "sameOfJoint": null,
+        "agreeWrongShare": {
+         "value": 0,
+         "lo": 0,
+         "hi": 0,
+         "draws": 1321
+        }
+       }
+      },
+      "vision+qwen": {
+       "counts": {
+        "n": 16,
+        "a": 0,
+        "b": 0,
+        "c": 0,
+        "d": 16,
+        "sameWrong": 0,
+        "agree": 3,
+        "agreeWrong": 0,
+        "haldane": true
+       },
+       "stats": null
+      },
+      "ppocr+qwen": {
+       "counts": {
+        "n": 16,
+        "a": 0,
+        "b": 1,
+        "c": 0,
+        "d": 15,
+        "sameWrong": 0,
+        "agree": 0,
+        "agreeWrong": 0,
+        "haldane": true
+       },
+       "stats": null
+      }
+     }
+    }
+   ],
+   "exploratory": {
+    "wrongKinds": {
+     "all": {
+      "same-book-other-record": 6,
+      "namesake": 5,
+      "same-author": 0,
+      "unrelated": 11
+     },
+     "vision+ppocr": {
+      "same-book-other-record": 0,
+      "namesake": 4,
+      "same-author": 0,
+      "unrelated": 7
+     },
+     "vision+qwen": {
+      "same-book-other-record": 6,
+      "namesake": 1,
+      "same-author": 0,
+      "unrelated": 3
+     },
+     "ppocr+qwen": {
+      "same-book-other-record": 0,
+      "namesake": 0,
+      "same-author": 0,
+      "unrelated": 1
+     },
+     "vision+ppocr+qwen": {
+      "same-book-other-record": 0,
+      "namesake": 0,
+      "same-author": 0,
+      "unrelated": 0
+     }
+    },
+    "bookLevel": {
+     "labels": {
+      "all": {
+       "n": 266,
+       "k": 16,
+       "share": {
+        "value": 0.06,
+        "lo": 0.027,
+        "hi": 0.098,
+        "draws": 2000
+       }
+      },
+      "vision+ppocr": {
+       "n": 167,
+       "k": 11,
+       "share": {
+        "value": 0.066,
+        "lo": 0.027,
+        "hi": 0.112,
+        "draws": 2000
+       }
+      },
+      "vision+qwen": {
+       "n": 80,
+       "k": 4,
+       "share": {
+        "value": 0.05,
+        "lo": 0.012,
+        "hi": 0.095,
+        "draws": 2000
+       }
+      },
+      "ppocr+qwen": {
+       "n": 19,
+       "k": 1,
+       "share": null
+      },
+      "vision+ppocr+qwen": {
+       "n": 0,
+       "k": 0,
+       "share": null
+      }
+     },
+     "pairsE": {
+      "vision+ppocr": {
+       "counts": {
+        "n": 1040,
+        "a": 11,
+        "b": 5,
+        "c": 2,
+        "d": 1022,
+        "sameWrong": 11,
+        "agree": 167,
+        "agreeWrong": 11,
+        "haldane": false
+       },
+       "stats": {
+        "pA": {
+         "value": 0.015,
+         "lo": 0.007,
+         "hi": 0.025,
+         "draws": 2000
+        },
+        "pB": {
+         "value": 0.013,
+         "lo": 0.006,
+         "hi": 0.02,
+         "draws": 2000
+        },
+        "pBoth": {
+         "value": 0.011,
+         "lo": 0.004,
+         "hi": 0.018,
+         "draws": 2000
+        },
+        "product": {
+         "value": 0,
+         "lo": 0,
+         "hi": 0.001,
+         "draws": 2000
+        },
+        "lift": {
+         "value": 55,
+         "lo": 33.042,
+         "hi": 111.632,
+         "draws": 2000
+        },
+        "phi": {
+         "value": 0.759,
+         "lo": 0.531,
+         "hi": 0.912,
+         "draws": 2000
+        },
+        "yuleQ": {
+         "value": 0.998,
+         "lo": 0.991,
+         "hi": 1,
+         "draws": 2000
+        },
+        "pSameWrong": {
+         "value": 0.011,
+         "lo": 0.004,
+         "hi": 0.018,
+         "draws": 2000
+        },
+        "sameOfJoint": {
+         "value": 1,
+         "lo": 1,
+         "hi": 1,
+         "draws": 2000
+        },
+        "agreeWrongShare": {
+         "value": 0.066,
+         "lo": 0.027,
+         "hi": 0.112,
+         "draws": 2000
+        }
+       }
+      },
+      "vision+qwen": {
+       "counts": {
+        "n": 459,
+        "a": 4,
+        "b": 1,
+        "c": 12,
+        "d": 442,
+        "sameWrong": 4,
+        "agree": 80,
+        "agreeWrong": 4,
+        "haldane": false
+       },
+       "stats": {
+        "pA": {
+         "value": 0.011,
+         "lo": 0.002,
+         "hi": 0.021,
+         "draws": 2000
+        },
+        "pB": {
+         "value": 0.035,
+         "lo": 0.018,
+         "hi": 0.055,
+         "draws": 2000
+        },
+        "pBoth": {
+         "value": 0.009,
+         "lo": 0.002,
+         "hi": 0.018,
+         "draws": 2000
+        },
+        "product": {
+         "value": 0,
+         "lo": 0,
+         "hi": 0.001,
+         "draws": 2000
+        },
+        "lift": {
+         "value": 22.95,
+         "lo": 10.765,
+         "hi": 43.502,
+         "draws": 1990
+        },
+        "phi": {
+         "value": 0.438,
+         "lo": 0.156,
+         "hi": 0.646,
+         "draws": 1990
+        },
+        "yuleQ": {
+         "value": 0.987,
+         "lo": 0.904,
+         "hi": 0.997,
+         "draws": 2000
+        },
+        "pSameWrong": {
+         "value": 0.009,
+         "lo": 0.002,
+         "hi": 0.018,
+         "draws": 2000
+        },
+        "sameOfJoint": {
+         "value": 1,
+         "lo": 1,
+         "hi": 1,
+         "draws": 1969
+        },
+        "agreeWrongShare": {
+         "value": 0.05,
+         "lo": 0.012,
+         "hi": 0.095,
+         "draws": 2000
+        }
+       }
+      },
+      "ppocr+qwen": {
+       "counts": {
+        "n": 459,
+        "a": 1,
+        "b": 1,
+        "c": 15,
+        "d": 442,
+        "sameWrong": 1,
+        "agree": 19,
+        "agreeWrong": 1,
+        "haldane": false
+       },
+       "stats": {
+        "pA": {
+         "value": 0.004,
+         "lo": 0,
+         "hi": 0.011,
+         "draws": 2000
+        },
+        "pB": {
+         "value": 0.035,
+         "lo": 0.018,
+         "hi": 0.055,
+         "draws": 2000
+        },
+        "pBoth": {
+         "value": 0.002,
+         "lo": 0,
+         "hi": 0.007,
+         "draws": 2000
+        },
+        "product": {
+         "value": 0,
+         "lo": 0,
+         "hi": 0,
+         "draws": 2000
+        },
+        "lift": {
+         "value": 14.344,
+         "lo": 0,
+         "hi": 36.775,
+         "draws": 1749
+        },
+        "phi": {
+         "value": 0.168,
+         "lo": -0.014,
+         "hi": 0.402,
+         "draws": 1749
+        },
+        "yuleQ": {
+         "value": 0.934,
+         "lo": 0.656,
+         "hi": 0.989,
+         "draws": 2000
+        },
+        "pSameWrong": {
+         "value": 0.002,
+         "lo": 0,
+         "hi": 0.007,
+         "draws": 2000
+        },
+        "sameOfJoint": {
+         "value": 1,
+         "lo": 1,
+         "hi": 1,
+         "draws": 1266
+        },
+        "agreeWrongShare": {
+         "value": 0.053,
+         "lo": 0,
+         "hi": 0.167,
+         "draws": 2000
+        }
+       }
+      }
+     },
+     "readers": {
+      "vision": {
+       "all": {
+        "n": 269,
+        "k": 16,
+        "share": {
+         "value": 0.059,
+         "lo": 0.028,
+         "hi": 0.095,
+         "draws": 2000
+        }
+       },
+       "qwenRead": {
+        "n": 86,
+        "k": 5,
+        "share": {
+         "value": 0.058,
+         "lo": 0.014,
+         "hi": 0.105,
+         "draws": 2000
+        }
+       }
+      },
+      "ppocr": {
+       "all": {
+        "n": 194,
+        "k": 13,
+        "share": {
+         "value": 0.067,
+         "lo": 0.032,
+         "hi": 0.108,
+         "draws": 2000
+        }
+       },
+       "qwenRead": {
+        "n": 21,
+        "k": 2,
+        "share": null
+       }
+      },
+      "qwen": {
+       "all": {
+        "n": 218,
+        "k": 16,
+        "share": {
+         "value": 0.073,
+         "lo": 0.038,
+         "hi": 0.116,
+         "draws": 2000
+        }
+       },
+       "qwenRead": {
+        "n": 218,
+        "k": 16,
+        "share": {
+         "value": 0.073,
+         "lo": 0.038,
+         "hi": 0.116,
+         "draws": 2000
+        }
+       }
+      }
+     },
+     "rarity": {
+      "all|shared": {
+       "n": 34,
+       "k": 7,
+       "share": {
+        "value": 0.206,
+        "lo": 0.067,
+        "hi": 0.423,
+        "draws": 2000
+       }
+      },
+      "all|distinctive": {
+       "n": 232,
+       "k": 9,
+       "share": {
+        "value": 0.039,
+        "lo": 0.011,
+        "hi": 0.074,
+        "draws": 2000
+       }
+      },
+      "vision+ppocr|shared": {
+       "n": 22,
+       "k": 6,
+       "share": null
+      },
+      "vision+ppocr|distinctive": {
+       "n": 145,
+       "k": 5,
+       "share": {
+        "value": 0.034,
+        "lo": 0,
+        "hi": 0.08,
+        "draws": 2000
+       }
+      },
+      "vision+qwen|shared": {
+       "n": 10,
+       "k": 1,
+       "share": null
+      },
+      "vision+qwen|distinctive": {
+       "n": 70,
+       "k": 3,
+       "share": {
+        "value": 0.043,
+        "lo": 0,
+        "hi": 0.085,
+        "draws": 2000
+       }
+      },
+      "ppocr+qwen|shared": {
+       "n": 2,
+       "k": 0,
+       "share": null
+      },
+      "ppocr+qwen|distinctive": {
+       "n": 17,
+       "k": 1,
+       "share": null
+      },
+      "vision+ppocr+qwen|shared": {
+       "n": 0,
+       "k": 0,
+       "share": null
+      },
+      "vision+ppocr+qwen|distinctive": {
+       "n": 0,
+       "k": 0,
+       "share": null
+      }
+     }
+    }
+   }
+  }
+ },
+ "recommendation": {
+  "rows": [
+   {
+    "agreeing": "vision+ppocr",
+    "wrong": {
+     "value": 0.066,
+     "lo": 0.027,
+     "hi": 0.112,
+     "draws": 2000
+    },
+    "liftLo": 21.238,
+    "tier": "weak"
+   },
+   {
+    "agreeing": "vision+qwen",
+    "wrong": {
+     "value": 0.125,
+     "lo": 0.027,
+     "hi": 0.257,
+     "draws": 2000
+    },
+    "liftLo": 10.638,
+    "dissentHi": 0.143,
+    "tier": "weak"
+   },
+   {
+    "agreeing": "ppocr+qwen",
+    "wrong": null,
+    "liftLo": 0,
+    "dissentHi": 0.2,
+    "tier": "unmeasured"
+   },
+   {
+    "agreeing": "vision+ppocr+qwen",
+    "wrong": null,
+    "tier": "unmeasured"
+   }
+  ],
+  "notSeparable": [
+   ["vision+ppocr","vision+qwen"]
+  ],
+  "qwenOcr": [
+   {
+    "agreeing": "vision+qwen",
+    "tier": "weak",
+    "wrongShared": 7,
+    "wrongDistinct": 3,
+    "dissentShared": 5,
+    "dissentDistinct": 8,
+    "extraSupport": true
+   },
+   {
+    "agreeing": "ppocr+qwen",
+    "tier": "unmeasured",
+    "wrongShared": 0,
+    "wrongDistinct": 1,
+    "dissentShared": 1,
+    "dissentDistinct": 3,
+    "extraSupport": true
+   }
+  ]
+ }
+}
