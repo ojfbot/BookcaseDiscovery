@@ -307,7 +307,7 @@ describe("rule: evals/ aggregate-only allowlist", () => {
   const metrics = (extra: object = {}) => JSON.stringify({ recall: 0.9, ...extra });
 
   it("allows evals/<run-id>/metrics.json and report.md, and proxy runs", () => {
-    expect(guard(repoWith({ "evals/proxy-P2/metrics.json": metrics(), "evals/proxy-P2/report.md": "ok\n", "evals/README.md": "ok\n" })).violations).toEqual([]);
+    expect(guard(repoWith({ "evals/proxy-P2/metrics.json": metrics(), "evals/proxy-P2/report.md": "ok\n", "evals/proxy-P2/prereg.md": "ok\n", "evals/README.md": "ok\n" })).violations).toEqual([]);
   });
 
   it.each([

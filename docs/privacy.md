@@ -52,7 +52,8 @@ the path and a line number or commit.
    data directory and a user home directory. The rule list is in `PRIVATE_PATTERNS` in the script. In
    history mode, commit messages are scanned too.
 9. `[evals-allowlist]` any file under an `evals` path that is not one of: `evals/<run-id>/metrics.json`,
-   `evals/<run-id>/report.md`, `evals/README.md`, `evals/golden/fragments.jsonl` (the public catalog
+   `evals/<run-id>/report.md`, `evals/<run-id>/prereg.md` (a pre-registration), `evals/README.md`,
+   `evals/golden/fragments.jsonl` (the public catalog
    query set). The JSON files must parse and carry no per-spine or OCR keys at any depth (`spines`,
    `ocr_text`, `observations`, `bbox`, `crops` and similar; list in `EVAL_FORBIDDEN_KEYS`). Aggregate
    files are capped at 256 KiB. A card that needs another file adds it to the allowlist in its own PR.
