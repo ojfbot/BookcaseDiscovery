@@ -10,7 +10,7 @@
 //
 // The population is the current default: on pilot-000, F-0e's `bands+strips` boxes with the readers F-0e ran on
 // them and F-0's decision (F-0c's cached `base-decisions`); on the yardstick, F-0's own B2 run, which F-0e left as
-// the default for shelf-scale photos. F-0c's not-a-book filter (cover pass off) drops boxes on both sets before
+// the default for shelf-scale photos. the shipped not-a-book filter (F-0c's shape rules and F-0f's shelf-label rules, cover pass off) drops boxes on both sets before
 // anything is computed. Everything per box or per photo goes under the data root's `private/q2b/`.
 import { closeSync, existsSync, mkdirSync, openSync, readFileSync, writeFileSync } from "node:fs";
 import { spawn, spawnSync } from "node:child_process";
@@ -19,6 +19,7 @@ import { fileURLToPath } from "node:url";
 import { dataRoot } from "../ledger/images.ts";
 import { readJsonl, type Detection } from "./f0.ts";
 import { kinds } from "./f0c.ts";
+import { evidenceFor } from "./f0f-cli.ts";
 import { area, clipConvex, growQuad, MASK_COVER, PIECE_INSIDE, type Pt } from "../report/display-draw.ts";
 import { quantile } from "./q1.ts";
 import { rowsFrom, type Decision as Q1Decision, type Raw, type Reading } from "./q1-cli.ts";
@@ -31,19 +32,20 @@ const BASE = join(ROOT, "f0e", PILOT, "bands+strips");
 
 const log = (s: string) => process.stderr.write(`q2b: ${s}\n`);
 
-/** Box ids F-0c's not-a-book rules keep as spines (cover pass off, as shipped). */
-function spineIds(detect: string): Set<string> {
+/** Box ids the shipped not-a-book rules keep as spines: F-0c's shape rules and F-0f's shelf-label rules (cover pass off). */
+function spineIds(detect: string, set: "pilot-000" | "yardstick"): Set<string> {
+  const ev = evidenceFor(set);
   const keep = new Set<string>();
   for (const d of readJsonl<Detection>(detect)) {
     if (d.error) continue;
-    kinds({ ...d, covers: [] }).spines.forEach((b, i) => b.kind === "spine" && keep.add(`${d.id}:${i}`));
+    kinds({ ...d, covers: [] }, ev.get(d.id)).spines.forEach((b, i) => b.kind === "spine" && keep.add(`${d.id}:${i}`));
   }
   return keep;
 }
 
 let kept: Record<string, Set<string>> | null = null;
 const keepOf = (set: string) => (id: string) => {
-  kept ??= { [PILOT]: spineIds(join(BASE, "detect.jsonl")), [YARD]: spineIds(join(Q2_RUN.sets[YARD]!.stage, "detect.jsonl")) };
+  kept ??= { [PILOT]: spineIds(join(BASE, "detect.jsonl"), "pilot-000"), [YARD]: spineIds(join(Q2_RUN.sets[YARD]!.stage, "detect.jsonl"), "yardstick") };
   return kept[set]!.has(id);
 };
 
@@ -57,8 +59,8 @@ export const Q2B_RUN: Run = {
   cli: "q2b-cli.ts",
   priv: PRIV,
   evalDir: join(REPO, "evals", "Q2b"),
-  question: "Q-2's teacher and student, pre-registered and unchanged, on the current default boxes (F-0e bands+strips on pilot-000, F-0c's not-a-book filter on): does the predicted fill now pass Q-2's go rule",
-  inputs: "pilot-000 (31 photos): F-0e bands+strips boxes, the readers F-0e ran on them, F-0's decision (F-0c's cached base decisions); yardstick-library B2 (40 Library Dataset images, PROXY): F-0's own B2 run, the default for shelf-scale photos; both after F-0c's not-a-book filter; Q-1's features and Q-2's top-seam geometry re-measured on the new pilot-000 boxes",
+  question: "Q-2's teacher and student, pre-registered and unchanged, on the current default boxes (F-0e bands+strips on pilot-000, F-0c's and F-0f's not-a-book filter on): does the predicted fill now pass Q-2's go rule",
+  inputs: "pilot-000 (31 photos): F-0e bands+strips boxes, the readers F-0e ran on them, F-0's decision (F-0c's cached base decisions); yardstick-library B2 (40 Library Dataset images, PROXY): F-0's own B2 run, the default for shelf-scale photos; both after the shipped not-a-book filter (F-0c shape rules, F-0f shelf-label rules); Q-1's features and Q-2's top-seam geometry re-measured on the new pilot-000 boxes",
   sets: {
     [PILOT]: {
       stage: BASE,
@@ -162,7 +164,8 @@ function outlinesForU4(): Record<string, unknown> | null {
   const before = join(PRIV, "u4-before-summary.json"), after = join(PRIV, "u4-after-summary.json");
   if (!existsSync(path) || !existsSync(before) || !existsSync(after)) return null;
   const rows = readJsonl<{ id: string; outline?: Pt[]; seconds?: number; error?: string }>(path);
-  const byId = new Map(rows.filter((r) => r.outline).map((r) => [r.id, r.outline!]));
+  const keep = keepOf(PILOT); // outlines were run before F-0f's shelf-label rules; count only boxes kept now
+  const byId = new Map(rows.filter((r) => r.outline && keep(r.id)).map((r) => [r.id, r.outline!]));
   const kind = new Map(readJsonl<{ id: string; fragment: string }>(join(PRIV, "table", `${PILOT}.jsonl`)).map((r) => [r.id, r.fragment]));
   // U-4's own rule per box (display-draw attachPieces): most of the mask inside the grown box, covering 60 % of it.
   let shaped = 0, outside = 0, under = 0;
@@ -285,7 +288,7 @@ export function compare(q2: M, q2b: M, label = "Q-2b"): { json: Record<string, u
   ];
   const md = [
     "## Q-2 against Q-2b (pilot-000)\n",
-    "Q-2: F-0's B2 boxes. Q-2b: the current default (F-0e `bands+strips`, F-0c's not-a-book filter). Same teacher procedure, same student, same rule; intervals are 95 % paired photo bootstraps within each run.\n",
+    "Q-2: F-0's B2 boxes. Q-2b: the current default (F-0e `bands+strips`, F-0c's and F-0f's not-a-book filter). Same teacher procedure, same student, same rule; intervals are 95 % paired photo bootstraps within each run.\n",
     `| figure | Q-2 | ${label} |`,
     "|---|---:|---:|",
     ...rows.map(([k, x, y]) => `| ${k} | ${x} | ${y} |`),

@@ -8,7 +8,7 @@
 // Inputs, all cached, no model runs: F-0e's `bands+strips` boxes (one oriented box per spine, plus bands) and
 // the catalog for the labelling mode's guess. Shapes, rungs and guesses come from one of two sources:
 // - `q2b` (default): Q-2b's SAM 2.1 mask outline of each box itself (helpers/label/outline.py on these boxes),
-//   Q-2b's teacher rungs and F-0's decision on these boxes; F-0c's not-a-book boxes are left out, as the
+//   Q-2b's teacher rungs and F-0's decision on these boxes; not-a-book boxes (F-0c shapes, F-0f shelf labels) are left out, as the
 //   default pipeline does;
 // - `f0b`: F-0b's outlines and Q-2's rungs and decisions, all on F-0's boxes, attached to F-0e's boxes by
 //   overlap (display-draw.ts attachPieces).
@@ -26,6 +26,7 @@ import { attachPieces, baseOutline, overlaySvg, partialFlags, quadAxis, stillPro
 import type { Piece, Pt, Scene, SceneSpine } from "../report/display-draw.ts";
 import { decide, loadReadings, readJsonl, type SpineDecision } from "./f0.ts";
 import { kinds } from "./f0c.ts";
+import { evidenceFor } from "./f0f-cli.ts";
 import type { Candidate } from "../catalog/retrieve.ts";
 import { quantile, rng } from "./q1.ts";
 import type { Rung } from "./q2.ts";
@@ -99,8 +100,8 @@ function guessOf(d: SpineDecision | undefined, title: (workId: string) => string
 interface Attached { pieces: Pt[][]; rung: Rung; guess: string | null; maskShare: number; keep: boolean }
 
 /** Q-2b: each box's own mask outline, clipped and accepted by attachPieces' rules, one box at a time. */
-function ownPieces(d: Det, outlines: Map<string, Pt[]>, rungs: Map<string, Rung>, decisions: Map<string, SpineDecision>, title: (workId: string) => string | null): Attached[] {
-  const k = kinds({ ...(d as unknown as Parameters<typeof kinds>[0]), covers: [] });
+function ownPieces(d: Det, outlines: Map<string, Pt[]>, rungs: Map<string, Rung>, decisions: Map<string, SpineDecision>, title: (workId: string) => string | null, evidence: Parameters<typeof kinds>[1]): Attached[] {
+  const k = kinds({ ...(d as unknown as Parameters<typeof kinds>[0]), covers: [] }, evidence);
   return d.spines.map((s, i) => {
     const id = `${d.id}:${i}`;
     const outline = outlines.get(id);
@@ -138,6 +139,8 @@ function loadScenes(): { scenes: { name: string; imageId: string; source: string
   } else decisions = new Map(readJsonl<SpineDecision>(join(ROOT, "f0", SET, "decisions.jsonl")).map((d) => [d.id, d]));
   const titleStmt = db.prepare("SELECT title FROM works WHERE id = ?");
   const title = (id: string): string | null => (titleStmt.get(id) as { title: string } | undefined)?.title ?? null;
+  // The shipped not-a-book rules: F-0c's shapes and F-0f's shelf labels (reader text and a cached pixel probe).
+  const labelEvidence = SOURCE === "q2b" ? evidenceFor(SET) : new Map<string, Parameters<typeof kinds>[1]>();
   const maskShares: number[] = [];
   const scenes = images.map((img, n) => {
     const d = f0e.get(img.id);
@@ -145,7 +148,7 @@ function loadScenes(): { scenes: { name: string; imageId: string; source: string
     const quads = d.spines.map((s) => s.polygon);
     const bands = d.bands.map((b) => b.polygon);
     let attached: Attached[];
-    if (SOURCE === "q2b") attached = ownPieces(d, outlines, rungs, decisions, title);
+    if (SOURCE === "q2b") attached = ownPieces(d, outlines, rungs, decisions, title, labelEvidence.get(d.id));
     else {
       const pieces: Piece[] = (f0.get(img.id)?.spines ?? []).flatMap((_, i): Piece[] => {
         const id = `${img.id}:${i}`;
@@ -284,7 +287,7 @@ ${["a", "b"]
 <main>
 <div class="notes">
 <p><b>What this is.</b> Every photo drawn in each display variant (registry: <code>src/report/display-modes.ts</code>). Choose a mode and variant for A and B; click a photo to see it large. Lenses are not shown: this is the All lens, and any lens works inside any mode.</p>
-<p><b>Boxes</b> are F-0e's <code>${ARM}</code> run (one box per spine)${SOURCE === "q2b" ? ", without F-0c's not-a-book boxes" : ""}. <b>Object shapes</b> are ${SOURCE === "q2b" ? "SAM 2.1 mask outlines of each box itself (Q-2b), clipped to the box" : "F-0b's SAM mask outlines, which were measured on F-0's boxes; each is attached to the F-0e box holding most of it and clipped to that box"}. A box that ${SOURCE === "q2b" ? "its outline covers" : "the outlines cover"} less than 60 % of is drawn as its box (${counts.shapedPct}% of boxes are mask-shaped). <b>Coverage is per spine, not per segment.</b> Q-0's coverage segments are not built yet (Q-3). ${SOURCE === "q2b" ? "Each spine takes its own Q-2b teacher rung." : "Each spine takes the highest Q-2 rung of the F-0 boxes attached to it; a spine with none stays <code>spine-found</code> (patchy)."} Filled means <code>text-read</code> or above: ${counts.filledPct}% of spines. Tile edges in dev mode are rebuilt from the returned bands, so they are approximate. Rungs are machine agreement, not accuracy.</p>
+<p><b>Boxes</b> are F-0e's <code>${ARM}</code> run (one box per spine)${SOURCE === "q2b" ? ", without not-a-book boxes (F-0c shapes, F-0f shelf labels)" : ""}. <b>Object shapes</b> are ${SOURCE === "q2b" ? "SAM 2.1 mask outlines of each box itself (Q-2b), clipped to the box" : "F-0b's SAM mask outlines, which were measured on F-0's boxes; each is attached to the F-0e box holding most of it and clipped to that box"}. A box that ${SOURCE === "q2b" ? "its outline covers" : "the outlines cover"} less than 60 % of is drawn as its box (${counts.shapedPct}% of boxes are mask-shaped). <b>Coverage is per spine, not per segment.</b> Q-0's coverage segments are not built yet (Q-3). ${SOURCE === "q2b" ? "Each spine takes its own Q-2b teacher rung." : "Each spine takes the highest Q-2 rung of the F-0 boxes attached to it; a spine with none stays <code>spine-found</code> (patchy)."} Filled means <code>text-read</code> or above: ${counts.filledPct}% of spines. Tile edges in dev mode are rebuilt from the returned bands, so they are approximate. Rungs are machine agreement, not accuracy.</p>
 <table><thead><tr><th>variant</th><th>outline drawn</th><th>jaggedness p90</th><th>perturbation wobble</th><th>area CV</th></tr></thead><tbody>${pxRows}</tbody></table>
 <p style="font-size:12px;color:#9d968a">Still proxies over every spine: jaggedness at the 90th percentile, the others medians (definitions in <code>docs/capture/display-modes.md</code>). Jaggedness 0 = convex. Wobble below 1 means the drawn edge moves less than the mask noise put in (σ = 2 % of the spine's width).</p>
 </div>

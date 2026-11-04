@@ -10,7 +10,7 @@
 - **A mode is a whitelist of overlay layers, and a variant is data.** The renderer draws the layers a variant lists, with the numbers it carries. It never branches on a mode's or variant's name, and the registry check forbids every box, number and label layer in the `user` mode.
 - **Lenses are orthogonal.** U-1's overlay lens (All, Recommended, Read, Needs a closer look) chooses *which* spines a highlight means. The display mode chooses *how* the glass draws them. Any lens works inside any mode.
 - **The still study** draws all 31 `pilot-000` photos in six variants, on one private page under the data root (`private/u4/renders/pilot-000/index.html`). The page has a mode switcher and an A/B view per photo. User-mode shapes follow the spine's real outline: since Q-2b, each box's own SAM mask outline for 83 % of boxes (69 % in the first study), and the oriented box for the rest.
-- **Coverage is per spine, not per segment.** Q-0's coverage segments are not built yet (Q-3). Each spine takes its own Q-2b teacher rung: filled from `text-read` up (48.1 % of spines), patchy below that.
+- **Coverage is per spine, not per segment.** Q-0's coverage segments are not built yet (Q-3). Each spine takes its own Q-2b teacher rung: filled from `text-read` up (50.2 % of spines), patchy below that.
 - **Feel metrics are defined now and measured later.** Q-6 reports flicker rate, edge wobble, time to fill and uncaused downgrades (target 0) per display variant. Three still proxies are computed today. Sessions log the variant's id and a parameter hash, so A/B results compare by variant (§4, a proposal; `contracts/` is not edited).
 
 ## 1. Modes, layers and variants
@@ -61,7 +61,7 @@ The page is static: no fetches, and nothing leaves the machine. Use the two mode
 
 **Inputs, all cached (since Q-2b, the default source):**
 
-- F-0e's shipped `bands+strips` boxes, one oriented box per spine, plus their shelf bands, without F-0c's not-a-book boxes;
+- F-0e's shipped `bands+strips` boxes, one oriented box per spine, plus their shelf bands, without not-a-book boxes (F-0c's shape rules, F-0f's shelf-label rules);
 - one SAM 2.1 mask outline per box, measured on that box itself (F-0b's `helpers/label/outline.py`, run by Q-2b: [`evals/Q2b/report.md`](../../evals/Q2b/report.md));
 - Q-2b's teacher rung per box;
 - F-0's decision per box, plus catalog titles for the labelling guess.
@@ -77,11 +77,11 @@ Each box takes its own outline, clipped to the box grown 3 % along the spine and
 
 On `pilot-000`, 31 photos:
 
-| Measure | First study (`f0b`): 6,145 boxes | Since Q-2b (`q2b`): 6,138 boxes |
+| Measure | First study (`f0b`): 6,145 boxes | Since Q-2b (`q2b`): 6,121 boxes |
 |---|---|---|
 | Drawn from mask outlines | 69 % (median mask share of a box 0.76) | 83.2 % (median mask share 0.82) |
-| Filled (rung ≥ `text-read`) | 48.2 % | 48.1 % |
-| Rungs | `spine-found` 30.1 % · `text-present` 21.8 % · `text-read` 22.1 % · `matched` 15.0 % · `confirmed` 11.1 % | `spine-found` 22.2 % · `text-present` 29.8 % · `text-read` 21.0 % · `matched` 15.1 % · `confirmed` 11.9 % |
+| Filled (rung ≥ `text-read`) | 48.2 % | 50.2 % |
+| Rungs | `spine-found` 30.1 % · `text-present` 21.8 % · `text-read` 22.1 % · `matched` 15.0 % · `confirmed` 11.1 % | `spine-found` 22.1 % · `text-present` 27.7 % · `text-read` 23.1 % · `matched` 15.1 % · `confirmed` 11.9 % |
 
 These are machine agreement, not accuracy (INV-17). In the first study `spine-found` was high because boxes no piece reached stayed at that rung. The remaining 17 % drawn as boxes are masks that cover under 60 % of their box (16.5 %: SAM took part of the spine, such as a label block) or lie mostly outside it (0.4 %).
 
@@ -108,9 +108,9 @@ Q-6 (the live slice) must report these **per display variant**. They are defined
 | Variant | Outline drawn | Jaggedness p90 | Perturbation wobble (median) | Area CV (median) |
 |---|---|---|---|---|
 | dev, labelling | box, no smoothing | 0 | 1.00 | 0.018 |
-| `user-glow` | mask hull, 2 passes | 0 | 0.75 | 0.019 (first study 0.018) |
-| `user-veil` | mask hull, 3 passes | 0 | 0.74 | 0.019 (first study 0.018) |
-| `user-ridge` | raw mask, 1 pass | 0.058 (first study 0.051) | 0.79 | 0.019 |
+| `user-glow` | mask hull, 2 passes | 0 | 0.75 | 0.018 |
+| `user-veil` | mask hull, 3 passes | 0 | 0.74 | 0.018 |
+| `user-ridge` | raw mask, 1 pass | 0.059 (first study 0.051) | 0.79 | 0.019 |
 
 Since Q-2b; the first study's values are given where they differ at this precision.
 
