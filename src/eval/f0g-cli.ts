@@ -3,7 +3,7 @@
 //   node src/eval/f0g-cli.ts pairs <set>      # neighbours and their appearance similarities (helpers/label/appearance.py)
 //   node src/eval/f0g-cli.ts evidence <set>   # each paired spine's reader tops (F-0's topFor), cached
 //   node src/eval/f0g-cli.ts calibrate        # fit the visual score on pilot-000's confirmed neighbours; prints VISUAL
-//   node src/eval/f0g-cli.ts imprint <set>    # F-0d's imprint read on members of groups that could propagate
+//   node src/eval/f0g-cli.ts imprint <set>    # F-0d's imprint read on members of groups that could propagate (--dry-run: count only)
 //   node src/eval/f0g-cli.ts analyse          # evals/F0g/{metrics.json,report.md} tables (aggregates only)
 //   node src/eval/f0g-cli.ts render           # the data root's private/f0g/renders/pilot-000/index.html (private)
 //
@@ -20,9 +20,11 @@ import { scoreWorks, type Candidate } from "../catalog/retrieve.ts";
 import { dataRoot } from "../ledger/images.ts";
 import { cropFor, cropName } from "../perceive/crop.ts";
 import { confirms, CROP, loadReadings, readJsonl, topFor, variantsOf, type Detection, type Reading, type ReaderName } from "./f0.ts";
+import { kinds } from "./f0c.ts";
 import { imagesOf, meanCI, SETS, type SetName, type Slim } from "./f0c-cli.ts";
 import { boxImprint, runImprintHelper, type ImprintReading } from "./f0d-cli.ts";
 import { boxRows, type Tri } from "./f0e.ts";
+import { evidenceFor } from "./f0f-cli.ts";
 import {
   copyGroups,
   COPY,
@@ -67,6 +69,15 @@ const stage = (set: SetName): string => {
 const loadDets = (set: SetName): Map<string, Detection> =>
   new Map(readJsonl<Detection>(join(SETS[set].base, "detect.jsonl")).filter((d) => !d.error).map((d) => [d.id, d]));
 
+/**
+ * The shipped box set's kinds: per photo, whether each box is a book. F-0c's not-a-book flags and F-0f's shelf
+ * labels and cards (from the base's Vision and PP-OCR text and F-0f's cached pixel probe); the cover pass is off.
+ */
+const loadBooks = (set: SetName, dets: Map<string, Detection>): Map<string, boolean[]> => {
+  const ev = evidenceFor(set);
+  return new Map([...dets].map(([id, d]) => [id, kinds({ ...d, covers: [] }, ev.get(id)).spines.map((b) => b.kind === "spine")]));
+};
+
 // --- pairs: neighbours and appearance ----------------------------------------------------------------------
 
 interface PairRow extends Neighbour, Appearance {}
@@ -84,7 +95,8 @@ async function pairs(set: SetName): Promise<void> {
   const paths = new Map(imagesOf(set).map((i) => [i.id, i.path]));
   const todo = [...dets.values()].filter((d) => !done.has(d.id));
   if (todo.length === 0) return;
-  const nb = new Map(todo.map((d) => [d.id, neighbours(d)]));
+  const books = loadBooks(set, dets);
+  const nb = new Map(todo.map((d) => [d.id, neighbours(d, (i) => books.get(d.id)![i]!)]));
   const reqs = todo.map((d) => ({
     id: d.id,
     image: paths.get(d.id),
@@ -124,8 +136,10 @@ const loadPairs = (set: SetName): Map<string, PhotoPairs> => new Map(readJsonl<P
 const ref = (c: Candidate): WorkRef => ({ workId: c.workId, title: c.title, authors: c.authors });
 
 function evidence(set: SetName): void {
+  // Incremental: a spine's evidence depends on its readings and F-0's decision, not on its neighbours, so rows
+  // cached before a box-set change are reused and only spines newly paired are scored.
   const out = join(stage(set), "evidence.jsonl");
-  if (existsSync(out)) return;
+  const have = new Set(readJsonl<SpineEvidence>(out).map((e) => e.id));
   const t0 = Date.now();
   const db = openCatalog(SETS[set].catalog);
   const readings = loadReadings(SETS[set].base);
@@ -135,6 +149,7 @@ function evidence(set: SetName): void {
   const cache = new Map<string, Candidate | undefined>();
   const rows: SpineEvidence[] = [];
   for (const id of [...ids].sort()) {
+    if (have.has(id)) continue;
     const reads = readings.get(id) ?? {};
     const readers = (Object.keys(reads) as ReaderName[])
       .filter((r) => variantsOf(reads[r]).length > 0)
@@ -147,8 +162,8 @@ function evidence(set: SetName): void {
     if (acc && !top) throw new Error(`accepted work not among its readers' tops in ${set}`);
     rows.push({ id, accepted: top ? { workId: top.workId, title: top.title, authors: top.authors } : null, readers });
   }
-  writeFileSync(out, rows.map((r) => JSON.stringify(r)).join("\n") + "\n");
-  log(`${set}: evidence for ${rows.length} spines in ${((Date.now() - t0) / 1000).toFixed(0)} s`);
+  if (rows.length) writeFileSync(out, (existsSync(out) ? readFileSync(out, "utf8") : "") + rows.map((r) => JSON.stringify(r)).join("\n") + "\n");
+  log(`${set}: evidence for ${rows.length} new spines (${have.size} cached) in ${((Date.now() - t0) / 1000).toFixed(0)} s`);
 }
 
 const loadBase = (set: SetName): Map<string, Slim> => {
@@ -243,7 +258,7 @@ const loadImprints = (set: SetName): Map<string, ImprintReading> =>
  * Imprint reads (helpers/label/imprint.py, Qwen) on every member of a copy group that holds a confirmed copy and an
  * unconfirmed one, the only groups where the imprint guard can change a decision; boxes F-0d already read are reused.
  */
-async function imprint(set: SetName): Promise<void> {
+async function imprint(set: SetName, dryRun = false): Promise<void> {
   const run = runSet(set);
   const done = loadImprints(set);
   const paths = new Map(imagesOf(set).map((i) => [i.id, i.path]));
@@ -259,6 +274,7 @@ async function imprint(set: SetName): Promise<void> {
     }
   }
   log(`${set}: ${reqs.length} boxes to read for their imprint (${done.size} cached)`);
+  if (dryRun || reqs.length === 0) return;
   const t0 = Date.now();
   await runImprintHelper(reqs, join(stage(set), "imprint.jsonl"));
   log(`${set}: imprint reads done in ${Math.round((Date.now() - t0) / 1000)} s`);
@@ -303,6 +319,7 @@ interface PairOutcome {
 interface SetRun {
   set: SetName;
   dets: Map<string, Detection>;
+  books: Map<string, boolean[]>;
   base: Map<string, Slim>;
   ev: Map<string, SpineEvidence>;
   fit: Fit;
@@ -317,6 +334,7 @@ const noEvidence = (id: string): SpineEvidence => ({ id, accepted: null, readers
 function runSet(set: SetName, useImprint = true): SetRun {
   const t0 = Date.now();
   const dets = loadDets(set);
+  const books = loadBooks(set, dets);
   const base = loadBase(set);
   const imprints = useImprint ? loadImprints(set) : new Map<string, ImprintReading>();
   const ev = new Map(readJsonl<SpineEvidence>(join(stage(set), "evidence.jsonl")).map((e) => [e.id, { ...e, imprint: boxImprint(imprints.get(e.id)).key }]));
@@ -343,7 +361,7 @@ function runSet(set: SetName, useImprint = true): SetRun {
       for (const d of propagate(g.map((i) => ev.get(`${imageId}:${i}`) ?? noEvidence(`${imageId}:${i}`)), fit)) decisions.set(d.id, d);
     }
   }
-  return { set, dets, base, ev, fit, outcomes, groups, decisions, seconds: { pairsPerPhoto: [...pp.values()].map((p) => p.seconds), analyse: (Date.now() - t0) / 1000 } };
+  return { set, dets, books, base, ev, fit, outcomes, groups, decisions, seconds: { pairsPerPhoto: [...pp.values()].map((p) => p.seconds), analyse: (Date.now() - t0) / 1000 } };
 }
 
 /**
@@ -377,10 +395,10 @@ interface PhotoCount {
 }
 
 function analyseSet(run: SetRun) {
-  const { set, dets, base, outcomes, groups, decisions, fit } = run;
+  const { set, dets, books, base, outcomes, groups, decisions, fit } = run;
   const truth = set === "yardstick" ? yardstickCopies() : null;
   const photos: PhotoCount[] = [...dets.values()].map((d) => {
-    const ids = d.spines.map((_, i) => `${d.id}:${i}`);
+    const ids = d.spines.flatMap((_, i) => (books.get(d.id)![i] ? [`${d.id}:${i}`] : []));
     const acc = ids.map((id) => base.get(id)?.accepted ?? null);
     const prop = ids.map((id) => (decisions.get(id)?.basis === "confirmed-by-copy" ? decisions.get(id)!.workId : null));
     const gs = groups.filter((g) => g.imageId === d.id);
@@ -390,7 +408,7 @@ function analyseSet(run: SetRun) {
       confirmed: acc.filter(Boolean).length,
       byCopy: prop.filter(Boolean).length,
       groups: gs.length,
-      identifiedGroups: gs.filter((g) => g.members.some((i) => acc[i])).length,
+      identifiedGroups: gs.filter((g) => g.members.some((i) => base.get(`${d.id}:${i}`)?.accepted)).length,
     };
     if (truth) {
       const t = truth.get(d.id) ?? new Map<string, number>();
@@ -435,6 +453,7 @@ function analyseSet(run: SetRun) {
   const perWork = new Map<string, { n: number; groups: Set<string> }>();
   for (const d of dets.values())
     d.spines.forEach((_, i) => {
+      if (!books.get(d.id)![i]) return;
       const id = `${d.id}:${i}`;
       const w = base.get(id)?.accepted ?? (decisions.get(id)?.basis === "confirmed-by-copy" ? decisions.get(id)!.workId : null);
       if (!w) return;
@@ -472,6 +491,7 @@ function analyseSet(run: SetRun) {
     scope: SETS[set].scope,
     photos: photos.length,
     boxCount: photos.reduce((s, p) => s + p.boxes, 0),
+    notABookCount: [...books.values()].reduce((s, b) => s + b.filter((x) => !x).length, 0),
     neighbourPairs: outcomes.length,
     neighbourPairsInFrame: outcomes.filter((o) => o.n.valid).length,
     visuallySame: outcomes.filter((o) => o.visual).length,
@@ -585,6 +605,7 @@ function analyse(): void {
     card: "F-0g",
     run: "2026-11-03",
     note: "Aggregates only. pilot-000 is machine agreement, never accuracy (INV-17); the yardstick is PROXY (library shelves). Never pooled (OC35).",
+    boxSet: "each set's default boxes (pilot-000: F-0e bands+strips; yardstick: F-0's B2 run) less F-0c's and F-0f's not-a-book boxes, as shipped on main 9653345",
     calibration: { rule: `logistic score over ${VISUAL.features.join(", ")}; threshold where ${CALIBRATION.falsePassRate * 100} % of different-work confirmed neighbours pass; pilot-000 only`, ...cal, model: undefined },
     copy: COPY,
     sets,
@@ -723,15 +744,15 @@ async function render(): Promise<void> {
 }
 
 if (import.meta.url === `file://${process.argv[1]}`) {
-  const [cmd, set] = process.argv.slice(2) as [string, SetName];
+  const [cmd, set, flag] = process.argv.slice(2) as [string, SetName, string?];
   if (cmd === "pairs") await pairs(set);
   else if (cmd === "evidence") evidence(set);
   else if (cmd === "calibrate") calibrate();
-  else if (cmd === "imprint") await imprint(set);
+  else if (cmd === "imprint") await imprint(set, flag === "--dry-run");
   else if (cmd === "analyse") analyse();
   else if (cmd === "render") await render();
   else {
-    console.error("usage: node src/eval/f0g-cli.ts pairs|evidence|imprint <pilot-000|yardstick> | calibrate | analyse | render");
+    console.error("usage: node src/eval/f0g-cli.ts pairs|evidence <pilot-000|yardstick> | imprint <set> [--dry-run] | calibrate | analyse | render");
     process.exit(2);
   }
 }

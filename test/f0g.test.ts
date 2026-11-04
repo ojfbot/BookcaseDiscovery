@@ -58,6 +58,13 @@ describe("neighbours", () => {
     expect(neighbours(d)).toEqual([]);
   });
 
+  it("leaves out not-a-book boxes first, keeping the set's indices", () => {
+    // A wide flat box over the second and fourth spines hides them as nested pieces; without it they pair again.
+    const d = det([box(100, 1000, 100, 1000), box(205, 1000, 100, 1000), box(190, 980, 1300, 1050), box(310, 1000, 100, 1000)]);
+    expect(neighbours(d)).toEqual([]);
+    expect(neighbours(d, (i) => i !== 2).map((n) => [n.a, n.b])).toEqual([[0, 1], [1, 3]]);
+  });
+
   it("reports the size ratios a copy must keep", () => {
     const [n] = neighbours(det([box(100, 1000, 100, 1000), box(205, 1100, 120, 900)]));
     expect(n!.longRatio).toBeCloseTo(1000 / 900);

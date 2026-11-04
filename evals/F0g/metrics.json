@@ -2,6 +2,7 @@
   "card": "F-0g",
   "run": "2026-11-03",
   "note": "Aggregates only. pilot-000 is machine agreement, never accuracy (INV-17); the yardstick is PROXY (library shelves). Never pooled (OC35).",
+  "boxSet": "each set's default boxes (pilot-000: F-0e bands+strips; yardstick: F-0's B2 run) less F-0c's and F-0f's not-a-book boxes, as shipped on main 9653345",
   "calibration": {
     "rule": "logistic score over ncc, hist, prof, longLog, shortLog; threshold where 2 % of different-work confirmed neighbours pass; pilot-000 only",
     "pairs": 263,
@@ -26,10 +27,11 @@
     "pilot-000": {
       "scope": "real use (OC35): machine agreement, never accuracy (INV-17)",
       "photos": 31,
-      "boxCount": 6145,
-      "neighbourPairs": 4416,
-      "neighbourPairsInFrame": 4390,
-      "visuallySame": 251,
+      "boxCount": 6121,
+      "notABookCount": 24,
+      "neighbourPairs": 4424,
+      "neighbourPairsInFrame": 4398,
+      "visuallySame": 252,
       "guardRejected": 67,
       "guardReasons": {
         "reads-differ": 40,
@@ -38,12 +40,12 @@
         "accepted-differ": 4,
         "reads-other-title": 14
       },
-      "links": 184,
+      "links": 185,
       "groups": {
-        "total": 154,
+        "total": 155,
         "perPhoto": [
-          4.9677,
-          3.3871,
+          5,
+          3.4516,
           6.6452
         ],
         "identified": 41,
@@ -53,7 +55,7 @@
           2.0968
         ],
         "sizes": {
-          "2": 128,
+          "2": 129,
           "3": 22,
           "4+": 4
         },
@@ -73,9 +75,9 @@
           0.5806
         ],
         "confirmedShareBase": [
-          0.119,
-          0.0763,
-          0.1594
+          0.1194,
+          0.0765,
+          0.1601
         ],
         "extraConfirmedSharePts": [
           0.0015,
@@ -194,8 +196,8 @@
       "yardstick": null,
       "runtime": {
         "appearanceSecondsPerPhoto": {
-          "p50": 0.328,
-          "total": 11
+          "p50": 0.281,
+          "total": 9
         },
         "analyseSeconds": 0
       }
@@ -203,9 +205,10 @@
     "yardstick": {
       "scope": "PROXY (library shelves): Library Dataset sample, box arm B2; confirmed = accepted and annotated in the image",
       "photos": 40,
-      "boxCount": 1132,
-      "neighbourPairs": 667,
-      "neighbourPairsInFrame": 666,
+      "boxCount": 1116,
+      "notABookCount": 16,
+      "neighbourPairs": 673,
+      "neighbourPairsInFrame": 672,
       "visuallySame": 29,
       "guardRejected": 7,
       "guardReasons": {
@@ -248,9 +251,9 @@
           0
         ],
         "confirmedShareBase": [
-          0.2376,
-          0.1828,
-          0.2972
+          0.241,
+          0.1849,
+          0.3019
         ],
         "extraConfirmedSharePts": [
           0,
@@ -382,8 +385,8 @@
       },
       "runtime": {
         "appearanceSecondsPerPhoto": {
-          "p50": 0.062,
-          "total": 3
+          "p50": 0.052,
+          "total": 2
         },
         "analyseSeconds": 0
       }

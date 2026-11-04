@@ -8,6 +8,11 @@ a merge; INV-4)? Two sets, never merged (OC35): **`pilot-000`** (31 real-use pho
 Dataset sample, used to evaluate only. No hand labels (OC36), no paid calls, nothing trained or tuned on the yardstick.
 Aggregates only; photos, crops, reads and titles stay under the data root.
 
+**Box set.** Each set's default boxes (`pilot-000`: F-0e `bands+strips`; yardstick: F-0's B2 run) less the boxes
+F-0c's and F-0f's not-a-book rules flag (24 on `pilot-000`, 16 on the yardstick), as shipped on main `9653345`, with
+F-0's cached readings and decisions. First measured on the boxes before F-0f, with no not-a-book box left out;
+re-measured below, with the same constants and keep rule.
+
 ## Pre-registration (written before calibration and before any group was formed)
 
 The neighbour pairs and their appearance similarities were computed before this was written; no label was joined to
@@ -61,6 +66,34 @@ stays inside the base's 95 % interval. If either fails, propagation stays off an
 
 ## Results
 
+### Re-measured on F-0f's box set (main 9653345)
+
+F-0f (#38) made shelf labels and cards `not-a-book` by default. F-0g first ran on every default box. The flagged
+boxes are now left out before pairing, as if not detected. Every flagged box lies flat or sits outside every band,
+so none was ever paired. But a spine nested in a flagged box was skipped as a piece of a larger box; leaving the
+flagged boxes out frees those, adding 8 `pilot-000` pairs and 6 yardstick pairs.
+Calibration is unchanged: the same 263 confirmed pairs and the same fitted score, so `VISUAL` did not move. No new
+imprint read was needed (the GPU was not used). **The verdict holds: propagation stays on.**
+
+| headline | before F-0f | on F-0f's box set |
+|---|---|---|
+| `pilot-000` boxes / not-a-book left out | 6,145 / 0 | 6,121 / 24 |
+| `pilot-000` neighbour pairs | 4,416 | 4,424 |
+| **copy groups per photo** (`pilot-000`) | 4.97 (3.39 to 6.65), 154 | **5.00 (3.45 to 6.65), 155** |
+| group sizes 2 / 3 / 4+ | 128 / 22 / 4 | 129 / 22 / 4 |
+| groups with a confirmed copy | 41 | 41 |
+| **extra confirmed boxes per photo** (confirmed-by-copy) | 0.29 (0.06 to 0.58), 9 boxes | **0.29 (0.06 to 0.58), 9 boxes** |
+| visually same, both confirmed: different works | 9.8 % (2.7–19.4) of 41; 0 after the guard | 9.8 % (2.7–19.4) of 41; 0 after the guard |
+| hard negatives visually the same | 4.3 % (1.0–8.8) of 92 | 4.3 % (1.0–8.8) of 92 |
+| **series guard: hard-negative one-reader views blocked** | 420 of 420 | **420 of 420** |
+| one-reader views: right work / wrong work propagated | 96.3 % of 162 / 0 of 17 | 96.3 % of 162 / 0 of 17 |
+| yardstick boxes / not-a-book left out | 1,132 / 0 | 1,116 / 16 |
+| yardstick copy groups; propagated | 15; 0 | 15; 0 |
+| yardstick wrong accepts | 22 → 22 (8.2 %) | 22 → 22 (8.2 %) |
+| keep rule | met | **met** |
+
+The new pairs add one group of two unconfirmed copies on `pilot-000` and nothing on the yardstick, so no decision changed.
+
 ### Verdict
 
 - **Keep rule met: propagation ships** as the recorded decision basis `confirmed-by-copy`, beside F-0's
@@ -73,7 +106,7 @@ stays inside the base's 95 % interval. If either fails, propagation stays off an
   accepts stayed at 22 (8.2 % of accepted). The yardstick shows the visual test and guard do not invent copies on
   library shelves; it cannot show propagation's error rate. That comes from the one-reader views below.
 - **Copies are common in the bookstore.** Of `pilot-000` neighbours that F-0 confirmed on both sides, 28 % are the
-  same work (74 of 263). Copy groups: **4.97 a photo (3.39 to 6.65)**, 154 in 26 of 31 photos, mostly pairs (128),
+  same work (74 of 263). Copy groups: **5.00 a photo (3.45 to 6.65)**, 155 in 26 of 31 photos, mostly pairs (129),
   22 of three and 4 of four or more; 41 hold a confirmed copy. At the work level, 86 works have two or more copies
   on one shelf band, and 52 of those are not all in one copy group (another edition or look beside them, or a copy
   the visual test missed); they are still counted together as copies of the work.
@@ -90,7 +123,7 @@ stays inside the base's 95 % interval. If either fails, propagation stays off an
   (0 of 17). That is an estimate on 41 pairs, not a guarantee: the intervals are wide.
 - **Imprint guard.** It split 1 `pilot-000` pair and 2 yardstick pairs. `pilot-000` imprints were read only on the
   23 members of groups where propagation could happen (the F-0d reads sit on F-0's older boxes).
-- **Cost.** Appearance similarities take 0.33 s a photo (11 s for `pilot-000`); the guard, groups and propagation
+- **Cost.** Appearance similarities take 0.28 s a photo (9 s for `pilot-000`); the guard, groups and propagation
   under a second a set once each spine's reader tops are cached (832 s for `pilot-000`, the same catalog calls F-0's
   decision makes).
 
@@ -109,15 +142,15 @@ stays inside the base's 95 % interval. If either fails, propagation stays off an
 
 ### pilot-000 (real use): machine agreement, never accuracy
 
-31 photos, 6145 boxes, 4416 neighbour pairs (4390 in frame). Intervals: 95 % photo bootstrap.
+31 photos, 6121 boxes, 4424 neighbour pairs (4398 in frame). Intervals: 95 % photo bootstrap.
 
 | measure | value |
 |---|---|
-| visually the same | 251 pairs |
+| visually the same | 252 pairs |
 | rejected by the series guard | 67 (reads-differ 40, reads-other-title 14, reader-confirms-other 8, accepted-differ 4, imprint-differs 1) |
-| **copy groups per photo** | **4.97 (3.39 to 6.65)** (154 groups in 26 photos) |
+| **copy groups per photo** | **5.00 (3.45 to 6.65)** (155 groups in 26 photos) |
 | groups with a confirmed copy, per photo | 1.32 (0.65 to 2.10) (41) |
-| group sizes | 2 copies: 128, 3 copies: 22, 4+ copies: 4 |
+| group sizes | 2 copies: 129, 3 copies: 22, 4+ copies: 4 |
 | confirmed boxes (F-0, two readers) | 731; per photo 23.58 (13.93 to 33.77) |
 | **extra confirmed boxes per photo (confirmed-by-copy)** | **0.29 (0.06 to 0.58)** (9 boxes; +0.15 pts (0.03–0.28) of boxes) |
 | unconfirmed copies not propagated | no-consistent-reader 2, reads-other-title 1 |
@@ -133,11 +166,11 @@ stays inside the base's 95 % interval. If either fails, propagation stays off an
 | blocked by | reader-confirms-other 376, reads-other-title 26, no-consistent-reader 18 |
 | copies per work on one shelf band (work level, any edition) | 1: 547, 2: 74, 3: 7, 4+: 5 |
 | works with two or more copies on a band; of them in more than one copy group or alone (another edition or look) | 86; 52 |
-| runtime | appearance p50 0.328 s a photo (11 s in all); guard, groups and propagation 0 s for the set |
+| runtime | appearance p50 0.281 s a photo (9 s in all); guard, groups and propagation 0 s for the set |
 
 ### yardstick (PROXY, library shelves)
 
-40 photos, 1132 boxes, 667 neighbour pairs (666 in frame). Intervals: 95 % photo bootstrap.
+40 photos, 1116 boxes, 673 neighbour pairs (672 in frame). Intervals: 95 % photo bootstrap.
 
 | measure | value |
 |---|---|
@@ -163,7 +196,7 @@ stays inside the base's 95 % interval. If either fails, propagation stays off an
 | works with two or more copies on a band; of them in more than one copy group or alone (another edition or look) | 8; 7 |
 | **yardstick wrong accepts** (accepted work not annotated in the image) | 22 → 22; per image Δ 0.00 (0.00 to 0.00); share of accepted 8.2 % (3.6–13.9) → 8.2 % (3.6–13.9) |
 | boxes labelled a work beyond its annotated copies | 6 → 6 |
-| runtime | appearance p50 0.062 s a photo (3 s in all); guard, groups and propagation 0 s for the set |
+| runtime | appearance p50 0.052 s a photo (2 s in all); guard, groups and propagation 0 s for the set |
 
 ### Keep rule
 

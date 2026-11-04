@@ -61,9 +61,14 @@ function overlap1d(a0: number, a1: number, b0: number, b1: number): number {
 /**
  * Pairs of neighbouring spines: upright boxes in one shelf band, not nested in a larger box, each paired with the
  * nearest box to its right that stands on the same shelf, is not the same spine twice and leaves a gap of at most
- * `maxGapWidths` median spine widths. Lying books and boxes outside every band are not paired.
+ * `maxGapWidths` median spine widths. Lying books and boxes outside every band are not paired. With `isBook`, boxes
+ * it rejects (F-0c's and F-0f's `not-a-book`) are left out before pairing, as if not detected; indices stay the set's.
  */
-export function neighbours(det: Detection): Neighbour[] {
+export function neighbours(det: Detection, isBook?: (i: number) => boolean): Neighbour[] {
+  if (isBook) {
+    const keep = det.spines.flatMap((_, i) => (isBook(i) ? [i] : []));
+    return neighbours({ ...det, spines: keep.map((i) => det.spines[i]!) }).map((n) => ({ ...n, a: keep[n.a]!, b: keep[n.b]! }));
+  }
   const rows = boxRows(det);
   const mw = det.gaps.medianWidth || median(rows.map((r) => r.g.short)) || 1;
   const out: Neighbour[] = [];
