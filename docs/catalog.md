@@ -361,3 +361,13 @@ node src/catalog/c6-eval.ts decide --set pilot-000
 node src/catalog/c6-eval.ts golden
 node src/catalog/c6-eval.ts publish            # evals/C6/metrics.json
 ```
+
+**Result (2026-11-03): the default stays `catalog.sqlite`.** No arm passed the pre-registered keep rule:
+
+- The margin alone and author evidence alone kept too many yardstick lookalikes.
+- Every combination withdrew too many `pilot-000` confirmations.
+- The short-title arm passed the yardstick and `pilot-000` conditions. It failed on golden queries that v1 confirms
+  correctly from a bare title or from an author's given names alone.
+
+`BOOKCASE_CATALOG=catalog-v2.sqlite` still selects v2 by hand (above), with no guard. What a switch would need is in
+`evals/C6/report.md` § What would be needed.
