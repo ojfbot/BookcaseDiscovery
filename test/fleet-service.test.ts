@@ -29,6 +29,16 @@ it("claims only when external power is confirmed and skips the power probe durin
   expect(read).not.toHaveBeenCalled();
 });
 
+it("allows Yuri to claim on AC until the explicit daytime deadline", () => {
+  const deadline = "2026-01-20T22:00:00Z";
+  const afternoon = date("2026-01-20T20:00:00Z");
+  expect(yuriMayClaim(afternoon, ac, deadline)).toBe(true);
+  expect(yuriMayClaim(afternoon, () => "Now drawing from 'Battery Power'", deadline)).toBe(false);
+  expect(yuriMayClaim(date(deadline), ac, deadline)).toBe(false);
+  expect(yuriMayClaim(afternoon, ac, "tomorrow")).toBe(false);
+  expect(yuriMayClaim(date("2026-01-21T02:00:00Z"), ac, deadline)).toBe(true);
+});
+
 let home: string;
 let env: NodeJS.ProcessEnv;
 
@@ -55,6 +65,10 @@ it("renders escaped absolute paths and leaves unrelated environment out of launc
   expect(plist).toContain("<string>yuri</string>");
   expect(plist).toContain("<key>ExitTimeOut</key><integer>240</integer>");
   expect(plist).not.toContain("unused-value");
+  const exception = { ...env, FLEET_YURI_DAYTIME_UNTIL: "2026-01-20T22:00:00Z" };
+  expect(workerPlist(process.execPath, "yuri", exception)).toContain("<string>2026-01-20T22:00:00Z</string>");
+  expect(workerPlist(process.execPath, "yojimbo", exception)).not.toContain("FLEET_YURI_DAYTIME_UNTIL");
+
   expect(() => workerPlist(process.execPath, "owner", env)).toThrow();
   expect(() => workerPlist("node", "yuri", env)).toThrow();
 });

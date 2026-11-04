@@ -27,6 +27,9 @@ export function workerPlist(node: string, worker: string, env: NodeJS.ProcessEnv
     BOOKCASE_OCR_VISION: env.BOOKCASE_OCR_VISION,
     FLEET_TOKEN_FILE: env.FLEET_TOKEN_FILE,
     FLEET_ENDPOINT: env.FLEET_ENDPOINT,
+    ...(worker === "yuri" && env.FLEET_YURI_DAYTIME_UNTIL
+      ? { FLEET_YURI_DAYTIME_UNTIL: env.FLEET_YURI_DAYTIME_UNTIL }
+      : {}),
   };
   for (const path of [node, values.BOOKCASE_DATA, values.BOOKCASE_OCR_VISION, values.FLEET_TOKEN_FILE]) {
     if (!path || !isAbsolute(path)) throw new Error("service paths must be absolute");

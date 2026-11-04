@@ -54,6 +54,12 @@ Use the owner credential on Yojimbo for `pnpm exec ./bin/bookcase fleet report`.
 The report shows queue state and per-worker outcomes. Local service status
 reflects launchd state. The service discards stdout and stderr.
 
+For a bounded daytime test on Yuri, set `FLEET_YURI_DAYTIME_UNTIL` to a UTC
+deadline such as `2026-01-20T22:00:00Z` when installing its service. Stop
+the idle service, reinstall with that environment variable, and start it.
+The worker checks the deadline and AC power before every claim. Once the
+deadline passes, the normal Central claim window applies automatically.
+
 ## Admit a read-qwen job
 
 `read-qwen` runs Qwen3-VL-4B-Instruct 8-bit (MLX) through
