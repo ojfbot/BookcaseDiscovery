@@ -1,0 +1,2401 @@
+{
+ "card": "F-R2",
+ "date": "2026-11-03",
+ "scope": {
+  "pilot-000": "real use (OC35): machine agreement, never accuracy (INV-17)",
+  "yardstick": "PROXY: Library Dataset sample, box arm B2; confirmed = accepted and annotated"
+ },
+ "constants": {
+  "maxSide": 1600,
+  "effBins": [
+   0,
+   16,
+   24,
+   32,
+   48,
+   64,
+   96
+  ],
+  "rawBins": [
+   0,
+   24,
+   32,
+   48,
+   64,
+   96,
+   128,
+   192
+  ],
+  "lineBins": [
+   0,
+   8,
+   12,
+   16,
+   24,
+   32,
+   48
+  ],
+  "sepBins": [
+   0,
+   30,
+   45,
+   60,
+   80
+  ],
+  "bootstrapDraws": 2000,
+  "seed": 1,
+  "lineDetector": "PP-OCRv5_server_det, CPU, crop as read.py cuts it at 90 deg",
+  "lineHeight": "short side of the detector's line box after DB unclip (an upper bound on glyph height)"
+ },
+ "pilot-000": {
+  "boxCount": 6145,
+  "photos": 31,
+  "shortPx": {
+   "10": 76.0,
+   "25": 101.0,
+   "50": 140.0,
+   "75": 201.0,
+   "90": 270.0
+  },
+  "longPx": {
+   "10": 566.0,
+   "25": 718.0,
+   "50": 864.0,
+   "75": 1058.0,
+   "90": 1468.6000000000004
+  },
+  "effShortPx": {
+   "10": 75.0,
+   "25": 100.0,
+   "50": 139.0,
+   "75": 198.0,
+   "90": 265.6
+  },
+  "downscaledShare": 6.6,
+  "medianScaleWhenDownscaled": 0.869,
+  "byEffShort": [
+   {
+    "bin": "24-32",
+    "boxCount": 4,
+    "photos": 4,
+    "anyText": [
+     50.0,
+     0.0,
+     100.0
+    ],
+    "visionText": [
+     50.0,
+     0.0,
+     100.0
+    ],
+    "ppocrText": [
+     25.0,
+     0.0,
+     75.0
+    ],
+    "visionPass": [
+     0.0,
+     0.0,
+     0.0
+    ],
+    "ppocrPass": [
+     0.0,
+     0.0,
+     0.0
+    ],
+    "confirmed": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   },
+   {
+    "bin": "32-48",
+    "boxCount": 68,
+    "photos": 20,
+    "anyText": [
+     58.8,
+     46.9,
+     69.6
+    ],
+    "visionText": [
+     57.4,
+     43.6,
+     69.1
+    ],
+    "ppocrText": [
+     52.9,
+     40.0,
+     63.5
+    ],
+    "visionPass": [
+     17.6,
+     8.2,
+     27.9
+    ],
+    "ppocrPass": [
+     5.9,
+     1.3,
+     12.5
+    ],
+    "confirmed": [
+     4.4,
+     0.0,
+     9.9
+    ]
+   },
+   {
+    "bin": "48-64",
+    "boxCount": 222,
+    "photos": 26,
+    "anyText": [
+     73.0,
+     63.8,
+     80.7
+    ],
+    "visionText": [
+     68.9,
+     59.1,
+     77.3
+    ],
+    "ppocrText": [
+     67.1,
+     56.9,
+     76.2
+    ],
+    "visionPass": [
+     15.3,
+     8.4,
+     23.7
+    ],
+    "ppocrPass": [
+     7.7,
+     4.7,
+     11.3
+    ],
+    "confirmed": [
+     5.4,
+     2.3,
+     9.4
+    ]
+   },
+   {
+    "bin": "64-96",
+    "boxCount": 1056,
+    "photos": 30,
+    "anyText": [
+     75.5,
+     68.4,
+     81.1
+    ],
+    "visionText": [
+     70.7,
+     62.6,
+     77.3
+    ],
+    "ppocrText": [
+     70.8,
+     62.8,
+     77.2
+    ],
+    "visionPass": [
+     22.2,
+     14.8,
+     28.5
+    ],
+    "ppocrPass": [
+     13.3,
+     8.0,
+     18.2
+    ],
+    "confirmed": [
+     11.2,
+     6.6,
+     15.4
+    ]
+   },
+   {
+    "bin": ">=96",
+    "boxCount": 4795,
+    "photos": 31,
+    "anyText": [
+     78.8,
+     73.2,
+     83.4
+    ],
+    "visionText": [
+     66.2,
+     59.1,
+     72.1
+    ],
+    "ppocrText": [
+     74.9,
+     68.5,
+     80.1
+    ],
+    "visionPass": [
+     19.8,
+     13.8,
+     25.7
+    ],
+    "ppocrPass": [
+     14.0,
+     9.9,
+     18.1
+    ],
+    "confirmed": [
+     12.5,
+     8.4,
+     16.6
+    ]
+   }
+  ],
+  "byShort": [
+   {
+    "bin": "24-32",
+    "boxCount": 4,
+    "photos": 4,
+    "anyText": [
+     50.0,
+     0.0,
+     100.0
+    ],
+    "visionText": [
+     50.0,
+     0.0,
+     100.0
+    ],
+    "ppocrText": [
+     25.0,
+     0.0,
+     75.0
+    ],
+    "visionPass": [
+     0.0,
+     0.0,
+     0.0
+    ],
+    "ppocrPass": [
+     0.0,
+     0.0,
+     0.0
+    ],
+    "confirmed": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   },
+   {
+    "bin": "32-48",
+    "boxCount": 67,
+    "photos": 19,
+    "anyText": [
+     59.7,
+     47.1,
+     70.0
+    ],
+    "visionText": [
+     58.2,
+     44.4,
+     69.6
+    ],
+    "ppocrText": [
+     53.7,
+     40.4,
+     64.3
+    ],
+    "visionPass": [
+     17.9,
+     7.8,
+     28.8
+    ],
+    "ppocrPass": [
+     6.0,
+     1.3,
+     12.7
+    ],
+    "confirmed": [
+     4.5,
+     0.0,
+     10.0
+    ]
+   },
+   {
+    "bin": "48-64",
+    "boxCount": 222,
+    "photos": 26,
+    "anyText": [
+     72.5,
+     63.6,
+     80.3
+    ],
+    "visionText": [
+     68.5,
+     59.5,
+     76.6
+    ],
+    "ppocrText": [
+     66.7,
+     56.5,
+     75.5
+    ],
+    "visionPass": [
+     15.3,
+     8.0,
+     23.5
+    ],
+    "ppocrPass": [
+     7.7,
+     4.5,
+     11.4
+    ],
+    "confirmed": [
+     5.4,
+     2.3,
+     9.4
+    ]
+   },
+   {
+    "bin": "64-96",
+    "boxCount": 1039,
+    "photos": 29,
+    "anyText": [
+     75.2,
+     67.8,
+     80.8
+    ],
+    "visionText": [
+     70.4,
+     62.2,
+     77.1
+    ],
+    "ppocrText": [
+     70.5,
+     62.4,
+     76.9
+    ],
+    "visionPass": [
+     22.4,
+     15.1,
+     28.8
+    ],
+    "ppocrPass": [
+     13.5,
+     8.4,
+     18.3
+    ],
+    "confirmed": [
+     11.4,
+     6.9,
+     15.5
+    ]
+   },
+   {
+    "bin": "96-128",
+    "boxCount": 1293,
+    "photos": 30,
+    "anyText": [
+     76.5,
+     68.5,
+     83.0
+    ],
+    "visionText": [
+     69.3,
+     60.3,
+     76.3
+    ],
+    "ppocrText": [
+     72.8,
+     63.8,
+     80.0
+    ],
+    "visionPass": [
+     23.1,
+     14.6,
+     31.0
+    ],
+    "ppocrPass": [
+     14.6,
+     9.3,
+     19.5
+    ],
+    "confirmed": [
+     13.5,
+     7.9,
+     18.8
+    ]
+   },
+   {
+    "bin": "128-192",
+    "boxCount": 1821,
+    "photos": 31,
+    "anyText": [
+     78.3,
+     72.4,
+     82.8
+    ],
+    "visionText": [
+     67.0,
+     59.5,
+     73.1
+    ],
+    "ppocrText": [
+     73.0,
+     66.1,
+     78.7
+    ],
+    "visionPass": [
+     22.2,
+     15.1,
+     29.1
+    ],
+    "ppocrPass": [
+     15.3,
+     10.4,
+     20.2
+    ],
+    "confirmed": [
+     14.0,
+     8.8,
+     19.3
+    ]
+   },
+   {
+    "bin": ">=192",
+    "boxCount": 1699,
+    "photos": 31,
+    "anyText": [
+     81.3,
+     75.8,
+     86.3
+    ],
+    "visionText": [
+     63.3,
+     56.8,
+     69.9
+    ],
+    "ppocrText": [
+     78.7,
+     72.7,
+     84.0
+    ],
+    "visionPass": [
+     14.6,
+     9.9,
+     19.5
+    ],
+    "ppocrPass": [
+     11.9,
+     7.7,
+     16.4
+    ],
+    "confirmed": [
+     9.9,
+     6.1,
+     14.0
+    ]
+   }
+  ],
+  "bySep": [
+   {
+    "bin": "<30",
+    "boxCount": 5,
+    "photos": 5,
+    "anyText": [
+     20.0,
+     0.0,
+     60.0
+    ],
+    "visionText": [
+     0.0,
+     0.0,
+     0.0
+    ],
+    "ppocrText": [
+     20.0,
+     0.0,
+     60.0
+    ],
+    "visionPass": [
+     0.0,
+     0.0,
+     0.0
+    ],
+    "ppocrPass": [
+     0.0,
+     0.0,
+     0.0
+    ],
+    "confirmed": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   },
+   {
+    "bin": "30-45",
+    "boxCount": 42,
+    "photos": 20,
+    "anyText": [
+     40.5,
+     23.6,
+     58.0
+    ],
+    "visionText": [
+     31.0,
+     13.9,
+     48.8
+    ],
+    "ppocrText": [
+     31.0,
+     16.1,
+     46.2
+    ],
+    "visionPass": [
+     7.1,
+     0.0,
+     14.6
+    ],
+    "ppocrPass": [
+     4.8,
+     0.0,
+     12.5
+    ],
+    "confirmed": [
+     2.4,
+     0.0,
+     8.1
+    ]
+   },
+   {
+    "bin": "45-60",
+    "boxCount": 171,
+    "photos": 30,
+    "anyText": [
+     57.3,
+     47.5,
+     67.3
+    ],
+    "visionText": [
+     39.2,
+     28.8,
+     50.0
+    ],
+    "ppocrText": [
+     51.5,
+     42.2,
+     61.3
+    ],
+    "visionPass": [
+     8.8,
+     4.9,
+     12.6
+    ],
+    "ppocrPass": [
+     5.3,
+     2.1,
+     8.9
+    ],
+    "confirmed": [
+     2.9,
+     0.6,
+     5.5
+    ]
+   },
+   {
+    "bin": "60-80",
+    "boxCount": 680,
+    "photos": 31,
+    "anyText": [
+     64.3,
+     58.9,
+     69.6
+    ],
+    "visionText": [
+     50.6,
+     43.6,
+     57.2
+    ],
+    "ppocrText": [
+     59.4,
+     54.0,
+     64.8
+    ],
+    "visionPass": [
+     14.4,
+     10.6,
+     18.4
+    ],
+    "ppocrPass": [
+     9.6,
+     6.3,
+     13.3
+    ],
+    "confirmed": [
+     7.4,
+     4.5,
+     10.5
+    ]
+   },
+   {
+    "bin": ">=80",
+    "boxCount": 5247,
+    "photos": 31,
+    "anyText": [
+     80.6,
+     75.2,
+     84.8
+    ],
+    "visionText": [
+     70.4,
+     63.6,
+     75.7
+    ],
+    "ppocrText": [
+     76.6,
+     70.5,
+     81.5
+    ],
+    "visionPass": [
+     21.2,
+     14.8,
+     27.5
+    ],
+    "ppocrPass": [
+     14.4,
+     10.1,
+     18.7
+    ],
+    "confirmed": [
+     12.9,
+     8.6,
+     17.1
+    ]
+   }
+  ],
+  "qwenByEffShort": [
+   {
+    "bin": "32-48",
+    "boxCount": 3,
+    "photos": 3,
+    "anyText": [
+     100.0,
+     100.0,
+     100.0
+    ],
+    "visionText": [
+     100.0,
+     100.0,
+     100.0
+    ],
+    "ppocrText": [
+     100.0,
+     100.0,
+     100.0
+    ],
+    "visionPass": [
+     33.3,
+     0.0,
+     100.0
+    ],
+    "ppocrPass": [
+     0.0,
+     0.0,
+     0.0
+    ],
+    "confirmed": [
+     33.3,
+     0.0,
+     100.0
+    ],
+    "qwenText": [
+     66.7,
+     0.0,
+     100.0
+    ],
+    "qwenPass": [
+     66.7,
+     0.0,
+     100.0
+    ]
+   },
+   {
+    "bin": "48-64",
+    "boxCount": 10,
+    "photos": 9,
+    "anyText": [
+     100.0,
+     100.0,
+     100.0
+    ],
+    "visionText": [
+     100.0,
+     100.0,
+     100.0
+    ],
+    "ppocrText": [
+     100.0,
+     100.0,
+     100.0
+    ],
+    "visionPass": [
+     20.0,
+     0.0,
+     44.4
+    ],
+    "ppocrPass": [
+     10.0,
+     0.0,
+     33.3
+    ],
+    "confirmed": [
+     10.0,
+     0.0,
+     25.0
+    ],
+    "qwenText": [
+     100.0,
+     100.0,
+     100.0
+    ],
+    "qwenPass": [
+     50.0,
+     11.1,
+     81.8
+    ]
+   },
+   {
+    "bin": "64-96",
+    "boxCount": 84,
+    "photos": 23,
+    "anyText": [
+     100.0,
+     100.0,
+     100.0
+    ],
+    "visionText": [
+     88.1,
+     77.4,
+     97.2
+    ],
+    "ppocrText": [
+     96.4,
+     92.3,
+     100.0
+    ],
+    "visionPass": [
+     23.8,
+     12.0,
+     35.7
+    ],
+    "ppocrPass": [
+     1.2,
+     0.0,
+     4.5
+    ],
+    "confirmed": [
+     19.0,
+     8.8,
+     29.5
+    ],
+    "qwenText": [
+     98.8,
+     96.1,
+     100.0
+    ],
+    "qwenPass": [
+     31.0,
+     17.4,
+     45.2
+    ]
+   },
+   {
+    "bin": ">=96",
+    "boxCount": 1133,
+    "photos": 31,
+    "anyText": [
+     100.0,
+     100.0,
+     100.0
+    ],
+    "visionText": [
+     79.3,
+     73.8,
+     85.1
+    ],
+    "ppocrText": [
+     95.0,
+     92.6,
+     97.1
+    ],
+    "visionPass": [
+     15.0,
+     10.3,
+     20.3
+    ],
+    "ppocrPass": [
+     7.9,
+     5.7,
+     10.4
+    ],
+    "confirmed": [
+     14.5,
+     9.2,
+     20.2
+    ],
+    "qwenText": [
+     89.0,
+     84.8,
+     92.7
+    ],
+    "qwenPass": [
+     33.5,
+     23.4,
+     44.5
+    ]
+   }
+  ],
+  "pools": {
+   "confirmed": {
+    "boxCount": 731,
+    "effShortP50": 138.0,
+    "shortP50": 139.0,
+    "sepP50": 111.5,
+    "effUnder24": 0.0,
+    "sepUnder45": 0.1,
+    "cut": 2.3
+   },
+   "no-catalog-match": {
+    "boxCount": 3121,
+    "effShortP50": 143.0,
+    "shortP50": 144.0,
+    "sepP50": 110.0,
+    "effUnder24": 0.0,
+    "sepUnder45": 0.4,
+    "cut": 3.8
+   },
+   "no-text": {
+    "boxCount": 1365,
+    "effShortP50": 132.0,
+    "shortP50": 132.0,
+    "sepP50": 98.5,
+    "effUnder24": 0.0,
+    "sepUnder45": 2.1,
+    "cut": 7.4
+   },
+   "readers-disagree": {
+    "boxCount": 66,
+    "effShortP50": 150.0,
+    "shortP50": 150.0,
+    "sepP50": 102.2,
+    "effUnder24": 0.0,
+    "sepUnder45": 1.5,
+    "cut": 6.1
+   },
+   "single-reader": {
+    "boxCount": 862,
+    "effShortP50": 139.0,
+    "shortP50": 139.0,
+    "sepP50": 108.5,
+    "effUnder24": 0.0,
+    "sepUnder45": 0.3,
+    "cut": 2.6
+   }
+  },
+  "qwenOnly": {
+   "qwenRead": 1230,
+   "qwenPass": 413,
+   "qwenPassNoOcrPass": 201
+  },
+  "lines": {
+   "allLines": {
+    "lines": 1536,
+    "px": {
+     "10": 21.1,
+     "25": 29.0,
+     "50": 40.0,
+     "75": 59.0
+    },
+    "under16": 2.2,
+    "under24": 14.4,
+    "under32": 31.6,
+    "secondTallestP50": 43.0,
+    "secondTallestUnder32": 26.3,
+    "tallestOverSecondP50": 1.22,
+    "cropsSmallestUnder24": 26.7
+   },
+   "sampled": 700,
+   "withLines": 501,
+   "noLinesShare": 28.4,
+   "tallestPx": {
+    "10": 33.0,
+    "25": 42.0,
+    "50": 59.0,
+    "75": 82.6,
+    "90": 108.2
+   },
+   "tallestOverShort": {
+    "25": 0.29,
+    "50": 0.42,
+    "75": 0.57
+   },
+   "linesPerBoxP50": 2.0,
+   "anyCrossShare": [
+    15.0,
+    10.2,
+    20.6
+   ],
+   "detSecondsP50": 0.275,
+   "byTallest": [
+    {
+     "bin": "no lines",
+     "boxCount": 199,
+     "photos": 30,
+     "anyText": [
+      23.6,
+      16.8,
+      30.4
+     ],
+     "visionText": [
+      16.6,
+      10.8,
+      21.9
+     ],
+     "ppocrText": [
+      13.6,
+      8.8,
+      18.7
+     ],
+     "visionPass": [
+      2.0,
+      0.0,
+      4.0
+     ],
+     "ppocrPass": [
+      0.5,
+      0.0,
+      1.7
+     ],
+     "confirmed": [
+      0.0,
+      0.0,
+      0.0
+     ]
+    },
+    {
+     "bin": "16-24",
+     "boxCount": 12,
+     "photos": 10,
+     "anyText": [
+      91.7,
+      72.7,
+      100.0
+     ],
+     "visionText": [
+      75.0,
+      45.5,
+      100.0
+     ],
+     "ppocrText": [
+      91.7,
+      72.7,
+      100.0
+     ],
+     "visionPass": [
+      16.7,
+      0.0,
+      45.5
+     ],
+     "ppocrPass": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "confirmed": [
+      0.0,
+      0.0,
+      0.0
+     ]
+    },
+    {
+     "bin": "24-32",
+     "boxCount": 30,
+     "photos": 13,
+     "anyText": [
+      96.7,
+      86.4,
+      100.0
+     ],
+     "visionText": [
+      90.0,
+      73.7,
+      100.0
+     ],
+     "ppocrText": [
+      96.7,
+      86.4,
+      100.0
+     ],
+     "visionPass": [
+      23.3,
+      0.0,
+      41.9
+     ],
+     "ppocrPass": [
+      16.7,
+      0.0,
+      30.8
+     ],
+     "confirmed": [
+      6.7,
+      0.0,
+      17.2
+     ]
+    },
+    {
+     "bin": "32-48",
+     "boxCount": 133,
+     "photos": 24,
+     "anyText": [
+      98.5,
+      96.2,
+      100.0
+     ],
+     "visionText": [
+      90.2,
+      85.0,
+      94.5
+     ],
+     "ppocrText": [
+      97.7,
+      94.8,
+      100.0
+     ],
+     "visionPass": [
+      33.8,
+      22.4,
+      44.4
+     ],
+     "ppocrPass": [
+      16.5,
+      9.5,
+      23.5
+     ],
+     "confirmed": [
+      12.8,
+      6.5,
+      18.7
+     ]
+    },
+    {
+     "bin": ">=48",
+     "boxCount": 326,
+     "photos": 31,
+     "anyText": [
+      98.5,
+      96.9,
+      99.7
+     ],
+     "visionText": [
+      81.9,
+      75.8,
+      86.8
+     ],
+     "ppocrText": [
+      97.2,
+      94.8,
+      99.1
+     ],
+     "visionPass": [
+      27.3,
+      18.6,
+      36.1
+     ],
+     "ppocrPass": [
+      20.6,
+      12.9,
+      28.6
+     ],
+     "confirmed": [
+      17.5,
+      10.9,
+      24.4
+     ]
+    }
+   ],
+   "byCross": [
+    {
+     "bin": "lines along the spine",
+     "boxCount": 426,
+     "photos": 31,
+     "anyText": [
+      98.1,
+      96.3,
+      99.5
+     ],
+     "visionText": [
+      84.0,
+      78.7,
+      88.1
+     ],
+     "ppocrText": [
+      96.9,
+      94.5,
+      98.9
+     ],
+     "visionPass": [
+      28.6,
+      21.3,
+      35.4
+     ],
+     "ppocrPass": [
+      19.2,
+      13.3,
+      25.6
+     ],
+     "confirmed": [
+      15.5,
+      9.9,
+      21.0
+     ]
+    },
+    {
+     "bin": "has column text",
+     "boxCount": 75,
+     "photos": 24,
+     "anyText": [
+      98.7,
+      95.2,
+      100.0
+     ],
+     "visionText": [
+      86.7,
+      75.4,
+      95.0
+     ],
+     "ppocrText": [
+      98.7,
+      95.2,
+      100.0
+     ],
+     "visionPass": [
+      28.0,
+      14.1,
+      46.2
+     ],
+     "ppocrPass": [
+      16.0,
+      6.2,
+      28.6
+     ],
+     "confirmed": [
+      13.3,
+      5.1,
+      25.0
+     ]
+    }
+   ]
+  }
+ },
+ "yardstick": {
+  "boxCount": 1132,
+  "photos": 40,
+  "shortPx": {
+   "10": 127.10000000000001,
+   "25": 182.75,
+   "50": 270.0,
+   "75": 399.25,
+   "90": 569.9
+  },
+  "longPx": {
+   "10": 752.1,
+   "25": 1464.0,
+   "50": 2141.0,
+   "75": 2504.5,
+   "90": 2748.0
+  },
+  "effShortPx": {
+   "10": 103.0,
+   "25": 138.8,
+   "50": 205.7,
+   "75": 306.6,
+   "90": 419.0
+  },
+  "downscaledShare": 72.0,
+  "medianScaleWhenDownscaled": 0.685,
+  "byEffShort": [
+   {
+    "bin": "32-48",
+    "boxCount": 5,
+    "photos": 4,
+    "anyText": [
+     40.0,
+     0.0,
+     75.0
+    ],
+    "visionText": [
+     20.0,
+     0.0,
+     42.9
+    ],
+    "ppocrText": [
+     40.0,
+     0.0,
+     75.0
+    ],
+    "visionPass": [
+     0.0,
+     0.0,
+     0.0
+    ],
+    "ppocrPass": [
+     0.0,
+     0.0,
+     0.0
+    ],
+    "confirmed": [
+     0.0,
+     0.0,
+     0.0
+    ],
+    "wrong": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   },
+   {
+    "bin": "48-64",
+    "boxCount": 16,
+    "photos": 12,
+    "anyText": [
+     56.2,
+     23.1,
+     83.3
+    ],
+    "visionText": [
+     56.2,
+     23.1,
+     83.3
+    ],
+    "ppocrText": [
+     56.2,
+     23.1,
+     83.3
+    ],
+    "visionPass": [
+     0.0,
+     0.0,
+     0.0
+    ],
+    "ppocrPass": [
+     0.0,
+     0.0,
+     0.0
+    ],
+    "confirmed": [
+     0.0,
+     0.0,
+     0.0
+    ],
+    "wrong": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   },
+   {
+    "bin": "64-96",
+    "boxCount": 65,
+    "photos": 27,
+    "anyText": [
+     56.9,
+     40.6,
+     71.4
+    ],
+    "visionText": [
+     52.3,
+     37.3,
+     67.2
+    ],
+    "ppocrText": [
+     56.9,
+     40.6,
+     71.4
+    ],
+    "visionPass": [
+     20.0,
+     7.6,
+     35.2
+    ],
+    "ppocrPass": [
+     13.8,
+     5.6,
+     25.0
+    ],
+    "confirmed": [
+     15.4,
+     6.1,
+     26.7
+    ],
+    "wrong": [
+     4.6,
+     0.0,
+     11.7
+    ]
+   },
+   {
+    "bin": ">=96",
+    "boxCount": 1046,
+    "photos": 40,
+    "anyText": [
+     75.9,
+     69.2,
+     82.2
+    ],
+    "visionText": [
+     69.9,
+     62.1,
+     76.9
+    ],
+    "ppocrText": [
+     74.7,
+     67.7,
+     81.0
+    ],
+    "visionPass": [
+     25.0,
+     19.5,
+     30.9
+    ],
+    "ppocrPass": [
+     18.0,
+     13.5,
+     23.0
+    ],
+    "confirmed": [
+     22.7,
+     17.0,
+     28.8
+    ],
+    "wrong": [
+     1.8,
+     0.8,
+     3.2
+    ]
+   }
+  ],
+  "byShort": [
+   {
+    "bin": "32-48",
+    "boxCount": 2,
+    "photos": 2,
+    "anyText": [
+     50.0,
+     0.0,
+     100.0
+    ],
+    "visionText": [
+     50.0,
+     0.0,
+     100.0
+    ],
+    "ppocrText": [
+     50.0,
+     0.0,
+     100.0
+    ],
+    "visionPass": [
+     0.0,
+     0.0,
+     0.0
+    ],
+    "ppocrPass": [
+     0.0,
+     0.0,
+     0.0
+    ],
+    "confirmed": [
+     0.0,
+     0.0,
+     0.0
+    ],
+    "wrong": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   },
+   {
+    "bin": "48-64",
+    "boxCount": 10,
+    "photos": 9,
+    "anyText": [
+     30.0,
+     8.3,
+     66.7
+    ],
+    "visionText": [
+     20.0,
+     0.0,
+     44.4
+    ],
+    "ppocrText": [
+     30.0,
+     8.3,
+     66.7
+    ],
+    "visionPass": [
+     0.0,
+     0.0,
+     0.0
+    ],
+    "ppocrPass": [
+     0.0,
+     0.0,
+     0.0
+    ],
+    "confirmed": [
+     0.0,
+     0.0,
+     0.0
+    ],
+    "wrong": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   },
+   {
+    "bin": "64-96",
+    "boxCount": 35,
+    "photos": 18,
+    "anyText": [
+     28.6,
+     11.1,
+     46.9
+    ],
+    "visionText": [
+     28.6,
+     11.1,
+     46.9
+    ],
+    "ppocrText": [
+     28.6,
+     11.1,
+     46.9
+    ],
+    "visionPass": [
+     2.9,
+     0.0,
+     10.0
+    ],
+    "ppocrPass": [
+     2.9,
+     0.0,
+     10.0
+    ],
+    "confirmed": [
+     0.0,
+     0.0,
+     0.0
+    ],
+    "wrong": [
+     2.9,
+     0.0,
+     10.0
+    ]
+   },
+   {
+    "bin": "96-128",
+    "boxCount": 67,
+    "photos": 24,
+    "anyText": [
+     47.8,
+     30.1,
+     65.1
+    ],
+    "visionText": [
+     47.8,
+     30.1,
+     65.1
+    ],
+    "ppocrText": [
+     41.8,
+     23.6,
+     60.9
+    ],
+    "visionPass": [
+     14.9,
+     5.1,
+     29.2
+    ],
+    "ppocrPass": [
+     9.0,
+     1.5,
+     20.0
+    ],
+    "confirmed": [
+     13.4,
+     4.5,
+     25.9
+    ],
+    "wrong": [
+     1.5,
+     0.0,
+     5.5
+    ]
+   },
+   {
+    "bin": "128-192",
+    "boxCount": 201,
+    "photos": 35,
+    "anyText": [
+     69.7,
+     58.8,
+     80.2
+    ],
+    "visionText": [
+     66.7,
+     55.1,
+     77.7
+    ],
+    "ppocrText": [
+     69.7,
+     58.8,
+     80.2
+    ],
+    "visionPass": [
+     32.3,
+     22.9,
+     43.2
+    ],
+    "ppocrPass": [
+     22.9,
+     14.6,
+     32.0
+    ],
+    "confirmed": [
+     29.4,
+     19.9,
+     40.5
+    ],
+    "wrong": [
+     0.5,
+     0.0,
+     1.8
+    ]
+   },
+   {
+    "bin": ">=192",
+    "boxCount": 817,
+    "photos": 40,
+    "anyText": [
+     80.3,
+     74.7,
+     85.1
+    ],
+    "visionText": [
+     72.9,
+     65.3,
+     79.3
+    ],
+    "ppocrText": [
+     79.2,
+     73.4,
+     84.3
+    ],
+    "visionPass": [
+     24.4,
+     18.9,
+     30.0
+    ],
+    "ppocrPass": [
+     17.6,
+     13.1,
+     22.7
+    ],
+    "confirmed": [
+     21.9,
+     16.0,
+     27.8
+    ],
+    "wrong": [
+     2.3,
+     1.1,
+     4.0
+    ]
+   }
+  ],
+  "bySep": [
+   {
+    "bin": "<30",
+    "boxCount": 14,
+    "photos": 9,
+    "anyText": [
+     7.1,
+     0.0,
+     27.3
+    ],
+    "visionText": [
+     7.1,
+     0.0,
+     27.3
+    ],
+    "ppocrText": [
+     0.0,
+     0.0,
+     0.0
+    ],
+    "visionPass": [
+     0.0,
+     0.0,
+     0.0
+    ],
+    "ppocrPass": [
+     0.0,
+     0.0,
+     0.0
+    ],
+    "confirmed": [
+     0.0,
+     0.0,
+     0.0
+    ],
+    "wrong": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   },
+   {
+    "bin": "30-45",
+    "boxCount": 43,
+    "photos": 21,
+    "anyText": [
+     11.6,
+     3.6,
+     22.2
+    ],
+    "visionText": [
+     9.3,
+     2.2,
+     20.0
+    ],
+    "ppocrText": [
+     11.6,
+     3.6,
+     22.2
+    ],
+    "visionPass": [
+     2.3,
+     0.0,
+     8.3
+    ],
+    "ppocrPass": [
+     2.3,
+     0.0,
+     7.3
+    ],
+    "confirmed": [
+     4.7,
+     0.0,
+     11.9
+    ],
+    "wrong": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   },
+   {
+    "bin": "45-60",
+    "boxCount": 77,
+    "photos": 34,
+    "anyText": [
+     41.6,
+     29.4,
+     55.7
+    ],
+    "visionText": [
+     33.8,
+     22.7,
+     47.1
+    ],
+    "ppocrText": [
+     37.7,
+     25.3,
+     53.2
+    ],
+    "visionPass": [
+     14.3,
+     6.7,
+     24.1
+    ],
+    "ppocrPass": [
+     15.6,
+     7.5,
+     25.7
+    ],
+    "confirmed": [
+     18.2,
+     9.4,
+     29.2
+    ],
+    "wrong": [
+     1.3,
+     0.0,
+     4.7
+    ]
+   },
+   {
+    "bin": "60-80",
+    "boxCount": 197,
+    "photos": 37,
+    "anyText": [
+     55.3,
+     43.6,
+     69.6
+    ],
+    "visionText": [
+     47.2,
+     36.3,
+     59.8
+    ],
+    "ppocrText": [
+     54.3,
+     42.8,
+     68.5
+    ],
+    "visionPass": [
+     22.8,
+     14.5,
+     33.0
+    ],
+    "ppocrPass": [
+     16.2,
+     10.0,
+     24.0
+    ],
+    "confirmed": [
+     18.3,
+     10.7,
+     27.8
+    ],
+    "wrong": [
+     4.6,
+     1.6,
+     8.2
+    ]
+   },
+   {
+    "bin": ">=80",
+    "boxCount": 801,
+    "photos": 40,
+    "anyText": [
+     86.8,
+     81.6,
+     90.8
+    ],
+    "visionText": [
+     81.3,
+     74.7,
+     86.3
+    ],
+    "ppocrText": [
+     85.9,
+     80.0,
+     90.3
+    ],
+    "visionPass": [
+     27.2,
+     20.9,
+     33.3
+    ],
+    "ppocrPass": [
+     19.0,
+     13.7,
+     24.3
+    ],
+    "confirmed": [
+     24.3,
+     18.0,
+     30.8
+    ],
+    "wrong": [
+     1.5,
+     0.5,
+     2.7
+    ]
+   }
+  ],
+  "qwenByEffShort": [
+   {
+    "bin": "32-48",
+    "boxCount": 1,
+    "photos": 1,
+    "anyText": [
+     100.0,
+     100.0,
+     100.0
+    ],
+    "visionText": [
+     0.0,
+     0.0,
+     0.0
+    ],
+    "ppocrText": [
+     100.0,
+     100.0,
+     100.0
+    ],
+    "visionPass": [
+     0.0,
+     0.0,
+     0.0
+    ],
+    "ppocrPass": [
+     0.0,
+     0.0,
+     0.0
+    ],
+    "confirmed": [
+     0.0,
+     0.0,
+     0.0
+    ],
+    "qwenText": [
+     0.0,
+     0.0,
+     0.0
+    ],
+    "qwenPass": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   },
+   {
+    "bin": "48-64",
+    "boxCount": 6,
+    "photos": 3,
+    "anyText": [
+     100.0,
+     100.0,
+     100.0
+    ],
+    "visionText": [
+     100.0,
+     100.0,
+     100.0
+    ],
+    "ppocrText": [
+     100.0,
+     100.0,
+     100.0
+    ],
+    "visionPass": [
+     0.0,
+     0.0,
+     0.0
+    ],
+    "ppocrPass": [
+     0.0,
+     0.0,
+     0.0
+    ],
+    "confirmed": [
+     0.0,
+     0.0,
+     0.0
+    ],
+    "qwenText": [
+     83.3,
+     0.0,
+     100.0
+    ],
+    "qwenPass": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   },
+   {
+    "bin": "64-96",
+    "boxCount": 17,
+    "photos": 10,
+    "anyText": [
+     100.0,
+     100.0,
+     100.0
+    ],
+    "visionText": [
+     88.2,
+     72.7,
+     100.0
+    ],
+    "ppocrText": [
+     100.0,
+     100.0,
+     100.0
+    ],
+    "visionPass": [
+     29.4,
+     3.7,
+     64.3
+    ],
+    "ppocrPass": [
+     5.9,
+     0.0,
+     20.0
+    ],
+    "confirmed": [
+     23.5,
+     3.7,
+     47.4
+    ],
+    "qwenText": [
+     94.1,
+     76.4,
+     100.0
+    ],
+    "qwenPass": [
+     35.3,
+     7.1,
+     70.6
+    ]
+   },
+   {
+    "bin": ">=96",
+    "boxCount": 454,
+    "photos": 40,
+    "anyText": [
+     100.0,
+     100.0,
+     100.0
+    ],
+    "visionText": [
+     89.9,
+     81.8,
+     95.8
+    ],
+    "ppocrText": [
+     98.7,
+     97.3,
+     99.8
+    ],
+    "visionPass": [
+     18.1,
+     13.8,
+     22.7
+    ],
+    "ppocrPass": [
+     4.4,
+     2.2,
+     7.0
+    ],
+    "confirmed": [
+     18.7,
+     14.2,
+     23.5
+    ],
+    "qwenText": [
+     95.4,
+     93.1,
+     97.5
+    ],
+    "qwenPass": [
+     48.9,
+     42.3,
+     55.5
+    ]
+   }
+  ],
+  "pools": {
+   "confirmed": {
+    "boxCount": 247,
+    "effShortP50": 177.0,
+    "shortP50": 259.0,
+    "sepP50": 105.1,
+    "effUnder24": 0.0,
+    "sepUnder45": 0.8,
+    "cut": 2.8
+   },
+   "no-catalog-match": {
+    "boxCount": 412,
+    "effShortP50": 202.8,
+    "shortP50": 285.5,
+    "sepP50": 102.3,
+    "effUnder24": 0.0,
+    "sepUnder45": 1.0,
+    "cut": 12.9
+   },
+   "no-text": {
+    "boxCount": 290,
+    "effShortP50": 199.2,
+    "shortP50": 212.0,
+    "sepP50": 70.2,
+    "effUnder24": 0.0,
+    "sepUnder45": 17.6,
+    "cut": 5.9
+   },
+   "readers-disagree": {
+    "boxCount": 1,
+    "effShortP50": 333.8,
+    "shortP50": 499.0,
+    "sepP50": 128.5,
+    "effUnder24": 0.0,
+    "sepUnder45": 0.0,
+    "cut": 0.0
+   },
+   "single-reader": {
+    "boxCount": 160,
+    "effShortP50": 256.3,
+    "shortP50": 386.0,
+    "sepP50": 102.7,
+    "effUnder24": 0.0,
+    "sepUnder45": 0.0,
+    "cut": 3.1
+   },
+   "wrong": {
+    "boxCount": 22,
+    "effShortP50": 259.1,
+    "shortP50": 381.0,
+    "sepP50": 81.2,
+    "effUnder24": 0.0,
+    "sepUnder45": 0.0,
+    "cut": 4.5
+   }
+  },
+  "qwenOnly": {
+   "qwenRead": 478,
+   "qwenPass": 228,
+   "qwenPassNoOcrPass": 127
+  },
+  "lines": {
+   "allLines": {
+    "lines": 1293,
+    "px": {
+     "10": 29.0,
+     "25": 35.1,
+     "50": 44.0,
+     "75": 57.0
+    },
+    "under16": 0.7,
+    "under24": 4.1,
+    "under32": 15.8,
+    "secondTallestP50": 50.0,
+    "secondTallestUnder32": 6.6,
+    "tallestOverSecondP50": 1.21,
+    "cropsSmallestUnder24": 13.6
+   },
+   "sampled": 350,
+   "withLines": 258,
+   "noLinesShare": 26.3,
+   "tallestPx": {
+    "10": 44.0,
+    "25": 52.0,
+    "50": 65.0,
+    "75": 95.0,
+    "90": 131.4
+   },
+   "tallestOverShort": {
+    "25": 0.22,
+    "50": 0.34,
+    "75": 0.5
+   },
+   "linesPerBoxP50": 4.0,
+   "anyCrossShare": [
+    11.2,
+    7.6,
+    15.1
+   ],
+   "detSecondsP50": 0.343,
+   "byTallest": [
+    {
+     "bin": "no lines",
+     "boxCount": 92,
+     "photos": 30,
+     "anyText": [
+      5.4,
+      1.2,
+      10.2
+     ],
+     "visionText": [
+      4.3,
+      0.0,
+      9.0
+     ],
+     "ppocrText": [
+      2.2,
+      0.0,
+      6.1
+     ],
+     "visionPass": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "ppocrPass": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "confirmed": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "wrong": [
+      0.0,
+      0.0,
+      0.0
+     ]
+    },
+    {
+     "bin": "8-12",
+     "boxCount": 1,
+     "photos": 1,
+     "anyText": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "visionText": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "ppocrText": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "visionPass": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "ppocrPass": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "confirmed": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "wrong": [
+      0.0,
+      0.0,
+      0.0
+     ]
+    },
+    {
+     "bin": "24-32",
+     "boxCount": 2,
+     "photos": 2,
+     "anyText": [
+      100.0,
+      100.0,
+      100.0
+     ],
+     "visionText": [
+      100.0,
+      100.0,
+      100.0
+     ],
+     "ppocrText": [
+      100.0,
+      100.0,
+      100.0
+     ],
+     "visionPass": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "ppocrPass": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "confirmed": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "wrong": [
+      0.0,
+      0.0,
+      0.0
+     ]
+    },
+    {
+     "bin": "32-48",
+     "boxCount": 36,
+     "photos": 19,
+     "anyText": [
+      100.0,
+      100.0,
+      100.0
+     ],
+     "visionText": [
+      97.2,
+      90.5,
+      100.0
+     ],
+     "ppocrText": [
+      100.0,
+      100.0,
+      100.0
+     ],
+     "visionPass": [
+      38.9,
+      25.0,
+      53.9
+     ],
+     "ppocrPass": [
+      25.0,
+      11.4,
+      41.0
+     ],
+     "confirmed": [
+      38.9,
+      23.5,
+      56.4
+     ],
+     "wrong": [
+      0.0,
+      0.0,
+      0.0
+     ]
+    },
+    {
+     "bin": ">=48",
+     "boxCount": 219,
+     "photos": 40,
+     "anyText": [
+      99.5,
+      98.6,
+      100.0
+     ],
+     "visionText": [
+      90.9,
+      83.2,
+      96.3
+     ],
+     "ppocrText": [
+      99.5,
+      98.6,
+      100.0
+     ],
+     "visionPass": [
+      29.7,
+      22.6,
+      37.3
+     ],
+     "ppocrPass": [
+      20.5,
+      15.1,
+      26.4
+     ],
+     "confirmed": [
+      26.5,
+      19.1,
+      34.3
+     ],
+     "wrong": [
+      1.8,
+      0.0,
+      4.5
+     ]
+    }
+   ],
+   "byCross": [
+    {
+     "bin": "lines along the spine",
+     "boxCount": 229,
+     "photos": 40,
+     "anyText": [
+      99.1,
+      97.9,
+      100.0
+     ],
+     "visionText": [
+      90.8,
+      83.9,
+      95.7
+     ],
+     "ppocrText": [
+      99.1,
+      97.9,
+      100.0
+     ],
+     "visionPass": [
+      31.4,
+      23.6,
+      39.8
+     ],
+     "ppocrPass": [
+      22.3,
+      16.0,
+      28.6
+     ],
+     "confirmed": [
+      28.8,
+      20.7,
+      38.0
+     ],
+     "wrong": [
+      1.3,
+      0.0,
+      3.5
+     ]
+    },
+    {
+     "bin": "has column text",
+     "boxCount": 29,
+     "photos": 19,
+     "anyText": [
+      100.0,
+      100.0,
+      100.0
+     ],
+     "visionText": [
+      96.6,
+      87.5,
+      100.0
+     ],
+     "ppocrText": [
+      100.0,
+      100.0,
+      100.0
+     ],
+     "visionPass": [
+      24.1,
+      10.3,
+      41.7
+     ],
+     "ppocrPass": [
+      10.3,
+      0.0,
+      22.2
+     ],
+     "confirmed": [
+      20.7,
+      7.1,
+      38.5
+     ],
+     "wrong": [
+      3.4,
+      0.0,
+      11.5
+     ]
+    }
+   ]
+  }
+ }
+}

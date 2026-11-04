@@ -37,10 +37,34 @@ The record shapes these words name are in `contracts/` and explained in `docs/co
 - **Top-face layer** — (H-2) the overlay layer that lights a book's top face where the camera sees it (its cuboid's
   top, the camera above it, depth not a default), as a second, dimmer shape beside the spine: the "volume" in
   `user-glow-volume`.
+- **Image representation** — (F-R3) a label-free re-rendering of a photo that a stage may read instead of, or beside, its RGB pixels: a colour space (Lab, HSV, chromaticity), an illumination invariant (the log-chromaticity image), a classical albedo/shading split (Retinex), an edge, line or band-pass map, or H-2's depth and normals. Survey and measures: `docs/models/image-representations.md`, `evals/FR3`.
+- **Spine seam** — (F-R3) the line between two neighbouring upright spines of one row, placed midway between the left box's right side and the right box's left side. Not Q-2's *top seam* (a box's top end). A representation's **seam hit** is a height at which its edge map peaks on the seam.
+- **Seam evidence** — (F-R3) the measured signals that say where a spine seam is: normal discontinuities from the depth stage, a Retinex edge map, line segments along the spine axis. Proposed as the input for splitting and re-prompting conflicting masks (R3-A).
+- **Shelf plane** — (S-1) one of three planes fitted per shelf row from the depth stage's point map
+  (`helpers/shelf/shelf.py`, RANSAC with the band's frame as the prior):
+  - the **board top**, facing up at the books' base;
+  - the **lip**, the board's front edge, facing out just under the base;
+  - the **back panel**, facing out more than 8 cm behind the spine plane.
+
+  A plane is *found* when enough inliers span enough of the row. Board tops show only where the camera looks down
+  on a shelf (`evals/S1`).
+- **Board pitch** — (S-1) the height between one row's board-top level and the next row's above it: a ceiling on
+  the lower row's book heights. **Board depth**: lip to back panel, a ceiling on book depth. Both are in MoGe-2's
+  metres, whose scale is unverified.
+- **Void** — (S-1) a stretch of a shelf row with no book in it: at least half a median spine width along the row
+  (in the coverage-segment unit) that no book's outline covers, where the back panel shows (mostly H-1's
+  `behind`). An uncovered stretch that is not behind is an **outline gap** (usually a book with no outline), not a
+  void. F-0's *gap share* sees only gaps between boxes; a void can also lie at a row's empty end.
+- **On-lip** — (S-1) a `not-a-book` sub-reason from geometry, not text (`onLip` in `src/eval/s1.ts`): a flat box
+  inside the frame whose pixels lie mostly on a row's lip face, not behind the lip and in front of the books' faces.
+  It catches shelf strips and cards clipped to the lip. It is a post step after F-0c's and F-0f's kinds, with its
+  default set by `evals/S1`'s keep rule.
 - **Ordinal** — a spine's position on its shelf, counted from the left, from 0.
 - **Physical copy** — one book on the shelf. Two copies of the same work are two observations with the same identity; never collapsed (INV-4).
 - **Copy group** — (F-0g) a run of neighbouring spines on one shelf that look the same (one size, an appearance score at the calibrated threshold; `visuallySame` in `src/eval/f0g.ts`) and whose reads pass the series guard: copies of one edition or one look. Every copy stays its own observation (INV-4). A hardback and a paperback of one work are two groups, counted together only at the work level (copies of a work on a shelf).
 - **Series guard** — (F-0g) the text test two visually alike neighbours must pass to be linked as copies (`pairGuard`): the same work where both are confirmed; on the other, no reader confirming another work and no reader's top candidate another title with strong title evidence that outscores the work; agreeing strong reads where neither is confirmed; the same imprint where both have one. Matching jackets of one author's series fail it.
+- **Pixel conflict** — (F-R1) two books' masks claiming the same visible pixel. Two oriented *boxes* may overlap legitimately (a leaning book, perspective); two masks may not, since each visible pixel belongs to one book. A conflict is *duplicate* (IoU ≥ 0.5), *nested* (≥ 80 % of the smaller mask inside the other), *partial* (20–80 %) or *boundary bleed* (under 20 %). **Overlap rate**: pixels claimed by two or more masks over pixels claimed by at least one; the invariant's target is 0 (`helpers/coverage/overlap.py`).
+- **Instance partition** — (F-0i, proposed in `docs/models/instance-boundaries.md`) the non-overlapping assignment of a photo's visible pixels to books, from an **instance gate** (CPU rules on mask overlap that drop duplicates, pieces inside a whole spine and two-book masks), **conflict tiles** (only the remaining conflict groups re-segmented on rotated, upsampled tiles with joint prompts) and a seam per shared edge. Every boundary segment carries its **boundary provenance**: which step drew it (`outline`, `gate`, `tile-argmax`, `seam`, `depth`, `fallback`) and with which tile, model and prompts.
 
 ## Photos and ingest
 
@@ -62,6 +86,11 @@ These are kept apart on purpose: raw evidence is stored separately from interpre
 - **Observation** — what the system saw in a photo: a spine's polygon plus the OCR readings from it (`SpineObserved`, `TextObserved`). Carries the detector and OCR versions that produced it, so a re-run is reproducible (INV-14).
 - **Text variant** — one OCR reading of one spine at one rotation with language correction off or on (`TextObserved`; 0/90/270° x two flags).
 - **Crop method** — how a spine's polygon is cut and turned before a reader sees it: which quad (the detector's rectangle, or the spine face from the mask), trimmed to the frame or not, and which rotations (`src/perceive/crop.ts`). Every machine-labelling reading names its crop method (`crop`, e.g. `rect;rot=fixed;clip=frame`), so readings cut differently are never mixed (F-0b).
+- **Extraction pass (pass 2)** — (F-R2, proposed card F-0j) the per-book pass after pass 1 has mapped the books: each book region is zoned, each zone is read at its own resolution, and the readers emit fields (`docs/models/per-book-extraction.md`). Not the *expensive pass*, which is adjudication under a budget.
+- **Book region** — (F-R2) one mapped book as pass 1 hands it to pass 2: a whole spine face or a face-out cover, not a piece of a spine and not a non-book. Produced by pass 1 (F-0i); F-0j only consumes it.
+- **Zone** — (F-R2) the part of a book region that holds one field: `title`, `author`, `imprint` (text, or `imprint-logo` for a mark), or `art` (cover or jacket art, never read for identity). Found from detected text lines and fixed role rules.
+- **Line crop** — (F-R2) one detected text line cut from the working copy, turned horizontal from its own angle and scaled to the recogniser's height (crop method `line;h=48;clip=frame`). A reader's line reads and its whole-crop read are one vote (INV-6).
+- **Field read** — (F-R2) a reading split into `title`, `author` and `imprint`, each pointing at the transcribed lines it came from, or `null` when not visible. Scored field by field against a candidate (author and title separately; imprint as contrast only).
 - **Hypothesis** — an interpretation of an observation: a ranked list of candidates **plus the explicit `unknown`**, each with evidence (`HypothesesProposed`). Never an observation.
 - **Candidate** — one Work (optionally one Edition) a spine might be.
 - **`unknown`** — the none-of-the-above hypothesis. Present for every observation, so no match is forced (INV-5). An honest output, but every `unknown` is a defect with a reason (OC32).

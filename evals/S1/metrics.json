@@ -1,0 +1,595 @@
+{
+ "card": "S-1",
+ "question": "shelf planes, voids, book-size bounds and scale, and a geometric on-lip label test, from H-2's cached depth stage",
+ "model": {
+  "depth": "Ruicheng/moge-2-vitl-normal@cb0e8bb (H-2 cache)",
+  "priorArt": ["shi-labs/oneformer_ade20k_swin_large@4a5bac8","facebook/sam3 (local)"]
+ },
+ "onLipRule": {
+  "inZone": 0.6,
+  "minDLip": -0.015,
+  "minDSpine": 0,
+  "maxLipHeight": 0.08,
+  "maxLipBoardGap": 0.03,
+  "flatDeg": 45,
+  "frameMargin": 0.005
+ },
+ "pitchRule": {
+  "parallelDeg": 10,
+  "overlap": 0.5,
+  "maxPitch": 0.6,
+  "minPitch": 0.1
+ },
+ "sets": {
+  "pilot-000": {
+   "scope": "real use (OC35): machine agreement, never accuracy (INV-17)",
+   "photos": 31,
+   "secondsPerPhoto": {
+    "n": 31,
+    "p25": 3.575,
+    "p50": 4.94,
+    "p75": 7.19
+   },
+   "planes": {
+    "rows": 168,
+    "photos": 31,
+    "skipped": {
+     "few-books": 14,
+     "no-frame": 19
+    },
+    "found": {
+     "all": {
+      "rows": 168,
+      "board": [0.5833,0.523,0.641],
+      "lip": [0.9643,0.9375,0.9877],
+      "back": [0.6012,0.5144,0.6879],
+      "all3": [0.3869,0.3237,0.4611]
+     },
+     "below": {
+      "rows": 94,
+      "board": [0.8298,0.7553,0.9],
+      "lip": [0.9468,0.9053,0.9817],
+      "back": [0.6277,0.54,0.7253],
+      "all3": [0.4894,0.4036,0.5882]
+     },
+     "level": {
+      "rows": 34,
+      "board": [0.5882,0.4286,0.75],
+      "lip": [1,1,1],
+      "back": [0.8824,0.7813,0.9697],
+      "all3": [0.5588,0.4,0.7274]
+     },
+     "above": {
+      "rows": 40,
+      "board": [0,0,0],
+      "lip": [0.975,0.9167,1],
+      "back": [0.3,0.1249,0.4865],
+      "all3": [0,0,0]
+     }
+    },
+    "rmsP50": {
+     "board": 0.0034,
+     "lip": 0.0055,
+     "back": 0.006
+    }
+   },
+   "voids": {
+    "rows": 168,
+    "rowLengthW": {
+     "n": 168,
+     "p25": 20.6875,
+     "p50": 27.125,
+     "p75": 35.6875
+    },
+    "voidShare": [0.0118,0.0036,0.0224],
+    "voidShareRowP50": 0,
+    "voidShareRowP90": 0.0347,
+    "rowsWithVoid": [0.1429,0.0797,0.2179],
+    "endShareOfVoid": 0,
+    "candidateShare": [0.1215,0.0985,0.1481],
+    "outlineGapShareOfCandidates": [0.9026,0.8418,0.9655],
+    "outlineGapByClass": {
+     "cover": 0.2351,
+     "front": 0.722,
+     "edge": 0.0103,
+     "top": 0.0271,
+     "under": 0.0054
+    },
+    "behindUnderOutlinePerRowW": 0.3542,
+    "behindUnderOutlineShare": [0.0129,0.0063,0.0216],
+    "voidOverBehind": [0.4792,0.2379,0.7115],
+    "spearmanWithF0Gap": 0.1538,
+    "candidateSpearmanWithF0Gap": 0.3531
+   },
+   "bounds": {
+    "pitch": {
+     "pairs": 119,
+     "photos": 29,
+     "n": 119,
+     "p25": 0.3333,
+     "p50": 0.3556,
+     "p75": 0.3933,
+     "bySource": {
+      "board": {
+       "n": 54,
+       "p25": 0.3344,
+       "p50": 0.3568,
+       "p75": 0.3951
+      },
+      "lip": {
+       "n": 64,
+       "p25": 0.3333,
+       "p50": 0.3553,
+       "p75": 0.3811
+      },
+      "base": {
+       "n": 1,
+       "p25": 0.1883,
+       "p50": 0.1883,
+       "p75": 0.1883
+      }
+     },
+     "booksOverCeiling": [0.0136,0.0059,0.0218],
+     "heightOverCeilingP50": 0.7158,
+     "heightOverCeilingP90": 0.8422
+    },
+    "depth": {
+     "rows": 97,
+     "photos": 31,
+     "n": 97,
+     "p25": 0.127,
+     "p50": 0.3141,
+     "p75": 0.3435,
+     "seenOverCeiling": [0.1419,0.0693,0.2146]
+    },
+    "scale": {
+     "standard": {
+      "depth": [0.23,0.31],
+      "pitch": [0.28,0.36]
+     },
+     "impliedFromDepth": 0.86,
+     "impliedFromPitch": 0.9,
+     "agreement": 0.9556,
+     "spineHeightP50": 0.2552,
+     "spineHeightP50Scaled": {
+      "depth": 0.2195,
+      "pitch": 0.2297
+     },
+     "seenDepthP50": 0.0817,
+     "seenDepthP50Scaled": {
+      "depth": 0.0703,
+      "pitch": 0.0735
+     },
+     "pages": {
+      "confirmedBoxes": 722,
+      "works": 509,
+      "pagesP50": 401.75,
+      "widthP50": 0.0439,
+      "mmPerPage": 0.0498,
+      "spearman": 0.4481
+     }
+    }
+   },
+   "onLip": {
+    "spinePath": {
+     "boxCount": 6121,
+     "removed": 4,
+     "removedConfirmed": 0,
+     "removedTextRead": 1,
+     "reads": {
+      "base": {
+       "boxCount": 6121,
+       "textPresentShare": 0.7788,
+       "textReadShare": 0.2707,
+       "confirmedShare": 0.1194,
+       "confirmedPerPhoto": 23.5806,
+       "worksPerPhoto": 20.2903
+      },
+      "arm": {
+       "boxCount": 6117,
+       "textPresentShare": 0.7788,
+       "textReadShare": 0.2707,
+       "confirmedShare": 0.1195,
+       "confirmedPerPhoto": 23.5806,
+       "worksPerPhoto": 20.2903
+      },
+      "delta": {
+       "textReadShare": [0,-0.0003,0.0003],
+       "confirmedShare": [0.0001,0,0.0002],
+       "textReadPerPhoto": [-0.0323,-0.0968,0],
+       "confirmedPerPhoto": [0,0,0],
+       "worksPerPhoto": [0,0,0],
+       "boxesPerPhoto": [-0.129,-0.2903,0]
+      }
+     }
+    },
+    "coverArm": {
+     "coversKept": 129,
+     "removed": 0,
+     "removedConfirmed": 0,
+     "removedTextRead": 0,
+     "coversPerPhoto": {
+      "before": [4.1613,3,5.3879],
+      "after": [4.1613,3,5.3879]
+     },
+     "reads": {
+      "base": {
+       "boxCount": 6156,
+       "textPresentShare": 0.7865,
+       "textReadShare": 0.2734,
+       "confirmedShare": 0.1194,
+       "confirmedPerPhoto": 23.7097,
+       "worksPerPhoto": 20.4194
+      },
+      "arm": {
+       "boxCount": 6156,
+       "textPresentShare": 0.7865,
+       "textReadShare": 0.2734,
+       "confirmedShare": 0.1194,
+       "confirmedPerPhoto": 23.7097,
+       "worksPerPhoto": 20.4194
+      },
+      "delta": {
+       "textReadShare": [0,0,0],
+       "confirmedShare": [0,0,0],
+       "textReadPerPhoto": [0,0,0],
+       "confirmedPerPhoto": [0,0,0],
+       "worksPerPhoto": [0,0,0],
+       "boxesPerPhoto": [0,0,0]
+      }
+     }
+    },
+    "versusF0f": {
+     "boxCount": 6287,
+     "both": 13,
+     "f0fOnly": 18,
+     "onLipOnly": 4,
+     "neither": 6252
+    }
+   },
+   "priorArt": {
+    "oneformer": {
+     "photos": 31,
+     "secondsP50": 0.573,
+     "classes": {
+      "shelf": {
+       "lipRecall": [0.1551,0.0117,0.3264],
+       "boardRecall": [0.1976,0.0134,0.4042],
+       "bookLeakage": [0.003,0.0004,0.0069],
+       "onLipInside": [0,4],
+       "f0fInside": [0,18],
+       "onLipCoversInside": [0,0]
+      },
+      "bookcase": {
+       "lipRecall": [0.7156,0.5519,0.8461],
+       "boardRecall": [0.7301,0.5313,0.9121],
+       "bookLeakage": [0.0963,0.0748,0.1226],
+       "onLipInside": [4,4],
+       "f0fInside": [14,18],
+       "onLipCoversInside": [0,0]
+      },
+      "shelf+bookcase": {
+       "lipRecall": [0.8706,0.8414,0.8948],
+       "boardRecall": [0.9277,0.8821,0.962],
+       "bookLeakage": [0.0993,0.0794,0.1242],
+       "onLipInside": [4,4],
+       "f0fInside": [14,18],
+       "onLipCoversInside": [0,0]
+      }
+     }
+    },
+    "sam3": {
+     "photos": 31,
+     "secondsP50": 1.633,
+     "classes": {
+      "shelf": {
+       "lipRecall": [0.711,0.6742,0.746],
+       "boardRecall": [0.8747,0.8205,0.9114],
+       "bookLeakage": [0.0072,0.0045,0.0108],
+       "onLipInside": [1,4],
+       "f0fInside": [5,18],
+       "onLipCoversInside": [0,0]
+      }
+     }
+    }
+   }
+  },
+  "yardstick": {
+   "scope": "PROXY (library shelves): Library Dataset sample, box arm B2; confirmed = accepted and annotated in the image",
+   "photos": 40,
+   "secondsPerPhoto": {
+    "n": 40,
+    "p25": 1.13,
+    "p50": 1.67,
+    "p75": 2.01
+   },
+   "planes": {
+    "rows": 48,
+    "photos": 40,
+    "skipped": {
+     "no-frame": 15,
+     "few-books": 7
+    },
+    "found": {
+     "all": {
+      "rows": 48,
+      "board": [0.6667,0.551,0.7843],
+      "lip": [0.9375,0.8571,1],
+      "back": [0.5417,0.4117,0.6875],
+      "all3": [0.4375,0.3111,0.5682]
+     },
+     "below": {
+      "rows": 15,
+      "board": [0.8,0.5714,1],
+      "lip": [0.9333,0.7857,1],
+      "back": [0.6667,0.4286,0.8667],
+      "all3": [0.6,0.3571,0.8003]
+     },
+     "level": {
+      "rows": 30,
+      "board": [0.6667,0.4828,0.8333],
+      "lip": [0.9333,0.8333,1],
+      "back": [0.5333,0.3448,0.7099],
+      "all3": [0.4,0.2069,0.5806]
+     },
+     "above": {
+      "rows": 3,
+      "board": [0,0,0],
+      "lip": [1,1,1],
+      "back": [0,0,0],
+      "all3": [0,0,0]
+     }
+    },
+    "rmsP50": {
+     "board": 0.0013,
+     "lip": 0.0051,
+     "back": 0.0054
+    }
+   },
+   "voids": {
+    "rows": 48,
+    "rowLengthW": {
+     "n": 48,
+     "p25": 12.25,
+     "p50": 18.125,
+     "p75": 24.1875
+    },
+    "voidShare": [0.0173,0.006,0.0317],
+    "voidShareRowP50": 0,
+    "voidShareRowP90": 0.056,
+    "rowsWithVoid": [0.2083,0.098,0.3333],
+    "endShareOfVoid": 0,
+    "candidateShare": [0.074,0.0451,0.1069],
+    "outlineGapShareOfCandidates": [0.7658,0.639,0.8959],
+    "outlineGapByClass": {
+     "front": 0.7039,
+     "cover": 0.2087,
+     "top": 0.0437,
+     "under": 0.0437
+    },
+    "behindUnderOutlinePerRowW": 1.0729,
+    "behindUnderOutlineShare": [0.0567,0.028,0.0943],
+    "voidOverBehind": [0.2086,0.122,0.2857],
+    "spearmanWithF0Gap": 0.143,
+    "candidateSpearmanWithF0Gap": 0.5994
+   },
+   "bounds": {
+    "pitch": {
+     "pairs": 5,
+     "photos": 4,
+     "n": 5,
+     "p25": 0.1995,
+     "p50": 0.458,
+     "p75": 0.4673,
+     "bySource": {
+      "board": {
+       "n": 0,
+       "p25": null,
+       "p50": null,
+       "p75": null
+      },
+      "lip": {
+       "n": 4,
+       "p25": 0.3934,
+       "p50": 0.4627,
+       "p75": 0.4832
+      },
+      "base": {
+       "n": 1,
+       "p25": 0.1356,
+       "p50": 0.1356,
+       "p75": 0.1356
+      }
+     },
+     "booksOverCeiling": [0.4458,0,0.8706],
+     "heightOverCeilingP50": 0.7216,
+     "heightOverCeilingP90": 1.8721
+    },
+    "depth": {
+     "rows": 24,
+     "photos": 22,
+     "n": 24,
+     "p25": 0.2233,
+     "p50": 0.3373,
+     "p75": 0.3615,
+     "seenOverCeiling": [0.0219,0.0025,0.0588]
+    },
+    "scale": {
+     "standard": {
+      "depth": [0.23,0.31],
+      "pitch": [0.28,0.36]
+     },
+     "impliedFromDepth": 0.8,
+     "impliedFromPitch": 0.699,
+     "agreement": 1.1445,
+     "spineHeightP50": 0.2688,
+     "spineHeightP50Scaled": {
+      "depth": 0.215,
+      "pitch": 0.1879
+     },
+     "seenDepthP50": 0.105,
+     "seenDepthP50Scaled": {
+      "depth": 0.084,
+      "pitch": 0.0734
+     },
+     "pages": null
+    }
+   },
+   "onLip": {
+    "spinePath": {
+     "boxCount": 1116,
+     "removed": 2,
+     "removedConfirmed": 0,
+     "removedTextRead": 0,
+     "reads": {
+      "base": {
+       "boxCount": 1116,
+       "textPresentShare": 0.7527,
+       "textReadShare": 0.3853,
+       "confirmedShare": 0.241,
+       "confirmedPerPhoto": 6.725,
+       "worksPerPhoto": 6.5
+      },
+      "arm": {
+       "boxCount": 1114,
+       "textPresentShare": 0.7531,
+       "textReadShare": 0.386,
+       "confirmedShare": 0.2415,
+       "confirmedPerPhoto": 6.725,
+       "worksPerPhoto": 6.5
+      },
+      "delta": {
+       "textReadShare": [0.0007,0,0.0017],
+       "confirmedShare": [0.0004,0,0.0011],
+       "textReadPerPhoto": [0,0,0],
+       "confirmedPerPhoto": [0,0,0],
+       "worksPerPhoto": [0,0,0],
+       "boxesPerPhoto": [-0.05,-0.125,0]
+      }
+     }
+    },
+    "coverArm": {
+     "coversKept": 21,
+     "removed": 0,
+     "removedConfirmed": 0,
+     "removedTextRead": 0,
+     "coversPerPhoto": {
+      "before": [0.525,0.25,0.85],
+      "after": [0.525,0.25,0.85]
+     },
+     "reads": {
+      "base": {
+       "boxCount": 1126,
+       "textPresentShare": 0.7611,
+       "textReadShare": 0.3837,
+       "confirmedShare": 0.2398,
+       "confirmedPerPhoto": 6.75,
+       "worksPerPhoto": 6.525
+      },
+      "arm": {
+       "boxCount": 1126,
+       "textPresentShare": 0.7611,
+       "textReadShare": 0.3837,
+       "confirmedShare": 0.2398,
+       "confirmedPerPhoto": 6.75,
+       "worksPerPhoto": 6.525
+      },
+      "delta": {
+       "textReadShare": [0,0,0],
+       "confirmedShare": [0,0,0],
+       "textReadPerPhoto": [0,0,0],
+       "confirmedPerPhoto": [0,0,0],
+       "worksPerPhoto": [0,0,0],
+       "boxesPerPhoto": [0,0,0]
+      }
+     }
+    },
+    "versusF0f": {
+     "boxCount": 1153,
+     "both": 2,
+     "f0fOnly": 4,
+     "onLipOnly": 3,
+     "neither": 1144
+    },
+    "titles": {
+     "delta": {
+      "recall": [0,0,0],
+      "precision": [0,0,0]
+     },
+     "wrongPerImage": [0,0,0],
+     "worksPerImage": [0,0,0]
+    }
+   },
+   "priorArt": {
+    "oneformer": {
+     "photos": 40,
+     "secondsP50": 0.7525,
+     "classes": {
+      "shelf": {
+       "lipRecall": [0.2197,0.0957,0.3822],
+       "boardRecall": [0.3625,0.1679,0.5915],
+       "bookLeakage": [0.0198,0.0092,0.0318],
+       "onLipInside": [1,2],
+       "f0fInside": [1,6],
+       "onLipCoversInside": [0,0]
+      },
+      "bookcase": {
+       "lipRecall": [0.0623,0.0101,0.1371],
+       "boardRecall": [0.1591,0.0451,0.3161],
+       "bookLeakage": [0.0103,0.0034,0.0181],
+       "onLipInside": [0,2],
+       "f0fInside": [0,6],
+       "onLipCoversInside": [0,0]
+      },
+      "shelf+bookcase": {
+       "lipRecall": [0.282,0.1468,0.4597],
+       "boardRecall": [0.5216,0.3242,0.757],
+       "bookLeakage": [0.0302,0.0189,0.0417],
+       "onLipInside": [1,2],
+       "f0fInside": [1,6],
+       "onLipCoversInside": [0,0]
+      }
+     }
+    },
+    "sam3": {
+     "photos": 40,
+     "secondsP50": 1.6225,
+     "classes": {
+      "shelf": {
+       "lipRecall": [0.3091,0.1713,0.491],
+       "boardRecall": [0.9552,0.9375,0.9676],
+       "bookLeakage": [0.0294,0.0161,0.0457],
+       "onLipInside": [0,2],
+       "f0fInside": [3,6],
+       "onLipCoversInside": [0,0]
+      }
+     }
+    }
+   }
+  }
+ },
+ "spotCheck": {
+  "catches": {
+   "shown": 4,
+   "unclear": 0,
+   "notABook": 4,
+   "judged": 4,
+   "share": 1
+  },
+  "controls": {
+   "shown": 20,
+   "unclear": 0,
+   "notABook": 0,
+   "judged": 20,
+   "share": 0
+  }
+ },
+ "verdict": {
+  "noConfirmedRemoved": true,
+  "confirmedRemoved": 0,
+  "catchesWhatF0fMisses": true,
+  "newCatches": 4,
+  "yardstickUnhurt": true,
+  "ships": true
+ }
+}
