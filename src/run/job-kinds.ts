@@ -82,6 +82,8 @@ export interface ReadVisionOptions extends OcrHelperOptions {
   helperId?: string;
   /** Where verified copies go. Default: `staged/` beside the output directory. */
   stageDir?: string;
+  /** Remote workers resolve the keyed input in this host's content-addressed store. */
+  resolveImage?: (hash: string) => string | undefined;
 }
 
 /**
@@ -89,13 +91,24 @@ export interface ReadVisionOptions extends OcrHelperOptions {
  * Refuses (non-retryable) a job whose helper pin or working-copy hash does not match what this attempt read.
  */
 export function readVisionHandler(options: ReadVisionOptions = {}): JobHandler {
-  const { helperId: trusted, stageDir, ...ocr } = options;
+  const { helperId: trusted, stageDir, resolveImage, ...ocr } = options;
   return async (job, { signal, outDir }) => {
     if (signal.aborted) throw new JobError("interrupted", true);
     const staged = stageDir ?? join(outDir, "..", "staged");
-    const { image } = job.payload as ReadVisionPayload;
     const { requests } = job.params as unknown as ReadVisionParams;
-    if (typeof image !== "string" || !Array.isArray(requests) || job.inputs.length !== 1) throw new JobError("bad-spec", false);
+    if (!Array.isArray(requests) || job.inputs.length !== 1) throw new JobError("bad-spec", false);
+    const hash = job.inputs[0]!;
+    let image: string;
+    if (resolveImage) {
+      if (!/^[a-f0-9]{64}$/.test(hash)) throw new JobError("bad-spec", false);
+      const local = resolveImage(hash);
+      if (!local) throw new JobError("input-missing", true);
+      image = local;
+    } else {
+      const path = (job.payload as ReadVisionPayload | null)?.image;
+      if (typeof path !== "string") throw new JobError("bad-spec", false);
+      image = path;
+    }
     if (!requests.every((r) => OcrRequestSchema.safeParse({ ...r, image }).success)) throw new JobError("bad-spec", false);
 
     let binary = ocr.binary ?? defaultOcrBinary();
@@ -118,8 +131,8 @@ export function readVisionHandler(options: ReadVisionOptions = {}): JobHandler {
     } catch {
       throw new JobError("input-missing", true);
     }
-    if (sha256(photo) !== job.inputs[0]) throw new JobError("input-mismatch", false);
-    const copy = stageVerified(join(staged, "inputs"), `${job.inputs[0]}${extname(image)}`, photo, 0o444);
+    if (sha256(photo) !== hash) throw new JobError("input-mismatch", false);
+    const copy = stageVerified(join(staged, "inputs"), `${hash}${extname(image)}`, photo, 0o444);
 
     let responses;
     try {
