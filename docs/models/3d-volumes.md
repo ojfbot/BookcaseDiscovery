@@ -23,6 +23,8 @@ more robust and more striking overlay?
 - **Not yet:** monocular 3D box detectors (Cube R-CNN, OVMono3D, 3D-MOOD), SAM 3D Objects, and diffusion
   normal models. **Next for "many angles":** MapAnything (Apache-2.0 variant) or Depth Anything 3 (Base, Apache-2.0)
   on a sweep, once a multi-view capture of one shelf exists.
+- **H-2 (§8) built it:** a cached depth stage and face shares per box. The `face3d` reader crop failed F-0b's keep
+  rule and stays off. A `user-glow-volume` display variant awaits the owner's judgement.
 - **No owner action is needed** for the recommended path. Only optional models are gated or large: SAM 3D Objects
   (gated, SAM License, 13.1 GB) and VGGT-1B-Commercial (gated, 10.1 GB). Neither was downloaded.
 
@@ -200,7 +202,8 @@ The code installs MoGe from its official GitHub repo at commit `b942f00` (MIT; t
 
 ## 7. What this card does not settle
 
-- Whether a normals-based trim helps the readers: that is H-2's exit (a).
+- Whether a normals-based trim helps the readers: that is H-2's exit (a). *Since settled (§8): it does not, so the
+  crop stays off.*
 - Metric scale and book depth from one still. A known reference, LiDAR or multi-view would settle them.
 - Whether the face split holds on a fresh session. Every number here is from the `pilot-000` dev set, and the
   per-box plane fallback was added after looking at it.
@@ -246,3 +249,27 @@ root's `private/h2/cache/`. On `pilot-000` the stage reproduces H-1's face split
 - Shares are machine measurements, never accuracy (INV-17).
 - The `model` triple is the replay pin (INV-14).
 - No pixels and no text are recorded (OC9).
+
+**The `face3d` crop: off.** The crop is `face3d;rot=fixed;clip=frame` (`src/perceive/crop.ts`, `FACE3D_CROP`). On
+boxes that over-select and have a feasible trim, it reads the trim in place of the rectangle. It failed F-0b's
+keep rule:
+
+- `pilot-000` confirmed −0.3 points (−1.2 to 0.7);
+- distinct confirmed works 519 → 512;
+- the yardstick is not hurt.
+
+Top-face trims are neutral, and cover trims cost (`evals/H2`, finding 2): the readers already cope with a box that
+runs onto a book's top, and a receding cover often carries text. So the trim's value is in labels and display,
+not reading:
+
+- F-0c's not-a-book flag: a box mostly `behind` or `cover`;
+- Q-2's top seam (H-1 finding 7);
+- `user-glow-volume` ([`display-modes.md`](../capture/display-modes.md) §2.1, owner's exit d).
+
+**Exits.**
+
+- (a) off, as above.
+- (b) the fresh-session spot check is written down in `evals/H2/report.md` and not run: no fresh session exists.
+- (c) median 3.2 s a photo on MPS, but the first photo of the first run took 5.8 s (MPS warm-up,
+  *hypothesis*), so it is not met as pre-registered.
+- (d) is the owner's.
