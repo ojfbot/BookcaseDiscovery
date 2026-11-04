@@ -2,7 +2,7 @@
 
 > **Status: first thin slice, 2026-11-03 (card U-4).** A mode registry and a private still-photo study. This is not the live phone build. Nothing here is ruled. Every style number is a starting value for the owner, and every feel target is a **hypothesis** until Q-6 measures it (INV-17, INV-23).
 > **Reads:** [`coverage.md`](coverage.md) (Q-0) §1–§3, §7, §8 and §10; U-1 [`overlay-ux.md`](../plan/docs/live/overlay-ux.md) (lenses, overlay states, §6 anti-jitter, §7 tokens); U-2 [`guided-sweep-ux.md`](../plan/docs/live/guided-sweep-ux.md) §4; [`evals/F0e/report.md`](../../evals/F0e/report.md); [`evals/Q2/report.md`](../../evals/Q2/report.md).
-> **Code:** `src/report/display-modes.ts` (the registry), `src/report/display-draw.ts` (the renderer) and `src/eval/u4-cli.ts` (the study). **Tests:** `test/display-modes.test.ts`.
+> **Code:** `src/report/display-modes.ts` (the registry), `src/report/display-draw.ts` (the renderer) and `src/eval/u4-cli.ts` (the study). **Tests:** `test/display-modes.test.ts`, `test/h2.test.ts` (the volume variant, H-2).
 
 ## In short
 
@@ -19,13 +19,22 @@
 |---|---|---|
 | `dev` | the owner and agents debugging perception | scrim, tile edges, band lines, oriented boxes, cut flags, partial flags, raw box ids, box scores |
 | `labelling` | machine-first labelling review | scrim, hairline boxes, the machine's guess (along the spine), its coverage rung |
-| `user` | the shopper | scrim, coverage fill, highlight. **No boxes, no numbers, no labels.** |
+| `user` | the shopper | scrim, top face, coverage fill, highlight. **No boxes, no numbers, no labels.** |
 
 **Layers.** A variant lists its layers bottom to top, and every one carries its own style data:
 
 - `scrim` dims the photo. In `user-glow` the filled spines are lifted out of it, so read books look lit. This follows U-1 §7: "filtering dims, never removes".
 - `coverage-fill` paints each spine by its glass state. Q-0 §3 gives three states: `not-seen` (blank), patchy (`seen` to `text-present`) and filled (`text-read` and up). The layer's data names a **shape** (mask outline or box; convex hull or not; Chaikin smoothing passes) and two **paints**, one for filled and one for patchy.
 - `highlight` paints spines at or above a rung (`confirmed` in every user variant, U-1 ruling 6's "probable or better").
+- `top-face` (H-2) lights a book's top face where the camera sees it, as a second, dimmer shape beside the spine. The
+  shape is the book cuboid's top from H-2's depth stage: the camera above it, and its depth seen or borrowed from
+  the band, never the 20 cm default. The layer's data names the lowest glass state it draws for (`filled` in
+  `user-glow-volume`), a smoothing count and a paint.
+
+A shape spec may also set **`face`** (H-2): where the depth stage trimmed a box to its spine face (the box
+over-selects and the trim is feasible), the outline is clipped to that trim, grown 3 % along and 8 % across as mask
+pieces are, so the light stops at the book's top edge instead of running onto its top or a receding cover. If the
+clip keeps less than 60 % of the face (`FACE_KEEP`), the face's own rectangle is drawn.
 
 **Paints** are a small closed set of primitives, and every number in them is a parameter:
 
@@ -43,6 +52,7 @@ Any paint can add an ink **halo** under it, so a light paint still reads on a br
 | `dev-quiet` | dev | the same layers on a darker scrim, with paper-white boxes, for dense shelves |
 | `labelling-hairline` | labelling | U-1 hairlines; each guess runs along its spine. The rung word is green from `text-read` up and amber below it. An unconfirmed top candidate ends in "?" |
 | `user-glow` | user | soft paper-white light hugging each read spine's outline. Read spines are lifted out of a light scrim, and patchy ones get a faint stipple |
+| `user-glow-volume` | user | H-2: `user-glow` with its outline cut back to the spine face, and the book's visible top face lit as a second, dimmer shape (read spines only). Without H-2's faces it draws exactly as `user-glow` |
 | `user-veil` | user | a translucent warm-paper fill with a feathered edge over each read spine; patchy spines get a fine hatch |
 | `user-ridge` | user | Touch ID: fine ridges across each spine, sparse while patchy and dense once read. It uses the raw mask outline, with no hull |
 
@@ -90,6 +100,18 @@ These are machine agreement, not accuracy (INV-17). In the first study `spine-fo
 - **Hull the mask.** Raw SAM outlines have notched ends and the odd blob, and pieces of one spine leave seams. The convex hull of a spine's pieces keeps its real perspective shape (a trapezoid, a tapered top) without them. Glow and veil use the hull. Ridges keep the raw outline, so the two can be compared.
 - **No SVG blur filters.** Chromium drew nothing for blurred groups in overlays with hundreds of complex paths, although the same filter works on a small test image. Soft edges are now stacks of 3–5 strokes of falling width and opacity. A test pins the rule. A stroke stack is also what a phone overlay can afford every frame (Q-6).
 - **Restraint reads as magic.** The calmest look so far is `user-glow`: unread spines sit under a light scrim, and read spines are lifted out of it with a soft edge, so the shelf seems to light up book by book. Veil washes the colours of the book it marks. Ridges are the most Touch-ID-like, but they cover the spine's own lettering. The owner judges (§5).
+
+### 2.1 The volume study (H-2, private)
+
+`node src/eval/h2-cli.ts render` runs the same study with H-2's per-box faces (`u4-cli.ts render --faces … --out
+…`) and writes it under the data root's `private/h2/renders/pilot-000/`. A opens on `user-glow`, B on
+`user-glow-volume`. Inputs are U-4's, plus each box's spine-face trim and visible top face from H-2's depth stage
+(`private/h2/pilot-000/faces.jsonl`; method in [`3d-volumes.md`](../models/3d-volumes.md) §8).
+
+On `pilot-000` (6,121 spines): 28.5 % are cut back to their spine face, and 57.2 % have a visible top face, which
+is drawn on read spines only. The still proxies barely move against `user-glow`: jaggedness p90 0, wobble 0.75, area CV 0.019
+against 0.018. **The owner judges the variant on this page (H-2's exit d).** Whether a top face should also show on patchy
+spines, and how bright it should be, are open (§5, question 8).
 
 ## 3. Feel metrics
 
@@ -153,6 +175,7 @@ A/B comparison needs every live session and still to say which variant it showed
 5. **How much dimming?** Scrims of 0.18 to 0.34 make highlights readable on bright shelves. Is dimming the shopper's view acceptable, or should contrast come only from halos?
 6. **How are A/B arms assigned?** Alternate by session, or always the owner's pick?
 7. **Real outlines for every spine?** Done in Q-2b: each box now has its own SAM 2.1 outline, and 83 % of spines are drawn from it (69 % before). The other 17 % are masks that cover too little of their box. Is box shape acceptable for them, or should a second prompt (a point inside the box, or the box grown along the spine) retry them?
+8. **Volume (H-2).** Does `user-glow-volume` read as the book's own shape, or as noise on low rows? Should the top face light on patchy spines too, and is 0.2 the right brightness against the spine's 0.4?
 
 ## 6. For the conductor
 

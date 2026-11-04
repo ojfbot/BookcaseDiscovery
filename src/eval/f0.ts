@@ -59,6 +59,8 @@ export interface DetectedSpine {
   cut: boolean;
   /** The mask's simplified outer contour (working-copy pixels), when the detector kept it: the crop's spine face. */
   outline?: [number, number][];
+  /** The spine-face trim from the depth stage (H-2), where the box over-selects and the trim is feasible. */
+  face3d?: [number, number][];
 }
 
 export interface Detection {
