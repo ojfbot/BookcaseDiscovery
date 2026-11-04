@@ -1,5 +1,5 @@
 import { execFileSync } from "node:child_process";
-import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { mkdirSync, readFileSync, renameSync, writeFileSync } from "node:fs";
 import { basename, extname, join, resolve } from "node:path";
 import { dataRoot, ImageStore } from "../ledger/images.ts";
 import { defaultOcrBinary } from "../perceive/ocr.ts";
@@ -102,8 +102,25 @@ export async function fleetCommand(argv: string[], env: NodeJS.ProcessEnv = proc
         const drain = () => stop.abort();
         process.on("SIGTERM", drain);
         process.on("SIGINT", drain);
+        const statusFile = join(fleetDir, "resident-status");
+        const statusTemp = `${statusFile}.${process.pid}.tmp`;
+        let previousState: string | undefined;
+        const recordStatus = (state: string) => {
+          if (state === previousState) return;
+          // Aggregate process state only. Never serialize a job, error, or environment.
+          writeFileSync(statusTemp, state + "\n", { mode: 0o600 });
+          renameSync(statusTemp, statusFile);
+          previousState = state;
+        };
         try {
-          await runWorker(client, { ...worker, signal: stop.signal, canClaim: () => mayClaim(arg!) });
+          mkdirSync(fleetDir, { recursive: true });
+          recordStatus("starting");
+          await runWorker(client, {
+            ...worker,
+            signal: stop.signal,
+            canClaim: () => mayClaim(arg!),
+            onEvent: ({ type }) => recordStatus(type),
+          });
         } finally {
           process.off("SIGTERM", drain);
           process.off("SIGINT", drain);

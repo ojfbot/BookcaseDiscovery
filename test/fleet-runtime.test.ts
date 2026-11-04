@@ -1,3 +1,6 @@
+import { mkdtempSync, readFileSync, rmSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import { beforeEach, expect, it, vi } from "vitest";
 import { fleetCommand } from "../src/run/fleet-cli.ts";
 
@@ -33,10 +36,17 @@ it("drains the resident worker on SIGTERM and removes its signal listeners", asy
   runWorker.mockImplementation(async (_, options) => {
     expect(options.canClaim()).toBe(false);
     expect(options.signal.aborted).toBe(false);
+    options.onEvent({ type: "request-error", delayMs: 5000 });
     process.emit("SIGTERM", "SIGTERM");
     expect(options.signal.aborted).toBe(true);
   });
-  expect(await fleetCommand(["serve-worker", "yuri"], env)).toBe(0);
+  const data = mkdtempSync(join(tmpdir(), "fleet-runtime-"));
+  try {
+    expect(await fleetCommand(["serve-worker", "yuri"], { ...env, BOOKCASE_DATA: data })).toBe(0);
+    expect(readFileSync(join(data, "fleet", "resident-status"), "utf8")).toBe("request-error\n");
+  } finally {
+    rmSync(data, { recursive: true, force: true });
+  }
   expect(mayClaim).toHaveBeenCalledWith("yuri");
   expect(client).toHaveBeenCalledWith(env.FLEET_ENDPOINT, "yuri", env.FLEET_TOKEN_FILE);
   expect(process.listenerCount("SIGTERM")).toBe(originalListeners);

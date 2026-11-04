@@ -1,5 +1,5 @@
 import { execFileSync } from "node:child_process";
-import { accessSync, constants, mkdirSync, realpathSync, renameSync, rmSync, statSync, writeFileSync } from "node:fs";
+import { accessSync, constants, existsSync, mkdirSync, readFileSync, realpathSync, renameSync, rmSync, statSync, writeFileSync } from "node:fs";
 import { homedir } from "node:os";
 import { dirname, isAbsolute, join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -140,6 +140,16 @@ export function workerService(
     } else {
       const state = status?.match(/^\s*state = (running|spawn scheduled|waiting|not running)\s*$/m)?.[1];
       console.log(`fleet worker service ${state ?? (status === undefined ? "not loaded" : "loaded")}`);
+      if (state === "running" && env.BOOKCASE_DATA && isAbsolute(env.BOOKCASE_DATA)) {
+        const outcomeFile = join(env.BOOKCASE_DATA, "fleet", "resident-status");
+        if (!existsSync(outcomeFile)) return 0;
+        const workerState = readFileSync(outcomeFile, {
+          encoding: "utf8",
+          flag: "r",
+        }).trim();
+        if (/^(starting|completed|idle|paused|policy-error|request-error|failed|lease-lost)$/.test(workerState))
+          console.log(`fleet worker outcome ${workerState}`);
+      }
     }
     return 0;
   } catch {
