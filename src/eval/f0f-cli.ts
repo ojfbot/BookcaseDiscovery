@@ -373,7 +373,7 @@ function compare(set: SetName, arm: ArmName) {
  * Each box's label evidence on one set: spine-path boxes `s<i>` from the base's Vision and PP-OCR readings (what the
  * pipeline has when it applies the rules, before Qwen), covers `c<j>` from all three of F-0c's cover readings.
  */
-function evidenceFor(set: SetName): Map<string, (ref: string) => BoxEvidence | undefined> {
+export function evidenceFor(set: SetName): Map<string, (ref: string) => BoxEvidence | undefined> {
   const spine = loadReadings(baseDir(set));
   const cover = loadReadings(join(ROOT, "f0c", set, "covers"), COVER_CROP);
   const probes = new Map(readJsonl<{ id: string; white: number; edges: number }>(probePath(set)).map((p) => [p.id, p]));
