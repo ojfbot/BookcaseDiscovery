@@ -170,7 +170,7 @@ One function, `normalize`, is used for the index and for the query. Unicode-deco
 
 `retrieve(db, variants, k = 10)` takes alternative readings of **one whole spine** (all its lines in one string, any order, as P-1's text variants give them) and returns at most `k` candidates, best first, each work once with the evidence of the variant that scored it highest (repeated agreement is not summed, INV-6). A candidate carries `workId`, title, subtitle, authors, series, year, `editionCount`, `score`, `queryCoverage`, the winning `variant` index and `evidence[]`: for each of title, author and series the score, the matched normalised form, the form kind (`title`, `main`, `subtitle`, `variant`, …) and every token match (`neurom` → `neuromancer`, `prefix`, 0.77). Those map one to one onto `title-fragment`, `author-fragment` and `series` in the `Evidence` contract.
 
-1. **Generate.** FTS5 trigram queries, one OR-query per field, from the OCR tokens (3+ letters, stopwords skipped), their 0/O readings, joined neighbours, skeletons and, for words of 7+ letters, both halves (one wrong character leaves the other half intact). The best 250 forms per field by bm25 are scored in code; forms that explain at least 0.25 of themselves pull their works in; the best 12 authors and 8 series add their works (400 per author or series, most-edited first). The whole variant is also looked up as an exact title (short titles such as `IT` have no trigram).
+1. **Generate.** FTS5 trigram queries, one OR-query per field, from the OCR tokens (3+ letters, stopwords skipped), their 0/O readings, joined neighbours, skeletons and, for words of 7+ letters, both halves (one wrong character leaves the other half intact). The best 250 forms per field by bm25 are scored in code; forms that explain at least 0.25 of themselves pull their works in; the best 12 authors and 8 series add their works (400 per author or series, most-edited first). The whole variant is also looked up as an exact title (short titles such as `IT` have no trigram). C-8's rare-words-first generation is opt-in (`generation: "c8"`; § Candidate generation, rare words first).
 2. **Score each work** against every form of its title, author and series: exact (1), skeleton (0.9), prefix (0.55 + 0.4 × length ratio; this is truncation), substring (0.45 + 0.3 × ratio; this is cropping), edit distance 1 (or 2 for 9+ letters; 0.85 × (1 − d/len)), initial (0.5). Tokens are matched greedily, best first, each used once; stopwords weigh a quarter and single letters 0.4. The title and series score is the weighted share of the form that the fragments explain; the author score is 0.7 × the surname's match + 0.3 × the given names' (a surname alone scores 0.7).
 3. **Combine.** `1 − (1 − 0.85·T)(1 − 0.55·A)(1 − 0.45·S)`, times `0.55 + 0.45 × queryCoverage`, where `queryCoverage` is the share of the OCR tokens that some field explains. Words in the fragments that nothing explains cost score; a second field that explains them gains it.
 4. **Rank** by score in steps of 0.01, then by number of editions, then by score, then id. Edition count is a catalog fact (not the reader's profile, INV-13), and it decides only between near-equal scores: a bare `GATEWAY` returns the most-published work called Gateway first. It is shown as `editionCount`.
@@ -432,3 +432,46 @@ C-6's margin) passed the pre-registered keep rule:
 
 The basis stays an option of `decide`, off unless a caller passes it. What would close the gap is in
 `evals/C7/report.md` § What would close the gap.
+
+# Candidate generation, rare words first (C-8)
+
+C-R2 §1.5 asked for candidates from the rarest read words first. `retrieve(db, variants, k, { generation: "c8" })` does
+that; **the default stays C-3's generation**, because C-8's pre-registered keep rule failed on yardstick candidate
+recall on v2 (`evals/C8/report.md`). F-0 and every other caller are unchanged.
+
+**What `c8` does,** once over the text of all the variants (C-3 generates per variant):
+
+1. Every run of up to 10 read tokens is looked up as an exact title (`title_forms(norm)`, 50 works per run, most
+   editions first). These do not count toward the pool.
+2. Each read token of 3+ letters that is not a stopword, and each join or 0/O reading that the catalog holds as a word,
+   becomes one trigram query: the token and its skeleton, plus both halves for a read token of 7+ letters the catalog
+   does not hold. Queries are ordered by df (works carrying the token in a title, author or series form, from C-7's
+   sidecar `<catalog>.stats.sqlite`), then the longer token.
+3. Each index (title, author, series) fills a pool of 250 forms: one query ORing the 4 rarest catalog words (60
+   forms), then each token's query rarest first, 40 new forms each, until full. Expansion and scoring are C-3's.
+4. `generateFrom` adds other readings of the spine (other readers' text) to generation only; candidates are scored on
+   `variants` alone, so each reader's vote stays its own (INV-6).
+
+Constants: `GENERATION` in `retrieve.ts`. Without a sidecar (or with a stale one, a warning) every token has df 0, so
+the longer token goes first. `catalogDf(db)` finds the sidecar beside the catalog file (`db.location()`).
+
+**Why C-3's generation is slow on v2.** FTS5 ranks every form that holds a phrase before it applies `LIMIT`, so the cost
+follows how many forms hold each phrase *as a substring*. C-3's single OR-query holds the halves of long words
+(`tion`: 619,465 title forms on v2) and 3-letter fragments (`ion`: 742,517). Word df does not predict this for
+fragments (`tation`: df 2, 35,474 forms), which is why `c8` halves only words the catalog does not know. Every
+statement `retrieve` runs uses an index on v2 (`EXPLAIN QUERY PLAN`; a unit test fails on a table scan).
+
+**Numbers** (`evals/C8/`, 2026-11-04):
+
+| | C-3 (default) | `c8` |
+|---|---:|---:|
+| golden clean top-5, v1 / v2 | 100 % / 100 % | 100 % / 100 % |
+| golden noisy top-5, v1 / v2 | 100 % / 95.6 % | 100 % / 95.6 % |
+| golden p95 (median of 3), v1 / v2 | 82 ms / 497 ms | **67 ms / 238 ms** |
+| yardstick candidate recall at depth 50, v1 / v2 | 3.7 % / 15.2 % | 3.7 % / **13.2 %** (−2.0 points, −3.7 to −0.6) |
+| F-0 accepts, yardstick v2 (wrong) | 44 (17) | 44 (17) |
+| F-0 accepts, `pilot-000` v2 | 992 | 960 (−0.46 points, −0.80 to −0.12) |
+
+The recall loss is the list's tail: 26 of the 27 readings that lost the right work had it at rank 15-49 under C-3,
+and 20 of them still generate it, below rank 50.
+
