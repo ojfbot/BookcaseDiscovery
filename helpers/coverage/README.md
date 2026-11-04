@@ -11,6 +11,10 @@ python -I features.py --detect detect.jsonl --images images.jsonl > features.jso
 python -I render.py --detect … --images … --scores … --out DIR --label SET            # private overlay renders
 python -I geometry.py --detect detect.jsonl --images images.jsonl > geometry.jsonl   # Q-2: top seam per box
 python -I render_q2.py --detect … --images … --table … --fill-p P --seam-off S --out DIR --label SET
+python -I overlap.py --set S --detect … --outlines … --table … --faces … --images … > metrics.json   # F-R1
+python -I resolve.py plan|resolve --set S --detect … --outlines … --table … --decisions … --images … --out DIR  # F-0i
+python -I resolve.py own --requests R --out DIR                                         # F-0i `mask=own` crops
+python -I render_f0i.py --detect … --outlines … --table … --images … --part DIR --out DIR --label SET
 ```
 
 - `features.py`: for each 4-point polygon in working-copy pixels (EXIF orientation ignored), the perspective crop
@@ -26,4 +30,19 @@ python -I render_q2.py --detect … --images … --table … --fill-p P --seam-o
 - `render_q2.py` (Q-2): per photo, measured fill (teacher), predicted fill (student, solid at or above FILL_P),
   measured against predicted, and the top-edge overlay. Same privacy rule as `render.py`.
 
-stderr carries progress only. Tested by `test/q1.test.ts` and `test/q2.test.ts` on synthetic images (skipped when `.venv` is absent).
+- `overlap.py` (F-R1): how often detected books overlap, by box and by mask, on cached outlines
+  ([`evals/FR1`](../../evals/FR1/report.md)).
+- `resolve.py` (F-0i, the **instance partition**; runner `src/eval/f0i-cli.ts`, results
+  [`evals/F0i`](../../evals/F0i/report.md)): `plan` runs the instance gate on the rasterised outlines (duplicates,
+  two-book parents and pieces inside one spine dropped; a wide parent with one child becomes its remainder) and
+  plans each remaining conflict group's rotated tile and square windows with joint prompts for
+  `helpers/label/partition.py`; `resolve` gives every pixel two or more books claim to one of them (depth override,
+  a seam on R3-A's seam evidence: H-2's normals and a Retinex edge map, the SAM logit argmax, fallbacks), then the
+  validity rule, refit boxes, lossless exclusive outlines, label maps and per-boundary provenance; `own` writes the
+  `mask=own` reader crops (neighbour-owned pixels filled) as one lossless mosaic per photo. Every threshold is a
+  constant at the top, pre-registered.
+- `render_f0i.py` (F-0i): before and after with per-book coloured mask fills and zooms on the largest conflict groups.
+  Same privacy rule as `render.py`.
+
+Everything per box, per pair or per photo goes under the data root's `private/`; stdout is aggregates. stderr carries
+progress only. `test/f0i.test.ts` runs `resolve.py` on a synthetic photo. Tested by `test/q1.test.ts` and `test/q2.test.ts` on synthetic images (skipped when `.venv` is absent).
