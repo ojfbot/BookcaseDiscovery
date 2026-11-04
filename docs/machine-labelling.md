@@ -116,6 +116,47 @@ node src/eval/f0f-cli.ts render [arm]               # the data root's private/f0
 - **Shelf labels and cards: on by default.** A box is `not-a-book` as a `shelf-strip` (section wording such as "Fiction/Fantasy" or "Alphabetical by Author", and strip-shaped and flat), a `shelf-talker` (recommendation wording: "Like ⟨author⟩?", "Now try", "Staff pick") or a `blank-card` (no reader text, flat, at least 75 % white card stock with few edges). In `f0-cli.ts` the rules run after Vision and PP-OCR, so labelled boxes never go to Qwen, and the pixel probe is a cached stage (`probe.jsonl`). F-0c's `kinds` applies them to cover-pass boxes too when given the evidence.
 - **Measured** in [`evals/F0f/report.md`](../evals/F0f/report.md). **No perspective step ships.** Low rows are seen from above, so their books' top faces show: Q-2's top seam then often finds the top face's far edge, and its "cut" share rises from 5 % (top third of the frame) to 24 % (bottom third), while boxes short of their row's top line do not rise (15 %, 12 %, 16 %). `tops` and `ends` (extend to the row's line, re-mask) did not lower partial height beyond noise and raised the seam error; `angles` (turn off-row boxes to the row's lean) lost confirmed works (−0.42 a photo), because the boxes it turned followed books that really lean. **The shelf-label filter ships:** it removes 17 `pilot-000` spine-path boxes and 13 of F-0c's 142 kept covers (both false covers in the owner's examples among them), and no confirmed book on either set.
 
+## Shelf structure, voids and `on-lip` (S-1)
+
+The owner asked for the shelves themselves and the empty places on them: to bound book sizes, and to tell signs on
+the shelf from books. S-1 reads H-2's cached depth stage, so it needs no new model. Code:
+
+- `helpers/shelf/shelf.py`: planes, voids and lip features ([README](../helpers/shelf/README.md));
+- `src/eval/s1.ts`: the `on-lip` rule and post step, and board pitch (pure);
+- `src/eval/s1-cli.ts`: the runner;
+- `helpers/shelf/render.py`: private renders;
+- `helpers/shelf/segment.py`: prior art.
+
+Results: [`evals/S1/report.md`](../evals/S1/report.md).
+
+```
+node src/eval/s1-cli.ts stage pilot-000     # the depth stage's keys from H-2's cache (all hits; also yardstick)
+node src/eval/s1-cli.ts shelf pilot-000     # planes, voids and lip features per photo (CPU)
+node src/eval/s1-cli.ts segment pilot-000   # prior art: OneFormer (ADE20K) and SAM 3 "shelf" masks (GPU)
+node src/eval/s1-cli.ts spot                # the blind spot-check sheet (private)
+node src/eval/s1-cli.ts analyse             # evals/S1/ (aggregates only)
+node src/eval/s1-cli.ts render pilot-000    # the data root's private/s1/renders/pilot-000/ (private)
+```
+
+- **Shelf planes.** Per row, a RANSAC fit of the board top, the lip and the back panel, each from the band's frame.
+  On `pilot-000` the lip is found on 96 % of rows, the board top on 83 % below eye level and on none above, and the
+  back panel on 60 %.
+- **Voids** are in Q-0's coverage-segment unit (median spine widths along the row): stretches no book outline
+  covers, where the back panel shows.
+  - They are rare on `pilot-000` (1.2 % of row length).
+  - Most uncovered stretches are books without an outline (`outline-gap`, mostly `front`), not voids.
+- **Bounds and scale.** Board pitch (median 35.6 cm on `pilot-000`) bounds book heights: 1.4 % of books exceed it.
+  Against a standard shelf, the depth and the pitch both say MoGe-2's metres run about 11–16 % long. That stays a
+  hypothesis.
+- **`on-lip`: its keep rule is met; it is a ready post step, not yet wired.** A flat box inside the frame whose pixels
+  lie mostly on a row's lip face, not behind the lip and in front of the books' faces, is `not-a-book` with the
+  sub-reason `on-lip` (`applyOnLip`, after F-0c's and F-0f's kinds).
+  - It removes 4 `pilot-000` boxes F-0f misses: all section strips or label clips in a blind spot check, none
+    confirmed.
+  - On the yardstick it removes 2, none confirmed, with titles unchanged.
+  - The default pipeline has no depth stage, so `f0-cli.ts` does not run it yet. Wiring it changes the default's
+    not-a-book kinds, and F-0g, Q-2b and H-2 then need re-baselining (the conductor's call).
+
 ## Copy groups (F-0g)
 
 Bookstores shelve several copies of one book side by side; F-0 identifies each on its own, so a blurred or angled copy stays `unknown` beside a confirmed twin. F-0g groups neighbouring copies and lets a confirmed copy lend its work to an unconfirmed one as recorded evidence. Code: `src/eval/f0g.ts` (neighbours, visual score, series guard, groups, propagation; pure), `src/eval/f0g-cli.ts` (runner), `helpers/label/appearance.py` (pixel similarities), `helpers/label/render_f0g.py` (private review page). Results: [`evals/F0g/report.md`](../evals/F0g/report.md).
