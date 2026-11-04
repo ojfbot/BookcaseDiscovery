@@ -47,11 +47,62 @@ const REPO = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
 const HELPER = join(REPO, "helpers", "coverage");
 const ROOT = dataRoot();
 const Q1 = join(ROOT, "private", "q1");
-const PRIV = join(ROOT, "private", "q2");
-const PILOT = "pilot-000";
-const YARD = "yardstick-library-b2";
+export const PILOT = "pilot-000";
+export const YARD = "yardstick-library-b2";
 const SETS = [PILOT, YARD];
 const REPS = 1000;
+
+/** One set's inputs: an F-0-shaped stage folder, Q-1-shaped features and table, and which boxes count. */
+export interface SetInputs {
+  /** `detect.jsonl` and each reader's `<reader>.jsonl`. */
+  stage: string;
+  /** F-0-shaped decisions (`accepted`, `reason`) per box. */
+  decisions: string;
+  /** Q-1's features.py rows, the image list they were measured on, and Q-1's per-box table (q1-cli rowsFrom). */
+  features: string;
+  images: string;
+  table: string;
+  /** Boxes the run keeps; the rest are dropped before τ, the teacher and the student. Default: every box. */
+  keep?: (id: string) => boolean;
+}
+
+/** One run of the analysis (Q-2 on F-0's boxes, Q-2b on the current default): inputs, and where outputs go. */
+export interface Run {
+  id: string;
+  card: string;
+  /** The runner's file name, for the report's marker line. */
+  cli: string;
+  /** Private outputs (per box, per photo) under the data root. */
+  priv: string;
+  /** evals/<id>/: metrics.json and report.md, aggregates only. */
+  evalDir: string;
+  question: string;
+  inputs: string;
+  sets: Record<string, SetInputs>;
+  /** A fixed τ instead of the null procedure's (diagnostics only; the go rule always derives τ). */
+  tau?: number;
+  /** Where the top-seam geometry is read from (default: `<priv>/geometry`). */
+  geometryDir?: string;
+  /** A generated section placed first under the marker, and its aggregates (Q-2b: the comparison with Q-2). */
+  prelude?: (metrics: Record<string, unknown>) => { json: Record<string, unknown>; md: string };
+}
+
+export const Q2_RUN: Run = {
+  id: "Q2",
+  card: "Q-2",
+  cli: "q2-cli.ts",
+  priv: join(ROOT, "private", "q2"),
+  evalDir: join(REPO, "evals", "Q2"),
+  question: "per detected box, the teacher's coverage rung; can cheap still-tier signals predict rung >= text-read (the fill line); does the owner's top-edge observation hold",
+  inputs: "F-0 cached stage outputs (B2 boxes, three readers, decisions) for pilot-000 (31 photos) and yardstick-library B2 (40 Library Dataset images, PROXY); Q-1 private per-box features",
+  sets: Object.fromEntries(SETS.map((set) => [set, {
+    stage: join(ROOT, "f0", set),
+    decisions: join(ROOT, "f0", set, "decisions.jsonl"),
+    features: join(Q1, "features", `${set}.jsonl`),
+    images: join(Q1, "features", `${set}.images.jsonl`),
+    table: join(Q1, "table", `${set}.jsonl`),
+  }])),
+};
 
 /** Box-score floor (§5 population). Q-1's H3 cut, kept after the sensitivity check in the report. */
 export const FLOOR = 0.225;
@@ -78,16 +129,16 @@ const python = () => {
 
 // --- geometry --------------------------------------------------------------------------------------------
 
-function geometry(): void {
+export function geometry(run: Run, sets = SETS): void {
   const py = python();
-  mkdirSync(join(PRIV, "geometry"), { recursive: true });
-  for (const set of SETS) {
-    const images = join(Q1, "features", `${set}.images.jsonl`);
+  mkdirSync(join(run.priv, "geometry"), { recursive: true });
+  for (const set of sets) {
+    const images = run.sets[set]!.images;
     if (!existsSync(images)) throw new Error(`Q-1's image list for ${set} is missing: run \`node src/eval/q1-cli.ts features\``);
-    const out = join(PRIV, "geometry", `${set}.jsonl`);
+    const out = join(run.priv, "geometry", `${set}.jsonl`);
     const fd = openSync(out, "w");
     log(`${set}: top-seam geometry`);
-    const r = spawnSync(py, ["-I", join(HELPER, "geometry.py"), "--detect", join(ROOT, "f0", set, "detect.jsonl"), "--images", images], { stdio: ["ignore", fd, "inherit"] });
+    const r = spawnSync(py, ["-I", join(HELPER, "geometry.py"), "--detect", join(run.sets[set]!.stage, "detect.jsonl"), "--images", images], { stdio: ["ignore", fd, "inherit"] });
     closeSync(fd);
     if (r.status !== 0) throw new Error(`geometry.py failed on ${set}`);
   }
@@ -139,10 +190,10 @@ export function shortSide(p: number[][]): number {
 }
 
 /** Each box's readings, squashed, as F-0 counts them (a variant needs two characters after trimming). */
-function loadReadings(set: string): Map<string, Readings> {
+function loadReadings(stage: string): Map<string, Readings> {
   const out = new Map<string, Readings>();
   for (const reader of ["vision", "ppocr", "qwen"]) {
-    const p = join(ROOT, "f0", set, `${reader}.jsonl`);
+    const p = join(stage, `${reader}.jsonl`);
     if (!existsSync(p)) continue;
     for (const r of readJsonl<Reading>(p)) {
       if (r.error) continue;
@@ -173,15 +224,16 @@ function agreements(set: string, reads: Map<string, Readings>, decisions: Decisi
   return { real, nullSims };
 }
 
-function boxesFor(set: string, tau: number, real: Map<string, number | null>, decisions: Decision[]): Box[] {
-  const q1 = new Map(readJsonl<Q1Row>(join(Q1, "table", `${set}.jsonl`)).map((r) => [r.id, r]));
-  const feat = new Map(readJsonl<{ id: string; band: number | null; cut: boolean | null }>(join(Q1, "features", `${set}.jsonl`)).map((r) => [r.id, r]));
+function boxesFor(run: Run, set: string, tau: number, real: Map<string, number | null>, decisions: Decision[]): Box[] {
+  const inp = run.sets[set]!;
+  const q1 = new Map(readJsonl<Q1Row>(inp.table).map((r) => [r.id, r]));
+  const feat = new Map(readJsonl<{ id: string; band: number | null; cut: boolean | null }>(inp.features).map((r) => [r.id, r]));
   const band = new Map([...feat].map(([id, r]) => [id, r.band]));
-  const bandHeight = new Map(readJsonl<{ id: string; bands: { polygon: number[][] }[] }>(join(ROOT, "f0", set, "detect.jsonl")).map((d) => [d.id, d.bands.map((b) => shortSide(b.polygon))]));
-  const geo = new Map(readJsonl<Geo>(join(PRIV, "geometry", `${set}.jsonl`)).map((r) => [r.id, r]));
+  const bandHeight = new Map(readJsonl<{ id: string; bands: { polygon: number[][] }[] }>(join(inp.stage, "detect.jsonl")).map((d) => [d.id, d.bands.map((b) => shortSide(b.polygon))]));
+  const geo = new Map(readJsonl<Geo>(join(run.geometryDir ?? join(run.priv, "geometry"), `${set}.jsonl`)).map((r) => [r.id, r]));
   const boxes = decisions.map((d): Box => {
     const q = q1.get(d.id), g = geo.get(d.id);
-    if (!q || !g) throw new Error(`${set}: a decided box has no Q-1 row or geometry; rerun q1-cli features/analyse and q2-cli geometry`);
+    if (!q || !g) throw new Error(`${set}: a decided box has no Q-1 row or geometry; rerun the features and geometry steps (${run.cli})`);
     const rung = teacherRung(d, real.get(d.id) ?? null, tau);
     return {
       id: d.id,
@@ -365,16 +417,17 @@ function rungCounts(boxes: Box[]) {
   return Object.fromEntries(RUNGS.slice(2).map((r) => [r, boxes.filter((b) => b.rung === r).length]));
 }
 
-function analyse(): void {
+export function analyse(run: Run): void {
   const decisions: Record<string, Decision[]> = {}, real: Record<string, Map<string, number | null>> = {}, nulls: Record<string, number[]> = {};
   for (const set of SETS) {
-    decisions[set] = readJsonl<Decision>(join(ROOT, "f0", set, "decisions.jsonl"));
-    const a = agreements(set, loadReadings(set), decisions[set]!);
+    const inp = run.sets[set]!;
+    decisions[set] = readJsonl<Decision>(inp.decisions).filter((d) => !inp.keep || inp.keep(d.id));
+    const a = agreements(set, loadReadings(inp.stage), decisions[set]!);
     real[set] = a.real;
     nulls[set] = a.nullSims;
   }
   // τ from pilot-000's null pairing only; the yardstick's null is reported as a check.
-  const tau = chooseTau(nulls[PILOT]!, TAU_FALSE_RATE);
+  const tau = run.tau ?? chooseTau(nulls[PILOT]!, TAU_FALSE_RATE);
   const tauStudy = Object.fromEntries(SETS.map((set) => {
     const acc = decisions[set]!.filter((d) => d.accepted).map((d) => real[set]!.get(d.id) ?? 0);
     const nm = decisions[set]!.filter((d) => d.reason === "no-catalog-match").map((d) => real[set]!.get(d.id) ?? 0);
@@ -387,7 +440,7 @@ function analyse(): void {
     }];
   }));
   const boxes: Record<string, Box[]> = {};
-  for (const set of SETS) boxes[set] = boxesFor(set, tau, real[set]!, decisions[set]!);
+  for (const set of SETS) boxes[set] = boxesFor(run, set, tau, real[set]!, decisions[set]!);
 
   // Teacher table.
   const teacher = Object.fromEntries(SETS.map((set) => {
@@ -498,11 +551,11 @@ function analyse(): void {
   }));
 
   // Private per-box table for the renders: scores, rungs and geometry, never in the repo.
-  mkdirSync(join(PRIV, "table"), { recursive: true });
+  mkdirSync(join(run.priv, "table"), { recursive: true });
   for (const set of SETS) {
     const pop = set === PILOT ? pilot : yard, sc = set === PILOT ? fit.pilot : fit.yard;
     const at = new Map(pop.map((b, i) => [b.id, sc[i]!]));
-    writeFileSync(join(PRIV, "table", `${set}.jsonl`), boxes[set]!.map((b) => {
+    writeFileSync(join(run.priv, "table", `${set}.jsonl`), boxes[set]!.map((b) => {
       const s = at.get(b.id);
       return JSON.stringify({
         id: b.id, imageId: b.imageId, index: b.index, rung: b.rung, filled: b.y, inPopulation: !!s,
@@ -516,15 +569,15 @@ function analyse(): void {
 
   const foldDrops = Object.fromEntries(Object.entries(fit.folds).map(([n, ms]) => [n, Object.fromEntries(ms[0]!.features.map((f) => [f, ms.filter((m) => m.dropped.includes(f)).length]))]));
   const metrics = {
-    runId: "Q2",
-    card: "Q-2",
+    runId: run.id,
+    card: run.card,
     date: new Date().toLocaleDateString("en-CA"),
-    question: "per detected box, the teacher's coverage rung; can cheap still-tier signals predict rung >= text-read (the fill line); does the owner's top-edge observation hold",
-    inputs: "F-0 cached stage outputs (B2 boxes, three readers, decisions) for pilot-000 (31 photos) and yardstick-library B2 (40 Library Dataset images, PROXY); Q-1 private per-box features",
+    question: run.question,
+    inputs: run.inputs,
     labels: "teacher rungs are machine agreement, not accuracy (INV-17); pilot-000 and the yardstick are reported separately, never pooled (OC35); the student is trained on pilot-000 only and scored on the yardstick unchanged (H-0 §4.3)",
     bootstrap: { unit: "photo (cluster), paired across models", reps: REPS, interval: "95 % percentile" },
     teacher: {
-      tau, tauRule: `smallest τ on a 0.01 grid at which at most ${TAU_FALSE_RATE * 100} % of null pairs (reader A on one box, reader B on a different box of the same photo) agree; set on pilot-000 only`,
+      tau, tauRule: run.tau !== undefined ? `fixed at ${run.tau} (diagnostic; not the null procedure)` : `smallest τ on a 0.01 grid at which at most ${TAU_FALSE_RATE * 100} % of null pairs (reader A on one box, reader B on a different box of the same photo) agree; set on pilot-000 only`,
       similarity: `1 - (edit distance from the shorter squashed reading to its closest substring of the longer) / its length; readings shorter than ${MIN_AGREE_CHARS} normalised characters never agree; best over reader pairs and variants`,
       tauStudy,
       floor: FLOOR,
@@ -559,7 +612,9 @@ function analyse(): void {
       sensitivity: sens,
     },
     fragments: {
-      why: "many pilot-000 boxes are pieces of a spine (a detector tile edge cut them, or they are much shorter than their band); F-0e is fixing the detector, so these results may shift once it lands",
+      why: run.id === "Q2"
+        ? "many pilot-000 boxes are pieces of a spine (a detector tile edge cut them, or they are much shorter than their band); F-0e is fixing the detector, so these results may shift once it lands"
+        : "the same fragment measures on the current default boxes (F-0e bands+strips on pilot-000), to compare with Q-2's",
       definitions: { cut: "F-0's per-box flag: cut by a detector tile edge", partial: `not cut, box long side < ${PARTIAL_BAND} of its shelf band's height`, whole: "neither" },
       features: "diag:student+fragment adds cutByTile (-) and heightOverBand (+, capped at 1.5, missing = 1) to the student",
       sets: fragments,
@@ -574,21 +629,25 @@ function analyse(): void {
       sets: owner,
     },
   };
-  const dir = join(REPO, "evals", "Q2");
+  const pre = run.prelude?.(metrics);
+  const out = pre ? { ...metrics, ...pre.json } : metrics;
+  const dir = run.evalDir;
   mkdirSync(dir, { recursive: true });
-  writeFileSync(join(dir, "metrics.json"), compactJson(metrics) + "\n");
+  writeFileSync(join(dir, "metrics.json"), compactJson(out) + "\n");
   const reportPath = join(dir, "report.md");
-  const head = existsSync(reportPath) ? readFileSync(reportPath, "utf8").split(MARKER)[0]! : "# Q2: teacher table and first student\n\n";
-  writeFileSync(reportPath, head + MARKER + "\n\n" + tables(metrics as unknown as Metrics));
-  log(`aggregates -> evals/Q2/metrics.json, report.md (go: ${go}, FILL_P ${fillP})`);
+  const marker = markerOf(run);
+  const head = existsSync(reportPath) ? readFileSync(reportPath, "utf8").split(marker)[0]! : `# ${run.id}: teacher table and first student\n\n`;
+  writeFileSync(reportPath, head + marker + "\n\n" + (pre ? pre.md + "\n" : "") + tables(metrics as unknown as Metrics));
+  log(`aggregates -> ${run.id} metrics.json, report.md (go: ${go}, FILL_P ${fillP})`);
 }
 
 // --- report tables ---------------------------------------------------------------------------------------
 
-const MARKER = "<!-- Tables below are generated by `node src/eval/q2-cli.ts analyse`; edit above this line only. -->";
+const markerOf = (run: Run) => `<!-- Tables below are generated by \`node src/eval/${run.cli} analyse\`; edit above this line only. -->`;
 type Tri = Interval | null;
 interface Cell { n: number; photos: number; filled: Tri; byTop: Record<string, { n: number; share: number | null; filled: Tri }>; aucStudent: Tri; aucGeometry: Tri; dAuc: Tri }
 interface Metrics {
+  runId: string;
   teacher: { tau: number; floor: number; tauStudy: Record<string, { nullPairs: number; sweep: { tau: number; nullPass: number | null; acceptedPass: number | null; noCatalogMatchPass: number | null }[] }>; sets: Record<string, { photos: number; detected: { n: number; rungs: Record<string, number> }; belowFloor: { n: number; rungs: Record<string, number> }; lyingAtOrAboveFloor: { n: number; rungs: Record<string, number> }; incompleteFeatures: number; population: { n: number; rungs: Record<string, number> }; populationFilled: Tri; acceptedNotInAnnotations: number | null }> };
   student: {
     fullFitWeights: Record<string, { weights: Record<string, number>; intercept: number | null; dropped: string[] }>;
@@ -677,8 +736,9 @@ export function tables(m: Metrics): string {
   for (const [label, v] of Object.entries(s.sensitivity)) {
     out.push(`| ${label} | ` + SETS.map((k) => { const x = v[k] as { n: number; student: Tri; baseline: Tri; gain: Tri; filled: Tri }; return `${x.n} | ${triNum(x.student)} | ${triNum(x.baseline)} | ${triSigned(x.gain)} | ${triPct(x.filled)}`; }).join(" | ") + " |");
   }
-  out.push("\n## Detector fragments (F-0e pending)\n");
-  out.push(`Cut: F-0 flagged the box as cut by a detector tile edge. Partial: not cut, but shorter than ${PARTIAL_BAND} of its shelf band's height. Per-photo medians over all detected boxes (partial: over upright boxes). The student columns score the go-rule student on each kind; +fragment adds the cut flag and height over band (a separate row, outside the go rule). These results may shift once F-0e lands.\n`);
+  const pending = m.runId === "Q2";
+  out.push(`\n## Detector fragments${pending ? " (F-0e pending)" : ""}\n`);
+  out.push(`Cut: ${pending ? "F-0" : "the detector"} flagged the box as cut by a detector tile edge. Partial: not cut, but shorter than ${PARTIAL_BAND} of its shelf band's height. Per-photo medians over all detected boxes (partial: over upright boxes). The student columns score the go-rule student on each kind; +fragment adds the cut flag and height over band (a separate row, outside the go rule).${pending ? " These results may shift once F-0e lands." : ""}\n`);
   out.push("| set | kind | n | share of population | filled | student AUC | student+fragment AUC |", "|---|---|---:|---:|---:|---:|---:|");
   for (const [set, v] of Object.entries(m.fragments.sets)) {
     for (const [c, x] of Object.entries(v.population)) out.push(`| ${short(set)} | ${c} | ${x.n} | ${pct(x.share)} | ${triPct(x.filled)} | ${triNum(x.aucStudent)} | ${triNum(x.aucStudentFragment)} |`);
@@ -706,25 +766,25 @@ export function tables(m: Metrics): string {
 
 // --- renders ---------------------------------------------------------------------------------------------
 
-function render(): void {
+export function render(run: Run, sets = SETS): void {
   const py = python();
-  const m = JSON.parse(readFileSync(join(REPO, "evals", "Q2", "metrics.json"), "utf8")) as { student: { operatingPoint: { fillP: number | null } } };
+  const m = JSON.parse(readFileSync(join(run.evalDir, "metrics.json"), "utf8")) as { student: { operatingPoint: { fillP: number | null } } };
   const fillP = m.student.operatingPoint.fillP ?? 0.7;
-  for (const set of SETS) {
-    const out = join(PRIV, "renders", set);
+  for (const set of sets) {
+    const out = join(run.priv, "renders", set);
     mkdirSync(out, { recursive: true });
-    const r = spawnSync(py, ["-I", join(HELPER, "render_q2.py"), "--detect", join(ROOT, "f0", set, "detect.jsonl"), "--images", join(Q1, "features", `${set}.images.jsonl`), "--table", join(PRIV, "table", `${set}.jsonl`), "--fill-p", String(fillP), "--seam-off", String(SEAM_OFF), "--out", out, "--label", set], { stdio: ["ignore", "inherit", "inherit"] });
+    const r = spawnSync(py, ["-I", join(HELPER, "render_q2.py"), "--detect", join(run.sets[set]!.stage, "detect.jsonl"), "--images", run.sets[set]!.images, "--table", join(run.priv, "table", `${set}.jsonl`), "--fill-p", String(fillP), "--seam-off", String(SEAM_OFF), "--out", out, "--label", set], { stdio: ["ignore", "inherit", "inherit"] });
     if (r.status !== 0) throw new Error(`render_q2.py failed on ${set}`);
   }
-  log("renders written under the data root's private/q2/renders/");
+  log(`renders written under the data root's private/${run.id.toLowerCase()}/renders/`);
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   const cmd = process.argv[2];
-  if (cmd === "geometry") geometry();
-  else if (cmd === "analyse") analyse();
-  else if (cmd === "render") render();
-  else if (cmd === "all") { geometry(); analyse(); render(); }
+  if (cmd === "geometry") geometry(Q2_RUN);
+  else if (cmd === "analyse") analyse(Q2_RUN);
+  else if (cmd === "render") render(Q2_RUN);
+  else if (cmd === "all") { geometry(Q2_RUN); analyse(Q2_RUN); render(Q2_RUN); }
   else {
     process.stderr.write("usage: q2-cli.ts geometry | analyse | render | all\n");
     process.exit(2);
