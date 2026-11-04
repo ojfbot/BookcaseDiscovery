@@ -73,6 +73,8 @@ const EVAL_RUN_ID = '[A-Za-z0-9][A-Za-z0-9._-]*';
 const EVAL_ALLOW = [
   { re: new RegExp(`^evals/${EVAL_RUN_ID}/metrics\\.json$`), kind: 'metrics' },
   { re: new RegExp(`^evals/${EVAL_RUN_ID}/report\\.md$`), kind: 'report' },
+  // A card's pre-registration, committed before its first run (aggregate text, like report.md).
+  { re: new RegExp(`^evals/${EVAL_RUN_ID}/prereg\\.md$`), kind: 'report' },
   { re: /^evals\/README\.md$/, kind: 'report' },
   // Public golden catalog queries (plan card C-3): fragments of known titles, no photo-derived data.
   { re: /^evals\/golden\/fragments\.jsonl$/, kind: 'golden' },
@@ -335,7 +337,7 @@ function checkFile(path, buf, cache, oid) {
   if (lowerSegments.includes('evals')) {
     const allowed = EVAL_ALLOW.find((a) => a.re.test(path));
     if (!allowed) {
-      add('evals-allowlist', 'not on the aggregate-only evals/ allowlist (evals/<run-id>/metrics.json or report.md)');
+      add('evals-allowlist', 'not on the aggregate-only evals/ allowlist (evals/<run-id>/metrics.json, report.md or prereg.md)');
     } else {
       if (allowed.kind !== 'golden' && buf.length > MAX_EVAL_FILE_BYTES) {
         add('evals-allowlist', `aggregate file over ${MAX_EVAL_FILE_BYTES / 1024} KiB (looks like row data)`);
