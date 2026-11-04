@@ -315,8 +315,9 @@ node src/eval/q3-cli.ts render          # the data root's private/q3/renders/ind
   - `top-face`: 634, all below eye level.
 
   The last four tie within their intervals.
-- **A baseline.** The box set changes with F-0m, F-0k and NB-3. Re-run `audit` and `analyse` on each new box set;
-  never carry the figures over. Per-book records are private, under the data root's `private/q3/<set>/`.
+- **A baseline.** Re-run `audit` and `analyse` on each new box set; never carry the figures over. RB-1 (below) re-ran
+  them on the re-baseline box set: the same five causes lead, in the same order. Per-book records are private, under
+  the data root's `private/q3/<set>/`.
 
 ## Zone, read per line, emit fields (F-0j)
 
@@ -412,3 +413,29 @@ node src/eval/f0m-cli.ts render pilot-000          # the data root's private/f0m
   - Readers: `pilot-000` confirmed +0.2 points (−0.4 to 0.9) on 4,763 changed boxes, and works 639 → 647. The crop
     stays `rect;rot=fixed;clip=frame`.
   - The report lists the caches a later adoption would invalidate.
+
+## Batched re-baseline (RB-1)
+
+F-0i's partition (#51) dropped 360 `pilot-000` boxes and 76 yardstick boxes and changed 1,001 and 134 outlines; NB-3
+(#61) then shipped `on-lip`. RB-1 re-ran every downstream result once on that box set, from caches on the CPU, in
+dependency order. Code: `src/eval/rb1.ts` (the box set, read by F-0g, Q-2b, U-4, H-2, S-1 and Q-3, and through
+F-0g's `loadBooks` by F-0h) and `src/eval/rb1-cli.ts` (the summary). Results: [`evals/RB1/report.md`](../evals/RB1/report.md),
+and a dated section in each card's report.
+
+```
+node src/eval/f0g-cli.ts pairs <set> && node src/eval/f0g-cli.ts evidence <set> && node src/eval/f0g-cli.ts analyse
+node src/eval/q2b-cli.ts u4 && node src/eval/q2b-cli.ts diag && node src/eval/q2b-cli.ts analyse
+node src/eval/h2-cli.ts faces <set> && node src/eval/h2-cli.ts analyse     # face file from the cached stage, no depth
+node src/eval/s1-cli.ts shelf <set> && node src/eval/s1-cli.ts analyse
+node src/eval/f0h-cli.ts analyse
+node src/eval/q3-cli.ts v2 && node src/eval/q3-cli.ts audit <set> && node src/eval/q3-cli.ts analyse
+node src/eval/rb1-cli.ts summary                                           # each card's dated section, and evals/RB1/
+```
+
+- **The box set** is the partition's kept boxes less NB-3's `on-lip` boxes: 5,757 on `pilot-000`, 1,038 on the
+  yardstick. Detection rectangles are unchanged, so per-box caches keyed by rectangle (Q-1's features, Q-2's top
+  seam, H-2's face rows, reader caches) stand. U-4, Q-2b's U-4 aggregates and S-1 take F-0i's exclusive outlines
+  in place of Q-2b's SAM 2.1 outlines. Every CLI takes `--box-set pre-rb1` to reproduce its published figures.
+- **No keep rule or go rule flipped.** `confirmed-by-copy` and `confirmed-by-context` stay on; Q-2b stays NO-GO;
+  `face3d` stays off; `on-lip` keeps its rule. U-4's mask-shaped share falls 83.2 % → 79.2 %, since an exclusive
+  outline covers less of its box. Q-3's ranking holds, `catalog-gap` first.

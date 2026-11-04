@@ -27,25 +27,25 @@
     "pilot-000": {
       "scope": "real use (OC35): machine agreement, never accuracy (INV-17)",
       "photos": 31,
-      "boxCount": 6121,
-      "notABookCount": 24,
-      "neighbourPairs": 4424,
-      "neighbourPairsInFrame": 4398,
-      "visuallySame": 252,
-      "guardRejected": 67,
+      "boxCount": 5757,
+      "notABookCount": 388,
+      "neighbourPairs": 4367,
+      "neighbourPairsInFrame": 4344,
+      "visuallySame": 250,
+      "guardRejected": 66,
       "guardReasons": {
         "reads-differ": 40,
-        "reader-confirms-other": 8,
+        "reader-confirms-other": 7,
         "imprint-differs": 1,
         "accepted-differ": 4,
         "reads-other-title": 14
       },
-      "links": 185,
+      "links": 184,
       "groups": {
-        "total": 155,
+        "total": 154,
         "perPhoto": [
-          5,
-          3.4516,
+          4.9677,
+          3.4185,
           6.6452
         ],
         "identified": 41,
@@ -55,19 +55,19 @@
           2.0968
         ],
         "sizes": {
-          "2": 129,
+          "2": 128,
           "3": 22,
           "4+": 4
         },
         "photosWithGroup": 26
       },
       "propagation": {
-        "confirmedBase": 731,
+        "confirmedBase": 726,
         "confirmedByCopy": 9,
         "confirmedPerPhotoBase": [
-          23.5806,
-          13.9347,
-          33.775
+          23.4194,
+          13.871,
+          33.4863
         ],
         "extraConfirmedPerPhoto": [
           0.2903,
@@ -75,14 +75,14 @@
           0.5806
         ],
         "confirmedShareBase": [
-          0.1194,
-          0.0765,
-          0.1601
+          0.1261,
+          0.0812,
+          0.1687
         ],
         "extraConfirmedSharePts": [
-          0.0015,
-          0.0003,
-          0.0028
+          0.0016,
+          0.0004,
+          0.003
         ],
         "blocked": {
           "reads-other-title": 1,
@@ -95,7 +95,7 @@
         }
       },
       "wrongGroupings": {
-        "bothConfirmedPairs": 263,
+        "bothConfirmedPairs": 269,
         "bothConfirmedVisual": 41,
         "visualDifferentWorkShare": [
           0.0976,
@@ -103,9 +103,9 @@
           0.1935
         ],
         "differentWorkBeforeVisual": [
-          0.7186,
-          0.6655,
-          0.7835
+          0.7249,
+          0.6741,
+          0.7868
         ],
         "afterGuard": 0,
         "singleReaderViews": {
@@ -145,12 +145,12 @@
         }
       },
       "seriesGuard": {
-        "hardNegatives": 92,
+        "hardNegatives": 95,
         "hardNegativesVisual": 4,
         "visualPassShare": [
-          0.0435,
-          0.0103,
-          0.0882
+          0.0421,
+          0.0099,
+          0.0877
         ],
         "otherNegativesVisualPassShare": [
           0,
@@ -164,7 +164,7 @@
           1,
           1
         ],
-        "viewsAll": 420,
+        "viewsAll": 432,
         "viewsAllBlocked": [
           1,
           1,
@@ -177,7 +177,7 @@
           1
         ],
         "blockedBy": {
-          "reader-confirms-other": 376,
+          "reader-confirms-other": 388,
           "no-consistent-reader": 18,
           "reads-other-title": 26
         }
@@ -185,19 +185,19 @@
       "workCounting": {
         "workShelfEntries": 633,
         "copiesPerWorkOnShelf": {
-          "1": 547,
-          "2": 74,
+          "1": 552,
+          "2": 69,
           "3": 7,
           "4+": 5
         },
-        "worksWithCopies": 86,
-        "worksWithCopiesInSeveralGroups": 52
+        "worksWithCopies": 81,
+        "worksWithCopiesInSeveralGroups": 47
       },
       "yardstick": null,
       "runtime": {
         "appearanceSecondsPerPhoto": {
-          "p50": 0.281,
-          "total": 9
+          "p50": 0.256,
+          "total": 8
         },
         "analyseSeconds": 0
       }
@@ -205,18 +205,18 @@
     "yardstick": {
       "scope": "PROXY (library shelves): Library Dataset sample, box arm B2; confirmed = accepted and annotated in the image",
       "photos": 40,
-      "boxCount": 1116,
-      "notABookCount": 16,
-      "neighbourPairs": 673,
-      "neighbourPairsInFrame": 672,
-      "visuallySame": 29,
-      "guardRejected": 7,
+      "boxCount": 1038,
+      "notABookCount": 94,
+      "neighbourPairs": 687,
+      "neighbourPairsInFrame": 687,
+      "visuallySame": 32,
+      "guardRejected": 8,
       "guardReasons": {
         "reads-other-title": 2,
-        "reads-differ": 3,
+        "reads-differ": 4,
         "imprint-differs": 2
       },
-      "links": 22,
+      "links": 24,
       "groups": {
         "total": 15,
         "perPhoto": [
@@ -232,18 +232,18 @@
         ],
         "sizes": {
           "2": 9,
-          "3": 5,
-          "4+": 1
+          "3": 4,
+          "4+": 2
         },
         "photosWithGroup": 9
       },
       "propagation": {
-        "confirmedBase": 269,
+        "confirmedBase": 266,
         "confirmedByCopy": 0,
         "confirmedPerPhotoBase": [
-          6.725,
-          5.1244,
-          8.3756
+          6.65,
+          5.05,
+          8.275
         ],
         "extraConfirmedPerPhoto": [
           0,
@@ -251,9 +251,9 @@
           0
         ],
         "confirmedShareBase": [
-          0.241,
-          0.1849,
-          0.3019
+          0.2563,
+          0.1974,
+          0.3183
         ],
         "extraConfirmedSharePts": [
           0,
@@ -264,7 +264,7 @@
         "consistentReaders": {}
       },
       "wrongGroupings": {
-        "bothConfirmedPairs": 85,
+        "bothConfirmedPairs": 95,
         "bothConfirmedVisual": 3,
         "visualDifferentWorkShare": [
           0.6667,
@@ -272,8 +272,8 @@
           1
         ],
         "differentWorkBeforeVisual": [
-          0.9765,
-          0.9166,
+          0.9789,
+          0.9259,
           1
         ],
         "afterGuard": 0,
@@ -322,9 +322,9 @@
           0
         ],
         "otherNegativesVisualPassShare": [
-          0.0313,
+          0.027,
           0,
-          0.08
+          0.0725
         ],
         "fullReadsRejected": 0,
         "viewsVisual": 0,
@@ -349,12 +349,12 @@
       "workCounting": {
         "workShelfEntries": 260,
         "copiesPerWorkOnShelf": {
-          "1": 252,
-          "2": 7,
+          "1": 255,
+          "2": 4,
           "3": 1
         },
-        "worksWithCopies": 8,
-        "worksWithCopiesInSeveralGroups": 7
+        "worksWithCopies": 5,
+        "worksWithCopiesInSeveralGroups": 4
       },
       "yardstick": {
         "wrongAcceptsBase": 22,
@@ -370,22 +370,22 @@
           0.9
         ],
         "wrongShareOfAcceptedBase": [
-          0.0818,
-          0.0364,
-          0.1392
+          0.0827,
+          0.0368,
+          0.1399
         ],
         "wrongShareOfAcceptedWith": [
-          0.0818,
-          0.0364,
-          0.1392
+          0.0827,
+          0.0368,
+          0.1399
         ],
-        "overCountBase": 6,
-        "overCountWith": 6,
+        "overCountBase": 3,
+        "overCountWith": 3,
         "propagatedAnnotated": 0
       },
       "runtime": {
         "appearanceSecondsPerPhoto": {
-          "p50": 0.052,
+          "p50": 0.0485,
           "total": 2
         },
         "analyseSeconds": 0
@@ -397,5 +397,110 @@
     "yardstickWrongNotUp": true,
     "ship": true
   },
-  "seconds": 2
+  "seconds": 2,
+  "rebaseline": {
+    "run": "RB1",
+    "date": "2026-11-04",
+    "base": "116f4e9",
+    "figures": [
+      {
+        "set": "pilot-000",
+        "figure": "boxes",
+        "before": "6121",
+        "after": "5757"
+      },
+      {
+        "set": "pilot-000",
+        "figure": "neighbour pairs",
+        "before": "4424",
+        "after": "4367"
+      },
+      {
+        "set": "pilot-000",
+        "figure": "copy groups per photo",
+        "before": "5.00 (3.45 to 6.65)",
+        "after": "4.97 (3.42 to 6.65)"
+      },
+      {
+        "set": "pilot-000",
+        "figure": "groups with a confirmed copy",
+        "before": "41",
+        "after": "41"
+      },
+      {
+        "set": "pilot-000",
+        "figure": "confirmed boxes (F-0)",
+        "before": "731",
+        "after": "726"
+      },
+      {
+        "set": "pilot-000",
+        "figure": "**extra confirmed boxes per photo** (confirmed-by-copy)",
+        "before": "0.29 (0.06 to 0.58)",
+        "after": "0.29 (0.06 to 0.58)"
+      },
+      {
+        "set": "pilot-000",
+        "figure": "confirmed-by-copy boxes",
+        "before": "9",
+        "after": "9"
+      },
+      {
+        "set": "pilot-000",
+        "figure": "visually same, both confirmed: different works (%)",
+        "before": "9.8 (2.7 to 19.4)",
+        "after": "9.8 (2.7 to 19.4)"
+      },
+      {
+        "set": "pilot-000",
+        "figure": "hard-negative one-reader views",
+        "before": "420",
+        "after": "432"
+      },
+      {
+        "set": "pilot-000",
+        "figure": "of them blocked (%)",
+        "before": "100.0 (100.0 to 100.0)",
+        "after": "100.0 (100.0 to 100.0)"
+      },
+      {
+        "set": "yardstick",
+        "figure": "boxes",
+        "before": "1116",
+        "after": "1038"
+      },
+      {
+        "set": "yardstick",
+        "figure": "copy groups",
+        "before": "15",
+        "after": "15"
+      },
+      {
+        "set": "yardstick",
+        "figure": "confirmed-by-copy boxes",
+        "before": "0",
+        "after": "0"
+      },
+      {
+        "set": "yardstick",
+        "figure": "wrong accepts with propagation",
+        "before": "22",
+        "after": "22"
+      },
+      {
+        "set": "yardstick",
+        "figure": "wrong share of accepted (%)",
+        "before": "8.2 (3.6 to 13.9)",
+        "after": "8.3 (3.7 to 14.0)"
+      }
+    ],
+    "verdicts": [
+      {
+        "label": "propagation ships (`confirmed-by-copy`)",
+        "before": true,
+        "after": true,
+        "flips": false
+      }
+    ]
+  }
 }

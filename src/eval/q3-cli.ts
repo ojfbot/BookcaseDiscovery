@@ -20,6 +20,7 @@ import { decide, loadReadings, readJsonl, type Detection, type SpineDecision } f
 import { kinds, type Kinds } from "./f0c.ts";
 import { imagesOf, SETS, type SetName } from "./f0c-cli.ts";
 import { evidenceFor } from "./f0f-cli.ts";
+import { loadBoxSet, preRb1 } from "./rb1.ts";
 import { compactJson, yardstickTruth } from "./q1-cli.ts";
 import { clusterBootstrap } from "./q1.ts";
 import { RUNGS, type Rung } from "./q2.ts";
@@ -97,6 +98,12 @@ interface ShelfPhoto { id: string; rows: { band: number; skip?: string | null; e
 interface Stretch { from: number; to: number; kind: string; dominant: string; boxShare?: number | null; frontNoBox?: boolean }
 interface GapRow { imageId: string; band: number; stretches: Stretch[]; headroomFrontNoBox: unknown[] }
 
+/** RB-1's box set: F-0i's partition's kept boxes less NB-3's `on-lip` boxes (`--box-set pre-rb1`: the partition alone). */
+function keptBoxes(set: SetName): Set<string> {
+  const keeps = preRb1() ? () => true : loadBoxSet(set).keeps;
+  return new Set(readJsonl<PartitionRow>(priv("f0i", NAME[set].f0i, "partition.jsonl")).filter((p) => p.state === "kept" && keeps(p.id)).map((p) => p.id));
+}
+
 const featuresPath = (set: SetName) => (set === "pilot-000" ? priv("q2b", "features", "pilot-000.jsonl") : priv("q1", "features", "yardstick-library-b2.jsonl"));
 
 // --- v2: F-0's decide on catalog-v2 (pilot-000 only) -------------------------------------------------------
@@ -108,7 +115,7 @@ const featuresPath = (set: SetName) => (set === "pilot-000" ? priv("q2b", "featu
  */
 function v2(): void {
   const set: SetName = "pilot-000";
-  const kept = new Set(readJsonl<PartitionRow>(priv("f0i", "pilot-000", "partition.jsonl")).filter((p) => p.state === "kept").map((p) => p.id));
+  const kept = keptBoxes(set);
   const rows = readJsonl<TableRow>(priv("q2b", "table", "pilot-000.jsonl")).filter((r) => kept.has(r.id) && (r.rung === "text-present" || r.rung === "text-read"));
   const base = byId(readJsonl<BaseDecision>(priv("h2", "pilot-000", "base-decisions.jsonl")));
   // The default box set's cached readings as F-0c's base decisions read them (F-0e's records name no crop).
@@ -116,9 +123,16 @@ function v2(): void {
   const paths = catalogPaths();
   const v1 = openCatalog(SETS[set].catalog), v2db = openCatalog(paths.catalogV2);
   const c1 = new Map<string, Candidate | undefined>(), c2 = new Map<string, Candidate | undefined>();
+  // A box's re-decision depends only on its readings and the catalogs, so rows cached before a box-set or rung change
+  // are reused (RB-1); only boxes newly at these rungs are decided.
+  const path = join(setDir(set), "v2.jsonl");
+  const cached = existsSync(path) ? byId(readJsonl<V2Row & { id: string }>(path)) : new Map<string, V2Row>();
   const out: string[] = [];
   const t0 = Date.now();
+  let reused = 0;
   rows.forEach((r, i) => {
+    const hit = cached.get(r.id);
+    if (hit) return void (reused++, out.push(JSON.stringify(hit)));
     const b = base.get(r.id)!;
     const reads = readings.get(r.id) ?? {};
     const d1: SpineDecision = decide(v1, r.id, r.imageId, b.boxScore, reads, c1);
@@ -128,8 +142,8 @@ function v2(): void {
   });
   v1.close();
   v2db.close();
-  writeFileSync(join(setDir(set), "v2.jsonl"), out.join("\n") + "\n");
-  log(`v2: ${rows.length} boxes in ${Math.round((Date.now() - t0) / 1000)} s`);
+  writeFileSync(path, out.join("\n") + "\n");
+  log(`v2: ${rows.length} boxes (${reused} cached) in ${Math.round((Date.now() - t0) / 1000)} s`);
 }
 
 // --- audit: one record per book -----------------------------------------------------------------------------
@@ -154,7 +168,7 @@ function audit(set: SetName): AuditOut {
   let dets = detsOf(set);
   if (FIRST) dets = dets.slice(0, FIRST);
   const ev = evidenceFor(set);
-  const kept = new Set(readJsonl<PartitionRow>(priv("f0i", n.f0i, "partition.jsonl")).filter((p) => p.state === "kept").map((p) => p.id));
+  const kept = keptBoxes(set);
   const table = byId(readJsonl<TableRow>(priv("q2b", "table", `${n.f0i}.jsonl`)));
   const base = byId(readJsonl<BaseDecision>(priv("h2", n.f0i, "base-decisions.jsonl")));
   const feats = byId(readJsonl<Features>(featuresPath(set)));
@@ -411,7 +425,7 @@ function analyseSet(set: SetName) {
 function yardstickReference() {
   const truth = yardstickTruth();
   const n = NAME.yardstick;
-  const kept = new Set(readJsonl<PartitionRow>(priv("f0i", n.f0i, "partition.jsonl")).filter((p) => p.state === "kept").map((p) => p.id));
+  const kept = keptBoxes("yardstick");
   const accepted = new Map<string, Set<string>>();
   const add = (id: string, w: string | null | undefined) => {
     if (!w || !kept.has(id)) return;
@@ -435,7 +449,7 @@ function analyse(): void {
   const m = {
     card: "Q-3",
     question: "for every book a person can see, the coverage rung where the machine stopped and the primary cause; causes ranked by books lost",
-    baseline: "F-0i's partition (#51); re-run after F-0m, F-0k and NB-3 change the box set",
+    baseline: preRb1() ? "F-0i's partition (#51)" : "RB-1's box set: F-0i's partition (#51) less NB-3's on-lip boxes (#61); F-0m and F-0k shipped nothing",
     constants: Q3,
     sets,
     yardstickReference: yardstickReference(),
