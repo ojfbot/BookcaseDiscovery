@@ -4,7 +4,9 @@
 //
 //   node src/eval/f0j-cli.ts zone <set>        # helpers/label/zone.py: lines, neighbour shares, mosaics (CPU, niced)
 //   node src/eval/f0j-cli.ts lines <set>       # Vision and PP-OCR on every kept line of a read region (line;h=48)
-//   node src/eval/f0j-cli.ts run <set> <arm>   # arm: a0 (base) | a (lines); Qwen's selection re-run, missing reads read
+//   node src/eval/f0j-cli.ts run <set> <arm>   # arm: a0 (base) | a (lines) | b (fields) | c (Qwen fields, after `fields`)
+//   node src/eval/f0j-cli.ts fields <set>      # helpers/label/fields.py on arm B's selection and F-0d's no-text control (GPU)
+//   node src/eval/f0j-cli.ts render <set>      # private review page: zones, fields, decisions per arm
 //   node src/eval/f0j-cli.ts analyse           # evals/F0j/{metrics.json,report.md}: aggregates only
 //
 // Sets (OC35, never merged): pilot-000 and the yardstick, each on F-0i's kept boxes. Everything per box, line or
@@ -14,15 +16,17 @@ import { appendFileSync, existsSync, mkdirSync, readdirSync, readFileSync, write
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { openCatalog } from "../catalog/cli.ts";
+import { normalize, surnameFirstToGivenFirst } from "../catalog/normalize.ts";
 import type { Candidate } from "../catalog/retrieve.ts";
 import { dataRoot } from "../ledger/images.ts";
 import { cropFor, cropName, F0_CROP, LINE_CROP } from "../perceive/crop.ts";
-import { groupLines, keptLines, multiBook, nonTextZones, ZONE } from "../perceive/zones.ts";
-import { confirms, decide, loadReadings, pyReaderStage, readJsonl, READERS, topFor, visionStage, type Detection, type InputImage, type ReaderName, type Reading } from "./f0.ts";
-import { SETS as F0B_SETS, cost, delta, firstPassHard, geometry, type Geo, type Pair } from "./f0b-cli.ts";
-import { lineId, lineVariants, loroSummary, withLines, type LoroOutcome, type PageRecord, type ZoneRecord } from "./f0j.ts";
-import { compactJson, outcomeOf, yardstickTruth } from "./q1-cli.ts";
-import { clusterBootstrap, type Outcome } from "./q1.ts";
+import { assignRoles, groupLines, keptLines, multiBook, nonTextZones, ZONE } from "../perceive/zones.ts";
+import type { OcrFields } from "../ledger/helper-contracts.ts";
+import { confirms, decide, loadReadings, pyReaderStage, rankedFor, readJsonl, READERS, topFor, variantsOf, visionStage, vote, type Detection, type InputImage, type ReaderName, type ReaderVotes, type Reading } from "./f0.ts";
+import { SETS as F0B_SETS, cost, delta, geometry, type Geo, type Pair } from "./f0b-cli.ts";
+import { authorIndex, fieldMatches, fieldVote, isAuthorText, lineId, linesText, lineVariants, loroSummary, withLines, wonWith, type FieldVote, type Fields, type LoroOutcome, type PageRecord, type ZoneRecord } from "./f0j.ts";
+import { compactJson, outcomeOf, parseCsv, yardstickTruth } from "./q1-cli.ts";
+import { clusterBootstrap, rng, type Outcome } from "./q1.ts";
 
 const REPO = fileURLToPath(new URL("../../", import.meta.url));
 const ROOT = dataRoot();
@@ -47,7 +51,7 @@ const SETS: Record<SetName, SetCfg> = {
   },
 };
 const isSet = (s: string | undefined): s is SetName => s === "pilot-000" || s === "yardstick-library-b2";
-export const ARMS = ["a0", "a"] as const;
+export const ARMS = ["a0", "a", "b", "c"] as const;
 type Arm = (typeof ARMS)[number];
 
 // --- inputs ----------------------------------------------------------------------------------------------
@@ -118,10 +122,11 @@ export function planRegion(z: ZoneRecord | undefined) {
 
 // --- zone --------------------------------------------------------------------------------------------------
 
-function runPy(script: string, args: string[], requests: object[], out: string): Promise<void> {
+function runPy(script: string, args: string[], requests: object[], out: string, niced = true): Promise<void> {
   if (requests.length === 0) return Promise.resolve();
   return new Promise((resolve, reject) => {
-    const child = spawn("nice", ["-n", "10", py(), "-I", join(REPO, "helpers", "label", script), ...args], { stdio: ["pipe", "pipe", "pipe"] });
+    const cmd = [py(), "-I", join(REPO, "helpers", "label", script), ...args];
+    const child = niced ? spawn("nice", ["-n", "10", ...cmd], { stdio: ["pipe", "pipe", "pipe"] }) : spawn(cmd[0]!, cmd.slice(1), { stdio: ["pipe", "pipe", "pipe"] });
     let buf = "";
     child.stdout.setEncoding("utf8");
     child.stdout.on("data", (chunk: string) => {
@@ -135,7 +140,7 @@ function runPy(script: string, args: string[], requests: object[], out: string):
     child.stderr.setEncoding("utf8");
     child.stderr.on("data", (chunk: string) => {
       tail = (tail + chunk).slice(-2000);
-      for (const l of chunk.split("\n")) if (/^zone:/.test(l)) log(l);
+      for (const l of chunk.split("\n")) if (/^(zone|fields):/.test(l)) log(l);
     });
     child.stdin.on("error", () => {});
     child.stdin.end(requests.map((r) => `${JSON.stringify(r)}\n`).join(""));
@@ -217,90 +222,288 @@ async function lines(set: SetName): Promise<void> {
 // --- run: one arm over every region ------------------------------------------------------------------------
 
 type Reads = Partial<Record<ReaderName, Reading>>;
+const OCR = ["vision", "ppocr"] as const;
 
-/** Each region's whole-crop readings and, for arm A, its OCR readers' line variants (one vote per reader). */
-function armReads(set: SetName, arm: Arm, ids: Iterable<string>): Map<string, Reads> {
-  const whole = loadReadings(SETS[set].stage);
-  const out = new Map<string, Reads>();
-  const zones = arm === "a" ? loadZones(set) : null;
-  const lr = arm === "a" ? loadReadings(join(PRIV, set, "lines"), LINE_CROP) : null;
-  for (const id of ids) {
-    const w = whole.get(id) ?? {};
-    const r: Reads = { vision: w.vision, ppocr: w.ppocr };
-    if (zones && lr) {
-      const z = zones.regions.get(id);
-      if (!z && zones.done.has(split(id)[0]) === false) throw new Error(`${set}: region not zoned; run \`f0j-cli.ts zone ${set}\``);
-      const plan = planRegion(z);
-      if (plan.read)
-        for (const reader of ["vision", "ppocr"] as const) r[reader] = withLines(w[reader], lineVariants(plan.order, (lid) => lr.get(lid)?.[reader]), reader, id);
-    }
-    out.set(id, r);
-  }
-  return out;
+/** A Qwen field read (fields.py) per rotation: its transcript as text, its checked fields. */
+interface FieldRead {
+  id: string;
+  variants: { rotation: number; text?: string; confidence?: number; fields?: OcrFields; rejected?: string[]; error?: string }[];
+  tokens?: number;
+  seconds: number;
+  error?: string;
 }
 
-const workOf = (d: { accepted: string | { workId: string } | null } | undefined): string | null =>
-  !d?.accepted ? null : typeof d.accepted === "string" ? d.accepted : d.accepted.workId;
-
-async function run(set: SetName, arm: Arm): Promise<void> {
+/** Everything an arm decides from, loaded once per set. */
+function context(set: SetName, arm: Arm) {
   const cfg = F0B_SETS[set];
   const dets = loadDets(set);
-  const images = inputImages(set, dets);
   const regions = regionsOf(set);
   const ids = [...regions.keys()];
-  const reads = armReads(set, arm, ids);
   const whole = loadReadings(SETS[set].stage);
   const db = openCatalog(cfg.catalog);
-  const cache = new Map<string, Candidate | undefined>();
+  const lined = arm !== "a0";
+  const zones = lined ? loadZones(set) : null;
+  if (zones) for (const id of ids) if (!zones.done.has(split(id)[0])) throw new Error(`${set}: photo not zoned; run \`f0j-cli.ts zone ${set}\``);
+  const lineReads = lined ? loadReadings(join(PRIV, set, "lines"), LINE_CROP) : new Map<string, Reads>();
+  const plans = new Map(ids.map((id) => [id, planRegion(zones?.regions.get(id))]));
   const score = new Map([...dets.values()].flatMap((d) => d.spines.map((s, i): [string, number] => [`${d.id}:${i}`, s.boxScore])));
-  const t0 = Date.now();
-  const first = new Map(ids.map((id) => [id, decide(db, id, split(id)[0], score.get(id)!, { vision: reads.get(id)!.vision, ppocr: reads.get(id)!.ppocr }, cache)]));
-  // F-0's Qwen selection per photo on F-0i's kept boxes, re-run under this arm's first pass.
+  const fieldPath = join(PRIV, set, "fields", "qwen.jsonl");
+  const fieldReads = new Map(readJsonl<FieldRead>(fieldPath).filter((r) => !r.error).map((r) => [r.id, r]));
+  return {
+    set, arm, cfg, dets, regions, ids, whole, db, zones, lineReads, plans, score, fieldReads,
+    images: inputImages(set, dets),
+    cache: new Map<string, Candidate | undefined>(),
+    ranked: new Map<string, Candidate[]>(),
+    authors: arm === "b" || arm === "c" ? authorIndex(db) : null,
+  };
+}
+type Ctx = ReturnType<typeof context>;
+
+/** A line's reading by one reader. */
+const lineRead = (c: Ctx, k: ReaderName) => (lid: string) => c.lineReads.get(lid)?.[k];
+
+/** A region's OCR readings in an arm: whole crop, plus (arms A–C) its line variants in the same vote. */
+function ocrReads(c: Ctx, id: string): Reads {
+  const w = c.whole.get(id) ?? {};
+  const r: Reads = { vision: w.vision, ppocr: w.ppocr };
+  const plan = c.plans.get(id)!;
+  if (c.arm !== "a0" && plan.read) for (const k of OCR) r[k] = withLines(w[k], lineVariants(plan.order, lineRead(c, k)), k, id);
+  return r;
+}
+
+/** A Qwen field read as a reading (its transcripts are its variants) and the fields of the rotation that won. */
+function qwenFieldReading(f: FieldRead): Reading {
+  return { id: f.id, reader: "qwen", variants: f.variants.filter((v) => v.text !== undefined).map((v) => ({ rotation: v.rotation, text: v.text!, confidence: v.confidence ?? 0 })), seconds: f.seconds };
+}
+
+interface ReaderInfo { path: FieldVote["path"]; counter: boolean; fields: Fields | null }
+interface Decided {
+  accepted: string | null;
+  agreeing: ReaderName[];
+  reason: string | null;
+  hard: boolean;
+  confirmed: Partial<Record<ReaderName, string | null>>;
+  readText: Partial<Record<ReaderName, boolean>>;
+  info?: Partial<Record<ReaderName, ReaderInfo>>;
+  roles?: { title: boolean; author: boolean };
+}
+
+/**
+ * Arms B and C (pre-registered): each OCR reader's fields from the zoner's roles (the author role read from the
+ * remaining OCR readers' text), each reader's vote by the field rule, then F-0's vote. Qwen votes by its whole string
+ * in B, by its own fields in C. `drop` leaves one reader out, with its line reads and fields.
+ */
+function fieldDecide(c: Ctx, id: string, r: Reads, qwen: Reading | FieldRead | undefined, drop?: ReaderName): Decided {
+  const plan = c.plans.get(id)!;
+  const z = c.zones?.regions.get(id);
+  const ocr = OCR.filter((k) => k !== drop && r[k]);
+  const ranked: Partial<Record<ReaderName, Candidate[]>> = {};
+  for (const k of ocr) ranked[k] = rankedFor(c.db, r[k], c.ranked);
+  const fields: Partial<Record<ReaderName, Fields>> = {};
+  let roles: Decided["roles"];
+  if (plan.read && z) {
+    const byK = new Map(z.lines.map((l) => [l.k, l]));
+    const groupIds = plan.groups.map((g) => g.lines.map((k) => lineId(byK.get(k)!)));
+    const rot = Object.fromEntries(ocr.map((k) => [k, wonWith(plan.order, lineRead(c, k), variantsOf(r[k])[ranked[k]![0]?.variant ?? -1])]));
+    const textOf = (k: ReaderName, g: number) => linesText(groupIds[g]!, lineRead(c, k), rot[k]!);
+    const ro = assignRoles(plan.groups, z.frame.W, (g) => ocr.some((k) => isAuthorText(c.authors!, textOf(k, g))));
+    roles = { title: ro.title !== null, author: ro.author !== null };
+    for (const k of ocr) fields[k] = { title: ro.title !== null ? textOf(k, ro.title) || null : null, author: ro.author !== null ? textOf(k, ro.author) || null : null };
+  }
+  if (drop !== "qwen" && qwen) {
+    if (c.arm === "c") {
+      const f = qwen as FieldRead;
+      const reading = qwenFieldReading(f);
+      ranked.qwen = rankedFor(c.db, reading, c.ranked);
+      const winner = variantsOf(reading)[ranked.qwen[0]?.variant ?? -1];
+      const v = f.variants.find((x) => winner !== undefined && (x.text ?? "").replace(/\s+/g, " ").trim() === winner) ?? f.variants.find((x) => x.fields?.title.text);
+      if (v?.fields) fields.qwen = { title: v.fields.title.text, author: v.fields.author.text };
+      r = { ...r, qwen: reading };
+    } else ranked.qwen = rankedFor(c.db, qwen as Reading, c.ranked);
+  }
+  const votes: ReaderVotes = { readText: {}, top: {}, confirmed: {} };
+  const info: Partial<Record<ReaderName, ReaderInfo>> = {};
+  for (const k of READERS) {
+    const rk = ranked[k];
+    if (!rk) continue;
+    votes.readText[k] = variantsOf(k === "qwen" && r.qwen ? r.qwen : r[k]).length > 0 || rk.length > 0;
+    votes.top[k] = rk[0]?.workId ?? null;
+    const fv = fieldVote(c.db, rk, fields[k] ?? null);
+    votes.confirmed[k] = fv.work;
+    info[k] = { path: fv.path, counter: fv.counter, fields: fields[k] ?? null };
+  }
+  const v = vote(votes);
+  return { accepted: v.acceptedId, agreeing: v.agreeing, reason: v.reason, hard: v.hard, confirmed: votes.confirmed, readText: votes.readText, info, ...(roles ? { roles } : {}) };
+}
+
+/** One region under one arm; `drop` leaves a reader out (leave one reader out). */
+function decideArm(c: Ctx, id: string, qwenOn: boolean, drop?: ReaderName): Decided {
+  const r = ocrReads(c, id);
+  const qwen = !qwenOn ? undefined : c.arm === "c" ? c.fieldReads.get(id) : qwenSpine(c, id);
+  if (c.arm === "a0" || c.arm === "a") {
+    const reads: Reads = { ...r, ...(qwen ? { qwen: qwen as Reading } : {}) };
+    if (drop) delete reads[drop];
+    const d = decide(c.db, id, split(id)[0], c.score.get(id)!, reads, c.cache);
+    return { accepted: d.accepted?.workId ?? null, agreeing: d.agreeing, reason: d.reason, hard: d.hard, confirmed: d.confirmed, readText: d.readText };
+  }
+  return fieldDecide(c, id, r, qwen, drop);
+}
+
+let spineCache: Map<string, Reads> | null = null;
+/** Qwen's spine-prompt reading of a region: F-0e's cached one, else this card's (`private/f0j/<set>/whole`). */
+function qwenSpine(c: Ctx, id: string): Reading | undefined {
+  spineCache ??= loadReadings(join(PRIV, c.set, "whole"), F0_CROP);
+  return spineCache.get(id)?.qwen ?? c.whole.get(id)?.qwen;
+}
+
+/** F-0's Qwen selection per photo on F-0i's kept boxes, under this arm's first pass (Vision and PP-OCR only). */
+function selection(c: Ctx): Set<string> {
+  const hard = new Map(c.ids.map((id) => {
+    const d = decideArm(c, id, false);
+    return [id, d.hard && Boolean(d.readText.vision || d.readText.ppocr)];
+  }));
   const selected = new Set<string>();
-  for (const img of images)
-    ids
-      .filter((id) => split(id)[0] === img.id && firstPassHard(first.get(id)!))
-      .sort((a, b) => score.get(b)! - score.get(a)!)
-      .slice(0, cfg.qwenCap)
+  for (const img of c.images)
+    c.ids
+      .filter((id) => split(id)[0] === img.id && hard.get(id))
+      .sort((a, b) => c.score.get(b)! - c.score.get(a)!)
+      .slice(0, c.cfg.qwenCap)
       .forEach((id) => selected.add(id));
-  const qdir = join(PRIV, set, "whole");
+  return selected;
+}
+
+/** Read Qwen's spine prompt where a selected region has no cached read (GPU). */
+async function readSpines(c: Ctx, selected: Set<string>): Promise<void> {
+  const needed = new Set([...selected].filter((id) => !qwenSpine(c, id)));
+  log(`${c.set} ${c.arm}: qwen selects ${selected.size}; ${needed.size} without a cached spine read`);
+  if (!needed.size) return;
+  const qdir = join(PRIV, c.set, "whole");
   mkdirSync(qdir, { recursive: true });
-  const have = new Set([...whole.entries()].filter(([, r]) => r.qwen).map(([id]) => id));
-  for (const [id, r] of loadReadings(qdir, F0_CROP)) if (r.qwen) have.add(id);
-  const needed = new Set([...selected].filter((id) => !have.has(id)));
-  log(`${set} ${arm}: qwen selects ${selected.size}; ${needed.size} without a cached spine read`);
-  if (needed.size) await pyReaderStage("qwen", images.filter((x) => [...needed].some((id) => split(id)[0] === x.id)), dets, qdir, log, needed, F0_CROP);
-  const extra = loadReadings(qdir, F0_CROP);
-  const qwenOf = (id: string) => extra.get(id)?.qwen ?? whole.get(id)?.qwen;
+  await pyReaderStage("qwen", c.images.filter((x) => [...needed].some((id) => split(id)[0] === x.id)), c.dets, qdir, log, needed, F0_CROP);
+  spineCache = null;
+}
+
+async function run(set: SetName, arm: Arm): Promise<void> {
+  const c = context(set, arm);
+  const t0 = Date.now();
+  // Arm C reads on arm B's selection (pre-registered); every other arm selects under its own first pass.
+  const selected = arm === "c" ? new Set(readJsonl<{ id: string }>(join(PRIV, set, "b", "selection.jsonl")).map((x) => x.id)) : selection(c);
+  if (arm === "c" && selected.size === 0) throw new Error(`${set}: run arm b first (its selection)`);
+  if (arm !== "c") await readSpines(c, selected);
+  if (arm === "c") {
+    const missing = [...selected].filter((id) => !c.fieldReads.has(id));
+    if (missing.length) throw new Error(`${set}: ${missing.length} selected regions have no field read; run \`f0j-cli.ts fields ${set}\``);
+  }
   const dir = join(PRIV, set, arm);
   mkdirSync(dir, { recursive: true });
+  writeFileSync(join(dir, "selection.jsonl"), [...selected].map((id) => JSON.stringify({ id })).join("\n") + "\n");
   const rows: string[] = [];
-  for (const id of ids) {
-    const r: Reads = { ...reads.get(id)! };
-    if (selected.has(id)) r.qwen = qwenOf(id);
-    const d = decide(db, id, split(id)[0], score.get(id)!, r, cache);
-    const w = workOf(d);
+  for (const id of c.ids) {
+    const on = selected.has(id);
+    const d = decideArm(c, id, on);
     let viaPass2: ReaderName[] = [];
     let loro: Partial<Record<ReaderName, LoroOutcome>> | undefined;
-    if (w) {
-      // Agreement only through pass 2: an agreeing reader whose whole-crop reading alone would not confirm the work.
+    let match: Partial<Record<ReaderName, { title: boolean | null; author: boolean | null }>> | undefined;
+    if (d.accepted) {
+      // Agreement only through pass 2: an agreeing reader whose whole-crop spine reading alone would not confirm the work.
       viaPass2 = d.agreeing.filter((k) => {
-        const c = topFor(db, k === "qwen" ? r.qwen : whole.get(id)?.[k], cache);
-        return !(confirms(c) && c!.workId === w);
+        const top = topFor(c.db, k === "qwen" ? qwenSpine(c, id) : c.whole.get(id)?.[k], c.cache);
+        return !(confirms(top) && top!.workId === d.accepted);
       });
       loro = {};
       for (const k of READERS) {
-        if (!r[k]) continue;
-        const rest = { ...r };
-        delete rest[k];
-        const x = workOf(decide(db, id, split(id)[0], score.get(id)!, rest, cache));
-        loro[k] = x === null ? "none" : x === w ? "same" : "other";
+        if (!d.readText[k] && !(k in d.confirmed)) continue;
+        const x = decideArm(c, id, on, k).accepted;
+        loro[k] = x === null ? "none" : x === d.accepted ? "same" : "other";
       }
+      if (d.info) match = Object.fromEntries(Object.entries(d.info).filter(([, i]) => i?.fields).map(([k, i]) => [k, fieldMatches(c.db, d.accepted!, i!.fields!)]));
     }
-    rows.push(JSON.stringify({ id, imageId: split(id)[0], accepted: w, agreeing: d.agreeing, reason: d.reason, confirmed: d.confirmed, readText: d.readText, qwenSelected: selected.has(id), viaPass2, ...(loro ? { loro } : {}) }));
+    const info = d.info && Object.fromEntries(Object.entries(d.info).map(([k, i]) => [k, { path: i!.path, counter: i!.counter, title: Boolean(i!.fields?.title), author: Boolean(i!.fields?.author) }]));
+    rows.push(JSON.stringify({ id, imageId: split(id)[0], accepted: d.accepted, agreeing: d.agreeing, reason: d.reason, confirmed: d.confirmed, readText: d.readText, qwenSelected: on, viaPass2, ...(loro ? { loro } : {}), ...(info ? { info } : {}), ...(d.roles ? { roles: d.roles } : {}), ...(match ? { match } : {}) }));
   }
   writeFileSync(join(dir, "decisions.jsonl"), rows.join("\n") + "\n");
   log(`${set} ${arm}: ${rows.length} regions decided in ${Math.round((Date.now() - t0) / 1000)} s`);
+}
+
+// --- fields: Qwen's transcript-first field read (GPU) ---------------------------------------------------------
+
+/** F-0d's no-text control boxes that are regions here (invented-field control). */
+function controlIds(set: SetName, regions: Map<string, PartRow>): string[] {
+  const p = join(ROOT, "private", "f0d", set, "selection.jsonl");
+  return readJsonl<{ id: string; role: string }>(p).filter((r) => r.role === "no-text" && regions.has(r.id)).map((r) => r.id);
+}
+
+async function fields(set: SetName): Promise<void> {
+  const c = context(set, "b");
+  const sel = join(PRIV, set, "b", "selection.jsonl");
+  const want = new Set(existsSync(sel) ? readJsonl<{ id: string }>(sel).map((x) => x.id) : selection(c));
+  for (const id of controlIds(set, c.regions)) want.add(id);
+  const dir = join(PRIV, set, "fields");
+  mkdirSync(dir, { recursive: true });
+  const out = join(dir, "qwen.jsonl");
+  const have = new Set(readJsonl<FieldRead>(out).filter((r) => !r.error).map((r) => r.id));
+  const paths = new Map(c.images.map((x) => [x.id, x.path]));
+  const reqs = [...want].filter((id) => !have.has(id)).sort().map((id) => {
+    const [p, i] = split(id);
+    const d = c.dets.get(p)!;
+    const cr = cropFor(d.spines[i]!, d, F0_CROP)!;
+    return { id, image: paths.get(p)!, polygon: cr.polygon, rotations: cr.rotations, minLine: c.plans.get(id)!.minLine, crop: cr.crop };
+  });
+  log(`${set}: field reads for ${want.size} regions; ${reqs.length} to read`);
+  const t0 = Date.now();
+  await runPy("fields.py", [], reqs, out, false);
+  log(`${set}: field reads done in ${Math.round((Date.now() - t0) / 1000)} s`);
+}
+
+// --- render: the private review page ------------------------------------------------------------------------
+
+async function render(set: SetName): Promise<void> {
+  const decs = Object.fromEntries(ARMS.map((a) => [a, decisions(set, a)] as const).filter(([, d]) => d)) as Record<string, Map<string, Dec>>;
+  if (!decs.a0) throw new Error(`${set}: run arm a0 first`);
+  const c = context(set, decs.c ? "c" : "b");
+  const rand = rng(20261104);
+  const changed = c.ids.filter((id) => Object.values(decs).some((d) => d.get(id)?.accepted !== decs.a0!.get(id)?.accepted));
+  const mb = c.ids.filter((id) => c.plans.get(id)!.multiBook).slice(0, 60);
+  const none = c.ids.filter((id) => c.zones!.regions.get(id) && c.plans.get(id)!.kept.length === 0).slice(0, 40);
+  const read = c.ids.filter((id) => c.plans.get(id)!.read && !changed.includes(id));
+  const sample = read.map((id) => [rand(), id] as const).sort((a, b) => a[0] - b[0]).slice(0, 80).map(([, id]) => id);
+  const pick = [...new Map([...changed.slice(0, 300).map((id) => [id, "outcome changed"]), ...mb.map((id) => [id, "multi-book"]), ...none.map((id) => [id, "no line"]), ...sample.map((id) => [id, "sample"])] as [string, string][]).entries()];
+  const work = c.db.prepare("SELECT title, authors FROM works WHERE id = ?");
+  const label = (d: Dec | undefined) => {
+    if (!d) return "—";
+    if (!d.accepted) return `unknown: ${d.reason}`;
+    const w = work.get(d.accepted) as { title: string; authors: string } | undefined;
+    return w ? `${w.title} — ${(JSON.parse(w.authors) as string[]).join("; ")} (${d.agreeing.join("+")})` : d.accepted;
+  };
+  const paths = new Map(c.images.map((x) => [x.id, x.path]));
+  const items = pick.map(([id, why]) => {
+    const [p, i] = split(id);
+    const d = c.dets.get(p)!;
+    const z = c.zones!.regions.get(id);
+    const plan = c.plans.get(id)!;
+    const roleOf = new Map<number, string>();
+    let fields: Record<string, Fields | null> = {};
+    if (z && plan.groups.length) {
+      const byK = new Map(z.lines.map((l) => [l.k, l]));
+      const groupIds = plan.groups.map((g) => g.lines.map((k) => lineId(byK.get(k)!)));
+      const ro = assignRoles(plan.groups, z.frame.W, (g) => OCR.some((k) => isAuthorText(c.authors!, linesText(groupIds[g]!, lineRead(c, k), "best"))));
+      plan.groups.forEach((g, gi) => g.lines.forEach((k) => roleOf.set(k, gi === ro.title ? "title" : gi === ro.author ? "author" : ro.imprint.includes(gi) ? "imprint" : "unassigned")));
+      const sel = decs.c?.get(id)?.qwenSelected ?? decs.b?.get(id)?.qwenSelected;
+      const info = fieldDecide(c, id, ocrReads(c, id), sel ? (c.arm === "c" ? c.fieldReads.get(id) : qwenSpine(c, id)) : undefined).info ?? {};
+      fields = Object.fromEntries(Object.entries(info).map(([k, x]) => [k, x?.fields ?? null]));
+    }
+    const lines = (z?.lines ?? []).map((l) => ({ quad: l.quad, role: l.neighbour > ZONE.neighbourMax ? "neighbour" : roleOf.get(l.k) ?? "unassigned" }));
+    const flags = [plan.multiBook ? "multi-book" : "", z && plan.kept.length === 0 ? "no line" : "", plan.column ? "column line" : "", z && nonTextZones(z.profile, z.frame.W).art ? "art" : ""].filter(Boolean);
+    return { id, image: paths.get(p)!, polygon: cropFor(d.spines[i]!, d, F0_CROP)!.polygon, lines, flags, fields, decisions: Object.fromEntries(Object.entries(decs).map(([a, m]) => [a, label(m.get(id))])), why };
+  });
+  const dir = join(PRIV, "renders", set);
+  mkdirSync(dir, { recursive: true });
+  writeFileSync(join(dir, "items.jsonl"), items.map((x) => JSON.stringify(x)).join("\n") + "\n");
+  await new Promise<void>((resolve, reject) => {
+    const child = spawn(py(), ["-I", join(REPO, "helpers", "label", "render_f0j.py"), "--items", join(dir, "items.jsonl"), "--out", dir, "--label", set], { stdio: ["ignore", "inherit", "inherit"] });
+    child.once("close", (code) => (code === 0 ? resolve() : reject(new Error(`render_f0j.py exited ${code}`))));
+  });
+  log(`render under the data root's private/f0j/renders/${set}/index.html (${items.length} regions)`);
 }
 
 // --- analysis ------------------------------------------------------------------------------------------------
@@ -309,7 +512,98 @@ const textRead = (o: Outcome) => o !== "unknown:no-text";
 const confirmed = (o: Outcome) => o === "confirmed";
 const wrong = (o: Outcome) => o === "rejected/wrong";
 
-interface Dec { id: string; imageId: string; accepted: string | null; agreeing: ReaderName[]; reason: string | null; qwenSelected: boolean; viaPass2: ReaderName[]; loro?: Partial<Record<ReaderName, LoroOutcome>> }
+interface Dec {
+  id: string;
+  imageId: string;
+  accepted: string | null;
+  agreeing: ReaderName[];
+  reason: string | null;
+  qwenSelected: boolean;
+  confirmed?: Partial<Record<ReaderName, string | null>>;
+  viaPass2: ReaderName[];
+  loro?: Partial<Record<ReaderName, LoroOutcome>>;
+  info?: Partial<Record<ReaderName, { path: FieldVote["path"]; counter: boolean; title: boolean; author: boolean }>>;
+  roles?: { title: boolean; author: boolean };
+  match?: Partial<Record<ReaderName, { title: boolean | null; author: boolean | null }>>;
+}
+
+/** Annotated author surnames per yardstick image, as F-0's author accuracy reads them (src/eval/f0-cli.ts). */
+function yardstickSurnames(): Map<string, Set<string>> {
+  const lib = join(ROOT, "proxy", "library-dataset");
+  const cleanAuthor = (a: string) => surnameFirstToGivenFirst(a.replace(/,\s*(\d{4}-?(\d{4})?|\(.*\))\s*$/, "").replace(/\s+/g, " ").trim()); // as F-0
+  const out = new Map<string, Set<string>>();
+  for (const a of parseCsv(readFileSync(join(lib, "data", "annotations", "library_books_annotations.csv"), "utf8"))) {
+    if (a.not_book === "True") continue;
+    const id = a.image_name!.replace(/\.jpg$/i, "");
+    const g = out.get(id) ?? new Set<string>();
+    for (const raw of (a.author ?? "").split(";")) if (raw.trim()) g.add(normalize(cleanAuthor(raw)).split(" ").pop()!);
+    out.set(id, g);
+  }
+  return out;
+}
+
+/** The share of accepted labels whose author's surname is among the image's annotated authors (F-0's author accuracy). */
+function authorAccuracy(db: ReturnType<typeof openCatalog>, decs: Iterable<Dec>, surnames: Map<string, Set<string>>) {
+  let ok = 0, n = 0;
+  const q = db.prepare("SELECT authors FROM works WHERE id = ?");
+  for (const d of decs) {
+    if (!d.accepted) continue;
+    n++;
+    const row = q.get(d.accepted) as { authors: string } | undefined;
+    const g = surnames.get(d.imageId) ?? new Set<string>();
+    if (row && (JSON.parse(row.authors) as string[]).some((a) => g.has(normalize(a).split(" ").pop()!))) ok++;
+  }
+  return { accepted: n, withAuthorInImage: ok, share: n ? ok / n : null };
+}
+
+/** Field coverage and field metrics for arms B and C (reported, not in the rule). */
+function fieldSummary(set: SetName, aft: Map<string, Dec>, plans: Map<string, ReturnType<typeof planRegion>>, arm: string) {
+  const read = [...aft.values()].filter((d) => plans.get(d.id)!.read);
+  const per: Record<string, unknown> = {};
+  for (const k of READERS) {
+    const withInfo = [...aft.values()].filter((d) => d.info?.[k]);
+    if (!withInfo.length) continue;
+    const acc = withInfo.filter((d) => d.accepted && d.match?.[k]);
+    const tf = acc.filter((d) => d.match![k]!.title !== null), af = acc.filter((d) => d.match![k]!.author !== null);
+    per[k] = {
+      regions: withInfo.length,
+      titleField: withInfo.filter((d) => d.info![k]!.title).length,
+      authorField: withInfo.filter((d) => d.info![k]!.author).length,
+      fieldPathConfirmations: withInfo.filter((d) => d.info![k]!.path === "field" && d.confirmed?.[k]).length,
+      authorCounterWithdrawals: withInfo.filter((d) => d.info![k]!.counter).length,
+      onAccepts: { titleField: tf.length, titleMatches: tf.filter((d) => d.match![k]!.title).length, authorField: af.length, authorMatches: af.filter((d) => d.match![k]!.author).length },
+    };
+  }
+  const out: Record<string, unknown> = {
+    readRegions: read.length,
+    withAuthorGroup: read.filter((d) => d.roles?.author).length,
+    withTitleGroup: read.filter((d) => d.roles?.title).length,
+    perReader: per,
+  };
+  if (arm === "c") {
+    const fr = new Map(readJsonl<FieldRead>(join(PRIV, set, "fields", "qwen.jsonl")).map((r) => [r.id, r]));
+    const used = [...aft.values()].filter((d) => d.qwenSelected);
+    const variants = used.flatMap((d) => fr.get(d.id)?.variants ?? []);
+    const control = controlIds(set, regionsOf(set)).map((id) => fr.get(id)).filter((x): x is FieldRead => !!x);
+    const anyField = (v: FieldRead["variants"][number]) => Boolean(v.fields && (v.fields.title.text || v.fields.author.text || v.fields.imprint.text));
+    out.qwen = {
+      regionsRead: used.length,
+      rotations: variants.length,
+      truncated: variants.filter((v) => v.error).length,
+      rejected: { title: variants.filter((v) => v.rejected?.includes("title")).length, author: variants.filter((v) => v.rejected?.includes("author")).length, imprint: variants.filter((v) => v.rejected?.includes("imprint")).length },
+      authorFieldWithoutZonerAuthor: used.filter((d) => d.info?.qwen?.author && !d.roles?.author).length,
+      authorFieldRegions: used.filter((d) => d.info?.qwen?.author).length,
+      imprintFromLogo: variants.filter((v) => v.fields?.imprint.from === "logo").length,
+      control: { regions: control.length, withAnyField: control.filter((r) => r.variants.some(anyField)).length },
+      seconds: Math.round(used.reduce((s, d) => s + (fr.get(d.id)?.seconds ?? 0), 0)),
+      tokensP50: (() => {
+        const t = used.map((d) => fr.get(d.id)?.tokens ?? 0).sort((a, b) => a - b);
+        return t.length ? t[Math.floor(t.length / 2)] : null;
+      })(),
+    };
+  }
+  return out;
+}
 
 function decisions(set: SetName, arm: string): Map<string, Dec> | null {
   const p = join(PRIV, set, arm, "decisions.jsonl");
@@ -320,6 +614,8 @@ const asDecision = (d: Dec) => ({ id: d.id, imageId: d.imageId, accepted: d.acce
 
 function analyse(): void {
   const truth = yardstickTruth();
+  const surnames = yardstickSurnames();
+  const ydb = openCatalog(F0B_SETS["yardstick-library-b2"].catalog);
   const sets: Record<string, any> = {};
   for (const set of Object.keys(SETS) as SetName[]) {
     const tr = set === "pilot-000" ? undefined : truth;
@@ -368,8 +664,12 @@ function analyse(): void {
       const loro = loroSummary(accepts.flatMap((d) => Object.values(d.loro ?? {})));
       const lines = loadReadings(join(PRIV, set, "lines"), LINE_CROP);
       const lineIds = ids.flatMap((id) => (p(id).read ? p(id).order : []));
+      const fieldsOut = arm === "b" || arm === "c" ? fieldSummary(set, aft, plans, arm) : null;
+      const authorAcc = tr ? { before: authorAccuracy(ydb!, base.values(), surnames!), after: authorAccuracy(ydb!, aft.values(), surnames!) } : null;
       out.arms[arm] = {
         all: summary(pairs(() => true), 11),
+        ...(fieldsOut ? { fields: fieldsOut } : {}),
+        ...(authorAcc ? { authorAccuracy: authorAcc } : {}),
         strata: Object.fromEntries(Object.entries(strata).map(([k, f], i) => [k, summary(pairs(f), 21 + 3 * i)])),
         ...(works ? { distinctConfirmedWorks: works } : {}),
         accepts: accepts.length,
@@ -514,6 +814,25 @@ function tables(m: { verdict: Record<string, any>; sets: Record<string, any> }):
         `Line reads: Vision ${x.cost.lines.vision.calls} calls, ${x.cost.lines.vision.seconds} s; PP-OCR ${x.cost.lines.ppocr.calls} calls, ${x.cost.lines.ppocr.seconds} s. Qwen-selected regions: ${x.cost.qwenSelected.before} → ${x.cost.qwenSelected.after}.`,
         "",
       );
+      if (x.authorAccuracy) {
+        const a = x.authorAccuracy;
+        out.push(`Author accuracy (F-0's: accepted labels whose author's surname is annotated in the image): ${pc(a.before.share)} (${a.before.withAuthorInImage}/${a.before.accepted}) → ${pc(a.after.share)} (${a.after.withAuthorInImage}/${a.after.accepted}).`, "");
+      }
+      if (x.fields) {
+        const f = x.fields;
+        out.push(`**Author-field coverage.** Of ${f.readRegions} regions read by pass 2, the zoner found an author group on **${f.withAuthorGroup} (${pc(f.withAuthorGroup / Math.max(1, f.readRegions))})** and a title group on ${f.withTitleGroup}.`, "",
+          "| reader | regions | title field | author field | field-path confirmations | author counter-evidence withdrawals | accepts: title field matches the work | accepts: author field matches the work |",
+          "|---|---:|---:|---:|---:|---:|---|---|");
+        for (const [k, r] of Object.entries<any>(f.perReader)) {
+          const o = r.onAccepts;
+          out.push(`| ${k} | ${r.regions} | ${r.titleField} | ${r.authorField} | ${r.fieldPathConfirmations} | ${r.authorCounterWithdrawals} | ${o.titleMatches}/${o.titleField} (${pc(o.titleMatches / Math.max(1, o.titleField))}) | ${o.authorMatches}/${o.authorField} (${pc(o.authorMatches / Math.max(1, o.authorField))}) |`);
+        }
+        out.push("");
+        if (f.qwen) {
+          const q = f.qwen;
+          out.push(`Qwen field read: ${q.regionsRead} regions, ${q.rotations} rotations, ${q.truncated} not valid JSON; rejected (not in its own lines) title ${q.rejected.title}, author ${q.rejected.author}, imprint ${q.rejected.imprint}; imprint from a logo ${q.imprintFromLogo}. **Invented-field checks:** an author field where the zoner found no author line on ${q.authorFieldWithoutZonerAuthor} of ${q.authorFieldRegions} regions with a Qwen author field; any field on F-0d's no-text control ${q.control.withAnyField} of ${q.control.regions}. ${q.seconds} s, median ${q.tokensP50} visual tokens.`, "");
+        }
+      }
     }
   }
   const yn = (b: boolean | undefined) => (b ? "yes" : "no");
@@ -530,9 +849,11 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
   if (cmd === "zone" && isSet(set)) await zone(set);
   else if (cmd === "lines" && isSet(set)) await lines(set);
   else if (cmd === "run" && isSet(set) && (ARMS as readonly string[]).includes(arg ?? "")) await run(set, arg as Arm);
+  else if (cmd === "fields" && isSet(set)) await fields(set);
+  else if (cmd === "render" && isSet(set)) await render(set);
   else if (cmd === "analyse") analyse();
   else {
-    console.error("usage: f0j-cli.ts zone|lines <set> | run <set> <a0|a> | analyse   (set: pilot-000 | yardstick-library-b2)");
+    console.error("usage: f0j-cli.ts zone|lines|fields|render <set> | run <set> <a0|a|b|c> | analyse   (set: pilot-000 | yardstick-library-b2)");
     process.exit(2);
   }
 }
