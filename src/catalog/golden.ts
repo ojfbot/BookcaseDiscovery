@@ -9,7 +9,7 @@
 import { readFileSync } from "node:fs";
 import type { DatabaseSync } from "node:sqlite";
 import { normalize } from "./normalize.ts";
-import { retrieve } from "./retrieve.ts";
+import { retrieve, type Candidate } from "./retrieve.ts";
 
 export interface GoldenQuery {
   id: string;
@@ -93,17 +93,20 @@ function rate(rs: QueryResult[]): Rate {
   return { n, top1: round(at(1)), top5: round(at(5)), top10: round(at(10)), mrr: round(n === 0 ? 0 : rs.reduce((s, r) => s + (r.rank ? 1 / r.rank : 0), 0) / n) };
 }
 
+/** A retrieval to score: `retrieve` by default; C-8 passes the generation it compares against. */
+export type RetrieveFn = (db: DatabaseSync, variants: string[], k: number) => Candidate[];
+
 /** Runs every golden query (a warm-up pass first, so latency is warm-cache) and aggregates. */
-export function runGolden(db: DatabaseSync, queries: GoldenQuery[], goldenFile: string, k = 10): GoldenRun {
+export function runGolden(db: DatabaseSync, queries: GoldenQuery[], goldenFile: string, k = 10, run: RetrieveFn = retrieve): GoldenRun {
   const targets = new Map<string, Set<string>>();
   for (const q of queries) if (q.expect) targets.set(q.id, targetWorks(db, q.expect));
 
-  for (const q of queries) retrieve(db, q.variants, k); // warm-up, not timed
+  for (const q of queries) run(db, q.variants, k); // warm-up, not timed
 
   const results: QueryResult[] = [];
   for (const q of queries) {
     const t0 = performance.now();
-    const cands = retrieve(db, q.variants, k);
+    const cands = run(db, q.variants, k);
     const ms = performance.now() - t0;
     const target = targets.get(q.id);
     const idx = target ? cands.findIndex((c) => target.has(c.workId)) : -1;
