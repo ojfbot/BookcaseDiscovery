@@ -1,0 +1,832 @@
+{
+ "runId": "F0m",
+ "card": "F-0m",
+ "date": "2026-11-04",
+ "depth": "moge-2-vitl-normal@cb0e8bb (H-2's cache); S-1 rows on F-0i's partition (S-2's run)",
+ "shippedCrop": "rect;rot=fixed;clip=frame",
+ "bootstrap": {
+  "unit": "photo (cluster), paired: the same boxes before and after",
+  "reps": 2000,
+  "interval": "95 % percentile",
+  "units": "residuals in row spine heights; seam error and reader shares as shares or percentage points"
+ },
+ "constants": {
+  "residualCap": 0.5,
+  "seamOff": 0.05,
+  "movedPx": 2
+ },
+ "keepRule": "geometry: pilot bottom residual falls (interval below 0), pilot seam error not up beyond its interval, overlap <= 0.5 % and no outline lost on both sets, yardstick bottom residual and seam error not up beyond their intervals; reader crop: that, plus pilot confirmed interval excludes 0 upward, pilot distinct works not down, yardstick confirmed not down and wrong not up beyond their intervals, yardstick title recall not down beyond its interval",
+ "verdict": {
+  "geometry": {
+   "ships": false,
+   "pilotBottomsMoreConsistent": false,
+   "pilotSeamErrorNotUp": true,
+   "partitionHolds": false,
+   "yardstickBottomsNotWorse": true,
+   "yardstickSeamErrorNotUp": true
+  },
+  "readerCrop": {
+   "ships": false,
+   "geometryShips": false,
+   "pilotConfirmedExcludesZero": false,
+   "pilotNoConfirmedBookLost": true,
+   "yardstickConfirmedNotDown": true,
+   "yardstickWrongNotUp": true,
+   "yardstickRecallNotDown": true
+  }
+ },
+ "sets": {
+  "pilot-000": {
+   "scope": "real use (OC35): machine agreement, never accuracy (INV-17)",
+   "photos": 31,
+   "keptBoxes": 5761,
+   "snap": {
+    "top": {
+     "lying": 149,
+     "snapped": 2552,
+     "no-crease": 3058,
+     "few-front": 2
+    },
+    "bottom": {
+     "lying": 149,
+     "implausible": 567,
+     "snapped": 4010,
+     "no-row": 1021,
+     "few-front": 2,
+     "no-plane": 12
+    },
+    "bottomSource": {
+     "lip-edge": 2650,
+     "lip-level": 481,
+     "board": 879
+    },
+    "moveOutlineShareOfLength": {
+     "top": [-0.0733,0.1429,0.3057],
+     "bottom": [-0.0952,-0.0243,0.035],
+     "quantiles": [0.1,0.5,0.9]
+    },
+    "boxesChangedPolygon": 4830,
+    "lostOutlines": 2,
+    "claimedPixels": {
+     "before": 708015917,
+     "after": 674393172
+    },
+    "cpuSecondsPerPhoto": 4.9913,
+    "byElevation": {
+     "below": {
+      "boxCount": 3170,
+      "topSnapped": 2464,
+      "bottomSnapped": 1965
+     },
+     "level": {
+      "boxCount": 1114,
+      "topSnapped": 88,
+      "bottomSnapped": 874
+     },
+     "above": {
+      "boxCount": 1477,
+      "topSnapped": 0,
+      "bottomSnapped": 1171
+     },
+     "unknown": {
+      "boxCount": 0,
+      "topSnapped": 0,
+      "bottomSnapped": 0
+     }
+    },
+    "f0iMovedEnds": {
+     "top": {
+      "ends": 85,
+      "snapped": 61
+     },
+     "bottom": {
+      "ends": 71,
+      "snapped": 25
+     }
+    }
+   },
+   "overlapRate": {
+    "before": [0.0005,0.0003,0.0007],
+    "after": [0.001,0.0003,0.0021]
+   },
+   "residuals": {
+    "bottom": {
+     "before": 0.0423,
+     "after": 0.0411,
+     "delta": [-0.0013,-0.0047,0.0024],
+     "boxCount": 5388
+    },
+    "top": {
+     "before": 0.0681,
+     "after": 0.1055,
+     "delta": [0.0374,0.0295,0.0456],
+     "boxCount": 5388
+    },
+    "byElevation": {
+     "below": {
+      "bottom": {
+       "before": 0.0608,
+       "after": 0.0612,
+       "delta": [0.0004,-0.0067,0.0073],
+       "boxCount": 2922
+      },
+      "top": {
+       "before": 0.0665,
+       "after": 0.1332,
+       "delta": [0.0667,0.0519,0.0814],
+       "boxCount": 2922
+      }
+     },
+     "level": {
+      "bottom": {
+       "before": 0.0175,
+       "after": 0.0141,
+       "delta": [-0.0034,-0.0054,-0.0011],
+       "boxCount": 1045
+      },
+      "top": {
+       "before": 0.0662,
+       "after": 0.0683,
+       "delta": [0.0022,-0.0001,0.0046],
+       "boxCount": 1045
+      }
+     },
+     "above": {
+      "bottom": {
+       "before": 0.0223,
+       "after": 0.0195,
+       "delta": [-0.0029,-0.0071,0.0015],
+       "boxCount": 1421
+      },
+      "top": {
+       "before": 0.073,
+       "after": 0.0759,
+       "delta": [0.0028,0.0017,0.004],
+       "boxCount": 1421
+      }
+     }
+    },
+    "f0iMovedBottoms": {
+     "before": 0.1244,
+     "after": 0.1243,
+     "delta": [-0.0001,-0.0202,0.0182],
+     "boxCount": 59
+    },
+    "f0iMovedTops": {
+     "before": 0.0753,
+     "after": 0.1167,
+     "delta": [0.0414,0.0174,0.0698],
+     "boxCount": 78
+    }
+   },
+   "seamError": {
+    "any": {
+     "before": 0.5337,
+     "after": 0.3697,
+     "delta": [-0.1641,-0.2075,-0.1197]
+    },
+    "cut": {
+     "before": 0.1583,
+     "after": 0.1363,
+     "delta": [-0.022,-0.0449,0.0021]
+    },
+    "overshoot": {
+     "before": 0.3755,
+     "after": 0.2334,
+     "delta": [-0.1421,-0.1719,-0.1122]
+    },
+    "byThird": {
+     "top": {
+      "before": 0.358,
+      "after": 0.3543,
+      "delta": [-0.0037,-0.01,0.0031]
+     },
+     "middle": {
+      "before": 0.4373,
+      "after": 0.3335,
+      "delta": [-0.1038,-0.1476,-0.0622]
+     },
+     "bottom": {
+      "before": 0.7444,
+      "after": 0.4113,
+      "delta": [-0.3332,-0.4036,-0.2531]
+     }
+    },
+    "byElevation": {
+     "below": {
+      "before": 0.7045,
+      "after": 0.4032,
+      "delta": [-0.3012,-0.3648,-0.2299]
+     },
+     "level": {
+      "before": 0.3091,
+      "after": 0.3193,
+      "delta": [0.0103,-0.0025,0.0239]
+     },
+     "above": {
+      "before": 0.3412,
+      "after": 0.3364,
+      "delta": [-0.0049,-0.011,0.0013]
+     }
+    }
+   },
+   "changedSet": 4763,
+   "readers": {
+    "cropMethod": "rect;rot=fixed;clip=frame on the snapped box",
+    "against": "rect;rot=fixed;clip=frame on the detection rectangle",
+    "qwen": "F-0's hard-crop selection",
+    "all": {
+     "boxCount": 4763,
+     "photos": 31,
+     "textRead": {
+      "before": 82,
+      "after": 81.5,
+      "delta": -0.5,
+      "lo": -1.1,
+      "hi": -0.1
+     },
+     "confirmed": {
+      "before": 13.9,
+      "after": 14.1,
+      "delta": 0.2,
+      "lo": -0.4,
+      "hi": 0.9
+     }
+    },
+    "strata": {
+     "top snapped": {
+      "boxCount": 2539,
+      "photos": 30,
+      "textRead": {
+       "before": 77,
+       "after": 76.5,
+       "delta": -0.5,
+       "lo": -1.2,
+       "hi": 0.3
+      },
+      "confirmed": {
+       "before": 10.8,
+       "after": 11.1,
+       "delta": 0.3,
+       "lo": -0.3,
+       "hi": 0.8
+      }
+     },
+     "bottom only": {
+      "boxCount": 2224,
+      "photos": 31,
+      "textRead": {
+       "before": 87.9,
+       "after": 87.2,
+       "delta": -0.6,
+       "lo": -1.5,
+       "hi": 0.1
+      },
+      "confirmed": {
+       "before": 17.4,
+       "after": 17.4,
+       "delta": 0,
+       "lo": -1,
+       "hi": 1.2
+      }
+     },
+     "below eye level": {
+      "boxCount": 2746,
+      "photos": 30,
+      "textRead": {
+       "before": 76.9,
+       "after": 76.3,
+       "delta": -0.6,
+       "lo": -1.3,
+       "hi": 0.1
+      },
+      "confirmed": {
+       "before": 11.3,
+       "after": 11.4,
+       "delta": 0.1,
+       "lo": -0.6,
+       "hi": 0.7
+      }
+     },
+     "level or above": {
+      "boxCount": 2017,
+      "photos": 31,
+      "textRead": {
+       "before": 89.1,
+       "after": 88.6,
+       "delta": -0.5,
+       "lo": -1.4,
+       "hi": 0.3
+      },
+      "confirmed": {
+       "before": 17.5,
+       "after": 17.7,
+       "delta": 0.2,
+       "lo": -0.9,
+       "hi": 1.5
+      }
+     },
+     "whole boxes": {
+      "boxCount": 3173,
+      "photos": 31,
+      "textRead": {
+       "before": 86.4,
+       "after": 86.1,
+       "delta": -0.3,
+       "lo": -1,
+       "hi": 0.4
+      },
+      "confirmed": {
+       "before": 14.1,
+       "after": 14.4,
+       "delta": 0.3,
+       "lo": -0.5,
+       "hi": 1.3
+      }
+     },
+     "cut or partial boxes": {
+      "boxCount": 1590,
+      "photos": 30,
+      "textRead": {
+       "before": 73.3,
+       "after": 72.3,
+       "delta": -1,
+       "lo": -1.9,
+       "hi": -0.3
+      },
+      "confirmed": {
+       "before": 13.5,
+       "after": 13.3,
+       "delta": -0.1,
+       "lo": -0.9,
+       "hi": 0.6
+      }
+     }
+    },
+    "cost": {
+     "before": {
+      "vision": {
+       "calls": 9516,
+       "seconds": 2268
+      },
+      "ppocr": {
+       "calls": 9516,
+       "seconds": 9061
+      },
+      "qwen": {
+       "calls": 2162,
+       "seconds": 2966
+      }
+     },
+     "after": {
+      "vision": {
+       "calls": 9516,
+       "seconds": 1277
+      },
+      "ppocr": {
+       "calls": 9516,
+       "seconds": 6529
+      },
+      "qwen": {
+       "calls": 2158,
+       "seconds": 1883
+      }
+     }
+    },
+    "distinctConfirmedWorks": {
+     "before": 639,
+     "after": 647,
+     "delta": {
+      "value": 8,
+      "lo": -6,
+      "hi": 16
+     },
+     "lost": 84,
+     "gained": 92
+    }
+   }
+  },
+  "yardstick-library-b2": {
+   "scope": "PROXY: Library Dataset sample, box arm B2; confirmed = accepted and annotated in the image",
+   "photos": 40,
+   "keptBoxes": 1040,
+   "snap": {
+    "top": {
+     "no-crease": 712,
+     "snapped": 274,
+     "lying": 52,
+     "few-front": 2
+    },
+    "bottom": {
+     "snapped": 740,
+     "no-row": 71,
+     "lying": 52,
+     "implausible": 172,
+     "no-plane": 3,
+     "few-front": 2
+    },
+    "bottomSource": {
+     "lip-edge": 498,
+     "board": 117,
+     "lip-level": 125
+    },
+    "moveOutlineShareOfLength": {
+     "top": [0.0061,0.1148,0.2206],
+     "bottom": [-0.1165,-0.0369,0.069],
+     "quantiles": [0.1,0.5,0.9]
+    },
+    "boxesChangedPolygon": 778,
+    "lostOutlines": 0,
+    "claimedPixels": {
+     "before": 503622455,
+     "after": 488396780
+    },
+    "cpuSecondsPerPhoto": 2.4535,
+    "byElevation": {
+     "below": {
+      "boxCount": 382,
+      "topSnapped": 223,
+      "bottomSnapped": 291
+     },
+     "level": {
+      "boxCount": 591,
+      "topSnapped": 51,
+      "bottomSnapped": 406
+     },
+     "above": {
+      "boxCount": 67,
+      "topSnapped": 0,
+      "bottomSnapped": 43
+     },
+     "unknown": {
+      "boxCount": 0,
+      "topSnapped": 0,
+      "bottomSnapped": 0
+     }
+    },
+    "f0iMovedEnds": {
+     "top": {
+      "ends": 16,
+      "snapped": 4
+     },
+     "bottom": {
+      "ends": 18,
+      "snapped": 8
+     }
+    }
+   },
+   "overlapRate": {
+    "before": [0.0015,0.0003,0.0031],
+    "after": [0.0014,0.0002,0.0031]
+   },
+   "residuals": {
+    "bottom": {
+     "before": 0.0861,
+     "after": 0.0753,
+     "delta": [-0.0108,-0.0177,-0.0038],
+     "boxCount": 937
+    },
+    "top": {
+     "before": 0.1058,
+     "after": 0.1193,
+     "delta": [0.0135,0.0057,0.0213],
+     "boxCount": 937
+    },
+    "byElevation": {
+     "below": {
+      "bottom": {
+       "before": 0.0646,
+       "after": 0.0487,
+       "delta": [-0.0159,-0.0254,-0.0072],
+       "boxCount": 350
+      },
+      "top": {
+       "before": 0.1047,
+       "after": 0.1339,
+       "delta": [0.0292,0.011,0.0475],
+       "boxCount": 350
+      }
+     },
+     "level": {
+      "bottom": {
+       "before": 0.1063,
+       "after": 0.0983,
+       "delta": [-0.008,-0.0177,0.0032],
+       "boxCount": 530
+      },
+      "top": {
+       "before": 0.1121,
+       "after": 0.1168,
+       "delta": [0.0047,-0.0001,0.0102],
+       "boxCount": 530
+      }
+     },
+     "above": {
+      "bottom": {
+       "before": 0.0297,
+       "after": 0.0257,
+       "delta": [-0.004,-0.0123,0],
+       "boxCount": 57
+      },
+      "top": {
+       "before": 0.0523,
+       "after": 0.0527,
+       "delta": [0.0003,-0.0001,0.0014],
+       "boxCount": 57
+      }
+     }
+    },
+    "f0iMovedBottoms": {
+     "before": 0.1596,
+     "after": 0.1226,
+     "delta": [-0.037,-0.0714,0.0072],
+     "boxCount": 15
+    },
+    "f0iMovedTops": {
+     "before": 0.1566,
+     "after": 0.1772,
+     "delta": [0.0206,-0.0196,0.0891],
+     "boxCount": 15
+    }
+   },
+   "seamError": {
+    "any": {
+     "before": 0.4797,
+     "after": 0.3845,
+     "delta": [-0.0951,-0.1419,-0.0496]
+    },
+    "cut": {
+     "before": 0.1606,
+     "after": 0.1628,
+     "delta": [0.0022,-0.0165,0.0219]
+    },
+    "overshoot": {
+     "before": 0.3191,
+     "after": 0.2218,
+     "delta": [-0.0973,-0.1504,-0.0499]
+    },
+    "byThird": {
+     "top": {
+      "before": 0.4615,
+      "after": 0.3881,
+      "delta": [-0.0735,-0.2182,-0.0049]
+     },
+     "middle": {
+      "before": 0.481,
+      "after": 0.3942,
+      "delta": [-0.0868,-0.1485,-0.0317]
+     },
+     "bottom": {
+      "before": 0.4881,
+      "after": 0.3377,
+      "delta": [-0.1504,-0.265,-0.0226]
+     }
+    },
+    "byElevation": {
+     "below": {
+      "before": 0.5753,
+      "after": 0.3846,
+      "delta": [-0.1907,-0.2599,-0.1104]
+     },
+     "level": {
+      "before": 0.4183,
+      "after": 0.3734,
+      "delta": [-0.0449,-0.0947,-0.0055]
+     },
+     "above": {
+      "before": 0.4677,
+      "after": 0.4839,
+      "delta": [0.0161,0,0.058]
+     }
+    }
+   },
+   "changedSet": 773,
+   "readers": {
+    "cropMethod": "rect;rot=fixed;clip=frame on the snapped box",
+    "against": "rect;rot=fixed;clip=frame on the detection rectangle",
+    "qwen": "F-0's hard-crop selection",
+    "all": {
+     "boxCount": 773,
+     "photos": 40,
+     "textRead": {
+      "before": 82.5,
+      "after": 81.9,
+      "delta": -0.6,
+      "lo": -1.4,
+      "hi": -0.1
+     },
+     "confirmed": {
+      "before": 29.1,
+      "after": 30,
+      "delta": 0.9,
+      "lo": -1.1,
+      "hi": 2.7
+     },
+     "wrong": {
+      "before": 2.5,
+      "after": 2.3,
+      "delta": -0.1,
+      "lo": -0.5,
+      "hi": 0
+     }
+    },
+    "strata": {
+     "top snapped": {
+      "boxCount": 274,
+      "photos": 17,
+      "textRead": {
+       "before": 79.9,
+       "after": 78.8,
+       "delta": -1.1,
+       "lo": -3.3,
+       "hi": 0
+      },
+      "confirmed": {
+       "before": 28.8,
+       "after": 30.7,
+       "delta": 1.8,
+       "lo": 0.4,
+       "hi": 3.7
+      },
+      "wrong": {
+       "before": 1.8,
+       "after": 1.8,
+       "delta": 0,
+       "lo": -1,
+       "hi": 1
+      }
+     },
+     "bottom only": {
+      "boxCount": 499,
+      "photos": 39,
+      "textRead": {
+       "before": 84,
+       "after": 83.6,
+       "delta": -0.4,
+       "lo": -1,
+       "hi": 0
+      },
+      "confirmed": {
+       "before": 29.3,
+       "after": 29.7,
+       "delta": 0.4,
+       "lo": -2.5,
+       "hi": 3
+      },
+      "wrong": {
+       "before": 2.8,
+       "after": 2.6,
+       "delta": -0.2,
+       "lo": -0.6,
+       "hi": 0
+      }
+     },
+     "below eye level": {
+      "boxCount": 313,
+      "photos": 25,
+      "textRead": {
+       "before": 85.6,
+       "after": 84.7,
+       "delta": -1,
+       "lo": -2.7,
+       "hi": 0
+      },
+      "confirmed": {
+       "before": 32.3,
+       "after": 33.2,
+       "delta": 1,
+       "lo": -1.6,
+       "hi": 3.6
+      },
+      "wrong": {
+       "before": 1.6,
+       "after": 1.6,
+       "delta": 0,
+       "lo": -1,
+       "hi": 0.9
+      }
+     },
+     "level or above": {
+      "boxCount": 460,
+      "photos": 35,
+      "textRead": {
+       "before": 80.4,
+       "after": 80,
+       "delta": -0.4,
+       "lo": -1.1,
+       "hi": 0
+      },
+      "confirmed": {
+       "before": 27,
+       "after": 27.8,
+       "delta": 0.9,
+       "lo": -1.3,
+       "hi": 3.3
+      },
+      "wrong": {
+       "before": 3,
+       "after": 2.8,
+       "delta": -0.2,
+       "lo": -0.7,
+       "hi": 0
+      }
+     },
+     "whole boxes": {
+      "boxCount": 638,
+      "photos": 40,
+      "textRead": {
+       "before": 91.8,
+       "after": 91.2,
+       "delta": -0.6,
+       "lo": -1.5,
+       "hi": 0
+      },
+      "confirmed": {
+       "before": 33.5,
+       "after": 34.2,
+       "delta": 0.6,
+       "lo": -1.5,
+       "hi": 2.5
+      },
+      "wrong": {
+       "before": 2.8,
+       "after": 2.7,
+       "delta": -0.2,
+       "lo": -0.5,
+       "hi": 0
+      }
+     },
+     "cut or partial boxes": {
+      "boxCount": 135,
+      "photos": 28,
+      "textRead": {
+       "before": 38.5,
+       "after": 37.8,
+       "delta": -0.7,
+       "lo": -2.8,
+       "hi": 0
+      },
+      "confirmed": {
+       "before": 8.1,
+       "after": 10.4,
+       "delta": 2.2,
+       "lo": -1.5,
+       "hi": 7.9
+      },
+      "wrong": {
+       "before": 0.7,
+       "after": 0.7,
+       "delta": 0,
+       "lo": 0,
+       "hi": 0
+      }
+     }
+    },
+    "cost": {
+     "before": {
+      "vision": {
+       "calls": 1546,
+       "seconds": 137
+      },
+      "ppocr": {
+       "calls": 1546,
+       "seconds": 2449
+      },
+      "qwen": {
+       "calls": 726,
+       "seconds": 965
+      }
+     },
+     "after": {
+      "vision": {
+       "calls": 1546,
+       "seconds": 136
+      },
+      "ppocr": {
+       "calls": 1546,
+       "seconds": 2598
+      },
+      "qwen": {
+       "calls": 696,
+       "seconds": 989
+      }
+     }
+    },
+    "titles": {
+     "before": {
+      "recall": 0.3813,
+      "precision": 0.9291
+     },
+     "after": {
+      "recall": 0.3859,
+      "precision": 0.9333
+     },
+     "delta": {
+      "recall": [0.0046,-0.0188,0.0252],
+      "precision": [0.0042,-0.0019,0.0132]
+     }
+    }
+   }
+  }
+ }
+}

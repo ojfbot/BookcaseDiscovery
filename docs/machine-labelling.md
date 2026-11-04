@@ -332,3 +332,13 @@ node src/eval/f0m-cli.ts analyse --no-qwen         # evals/F0m/ (aggregates only
 node src/eval/f0m-cli.ts render pilot-000          # the data root's private/f0m/renders/pilot-000/ (private)
 ```
 
+- **Measured** in [`evals/F0m/report.md`](../evals/F0m/report.md), against the keep rules pre-registered there.
+  **Neither the snapped geometry nor the snapped reader crop ships.**
+  - The top crease does what the owner asked. Q-2's top-seam error falls by 16.4 points on `pilot-000` (30 below
+    eye level) and by 9.5 on the yardstick.
+  - The pre-registered bottom rule fails: the detection rectangles' bottoms were already on their row's line, and
+    the snap changes outlines more than boxes.
+  - Two piece outlines are lost, from a crease window longer than the outline; the fix is logged, not run.
+  - Readers: `pilot-000` confirmed +0.2 points (−0.4 to 0.9) on 4,763 changed boxes, and works 639 → 647. The crop
+    stays `rect;rot=fixed;clip=frame`.
+  - The report lists the caches a later adoption would invalidate.
