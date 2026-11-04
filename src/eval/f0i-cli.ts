@@ -456,7 +456,7 @@ function tables(m: { verdict: any; sets: Record<string, any> }): string {
   out.push("## Geometry, both sets", "", `| figure | ${names.map((n) => (n === "pilot-000" ? "`pilot-000`" : "yardstick (PROXY)")).join(" | ")} |`, `|---|${names.map(() => "---:").join("|")}|`);
   const g = (s: any) => s.geometry;
   out.push(
-    `| photos / kept boxes before / after | ${col((s) => `${g(s).photos} / ${g(s).boxes} / ${g(s).kept}`)} |`,
+    `| photos / kept boxes before / after | ${col((s) => `${g(s).photos} / ${g(s).boxCount} / ${g(s).kept}`)} |`,
     `| **overlap rate before** | ${col((s) => tri(g(s).overlapRate_before))} |`,
     `| **overlap rate after (target ≤ 0.5 %)** | ${col((s) => tri(g(s).overlapRate_after, 2))} |`,
     `| crops with ≥ 10 % neighbour pixels, before → after | ${col((s) => `${pc(g(s).cropsNeighbour10pct.before)} → ${pc(g(s).cropsNeighbour10pct.after)}`)} |`,

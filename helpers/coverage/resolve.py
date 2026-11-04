@@ -1014,7 +1014,7 @@ def paired_boot(per_photo: dict[str, tuple[float, float, float, float]], rng) ->
 
 def aggregate(name: str, photos: list[dict], rows: list[dict], gate_counts: dict, prov: dict, blen: dict, seam: dict) -> dict:
     rng = np.random.default_rng(SEED)
-    res: dict = {"set": name, "photos": len(photos), "boxes": sum(p["boxes"] for p in photos),
+    res: dict = {"set": name, "photos": len(photos), "boxCount": sum(p["boxes"] for p in photos),
                  "kept": sum(p["kept"] for p in photos), "changed": sum(p["changed"] for p in photos),
                  "refit": sum(p["refit"] for p in photos), "flagged": sum(p["flagged"] for p in photos),
                  "groups": sum(p["groups"] for p in photos), "windows": sum(p["windows"] for p in photos),
