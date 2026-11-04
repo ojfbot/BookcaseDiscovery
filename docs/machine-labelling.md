@@ -195,3 +195,49 @@ node src/eval/f0h-cli.ts render     # the data root's private/f0h/renders/pilot-
 - **Shelf-strip cue.** A `not-a-book` box whose text carries F-0f's strip wording labels the row above it: "alphabetical by author" marks it ordered, the section is recorded. Shelf-talker text is never read.
 - **Detection-gap flags.** Inside every bracket, gaps between boxes and S-1's `front` outline gaps are written privately (`private/f0h/<set>/detection-gaps.jsonl`) for re-detection (F-0k).
 - **Measured** in [`evals/F0h/report.md`](../evals/F0h/report.md), against the keep rule pre-registered there. **`confirmed-by-context`: on** as a recorded basis (all four parts met). On `pilot-000`'s half B it adds 3.50 confirmed boxes a photo (1.19 to 6.25). The neighbour shuffle keeps 4 % of the accepts, and leave-one-reader-out names no wrong work (0 of 220 accepts). On the yardstick it adds 12 accepts, one wrong; the wrong share of accepts stays at 8.2 %. Half A's order statistics feed I-2: most rows are ordered by author surname, and same-author runs are rarely broken (bracket purity 95 %). Records are private (`private/f0h/<set>/decisions.jsonl`, `hypotheses.jsonl`, `detection-gaps.jsonl`). F-0's machine-label export does not carry the basis yet.
+
+## Gap audit (Q-3)
+
+The owner sees many books that never get a label. Q-3 asks, for every book a person can see on a still, where on
+Q-0's coverage ladder the machine stopped, and why. It then ranks the causes by books lost, so the experiment queue
+works on the biggest first. It is CPU only and reads existing caches:
+
+- F-0i's partition, Q-2b's teacher rungs, F-0g's and F-0h's decision bases;
+- H-2's face shares, Q-1's features, F-0c's and F-0f's kinds;
+- S-2's rows and gaps.
+
+The only new computation is F-0's `decide` on C-5's catalog-v2 for `text-present` and `text-read` boxes. Code:
+`src/eval/q3.ts` (books, cause rules, gap geometry, ranking; pure) and `src/eval/q3-cli.ts` (runner). Results:
+[`evals/Q3/report.md`](../evals/Q3/report.md).
+
+```
+node src/eval/q3-cli.ts v2              # catalog-v2 re-decision for pilot-000 (CPU, about an hour; cached)
+node src/eval/q3-cli.ts audit pilot-000 # one record per book: stop rung, primary cause, splits (also: yardstick)
+node src/eval/q3-cli.ts match           # the owner's labelling-gaps example → its photo (ORB)
+node src/eval/q3-cli.ts analyse         # evals/Q3/ (aggregates only)
+node src/eval/q3-cli.ts render          # the data root's private/q3/renders/index.html (private)
+```
+
+- **Books.** Three kinds count as a book a person can see:
+  - every kept box;
+  - one book per median spine width of each S-2 `frontNoBox` stretch (a spine-like face with no box);
+  - every face-out cover F-0c keeps that no kept box stands for.
+
+  A book's **stop rung** is its teacher rung, and `confirmed-by-copy` and `confirmed-by-context` count as
+  `confirmed`. A book is lost below `confirmed`.
+- **Causes.** Each lost book gets one primary cause: the first rule that holds in its rung's pre-registered list.
+  - At `spine-found` and `text-present` the capture rules come first: frame cut, tile cut or side case, occlusion,
+    a face-out piece, top face, lying flat, dark or flat, outer ring.
+  - At `text-read` the cause is a catalog gap, split by whether catalog-v2 passes a reader.
+  - At `matched` it is a single reader, or two readers disagreeing (a misread).
+- **Measured** on `pilot-000` (machine agreement, never accuracy). Of 6,068 books, 5,244 (86 %) are lost, and only
+  307 of those were never boxed. The top causes:
+  - `catalog-gap`: 1,358;
+  - `frame-edge`: 877;
+  - `single-reader`: 741;
+  - `tiling-or-side-case`: 638, mostly side cases;
+  - `top-face`: 634, all below eye level.
+
+  The last four tie within their intervals.
+- **A baseline.** The box set changes with F-0m, F-0k and NB-3. Re-run `audit` and `analyse` on each new box set;
+  never carry the figures over. Per-book records are private, under the data root's `private/q3/<set>/`.

@@ -211,6 +211,18 @@ These are kept apart on purpose: raw evidence is stored separately from interpre
 - **Capture coverage** — how well each place on a bookcase has been captured for reading, shown as fill while panning (proposal, Q-0, `docs/capture/coverage.md`). *Not* recognition coverage: a fully captured shelf can still hold `unknown`s whose cause is the catalog.
 - **Coverage segment** — the unit capture coverage colours: a piece of one shelf band about two median spine widths long, anchored to working-copy pixels in a still and to stable tracks live (proposal, Q-0).
 - **Coverage rung** — a spine's or segment's place on the capture ladder: `not-seen` → `seen` → `spine-found` → `text-present` → `text-read` → `matched` → `confirmed`. Filled from `text-read` up; the top two restate bands (proposal, Q-0).
+- **Gap audit** — (Q-3, [`evals/Q3`](evals/Q3/report.md)) for every book a person can see on a still, the coverage
+  rung where the machine stopped and why, ranked by books lost. A book is a kept box, a book counted in a row gap
+  with a spine-like face and no box (S-2's `frontNoBox` stretches, one per median spine width), or a face-out cover
+  the default does not box. A **lost** book stops below `confirmed`.
+- **Stop rung** — (Q-3) a book's coverage rung on one still: the highest rung the machine reached for it, with the
+  decision bases `confirmed-by-copy` and `confirmed-by-context` counting as `confirmed`. A book with no box stops at
+  `seen`.
+- **Loss cause** — (Q-3) why a lost book stopped where it did: one **primary cause** per book, the first rule that
+  holds in its stop rung's pre-registered list (`frame-edge`, `tiling-or-side-case`, `shape-filter`, `top-face`,
+  `dark-or-low-contrast`, `occlusion`, `catalog-gap`, `misread`, `single-reader`, and the residuals `lying-flat`,
+  `doubtful-box`, `unattributed`), with every other rule that holds recorded beside it. Capture causes come first at
+  `spine-found` and `text-present`; at `text-read` and `matched` the stop is the catalog or the accept rule.
 - **Top seam** — where a detected spine's top edge actually sits against its box's top end, measured from pixels as the strongest colour step across the spine. A box that *overshoots* runs past the top edge onto the top face or the shelf, and a box that *cuts* stops short of it (Q-2, `helpers/coverage/geometry.py`).
 - **Display mode** — who the glass is for, and so which overlay layers it may draw (U-4, `docs/capture/display-modes.md`): `dev` (boxes, ids, scores, bands, tiles, cut and partial flags), `labelling` (hairline boxes, the machine's guess and its rung) and `user` (object-shaped highlights and capture-coverage fill; no boxes, numbers or labels). *Orthogonal to the overlay lens*: the lens chooses which spines a highlight means, the display mode how glass draws them, and any lens works in any mode.
 - **Display variant** — one named style of a display mode (`user-glow`, `user-veil`, `user-ridge`, …), all data: the layers it draws and every style number. A blue/green **arm** is a variant's id plus its parameter hash, so a retuned variant is a new arm (proposal, U-4).
