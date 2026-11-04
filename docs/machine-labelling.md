@@ -340,3 +340,38 @@ node src/eval/ts1-cli.ts analyse           # evals/TS1/ (aggregates only)
 - **Recommendation** (not implemented): no agreeing pair is strong on its own. Train on two-reader labels with a
   distinctive title and no dissent; hold shared-title labels out unless C-7's namesake test or an author read supports
   them; exclude dissented labels. A second OCR engine adds coverage, not an independent check on the catalog.
+
+## Spine end edges (F-0m)
+
+The owner's renders showed outlines blurring where a spine turns its corner into the paper-edge top face, and bottom
+edges missing. F-0m snaps each kept box's ends on F-0i's partition from geometry already cached: the top to the
+**top crease** (H-2's normals turning from `front` to `top` along the spine's axis) and the bottom to the **board
+contact** (S-1's board top at the book's own depth, or the lip's top edge where it hides the books' feet). CPU only.
+
+Code:
+
+- `helpers/depth/ends.py`: the snap, new outlines, box ends and label maps;
+- `helpers/depth/render_f0m.py`: private before/after renders, the owner's examples first;
+- `src/eval/f0m.ts`: row-end residuals, seam error, books lost, keep rules (pure);
+- `src/eval/f0m-cli.ts`: the runner.
+
+Results: [`evals/F0m/report.md`](../evals/F0m/report.md).
+
+```
+node src/eval/f0m-cli.ts ends pilot-000            # snapped ends, outlines, boxes, label maps (also yardstick-library-b2)
+node src/eval/f0m-cli.ts seams pilot-000           # Q-2's top seam on both arms
+node src/eval/f0m-cli.ts run pilot-000 clip --no-qwen   # readers on the changed set (then `snap`)
+node src/eval/f0m-cli.ts analyse --no-qwen         # evals/F0m/ (aggregates only)
+node src/eval/f0m-cli.ts render pilot-000          # the data root's private/f0m/renders/pilot-000/ (private)
+```
+
+- **Measured** in [`evals/F0m/report.md`](../evals/F0m/report.md), against the keep rules pre-registered there.
+  **Neither the snapped geometry nor the snapped reader crop ships.**
+  - The top crease does what the owner asked. Q-2's top-seam error falls by 16.4 points on `pilot-000` (30 below
+    eye level) and by 9.5 on the yardstick.
+  - The pre-registered bottom rule fails: the detection rectangles' bottoms were already on their row's line, and
+    the snap changes outlines more than boxes.
+  - Two piece outlines are lost, from a crease window longer than the outline; the fix is logged, not run.
+  - Readers: `pilot-000` confirmed +0.2 points (−0.4 to 0.9) on 4,763 changed boxes, and works 639 → 647. The crop
+    stays `rect;rot=fixed;clip=frame`.
+  - The report lists the caches a later adoption would invalidate.
