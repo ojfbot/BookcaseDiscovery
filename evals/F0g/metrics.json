@@ -1,0 +1,398 @@
+{
+  "card": "F-0g",
+  "run": "2026-11-03",
+  "note": "Aggregates only. pilot-000 is machine agreement, never accuracy (INV-17); the yardstick is PROXY (library shelves). Never pooled (OC35).",
+  "calibration": {
+    "rule": "logistic score over ncc, hist, prof, longLog, shortLog; threshold where 2 % of different-work confirmed neighbours pass; pilot-000 only",
+    "pairs": 263,
+    "sameWork": 74,
+    "differentWork": 189,
+    "photos": 17,
+    "outOfFold": {
+      "samePassShare": 0.5946,
+      "differentPassShare": 0.0317
+    }
+  },
+  "copy": {
+    "maxGapWidths": 0.6,
+    "minCentreWidths": 0.6,
+    "minRowOverlap": 0.6,
+    "maxLongRatio": 1.15,
+    "maxShortRatio": 1.4,
+    "consistentTitle": 0.5,
+    "otherTitle": 0.8
+  },
+  "sets": {
+    "pilot-000": {
+      "scope": "real use (OC35): machine agreement, never accuracy (INV-17)",
+      "photos": 31,
+      "boxCount": 6145,
+      "neighbourPairs": 4416,
+      "neighbourPairsInFrame": 4390,
+      "visuallySame": 251,
+      "guardRejected": 67,
+      "guardReasons": {
+        "reads-differ": 40,
+        "reader-confirms-other": 8,
+        "imprint-differs": 1,
+        "accepted-differ": 4,
+        "reads-other-title": 14
+      },
+      "links": 184,
+      "groups": {
+        "total": 154,
+        "perPhoto": [
+          4.9677,
+          3.3871,
+          6.6452
+        ],
+        "identified": 41,
+        "identifiedPerPhoto": [
+          1.3226,
+          0.6452,
+          2.0968
+        ],
+        "sizes": {
+          "2": 128,
+          "3": 22,
+          "4+": 4
+        },
+        "photosWithGroup": 26
+      },
+      "propagation": {
+        "confirmedBase": 731,
+        "confirmedByCopy": 9,
+        "confirmedPerPhotoBase": [
+          23.5806,
+          13.9347,
+          33.775
+        ],
+        "extraConfirmedPerPhoto": [
+          0.2903,
+          0.0645,
+          0.5806
+        ],
+        "confirmedShareBase": [
+          0.119,
+          0.0763,
+          0.1594
+        ],
+        "extraConfirmedSharePts": [
+          0.0015,
+          0.0003,
+          0.0028
+        ],
+        "blocked": {
+          "reads-other-title": 1,
+          "no-consistent-reader": 2
+        },
+        "consistentReaders": {
+          "vision": 6,
+          "qwen": 7,
+          "ppocr": 3
+        }
+      },
+      "wrongGroupings": {
+        "bothConfirmedPairs": 263,
+        "bothConfirmedVisual": 41,
+        "visualDifferentWorkShare": [
+          0.0976,
+          0.027,
+          0.1935
+        ],
+        "differentWorkBeforeVisual": [
+          0.7186,
+          0.6655,
+          0.7835
+        ],
+        "afterGuard": 0,
+        "singleReaderViews": {
+          "sameWork": {
+            "views": 162,
+            "propagated": [
+              0.963,
+              0.9259,
+              0.9928
+            ],
+            "weakViews": 14,
+            "weakPropagated": [
+              0.5714,
+              0.375,
+              0.8182
+            ]
+          },
+          "differentWork": {
+            "views": 17,
+            "propagated": [
+              0,
+              0,
+              0
+            ],
+            "weakViews": 1,
+            "weakPropagated": [
+              0,
+              0,
+              0
+            ]
+          },
+          "precision": [
+            1,
+            1,
+            1
+          ]
+        }
+      },
+      "seriesGuard": {
+        "hardNegatives": 92,
+        "hardNegativesVisual": 4,
+        "visualPassShare": [
+          0.0435,
+          0.0103,
+          0.0882
+        ],
+        "otherNegativesVisualPassShare": [
+          0,
+          0,
+          0
+        ],
+        "fullReadsRejected": 4,
+        "viewsVisual": 17,
+        "viewsVisualBlocked": [
+          1,
+          1,
+          1
+        ],
+        "viewsAll": 420,
+        "viewsAllBlocked": [
+          1,
+          1,
+          1
+        ],
+        "weakViewsAll": 44,
+        "weakViewsAllBlocked": [
+          1,
+          1,
+          1
+        ],
+        "blockedBy": {
+          "reader-confirms-other": 376,
+          "no-consistent-reader": 18,
+          "reads-other-title": 26
+        }
+      },
+      "workCounting": {
+        "workShelfEntries": 633,
+        "copiesPerWorkOnShelf": {
+          "1": 547,
+          "2": 74,
+          "3": 7,
+          "4+": 5
+        },
+        "worksWithCopies": 86,
+        "worksWithCopiesInSeveralGroups": 52
+      },
+      "yardstick": null,
+      "runtime": {
+        "appearanceSecondsPerPhoto": {
+          "p50": 0.328,
+          "total": 11
+        },
+        "analyseSeconds": 0
+      }
+    },
+    "yardstick": {
+      "scope": "PROXY (library shelves): Library Dataset sample, box arm B2; confirmed = accepted and annotated in the image",
+      "photos": 40,
+      "boxCount": 1132,
+      "neighbourPairs": 667,
+      "neighbourPairsInFrame": 666,
+      "visuallySame": 29,
+      "guardRejected": 7,
+      "guardReasons": {
+        "reads-other-title": 2,
+        "reads-differ": 3,
+        "imprint-differs": 2
+      },
+      "links": 22,
+      "groups": {
+        "total": 15,
+        "perPhoto": [
+          0.375,
+          0.15,
+          0.625
+        ],
+        "identified": 1,
+        "identifiedPerPhoto": [
+          0.025,
+          0,
+          0.075
+        ],
+        "sizes": {
+          "2": 9,
+          "3": 5,
+          "4+": 1
+        },
+        "photosWithGroup": 9
+      },
+      "propagation": {
+        "confirmedBase": 269,
+        "confirmedByCopy": 0,
+        "confirmedPerPhotoBase": [
+          6.725,
+          5.1244,
+          8.3756
+        ],
+        "extraConfirmedPerPhoto": [
+          0,
+          0,
+          0
+        ],
+        "confirmedShareBase": [
+          0.2376,
+          0.1828,
+          0.2972
+        ],
+        "extraConfirmedSharePts": [
+          0,
+          0,
+          0
+        ],
+        "blocked": {},
+        "consistentReaders": {}
+      },
+      "wrongGroupings": {
+        "bothConfirmedPairs": 85,
+        "bothConfirmedVisual": 3,
+        "visualDifferentWorkShare": [
+          0.6667,
+          0,
+          1
+        ],
+        "differentWorkBeforeVisual": [
+          0.9765,
+          0.9166,
+          1
+        ],
+        "afterGuard": 0,
+        "singleReaderViews": {
+          "sameWork": {
+            "views": 6,
+            "propagated": [
+              1,
+              1,
+              1
+            ],
+            "weakViews": 2,
+            "weakPropagated": [
+              1,
+              1,
+              1
+            ]
+          },
+          "differentWork": {
+            "views": 10,
+            "propagated": [
+              0,
+              0,
+              0
+            ],
+            "weakViews": 2,
+            "weakPropagated": [
+              0,
+              0,
+              0
+            ]
+          },
+          "precision": [
+            1,
+            1,
+            1
+          ]
+        }
+      },
+      "seriesGuard": {
+        "hardNegatives": 19,
+        "hardNegativesVisual": 0,
+        "visualPassShare": [
+          0,
+          0,
+          0
+        ],
+        "otherNegativesVisualPassShare": [
+          0.0313,
+          0,
+          0.08
+        ],
+        "fullReadsRejected": 0,
+        "viewsVisual": 0,
+        "viewsVisualBlocked": null,
+        "viewsAll": 84,
+        "viewsAllBlocked": [
+          1,
+          1,
+          1
+        ],
+        "weakViewsAll": 8,
+        "weakViewsAllBlocked": [
+          1,
+          1,
+          1
+        ],
+        "blockedBy": {
+          "reader-confirms-other": 76,
+          "reads-other-title": 8
+        }
+      },
+      "workCounting": {
+        "workShelfEntries": 260,
+        "copiesPerWorkOnShelf": {
+          "1": 252,
+          "2": 7,
+          "3": 1
+        },
+        "worksWithCopies": 8,
+        "worksWithCopiesInSeveralGroups": 7
+      },
+      "yardstick": {
+        "wrongAcceptsBase": 22,
+        "wrongAcceptsWith": 22,
+        "wrongPerImageDelta": [
+          0,
+          0,
+          0
+        ],
+        "wrongPerImageBase": [
+          0.55,
+          0.25,
+          0.9
+        ],
+        "wrongShareOfAcceptedBase": [
+          0.0818,
+          0.0364,
+          0.1392
+        ],
+        "wrongShareOfAcceptedWith": [
+          0.0818,
+          0.0364,
+          0.1392
+        ],
+        "overCountBase": 6,
+        "overCountWith": 6,
+        "propagatedAnnotated": 0
+      },
+      "runtime": {
+        "appearanceSecondsPerPhoto": {
+          "p50": 0.062,
+          "total": 3
+        },
+        "analyseSeconds": 0
+      }
+    }
+  },
+  "keep": {
+    "pilotConfirmedRises": true,
+    "yardstickWrongNotUp": true,
+    "ship": true
+  },
+  "seconds": 2
+}
