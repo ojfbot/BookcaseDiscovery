@@ -1,12 +1,19 @@
 // F-0j: the line crop's name and rotations, the zoner's pre-registered rules (groups, multi-book, roles, non-text
 // zones), a reader's line variants as one vote, the author name test, leave one reader out and the keep rule.
 // Synthetic data only.
-import { describe, expect, it } from "vitest";
+import { mkdtempSync, rmSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import { DatabaseSync } from "node:sqlite";
+import { afterAll, beforeAll, describe, expect, it } from "vitest";
+import { buildCatalog } from "../src/catalog/build.ts";
+import { retrieve } from "../src/catalog/retrieve.ts";
 import { cropFor, cropName, LINE_CROP } from "../src/perceive/crop.ts";
 import { assignRoles, groupLines, keptLines, multiBook, nonTextZones, type ZoneLine } from "../src/perceive/zones.ts";
 import { variantsOf, type Reading } from "../src/eval/f0.ts";
-import { isAuthorText, lineText, lineVariants, loroSummary, wilsonUpper, withLines, type AuthorIndex } from "../src/eval/f0j.ts";
+import { authorIndex, fieldMatches, fieldVote, isAuthorText, lineText, lineVariants, loroSummary, wilsonUpper, withLines, type AuthorIndex } from "../src/eval/f0j.ts";
 import { planRegion, verdictOf } from "../src/eval/f0j-cli.ts";
+import { makeMiniStaging } from "./helpers/mini-staging.ts";
 
 /** A line in the reading frame: x along the spine, y across it. */
 const L = (k: number, x0: number, x1: number, y0: number, y1: number, extra: Partial<ZoneLine> = {}): ZoneLine => ({
@@ -140,5 +147,43 @@ describe("leave one reader out and the keep rule", () => {
     const switches = { arms: { a: { ...yard.arms.a, loro: { otherShare: 0.06 } } } };
     expect(verdictOf({ "pilot-000": pilot, "yardstick-library-b2": switches }, "a")!.leaveOneReaderOut).toBe(false);
     expect(verdictOf({ "pilot-000": pilot }, "a")).toBeNull();
+  });
+});
+
+describe("the field rule on a mini catalog (arms B and C)", () => {
+  const dir = mkdtempSync(join(tmpdir(), "f0j-"));
+  let db: DatabaseSync;
+  beforeAll(() => {
+    makeMiniStaging(join(dir, "staging.sqlite"));
+    buildCatalog({ staging: join(dir, "staging.sqlite"), out: join(dir, "catalog.sqlite"), now: () => new Date("2026-11-02T00:00:00Z") });
+    db = new DatabaseSync(join(dir, "catalog.sqlite"), { readOnly: true });
+  });
+  afterAll(() => {
+    db.close();
+    rmSync(dir, { recursive: true, force: true });
+  });
+
+  it("keeps the whole-string path when the whole reading confirms", () => {
+    expect(fieldVote(db, retrieve(db, ["Neuromancer William Gibson"], 50), { title: "Neuromancer", author: null })).toEqual({ work: "isfdb:201", path: "whole", counter: false });
+  });
+
+  it("confirms on the fields when unassigned noise sinks the whole string's coverage", () => {
+    const ranked = retrieve(db, ["Neuromancer zxqv blorp frumble wizzle gorp quandle"], 50);
+    expect(fieldVote(db, ranked, null).work).toBeNull();
+    expect(fieldVote(db, ranked, { title: "Neuromancer", author: "William Gibson" })).toEqual({ work: "isfdb:201", path: "field", counter: false });
+  });
+
+  it("withdraws a confirmation when the author field names another book's author", () => {
+    const ranked = [...retrieve(db, ["Neuromancer William Gibson"], 50), ...retrieve(db, ["Ubik Philip K Dick"], 50)];
+    expect(fieldVote(db, ranked, { title: "Neuromancer", author: "Philip K Dick" })).toEqual({ work: null, path: "whole", counter: true });
+    expect(fieldVote(db, ranked, { title: "Neuromancer", author: "W. Gibson" }).work).toBe("isfdb:201");
+    expect(fieldMatches(db, "isfdb:201", { title: "Neuromancer", author: "Philip K Dick" })).toEqual({ title: true, author: false });
+  });
+
+  it("reads author name forms from the catalog itself", () => {
+    const ix = authorIndex(db);
+    expect(isAuthorText(ix, "William Gibson")).toBe(true);
+    expect(isAuthorText(ix, "W. Gibson")).toBe(true);
+    expect(isAuthorText(ix, "Neuromancer")).toBe(false);
   });
 });
