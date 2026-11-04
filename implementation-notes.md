@@ -215,6 +215,7 @@ The count is a discovery rate, not a defect rate.
 - **2026-11-03 (H-1).** MoGe-2's own field of view was 13° wide of EXIF on the owner's example. Went with passing EXIF's field of view on the 17 photos that keep the sensor's full frame (`nativeSize`, 4:3), and MoGe's estimate on cropped photos, recording the error on the 17 (median 2.9°).
 - **2026-11-03 (H-1).** No labels exist to say whether a face split is right. Went with a blind agent spot check of 60 random boxes (seed fixed, flagged and unflagged shuffled together, judged before the key was read), reported as one agent's judgement, never as accuracy. Q-2's colour top seam was the planned independent cross-check, but it can't tell a top face from a cut spine (`evals/H1` finding 7).
 - **2026-11-03 (H-1).** `pilot-000` has no repeated views of one shelf, so the multi-view family (the owner's "many angles") could not be spiked. Went with surveying it and proposing H-3 on a burst or sweep capture; MapAnything-apache (4.9 GB, at the cap) was not downloaded.
+
 ## Fleet-runner LAN pilot deviation (core #578)
 
 Core's fleet-runner is a private workspace package whose Git checkout has no
@@ -223,3 +224,10 @@ worker source from core commit `ecfc234d845a5202500893bce320293c2be8f888`.
 Local imports use `.ts` for Node's type stripping. The queue declarations
 come from the same commit. The runtime job queue stays on the server for
 the LAN pilot, and the read-vision implementation stays here.
+
+
+- **2026-11-03 (BookcaseDiscovery compute tracer, core #578).** The N-2 plan
+  called for SSH CLI calls and rsync. The owner chose authenticated LAN HTTP
+  because Remote Login is off on Yuri. The owner keeps the firewall and local
+  staging under their control. This combines the N-2 remote-worker and N-3
+  queue transport proof for read-vision. The remaining card exits carry forward.
