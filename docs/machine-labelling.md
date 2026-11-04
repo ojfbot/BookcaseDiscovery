@@ -177,6 +177,45 @@ node src/eval/f0g-cli.ts render               # the data root's private/f0g/rend
 - **Work level.** A hardback and a paperback of one work look different, so they are two copy groups; copies are counted per work on a shelf band whatever they look like.
 - **Measured** in [`evals/F0g/report.md`](../evals/F0g/report.md), against the keep rule pre-registered there. **Propagation: on** (its rule met; re-measured on F-0f's box set at main `9653345`, unchanged). On `pilot-000` copy groups are common (about 5 a photo, mostly pairs) and `confirmed-by-copy` adds 0.29 confirmed boxes a photo (0.06 to 0.58), with no hard negative (shared author, different work) propagated in one-reader tests; on the yardstick nothing propagates (library shelves rarely hold copies), so it shows no harm but cannot show propagation's error rate. The per-copy record (group, size, basis, source, supporting readers) is private, under the data root's `private/f0g/<set>/copies.jsonl`; F-0's machine-label export does not carry the basis yet.
 
+## Pooled reading (F-0g2)
+
+When no copy in an F-0g copy group is confirmed, the copies can still say together what the book is. Each copy is a
+different crop of a different physical book, so its text is new pixel evidence, not a repeat read. F-0g2 fuses each
+reader model's text of all the copies and looks the fused reading up once in the catalog.
+
+Code: `src/eval/f0g2.ts` (alignment, fusion, the pooled vote, views; pure) and `src/eval/f0g2-cli.ts` (runner and
+private review page). Results: [`evals/F0g2/report.md`](../evals/F0g2/report.md).
+
+```
+node src/eval/f0g2-cli.ts analyse   # both sets: evals/F0g2/ (aggregates only); per-copy records under private/f0g2/<set>/
+node src/eval/f0g2-cli.ts render    # the data root's private/f0g2/renders/<set>/index.html (private)
+```
+
+- **Groups.** These are F-0g's copy groups (its visual test and series guard), with links that touch a box F-0i's
+  partition drops removed. A group is eligible when no copy is `readers-agree`.
+- **Fusion** (`fuse`). For one reader model:
+  - The texts are normalised as the catalog normalises them, then aligned with free end gaps, so a fragment can be a
+    prefix, a suffix or a piece of another read.
+  - The centre is the variant that agrees best with the other copies, which also lines up rotations.
+  - Over each centre character, the texts spanning it vote; ties go to the centre. Overhangs past the centre's ends
+    extend the reading, and texts that do not overlap are kept in a union variant.
+- **One vote per model (INV-6).** A model's pooled reading holds its fused texts and every copy's own text. It makes
+  one `retrieve` call, and its top candidate is that model's single vote, however many copies the model read. F-0's
+  `vote` then needs two models confirming one work under F-0's bar.
+- **`confirmed-by-pooling`.** A copy takes the pooled work only through F-0g's per-copy tests: no read of its own
+  contradicts the work, and one of its readers is consistent with it. Each copy keeps its own box and decision
+  (INV-4). Its record holds the group, the size, the basis, the source copies and the supporting models.
+- **Measured** in [`evals/F0g2/report.md`](../evals/F0g2/report.md) against the keep rule pre-registered there.
+  **`confirmed-by-pooling`: off** (K1 not met).
+  - On `pilot-000`, 1 of 113 eligible groups pooled to a work, and the series guard blocked all of its copies, so
+    0 boxes were confirmed.
+  - Most eligible groups have no model, or only one, past F-0's bar even when pooled.
+  - Where reads are cleaner, pooling names the right work: 10 of 10 non-trivial leave-one-reader-out confirmations,
+    and 27 of 27 when the confirmed copy is hidden.
+  - No hard negative (shared author, different work) is pooled into one, with or without the gates.
+  - On the yardstick nothing pools.
+  - Re-run `analyse` when more copies get a second reader, or when the catalog holds the shelved titles.
+
 ## Neighbour context (F-0h)
 
 A spine beside a confirmed book by the same author is probably that author's too. F-0 identifies each spine alone, so a title one reader misread by a letter or two is lost among the catalog's namesakes even when its neighbour names the author. F-0h lets a confirmed neighbour narrow the search, and lets the spine's own text decide. Code: `src/eval/f0h.ts` (rows, anchors, brackets, the title test, the decision, order statistics, hypotheses; pure), `src/eval/f0h-cli.ts` (runner), `helpers/label/render_f0h.py` (private review page), `helpers/label/match_examples.py` (matches the owner's example images to their photos). Results: [`evals/F0h/report.md`](../evals/F0h/report.md). Design: [`docs/catalog/identification-research.md`](catalog/identification-research.md) §2.3.
