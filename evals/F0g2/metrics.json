@@ -1,0 +1,344 @@
+{
+  "card": "F-0g2",
+  "run": "2026-11-04",
+  "note": "Aggregates only. pilot-000 is machine agreement, never accuracy (INV-17); the yardstick is PROXY (library shelves). Never pooled (OC35).",
+  "boxSet": "F-0g's shipped copy groups (main fccd1a2) with links touching a box F-0i's partition drops removed; F-0's cached readings; catalog default, C-3 generation",
+  "pool": {
+    "match": 1,
+    "mismatch": -1,
+    "gap": -1,
+    "minOverlap": 3,
+    "depth": 3
+  },
+  "maxWrongShare": 0.05,
+  "sets": {
+    "pilot-000": {
+      "scope": "real use (OC35): machine agreement, never accuracy (INV-17)",
+      "photos": 31,
+      "boxCount": 5761,
+      "droppedByF0i": 360,
+      "groups": {
+        "total": 154,
+        "eligible": 113,
+        "eligibleCopies": 248,
+        "sizes": {
+          "2": 94,
+          "3": 16,
+          "4+": 3
+        }
+      },
+      "pooling": {
+        "groupsPooled": 1,
+        "groupReasons": {
+          "no-text": 24,
+          "single-reader": 35,
+          "no-catalog-match": 51,
+          "readers-disagree": 2
+        },
+        "boxesLabelled": 0,
+        "perPhoto": [
+          0,
+          0,
+          0
+        ],
+        "sharePts": [
+          0,
+          0,
+          0
+        ],
+        "blocked": {
+          "reads-other-title": 3
+        },
+        "supportingReaders": {
+          "vision": 1,
+          "qwen": 1
+        },
+        "supportingFromFused": 1,
+        "supportingVotes": 2,
+        "readerVotesWithFusion": 152,
+        "readerVotesFusedConfirm": 15,
+        "confirmedBase": 735,
+        "noFusion": {
+          "groupsPooled": 1,
+          "boxesLabelled": 0,
+          "perPhoto": [
+            0,
+            0,
+            0
+          ],
+          "sharePts": [
+            0,
+            0,
+            0
+          ]
+        }
+      },
+      "f0h": {
+        "pooledAlsoByContext": 0,
+        "sameWork": 0,
+        "differentWork": 0,
+        "pooledNotByContext": 0
+      },
+      "loro": {
+        "groups": 41,
+        "mixedGroups": 0,
+        "all": {
+          "views": 96,
+          "confirmed": 32,
+          "right": 32,
+          "wrong": 0,
+          "wrongShare": 0,
+          "wrongWilsonUpper": 0.1072,
+          "recovered": [
+            0.3333,
+            0.1753,
+            0.5224
+          ],
+          "labelledCopies": 69,
+          "fusedWins": 19
+        },
+        "nonTrivial": {
+          "views": 74,
+          "confirmed": 10,
+          "right": 10,
+          "wrong": 0,
+          "wrongShare": 0,
+          "wrongWilsonUpper": 0.2775,
+          "recovered": [
+            0.1351,
+            0.054,
+            0.2728
+          ],
+          "labelledCopies": 20,
+          "fusedWins": 4
+        },
+        "trivialViews": 22
+      },
+      "hide": {
+        "hidden": 14,
+        "tooFew": 64,
+        "all": {
+          "views": 50,
+          "confirmed": 27,
+          "right": 27,
+          "wrong": 0,
+          "wrongShare": 0,
+          "wrongWilsonUpper": 0.1246,
+          "recovered": [
+            0.54,
+            0.1867,
+            0.7692
+          ],
+          "labelledCopies": 46,
+          "fusedWins": 15
+        },
+        "nonTrivial": {
+          "views": 29,
+          "confirmed": 6,
+          "right": 6,
+          "wrong": 0,
+          "wrongShare": 0,
+          "wrongWilsonUpper": 0.3903,
+          "recovered": [
+            0.2069,
+            0,
+            0.4
+          ],
+          "labelledCopies": 10,
+          "fusedWins": 3
+        }
+      },
+      "hard": {
+        "pairs": 92,
+        "views": 311,
+        "gatedViews": 0,
+        "gatedHarm": 0,
+        "gatedMerged": 0,
+        "ungatedHarm": 0,
+        "ungatedMerged": 0,
+        "ungatedHarmShare": [
+          0,
+          0,
+          0
+        ],
+        "ungatedPooledToAWork": 104
+      },
+      "yardstick": null,
+      "runtime": {
+        "seconds": 0,
+        "newLookups": 0,
+        "cachedLookups": 683
+      }
+    },
+    "yardstick": {
+      "scope": "PROXY (library shelves): Library Dataset sample, box arm B2; confirmed = accepted and annotated in the image",
+      "photos": 40,
+      "boxCount": 1040,
+      "droppedByF0i": 76,
+      "groups": {
+        "total": 15,
+        "eligible": 14,
+        "eligibleCopies": 35,
+        "sizes": {
+          "2": 8,
+          "3": 5,
+          "4+": 1
+        }
+      },
+      "pooling": {
+        "groupsPooled": 0,
+        "groupReasons": {
+          "no-catalog-match": 8,
+          "no-text": 6
+        },
+        "boxesLabelled": 0,
+        "perPhoto": [
+          0,
+          0,
+          0
+        ],
+        "sharePts": [
+          0,
+          0,
+          0
+        ],
+        "blocked": {},
+        "supportingReaders": {},
+        "supportingFromFused": 0,
+        "supportingVotes": 0,
+        "readerVotesWithFusion": 19,
+        "readerVotesFusedConfirm": 0,
+        "confirmedBase": 266,
+        "noFusion": {
+          "groupsPooled": 0,
+          "boxesLabelled": 0,
+          "perPhoto": [
+            0,
+            0,
+            0
+          ],
+          "sharePts": [
+            0,
+            0,
+            0
+          ]
+        }
+      },
+      "f0h": null,
+      "loro": {
+        "groups": 1,
+        "mixedGroups": 0,
+        "all": {
+          "views": 3,
+          "confirmed": 1,
+          "right": 1,
+          "wrong": 0,
+          "wrongShare": 0,
+          "wrongWilsonUpper": 0.7935,
+          "recovered": [
+            0.3333,
+            0.3333,
+            0.3333
+          ],
+          "labelledCopies": 2,
+          "fusedWins": 0
+        },
+        "nonTrivial": {
+          "views": 2,
+          "confirmed": 0,
+          "right": 0,
+          "wrong": 0,
+          "wrongShare": null,
+          "wrongWilsonUpper": null,
+          "recovered": [
+            0,
+            0,
+            0
+          ],
+          "labelledCopies": 0,
+          "fusedWins": 0
+        },
+        "trivialViews": 1
+      },
+      "hide": {
+        "hidden": 0,
+        "tooFew": 2,
+        "all": {
+          "views": 0,
+          "confirmed": 0,
+          "right": 0,
+          "wrong": 0,
+          "wrongShare": null,
+          "wrongWilsonUpper": null,
+          "recovered": null,
+          "labelledCopies": 0,
+          "fusedWins": 0
+        },
+        "nonTrivial": {
+          "views": 0,
+          "confirmed": 0,
+          "right": 0,
+          "wrong": 0,
+          "wrongShare": null,
+          "wrongWilsonUpper": null,
+          "recovered": null,
+          "labelledCopies": 0,
+          "fusedWins": 0
+        }
+      },
+      "hard": {
+        "pairs": 19,
+        "views": 62,
+        "gatedViews": 0,
+        "gatedHarm": 0,
+        "gatedMerged": 0,
+        "ungatedHarm": 0,
+        "ungatedMerged": 0,
+        "ungatedHarmShare": [
+          0,
+          0,
+          0
+        ],
+        "ungatedPooledToAWork": 20
+      },
+      "yardstick": {
+        "wrongBase": 22,
+        "wrongWith": 22,
+        "wrongPerImageDelta": [
+          0,
+          0,
+          0
+        ],
+        "wrongShareBase": [
+          0.0827,
+          0.0375,
+          0.1395
+        ],
+        "wrongShareWith": [
+          0.0827,
+          0.0375,
+          0.1395
+        ],
+        "overBase": 3,
+        "overWith": 3,
+        "pooledBoxes": 0
+      },
+      "runtime": {
+        "seconds": 0,
+        "newLookups": 0,
+        "cachedLookups": 85
+      }
+    }
+  },
+  "keep": {
+    "K1": false,
+    "K2": true,
+    "K3": true,
+    "K3unmeasured": false,
+    "K4": true,
+    "K5": true,
+    "K5vacuous": true,
+    "ship": false
+  },
+  "seconds": 1
+}

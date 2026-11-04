@@ -80,7 +80,7 @@ export const loadBooks = (set: SetName, dets: Map<string, Detection>): Map<strin
 
 // --- pairs: neighbours and appearance ----------------------------------------------------------------------
 
-interface PairRow extends Neighbour, Appearance {}
+export interface PairRow extends Neighbour, Appearance {}
 interface PhotoPairs {
   id: string;
   pairs: PairRow[];
@@ -306,7 +306,7 @@ export function yardstickCopies(): Map<string, Map<string, number>> {
   return out;
 }
 
-interface PairOutcome {
+export interface PairOutcome {
   imageId: string;
   n: PairRow;
   score: number;
@@ -316,7 +316,7 @@ interface PairOutcome {
   b: SpineEvidence | undefined;
 }
 
-interface SetRun {
+export interface SetRun {
   set: SetName;
   dets: Map<string, Detection>;
   books: Map<string, boolean[]>;
@@ -329,9 +329,9 @@ interface SetRun {
   seconds: { pairsPerPhoto: number[]; analyse: number };
 }
 
-const noEvidence = (id: string): SpineEvidence => ({ id, accepted: null, readers: [] });
+export const noEvidence = (id: string): SpineEvidence => ({ id, accepted: null, readers: [] });
 
-function runSet(set: SetName, useImprint = true): SetRun {
+export function runSet(set: SetName, useImprint = true): SetRun {
   const t0 = Date.now();
   const dets = loadDets(set);
   const books = loadBooks(set, dets);
