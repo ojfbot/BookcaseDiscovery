@@ -51,7 +51,9 @@ Every threshold above was fixed before the first full run (evals/S1/report.md, P
     python -I shelf.py --inputs inputs.jsonl [--maps DIR] > shelf.jsonl
 
 ``inputs.jsonl``: one line per photo, from src/eval/s1-cli.ts: ``{id, width, height, npz, faces, classmap, spines:
-[{polygon, kept}], outlines: {box: polygon}, covers: [{polygon}], bands: [{polygon}], medianWidth}``. stdout: one
+[{polygon, kept}], outlines: {box: polygon}, covers: [{polygon}], bands: [{polygon}], medianWidth}``; S-2's
+(src/eval/s2-cli.ts) adds ``anyBoxes: [polygon]``, and each stretch then carries ``boxShare``, the share of its
+uncovered zone pixels inside any of them. stdout: one
 line per photo (rows, boxes, covers). ``--maps`` writes a label PNG per photo at map resolution (1 board top, 2 lip,
 3 back panel, 4 void, 5 outline-gap, 6 behind-under-outline). Everything is private photo geometry; stderr carries
 progress only.
@@ -228,6 +230,14 @@ def run_photo(rec: dict) -> tuple[dict, np.ndarray]:
         if bm is not None:
             book_masks[i] = bm
     covered = cover_mask.astype(bool)
+    # Optional (S-2): every detection box of any kind or partition state, so each stretch can say how much of it some
+    # box holds (Q-3's box-less `front` faces). Absent in S-1's inputs; the stretches are unchanged either way.
+    any_box = None
+    if rec.get("anyBoxes") is not None:
+        any_mask = np.zeros((H, W), np.uint8)
+        for poly in rec["anyBoxes"]:
+            fill(any_mask, np.float64(poly) * scale)
+        any_box = any_mask.astype(bool)
 
     flat_idx = np.flatnonzero(valid.ravel())
     Pv = P.reshape(-1, 3)[flat_idx]
@@ -312,7 +322,7 @@ def run_photo(rec: dict) -> tuple[dict, np.ndarray]:
 
         # Voids along the row, in median spine widths.
         if mw > 0:
-            row["voids"] = voids(rec, b, mine, spines, scale, H, W, covered, valid, N, P, nf, u, s, c, planes, mw, labels)
+            row["voids"] = voids(rec, b, mine, spines, scale, H, W, covered, valid, N, P, nf, u, s, c, planes, mw, labels, any_box)
         rows_out.append(row)
 
     boxes = [lip_features(np.float64(sp["polygon"]) * scale, H, W, valid, P, row_planes) for sp in spines]
@@ -321,7 +331,7 @@ def run_photo(rec: dict) -> tuple[dict, np.ndarray]:
             "covers": covers}, labels
 
 
-def voids(rec, b, mine, spines, scale, H, W, covered, valid, N, P, nf, u, s, c, planes, mw, labels) -> dict:
+def voids(rec, b, mine, spines, scale, H, W, covered, valid, N, P, nf, u, s, c, planes, mw, labels, any_box=None) -> dict:
     band = np.float64(rec["bands"][b]["polygon"]) * scale
     e = band[1] - band[0] if np.linalg.norm(band[1] - band[0]) >= np.linalg.norm(band[2] - band[1]) else band[2] - band[1]
     v = e / np.linalg.norm(e)
@@ -443,6 +453,8 @@ def voids(rec, b, mine, spines, scale, H, W, covered, valid, N, P, nf, u, s, c, 
         stretches.append({"from": round(f0, 2), "to": round(f1, 2), "kind": kind, "behind": None if bs is None else round(bs, 3),
                           "dominant": dom, "where": where, "segments": [int(f0 // SEGMENT_W), int((f1 - 1e-9) // SEGMENT_W)]})
         lab = (bins >= i) & (bins < j) & ~cov
+        if any_box is not None:
+            stretches[-1]["boxShare"] = round(float(any_box[py[lab], px[lab]].mean()), 3) if lab.any() else None
         labels[py[lab], px[lab]] = LABELS[kind]
     under = []
     covered_bins = inside & ~uncovered & (cov_v_n > 0) & (cov_beh_n >= BEHIND_SHARE * np.maximum(cov_v_n, 1))
