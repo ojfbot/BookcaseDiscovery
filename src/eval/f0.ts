@@ -13,6 +13,8 @@ import { guardCheck, LOOKALIKE, type GuardArm, type LookalikeGuard } from "../ca
 import { counterCheck, type CounterKind, type RarityBasis } from "../catalog/rarity.ts";
 import { retrieve, type Candidate } from "../catalog/retrieve.ts";
 import { openAppender, shownPath } from "../ledger/durable.ts";
+import { checkLineage, makeStamp, writeLineage, type LineageExpect, type LineageSchema, type LineageStamp } from "../ledger/lineage.ts";
+import { modelHashes } from "../ledger/models.ts";
 import { cropFor, cropName, F0_CROP, type CropMethod } from "../perceive/crop.ts";
 import { OcrHelperError, runOcr, type OcrRequest, type OcrResponse } from "../perceive/ocr.ts";
 import { assignShelves, type LabelSet, type Photo, type Polygon4 } from "./labels.ts";
@@ -191,6 +193,48 @@ export const ARM_NAMES: Record<Arm, string> = {
   b4: "mm-grounding-dino-large-all -> sam2.1-hiera-base-plus",
 };
 
+/** The model folders (under the data root's `models/`) each arm loads: what a detection cache's lineage stamp names. */
+export const ARM_MODELS: Record<Arm, readonly string[]> = {
+  b1: ["sam3"],
+  b2: ["grounding-dino-base", "sam2.1-hiera-base-plus"],
+  b3: ["owlv2-base-patch16-ensemble", "sam2.1-hiera-base-plus"],
+  b4: ["mm-grounding-dino-large-all", "sam2.1-hiera-base-plus"],
+};
+
+/** The model folders each reader loads. Apple Vision is the OS's framework, not a folder, so `vision` names none. */
+export const READER_MODELS: Record<ReaderName, readonly string[]> = { vision: [], ppocr: ["pp-ocrv5"], qwen: ["qwen3-vl-4b-8bit"] };
+
+/** The F-0 stage caches' file classes and format versions (DL-3): `<class>.jsonl` beside each other in a stage folder. */
+export const STAGE_SCHEMAS = {
+  detect: { name: "f0/detect", version: 1 },
+  probe: { name: "f0/probe", version: 2 },
+  vision: { name: "f0/reading", version: 1 },
+  ppocr: { name: "f0/reading", version: 1 },
+  qwen: { name: "f0/reading", version: 1 },
+} as const satisfies Record<string, LineageSchema>;
+export type StageKind = keyof typeof STAGE_SCHEMAS;
+
+/** The arms a detection cache's rows were made with (rows before F-0's arms carry no `arm`: b2). */
+export function armsOf(rows: readonly { arm?: string }[]): Arm[] {
+  return [...new Set(rows.map((d) => (d.arm ?? "b2") as Arm))].sort();
+}
+
+/**
+ * What a stage cache's stamp must say now: its class and the current hashes of the models it was made with. The model
+ * hashes come from the models manifest (`bookcase models manifest`), never from the weights. A detection cache names
+ * its arms' models; a reader's cache its reader's; a probe none.
+ */
+export function stageExpect(kind: StageKind, arms: readonly Arm[] = [], root?: string): LineageExpect {
+  const names = kind === "detect" ? [...new Set(arms.flatMap((a) => ARM_MODELS[a]))] : kind === "probe" ? [] : READER_MODELS[kind];
+  return { schema: STAGE_SCHEMAS[kind], models: modelHashes(names, root) };
+}
+
+/** The stamp a stage cache gets after a write. */
+export function stageStamp(kind: StageKind, arms: readonly Arm[] = [], root?: string): LineageStamp {
+  const e = stageExpect(kind, arms, root);
+  return makeStamp({ schema: e.schema!, models: e.models });
+}
+
 const BOX_PRODUCER: Record<Arm, string> = {
   b1: "B1: sam3 (text prompt 'book spine', instance score >= 0.3), masks direct, tiled; min-area rect -> 4-point polygon",
   b2: "B2: grounding-dino-base ('book spine.') -> sam2.1-hiera-base-plus, tiled; min-area rect -> 4-point polygon",
@@ -251,6 +295,8 @@ export const SHELF_TILING: Tiling = { tile: 3100, overlap: 1300 };
 
 export async function detectStage(images: InputImage[], dir: string, log: (s: string) => void, arm: Arm = "b2", tiling: Tiling = CASE_TILING): Promise<Map<string, Detection>> {
   const out = join(dir, "detect.jsonl");
+  // DL-3: a cache made with other weights (or none named) is refused before anything is appended behind it.
+  checkLineage(out, stageExpect("detect", [arm]), { log });
   const cached = readJsonl<Detection>(out).filter((d) => !d.error);
   // Spine ids are positions in a detection, so readings cached beside boxes from another tiling would be misread
   // as this one's. Runs before F-0e carry no `layout`: they used the square 1600/700 or 3100/1300 grid.
@@ -266,6 +312,7 @@ export async function detectStage(images: InputImage[], dir: string, log: (s: st
     F0_POST: (tiling.post ?? []).join(","),
     F0_LAYOUT: tiling.layout ?? "grid",
   });
+  if (existsSync(out)) writeLineage(out, stageStamp("detect", armsOf([...cached, { arm }])));
   return new Map(readJsonl<Detection>(out).filter((d) => !d.error).map((d) => [d.id, d]));
 }
 
@@ -286,9 +333,11 @@ export interface PixelProbe {
 
 export async function probeStage(images: InputImage[], dir: string, log: (s: string) => void): Promise<Map<string, PixelProbe>> {
   const out = join(dir, "probe.jsonl");
+  checkLineage(out, stageExpect("probe"), { log });
   // A photo probed only at version 1 is probed again; its version-2 lines come later and win.
   const done = new Set(readJsonl<{ id: string; version?: number }>(out).filter((r) => r.version === 2).map((r) => r.id.slice(0, r.id.lastIndexOf(":"))));
   await runHelper("probe.py", ["--detect", join(dir, "detect.jsonl")], images.filter((i) => !done.has(i.id)).map((i) => ({ id: i.id, image: i.path })), out, log);
+  if (existsSync(out)) writeLineage(out, stageStamp("probe"));
   return new Map(readJsonl<PixelProbe & { id: string }>(out).map((r) => [r.id, r]));
 }
 
@@ -305,8 +354,9 @@ export function spineRequests(images: InputImage[], dets: Map<string, Detection>
   });
 }
 
-/** Ids already read with `method` (older records without a crop string count as F-0's method). */
-function readWith(path: string, method: CropMethod): Set<string> {
+/** Ids already read with `method` (older records without a crop string count as F-0's method). The cache's stamp is checked first. */
+function readWith(path: string, reader: ReaderName, method: CropMethod, log: (s: string) => void): Set<string> {
+  checkLineage(path, stageExpect(reader), { log });
   const name = cropName(method);
   return new Set(readJsonl<{ id: string; crop?: string }>(path).filter((r) => (r.crop ?? cropName(F0_CROP)) === name).map((r) => r.id));
 }
@@ -335,8 +385,9 @@ export async function visionStage(
   only?: Set<string>,
 ): Promise<void> {
   const out = join(dir, "vision.jsonl");
-  const done = readWith(out, method);
+  const done = readWith(out, "vision", method, log);
   const crop = cropName(method);
+  let wrote = false;
   for (const img of images) {
     const reqs = spineRequests([img], dets, method, only)
       .filter((r) => !done.has(r.id))
@@ -356,8 +407,10 @@ export async function visionStage(
       app.write(`${JSON.stringify(line)}\n`);
     }
     app.close();
+    wrote = true;
     log(`vision: ${img.id.slice(0, 12)} ${reqs.length} spines ${((Date.now() - t0) / 1000).toFixed(1)} s`);
   }
+  if (wrote || existsSync(out)) writeLineage(out, stageStamp("vision"));
 }
 
 export async function pyReaderStage(
@@ -372,7 +425,7 @@ export async function pyReaderStage(
   prompt: "spine" | "cover" = "spine",
 ): Promise<void> {
   const out = join(dir, `${reader}.jsonl`);
-  const done = readWith(out, method);
+  const done = readWith(out, reader, method, log);
   const reqs = spineRequests(images, dets, method, only).filter((r) => !done.has(r.id));
   // PP-OCR runs on the CPU, about 1 s a crop: split by image across workers (each loads the models once).
   const workers = reader === "ppocr" ? Math.max(1, Number(process.env.F0_PPOCR_WORKERS ?? 3)) : 1;
@@ -380,14 +433,20 @@ export async function pyReaderStage(
   const order = [...new Set(reqs.map((r) => r.image))];
   for (const r of reqs) shards[order.indexOf(r.image) % workers]!.push(r);
   await Promise.all(shards.map((s) => runHelper("read.py", ["--reader", reader, ...(prompt === "cover" ? ["--prompt", "cover"] : [])], s, out, log)));
+  if (existsSync(out)) writeLineage(out, stageStamp(reader));
 }
 
-/** Each spine's latest reading per reader; with `method`, only readings cut that way. */
+/**
+ * Each spine's latest reading per reader; with `method`, only readings cut that way. Each reader's cache is refused
+ * when its stamp names other weights than the models manifest does now, or when it has none (DL-3).
+ */
 export function loadReadings(dir: string, method?: CropMethod): Map<string, Partial<Record<ReaderName, Reading>>> {
   const byId = new Map<string, Partial<Record<ReaderName, Reading>>>();
   const name = method && cropName(method);
   for (const reader of READERS) {
-    for (const r of readJsonl<Reading & { reader: string }>(join(dir, `${reader}.jsonl`))) {
+    const path = join(dir, `${reader}.jsonl`);
+    checkLineage(path, stageExpect(reader));
+    for (const r of readJsonl<Reading & { reader: string }>(path)) {
       if (name && (r.crop ?? cropName(F0_CROP)) !== name) continue;
       const entry = byId.get(r.id) ?? {};
       entry[reader] = { ...r, reader };

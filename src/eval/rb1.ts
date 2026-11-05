@@ -7,7 +7,10 @@
 import { existsSync } from "node:fs";
 import { join } from "node:path";
 import { dataRoot } from "../ledger/images.ts";
+import { checkLineage } from "../ledger/lineage.ts";
+import { modelHashes } from "../ledger/models.ts";
 import { readJsonl } from "./f0.ts";
+import { PARTITION_MODELS, PARTITION_SCHEMA } from "./lineage-classes.ts";
 import { NB3_SHIP, type NB3Why } from "./nb3.ts";
 
 export type RB1Set = "pilot-000" | "yardstick";
@@ -59,6 +62,8 @@ export function loadBoxSet(set: RB1Set, root = dataRoot()): BoxSet {
   const flags = join(root, "private", "nb3", set, "flags.jsonl");
   if (!existsSync(part)) throw new Error(`${set}: no F-0i partition at the data root's private/f0i/`);
   if (!existsSync(flags)) throw new Error(`${set}: no NB-3 flags at the data root's private/nb3/ (run nb3-cli.ts flags ${set})`);
+  // DL-3: the partition must name the weights the models manifest names now.
+  checkLineage(part, { schema: PARTITION_SCHEMA, models: modelHashes(PARTITION_MODELS, root) });
   const rows = readJsonl<PartitionRow>(part);
   const drops = boxSetDrops(rows, readJsonl<Nb3Flag>(flags));
   return { drops, rows: new Map(rows.map((r) => [r.id, r])), keeps: (id) => !drops.has(id) };

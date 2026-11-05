@@ -20,7 +20,10 @@ import { fileURLToPath } from "node:url";
 import type { Candidate } from "../catalog/retrieve.ts";
 import { openCatalog } from "../catalog/cli.ts";
 import { dataRoot } from "../ledger/images.ts";
+import { checkLineage, makeStamp, writeLineage } from "../ledger/lineage.ts";
+import { modelHashes } from "../ledger/models.ts";
 import { CROP, decide, loadReadings, pyReaderStage, readJsonl, visionStage, type Detection, type InputImage, type Reading, type SpineDecision } from "./f0.ts";
+import { PARTITION_MODELS, PARTITION_SCHEMA } from "./lineage-classes.ts";
 import { F0_CROP, OWN_CROP, cropFor, cropName, type CropMethod, type Point } from "../perceive/crop.ts";
 import { SETS as F0B_SETS, cost, delta, firstPassHard, geometry, type Geo, type Pair } from "./f0b-cli.ts";
 import { titleDelta } from "./f0e.ts";
@@ -94,6 +97,7 @@ const keptIds = (set: SetName): Set<string> => new Set(readJsonl<{ id: string }>
 function partition(set: SetName): Map<string, PartRow> {
   const p = join(PRIV, set, "partition.jsonl");
   if (!existsSync(p)) throw new Error(`${set}: no partition; run \`f0i-cli.ts resolve ${set}\` first`);
+  checkLineage(p, { schema: PARTITION_SCHEMA, models: modelHashes(PARTITION_MODELS) });
   return new Map(readJsonl<PartRow>(p).map((r) => [r.id, r]));
 }
 
@@ -156,6 +160,8 @@ function resolve(set: SetName): void {
   const r = spawnSync(py("coverage"), ["-I", join(REPO, "helpers", "coverage", "resolve.py"), "resolve", "--classical", ...resolveArgs(set)], { stdio: ["ignore", fd, "inherit"] });
   closeSync(fd);
   if (r.status !== 0) throw new Error(`resolve.py resolve failed on ${set}`);
+  // DL-3: the partition is stamped from here, since resolve.py writes it and knows nothing of the manifest.
+  writeLineage(join(PRIV, set, "partition.jsonl"), makeStamp({ schema: PARTITION_SCHEMA, models: modelHashes(PARTITION_MODELS) }));
 }
 
 function strata(set: SetName): void {
