@@ -5,6 +5,8 @@
 //   stage    reuse a saved measurement and write the kept works, their editions and authors to the staging file
 //   subjects read the works dump's subjects for the staged breadth works into ol-subjects-<date>.sqlite (KN-1's
 //            work features; `bookcase catalog build --ol-subjects`)
+//   isbn-stage  a staging file of the works whose editions share an ISBN-13 with a catalog's editions (KN-1, for a
+//            closed-set catalog such as the yardstick's inventory); `subjects --staging` then reads it
 //
 // The shelf-held layer reads C-4's private per-box tables (private/c4/*.{sample,tuning}.jsonl). Only counts are
 // printed: no title from those tables reaches the terminal.
@@ -12,15 +14,17 @@ import { existsSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { parseArgs } from "node:util";
 import { dataRoot } from "../ledger/images.ts";
-import { dumpFiles, fileBytes, loadShelfBooks, measure, stage, WorkFacts, type MeasureCounts } from "./ol-dump.ts";
+import { DatabaseSync } from "node:sqlite";
+import { dumpFiles, fileBytes, loadShelfBooks, measure, stage, stageByIsbn, WorkFacts, type MeasureCounts } from "./ol-dump.ts";
 import { extractOlSubjects } from "./work-features.ts";
 
-const usage = `usage: pnpm catalog:ol <measure|stage|subjects> [--dumps <dir>] [--date YYYY-MM-DD] [--out <file>] [--staging <file>]
+const usage = `usage: pnpm catalog:ol <measure|stage|subjects|isbn-stage> [--dumps <dir>] [--date YYYY-MM-DD] [--out <file>] [--staging <file>] [--catalog <file>]
 
   --dumps    default: $BOOKCASE_DATA/catalog/ol-dumps/<date>/
   --date     the dump date; default: the newest folder under catalog/ol-dumps/
   --out      stage: default $BOOKCASE_DATA/catalog/ol-staging.sqlite; subjects: default catalog/ol-subjects-<date>.sqlite
-  --staging  subjects only: the staging file whose breadth works are read (default catalog/ol-staging.sqlite)`;
+  --staging  subjects only: the staging file whose breadth works are read (default catalog/ol-staging.sqlite)
+  --catalog  isbn-stage only (required): the catalog whose editions' ISBN-13s are matched; --out is required too`;
 
 const fmt = (n: number) => n.toLocaleString("en-US");
 
@@ -40,17 +44,27 @@ function shelfTables(root: string): string[] {
 
 export async function main(argv: string[], env: NodeJS.ProcessEnv = process.env): Promise<number> {
   const [cmd, ...rest] = argv;
-  const { values } = parseArgs({ args: rest, options: { dumps: { type: "string" }, date: { type: "string" }, out: { type: "string" }, staging: { type: "string" } } });
+  const { values } = parseArgs({ args: rest, options: { dumps: { type: "string" }, date: { type: "string" }, out: { type: "string" }, staging: { type: "string" }, catalog: { type: "string" } } });
   const root = dataRoot(env);
   const base = join(root, "catalog", "ol-dumps");
   const date = values.date ?? (existsSync(base) ? readdirSync(base).filter((d) => /^\d{4}-\d{2}-\d{2}$/.test(d)).sort().at(-1) : undefined);
-  if ((cmd !== "measure" && cmd !== "stage" && cmd !== "subjects") || !date) {
+  if ((cmd !== "measure" && cmd !== "stage" && cmd !== "subjects" && cmd !== "isbn-stage") || !date || (cmd === "isbn-stage" && (!values.catalog || !values.out))) {
     console.error(usage);
     return cmd === undefined || cmd === "--help" ? 0 : 1;
   }
   const files = dumpFiles(values.dumps ?? join(base, date), date);
   const measureDir = join(root, "catalog", "ol-measure", date);
   const log = (s: string) => console.error(`[ol] ${new Date().toISOString().slice(11, 19)} ${s}`);
+
+  if (cmd === "isbn-stage") {
+    const cat = new DatabaseSync(values.catalog!, { readOnly: true });
+    const isbns = new Set((cat.prepare("SELECT DISTINCT isbn13 FROM editions WHERE isbn13 IS NOT NULL").all() as Array<{ isbn13: string }>).map((r) => r.isbn13));
+    cat.close();
+    log(`isbn stage: ${fmt(isbns.size)} ISBN-13s in the catalog`);
+    const r = await stageByIsbn(files, isbns, values.out!, { dump_date: date, "isbn_stage.catalog_isbns": String(isbns.size) }, log);
+    console.log(`staged ${r.out} in ${Math.round(r.seconds)} s: works ${fmt(r.rows.works)}, editions ${fmt(r.rows.editions)}`);
+    return 0;
+  }
 
   if (cmd === "subjects") {
     const out = values.out ?? join(root, "catalog", `ol-subjects-${date}.sqlite`);
