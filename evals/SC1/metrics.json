@@ -1,0 +1,731 @@
+{
+  "card": "SC-1",
+  "run": "2026-11-04",
+  "note": "Aggregates only. pilot-000 is machine agreement, never accuracy (INV-17); the yardstick is PROXY (library shelves). Never pooled (OC35). No profile input (INV-13). No hand labels; nothing trained.",
+  "boxSet": "RB-1's box set (F-0i's partition less NB-3's on-lip boxes)",
+  "constants": {
+    "tile": 2048,
+    "tileOverlap": 256,
+    "cropPad": 0.15,
+    "lipShare": 0.5,
+    "minConfidence": 0.3,
+    "singleReader": 0.5,
+    "dividerReach": 1,
+    "caseWiden": 1,
+    "qwenPerPhoto": {
+      "pilot-000": 12,
+      "yardstick": 6
+    },
+    "signMinLetters": 4,
+    "shuffles": 1000,
+    "seed": 20261104
+  },
+  "keepConstants": {
+    "coverageGain": 10,
+    "minPairs": 20
+  },
+  "gpuSeconds": {
+    "total": 329,
+    "bySetStep": {
+      "yardstick:vision-lines": 23,
+      "pilot-000:vision-lines": 41,
+      "yardstick:qwen-sign": 72,
+      "pilot-000:qwen-sign": 193
+    }
+  },
+  "sets": {
+    "pilot-000": {
+      "main": "sc1",
+      "arms": {
+        "sc1": {
+          "photos": 31,
+          "rows": 320,
+          "rowsWithContext": 83,
+          "rowsWithContextShare": 0.2594,
+          "rowsWithContextShareCI": [
+            0.2594,
+            0.2092,
+            0.3109
+          ],
+          "photosWithContext": 28,
+          "rowsWith": {
+            "genre": 80,
+            "genreFamily": 67,
+            "ordering": 43,
+            "letterRange": 0,
+            "dividers": 6
+          },
+          "rowsBySource": {
+            "lip:row": 46,
+            "not-a-book:row": 8,
+            "free:row": 12,
+            "gap:row": 6,
+            "free:row+lip:divider+lip:row": 1,
+            "free:case": 4,
+            "gap:row+lip:row": 1,
+            "gap:divider+lip:row": 2,
+            "free:divider+gap:row": 1,
+            "gap:divider+gap:row": 1,
+            "free:divider+lip:row": 1
+          },
+          "rowsByGenreLevel": {
+            "row": 76,
+            "case": 4
+          },
+          "familiesOfRows": {
+            "nonfiction": 24,
+            "sf": 2,
+            "sf-fantasy": 33,
+            "fantasy": 7,
+            "literature": 1
+          },
+          "confidenceP50": 0.972,
+          "units": {
+            "lines": 961,
+            "linesPerPhoto": 31,
+            "boxUnits": 16,
+            "byRegion": {
+              "line:free": 459,
+              "line:lip": 131,
+              "line:not-a-book": 38,
+              "line:gap": 333,
+              "box:not-a-book": 16
+            },
+            "byClass": {
+              "other": 793,
+              "section": 77,
+              "ordering": 35,
+              "price": 18,
+              "promotion": 32,
+              "letter": 22
+            },
+            "dropped": {
+              "other": 792,
+              "kept": 120,
+              "price": 18,
+              "promotion": 32,
+              "lone-divider": 13,
+              "low-confidence": 1,
+              "disagree": 1
+            },
+            "keptByClass": {
+              "section": 76,
+              "ordering": 35,
+              "letter": 9
+            },
+            "keptByAgreement": {
+              "ppocr+vision": 81,
+              "qwen": 23,
+              "ppocr+qwen+vision": 1,
+              "ppocr+qwen": 9,
+              "ppocr": 2,
+              "vision": 3,
+              "qwen+vision": 1
+            },
+            "qwenAsked": 300,
+            "scopedCues": 113,
+            "unscopedCues": 7,
+            "promotionOrPriceInRecords": 0
+          },
+          "letters": {
+            "real": 0.7241,
+            "n": 29,
+            "mean": 0.496,
+            "p95": 0.7241,
+            "p": 0.125,
+            "byKind": {
+              "divider:agree": 21,
+              "divider:disagree": 8
+            },
+            "realCI": [
+              0.7241,
+              0.4,
+              1
+            ]
+          },
+          "genre": {
+            "real": 0.5844,
+            "n": 231,
+            "mean": 0.5464,
+            "p95": 0.6667,
+            "p": 0.31,
+            "realCI": [
+              0.5844,
+              0.456,
+              0.7382
+            ],
+            "booksWithKnownFacets": 231,
+            "exploratoryByCueRegion": {
+              "lip": {
+                "n": 185,
+                "rows": 42,
+                "agree": 0.5892
+              },
+              "not-a-book": {
+                "n": 10,
+                "rows": 7,
+                "agree": 1
+              },
+              "gap": {
+                "n": 7,
+                "rows": 5,
+                "agree": 0.4286
+              },
+              "free": {
+                "n": 29,
+                "rows": 13,
+                "agree": 0.4483
+              }
+            }
+          },
+          "order": {
+            "real": 0.8387,
+            "n": 124,
+            "mean": 0.8024,
+            "p95": 0.8532,
+            "p": 0.121,
+            "rowsMarked": 28,
+            "rowsMarkedOrderedByF0h": 11,
+            "unmarkedInOrderShare": 0.779,
+            "unmarkedPairs": 181
+          }
+        },
+        "sc1-no-qwen": {
+          "photos": 31,
+          "rows": 320,
+          "rowsWithContext": 69,
+          "rowsWithContextShare": 0.2156,
+          "rowsWithContextShareCI": [
+            0.2156,
+            0.1656,
+            0.2651
+          ],
+          "photosWithContext": 25,
+          "rowsWith": {
+            "genre": 62,
+            "genreFamily": 62,
+            "ordering": 37,
+            "letterRange": 0,
+            "dividers": 6
+          },
+          "rowsBySource": {
+            "lip:row": 39,
+            "not-a-book:row": 7,
+            "free:row+not-a-book:row": 1,
+            "free:row": 8,
+            "gap:row": 4,
+            "free:row+lip:divider+lip:row": 1,
+            "free:case": 4,
+            "gap:divider": 1,
+            "free:divider": 2,
+            "gap:divider+lip:row": 1,
+            "gap:divider+gap:row": 1
+          },
+          "rowsByGenreLevel": {
+            "row": 58,
+            "case": 4
+          },
+          "familiesOfRows": {
+            "nonfiction": 23,
+            "sf": 2,
+            "sf-fantasy": 28,
+            "fantasy": 8,
+            "literature": 1
+          },
+          "confidenceP50": 0.975,
+          "units": {
+            "lines": 961,
+            "linesPerPhoto": 31,
+            "boxUnits": 16,
+            "byRegion": {
+              "line:free": 459,
+              "line:lip": 131,
+              "line:not-a-book": 38,
+              "line:gap": 333,
+              "box:not-a-book": 16
+            },
+            "byClass": {
+              "other": 836,
+              "section": 48,
+              "ordering": 36,
+              "price": 18,
+              "promotion": 20,
+              "letter": 19
+            },
+            "dropped": {
+              "other": 830,
+              "kept": 92,
+              "price": 18,
+              "promotion": 20,
+              "low-confidence": 1,
+              "lone-divider": 10,
+              "disagree": 6
+            },
+            "keptByClass": {
+              "section": 47,
+              "ordering": 36,
+              "letter": 9
+            },
+            "keptByAgreement": {
+              "ppocr+vision": 81,
+              "ppocr+qwen+vision": 1,
+              "ppocr": 5,
+              "vision": 5
+            },
+            "qwenAsked": 0,
+            "scopedCues": 86,
+            "unscopedCues": 6,
+            "promotionOrPriceInRecords": 0
+          },
+          "letters": {
+            "real": 0.7241,
+            "n": 29,
+            "mean": 0.496,
+            "p95": 0.7241,
+            "p": 0.125,
+            "byKind": {
+              "divider:agree": 21,
+              "divider:disagree": 8
+            },
+            "realCI": [
+              0.7241,
+              0.4,
+              1
+            ]
+          },
+          "genre": {
+            "real": 0.5741,
+            "n": 216,
+            "mean": 0.5268,
+            "p95": 0.6391,
+            "p": 0.278,
+            "realCI": [
+              0.5741,
+              0.4649,
+              0.7089
+            ],
+            "booksWithKnownFacets": 216,
+            "exploratoryByCueRegion": {
+              "lip": {
+                "n": 171,
+                "rows": 38,
+                "agree": 0.5906
+              },
+              "not-a-book": {
+                "n": 8,
+                "rows": 6,
+                "agree": 1
+              },
+              "gap": {
+                "n": 7,
+                "rows": 5,
+                "agree": 0.4286
+              },
+              "free": {
+                "n": 30,
+                "rows": 13,
+                "agree": 0.4
+              }
+            }
+          },
+          "order": {
+            "real": 0.8468,
+            "n": 111,
+            "mean": 0.8027,
+            "p95": 0.8586,
+            "p": 0.112,
+            "rowsMarked": 25,
+            "rowsMarkedOrderedByF0h": 11,
+            "unmarkedInOrderShare": 0.7784,
+            "unmarkedPairs": 194
+          }
+        }
+      },
+      "baseline": {
+        "source": "f0f-shelf-strip",
+        "rows": 320,
+        "rowsWithContext": 5,
+        "rowsWithContextShare": 0.0156,
+        "ordering": 1,
+        "genre": 4
+      },
+      "qwenSelected": 300,
+      "qwenRead": 300
+    },
+    "yardstick": {
+      "main": "sc1",
+      "arms": {
+        "sc1": {
+          "photos": 40,
+          "rows": 90,
+          "rowsWithContext": 8,
+          "rowsWithContextShare": 0.0889,
+          "rowsWithContextShareCI": [
+            0.0889,
+            0.0404,
+            0.1538
+          ],
+          "photosWithContext": 8,
+          "rowsWith": {
+            "genre": 7,
+            "genreFamily": 1,
+            "ordering": 0,
+            "letterRange": 0,
+            "dividers": 1
+          },
+          "rowsBySource": {
+            "gap:divider": 1,
+            "lip:row": 3,
+            "gap:row": 3,
+            "free:row": 1
+          },
+          "rowsByGenreLevel": {
+            "row": 7
+          },
+          "familiesOfRows": {
+            "nonfiction": 1
+          },
+          "confidenceP50": 0.5,
+          "units": {
+            "lines": 334,
+            "linesPerPhoto": 8.35,
+            "boxUnits": 4,
+            "byRegion": {
+              "line:gap": 104,
+              "line:free": 100,
+              "line:lip": 129,
+              "line:not-a-book": 1,
+              "box:not-a-book": 4
+            },
+            "byClass": {
+              "other": 294,
+              "letter": 10,
+              "price": 22,
+              "section": 12
+            },
+            "dropped": {
+              "other": 294,
+              "lone-divider": 8,
+              "kept": 14,
+              "price": 22
+            },
+            "keptByClass": {
+              "letter": 2,
+              "section": 12
+            },
+            "keptByAgreement": {
+              "ppocr+qwen": 1,
+              "qwen": 11,
+              "ppocr+vision": 2
+            },
+            "qwenAsked": 101,
+            "scopedCues": 9,
+            "unscopedCues": 5,
+            "promotionOrPriceInRecords": 0
+          },
+          "letters": {
+            "real": 0.3333,
+            "n": 3,
+            "mean": 0.3333,
+            "p95": 0.3333,
+            "p": 1,
+            "byKind": {
+              "divider:agree": 1,
+              "divider:disagree": 2
+            },
+            "realCI": [
+              0.3333,
+              0.3333,
+              0.3333
+            ]
+          },
+          "genre": {
+            "real": null,
+            "n": 0,
+            "mean": null,
+            "p95": null,
+            "p": null,
+            "realCI": null,
+            "booksWithKnownFacets": 0,
+            "exploratoryByCueRegion": {
+              "lip": {
+                "n": 0,
+                "rows": 0,
+                "agree": null
+              },
+              "not-a-book": {
+                "n": 0,
+                "rows": 0,
+                "agree": null
+              },
+              "gap": {
+                "n": 0,
+                "rows": 1,
+                "agree": null
+              },
+              "free": {
+                "n": 0,
+                "rows": 0,
+                "agree": null
+              }
+            }
+          },
+          "order": {
+            "real": null,
+            "n": 0,
+            "mean": null,
+            "p95": null,
+            "p": null,
+            "rowsMarked": 0,
+            "rowsMarkedOrderedByF0h": 0,
+            "unmarkedInOrderShare": 0.6911,
+            "unmarkedPairs": 123
+          }
+        },
+        "sc1-no-qwen": {
+          "photos": 40,
+          "rows": 90,
+          "rowsWithContext": 1,
+          "rowsWithContextShare": 0.0111,
+          "rowsWithContextShareCI": [
+            0.0111,
+            0,
+            0.0367
+          ],
+          "photosWithContext": 1,
+          "rowsWith": {
+            "genre": 1,
+            "genreFamily": 1,
+            "ordering": 0,
+            "letterRange": 0,
+            "dividers": 0
+          },
+          "rowsBySource": {
+            "gap:row": 1
+          },
+          "rowsByGenreLevel": {
+            "row": 1
+          },
+          "familiesOfRows": {
+            "nonfiction": 1
+          },
+          "confidenceP50": 0.984,
+          "units": {
+            "lines": 334,
+            "linesPerPhoto": 8.35,
+            "boxUnits": 4,
+            "byRegion": {
+              "line:gap": 104,
+              "line:free": 100,
+              "line:lip": 129,
+              "line:not-a-book": 1,
+              "box:not-a-book": 4
+            },
+            "byClass": {
+              "other": 307,
+              "letter": 9,
+              "section": 1,
+              "price": 21
+            },
+            "dropped": {
+              "other": 307,
+              "lone-divider": 8,
+              "kept": 2,
+              "price": 21
+            },
+            "keptByClass": {
+              "letter": 1,
+              "section": 1
+            },
+            "keptByAgreement": {
+              "ppocr+vision": 2
+            },
+            "qwenAsked": 0,
+            "scopedCues": 1,
+            "unscopedCues": 1,
+            "promotionOrPriceInRecords": 0
+          },
+          "letters": {
+            "real": null,
+            "n": 0,
+            "mean": null,
+            "p95": null,
+            "p": null,
+            "byKind": {},
+            "realCI": null
+          },
+          "genre": {
+            "real": null,
+            "n": 0,
+            "mean": null,
+            "p95": null,
+            "p": null,
+            "realCI": null,
+            "booksWithKnownFacets": 0,
+            "exploratoryByCueRegion": {
+              "lip": {
+                "n": 0,
+                "rows": 0,
+                "agree": null
+              },
+              "not-a-book": {
+                "n": 0,
+                "rows": 0,
+                "agree": null
+              },
+              "gap": {
+                "n": 0,
+                "rows": 1,
+                "agree": null
+              },
+              "free": {
+                "n": 0,
+                "rows": 0,
+                "agree": null
+              }
+            }
+          },
+          "order": {
+            "real": null,
+            "n": 0,
+            "mean": null,
+            "p95": null,
+            "p": null,
+            "rowsMarked": 0,
+            "rowsMarkedOrderedByF0h": 0,
+            "unmarkedInOrderShare": 0.6911,
+            "unmarkedPairs": 123
+          }
+        }
+      },
+      "baseline": {
+        "source": "f0f-shelf-strip",
+        "rows": 90,
+        "rowsWithContext": 0,
+        "rowsWithContextShare": 0,
+        "ordering": 0,
+        "genre": 0
+      },
+      "qwenSelected": 101,
+      "qwenRead": 101
+    }
+  },
+  "f0hV2": {
+    "note": "[default, --row-context sc1]",
+    "decisionsUnchanged": true,
+    "sets": {
+      "pilot-000": {
+        "decisionsCompared": 985,
+        "decisionsChanged": 0,
+        "confirmedByContext": [
+          55,
+          55
+        ],
+        "rowsSetOrderedByContext": [
+          1,
+          43
+        ],
+        "rowsLabelled": [
+          5,
+          83
+        ],
+        "hiddenTop1": [
+          [
+            0.1032,
+            0.0623,
+            0.1442
+          ],
+          [
+            0.1139,
+            0.0623,
+            0.1694
+          ]
+        ],
+        "hiddenTop5": [
+          [
+            0.2135,
+            0.168,
+            0.2352
+          ],
+          [
+            0.2527,
+            0.1984,
+            0.28
+          ]
+        ],
+        "hiddenBracketTop1": [
+          [
+            0.2031,
+            0.0769,
+            0.3273
+          ],
+          [
+            0.25,
+            0.0806,
+            0.4096
+          ]
+        ]
+      },
+      "yardstick": {
+        "decisionsCompared": 244,
+        "decisionsChanged": 0,
+        "confirmedByContext": [
+          12,
+          12
+        ],
+        "rowsSetOrderedByContext": [
+          0,
+          0
+        ],
+        "rowsLabelled": [
+          0,
+          8
+        ],
+        "hiddenTop1": [
+          [
+            0.0497,
+            0.0147,
+            0.0886
+          ],
+          [
+            0.0497,
+            0.0147,
+            0.0886
+          ]
+        ],
+        "hiddenTop5": [
+          [
+            0.1677,
+            0.0753,
+            0.2629
+          ],
+          [
+            0.1677,
+            0.0753,
+            0.2629
+          ]
+        ],
+        "hiddenBracketTop1": [
+          [
+            0.3333,
+            0.1429,
+            0.6667
+          ],
+          [
+            0.3333,
+            0.1429,
+            0.6667
+          ]
+        ]
+      }
+    }
+  },
+  "keep": {
+    "k1Coverage": true,
+    "k2Evidence": false,
+    "k3NoContradiction": true,
+    "k4NeverConfirms": true,
+    "recommend": false
+  },
+  "seconds": 2
+}

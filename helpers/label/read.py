@@ -1,7 +1,7 @@
 """Spine readers for F-0 (docs/models/open-weights.md §3.2): R3 PP-OCRv5 server det + rec with the textline
 classifier, and R2 Qwen3-VL-4B-Instruct 8-bit (MLX). R1, Apple Vision, is helpers/ocr-vision.
 
-Usage: read.py --reader ppocr|qwen [--prompt spine|cover] < requests.jsonl > responses.jsonl
+Usage: read.py --reader ppocr|qwen [--prompt spine|cover|sign] < requests.jsonl > responses.jsonl
 Request: {"id", "image", "polygon", "rotations"} as contracts/helpers/ocr-request.schema.json, plus an optional
 "crop" (the runner's crop-method provenance, src/perceive/crop.ts), echoed back.
 Response: {"id", "variants": [{"rotation", "text", "confidence"}], "seconds"} or {"id", "error"}.
@@ -39,6 +39,22 @@ QWEN_COVER_PROMPT = (
     "Title: ...\nAuthor: ...\nImprint: ...\n"
     "Write none for any that is not printed. Ignore quotes, reviews and slogans. "
     "Do not guess or complete names from memory. If no text is legible, answer: unreadable"
+)
+# SC-1: one store sign or label (not a book), few-shot: its kind and its words, parsed by src/eval/sc1.ts (`parseQwen`).
+QWEN_SIGN_PROMPT = (
+    "This is a photo of one sign or label in a bookshop or library, not a book. Read it and say what kind of sign it "
+    "is. Answer one line: KIND | TEXT, where KIND is one of section, ordering, letters, promotion, price, other, and "
+    "TEXT is the words exactly as printed.\n"
+    "Examples:\n"
+    "section | Science Fiction & Fantasy\n"
+    "section | Biography\n"
+    "ordering | Alphabetical by Author\n"
+    "letters | A - C\n"
+    "letters | M\n"
+    "promotion | Staff Picks\n"
+    "price | $12.99\n"
+    "other | Information\n"
+    "If no text is legible, answer: unreadable"
 )
 
 
@@ -103,7 +119,7 @@ class Qwen:
 
         path = str(MODELS / "qwen3-vl-4b-8bit")
         self.model, self.processor = load(path)
-        text = QWEN_COVER_PROMPT if prompt == "cover" else QWEN_PROMPT
+        text = {"cover": QWEN_COVER_PROMPT, "sign": QWEN_SIGN_PROMPT}.get(prompt, QWEN_PROMPT)
         self.prompt = apply_chat_template(self.processor, self.model.config, text, num_images=1)
         self.max_tokens = 96 if prompt == "cover" else 48  # three labelled lines
         self.generate = generate
@@ -132,7 +148,7 @@ def crop_of(req: dict) -> dict:
 def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--reader", choices=["ppocr", "qwen"], required=True)
-    ap.add_argument("--prompt", choices=["spine", "cover"], default="spine")  # Qwen only
+    ap.add_argument("--prompt", choices=["spine", "cover", "sign"], default="spine")  # Qwen only
     args = ap.parse_args()
     reader = PPOCR() if args.reader == "ppocr" else Qwen(args.prompt)
     log(f"read: {reader.name} loaded")
