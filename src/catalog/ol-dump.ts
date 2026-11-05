@@ -430,7 +430,7 @@ CREATE TABLE ol_works (
   year          INTEGER,             -- earliest year: the work's first_publish_date or any edition's publish_date
   edition_count INTEGER NOT NULL,
   english       INTEGER NOT NULL,    -- at least one edition in English
-  layer         TEXT NOT NULL        -- 'shelf', 'breadth' or 'shelf+breadth'
+  layer         TEXT NOT NULL        -- 'shelf', 'breadth' or 'shelf+breadth'; 'isbn' in a stageByIsbn file (KN-1)
 );
 CREATE TABLE ol_editions (
   id        INTEGER PRIMARY KEY,     -- Open Library edition number (OL<id>M)
@@ -539,6 +539,68 @@ export async function stage(files: DumpFiles, facts: WorkFacts, out: string, met
     rmSync(out, { force: true });
     renameSync(partial, out);
     return { out, rows: { works, editions, authors }, seconds: (Date.now() - t0) / 1000 };
+  } catch (e) {
+    try {
+      db.close();
+    } catch {
+      /* already closed */
+    }
+    rmSync(partial, { force: true });
+    throw e;
+  }
+}
+
+/**
+ * A staging file of the Open Library works whose editions share an ISBN-13 with `isbns` (KN-1: a closed-set catalog
+ * such as the yardstick's inventory, whose books the breadth layer mostly misses). Every edition of a matched work
+ * that carries one of the ISBNs is kept; works get layer `isbn`, no authors and no year, so C-5's crosswalk can only
+ * link them by ISBN. Two passes, editions then works; nothing is fetched.
+ */
+export async function stageByIsbn(files: Pick<DumpFiles, "works" | "editions">, isbns: ReadonlySet<string>, out: string, meta: Record<string, string>, log: (s: string) => void = () => {}): Promise<StageResult> {
+  const t0 = Date.now();
+  mkdirSync(dirname(out), { recursive: true });
+  const partial = `${out}.partial`;
+  rmSync(partial, { force: true });
+  const db = new DatabaseSync(partial);
+  try {
+    db.exec("PRAGMA journal_mode = OFF; PRAGMA synchronous = OFF;");
+    db.exec(STAGING_SCHEMA);
+    db.exec("BEGIN");
+    const insEd = db.prepare("INSERT OR IGNORE INTO ol_editions (id, work_id, isbn13, isbns, isbn, publisher, publishers, year, title, format) VALUES (?,?,?,?,?,?,?,?,?,?)");
+    const editionsOf = new Map<number, number>();
+    let n = 0;
+    for await (const { key, rec } of dumpRecords(files.editions, { lines: 0, skipped: 0 }, (type) => type === "/type/edition")) {
+      if (++n % 5_000_000 === 0) log(`isbn stage: ${n.toLocaleString("en-US")} editions read`);
+      const all = editionIsbns(rec);
+      if (!all.some((i) => isbns.has(i))) continue;
+      const id = olNum(key, "M");
+      const work = editionWork(rec);
+      if (id === null || work === null) continue;
+      const pubs = editionPublishers(rec);
+      insEd.run(id, work, all[0] ?? null, JSON.stringify(all), str(strList(rec.isbn_13)[0]) ?? str(strList(rec.isbn_10)[0]), pubs[0] ?? null, pubs.length > 1 ? JSON.stringify(pubs) : null, yearOf(rec.publish_date), str(rec.title), str(rec.physical_format));
+      editionsOf.set(work, (editionsOf.get(work) ?? 0) + 1);
+    }
+    log(`isbn stage: ${editionsOf.size.toLocaleString("en-US")} works matched`);
+    const insWork = db.prepare("INSERT OR IGNORE INTO ol_works (id, title, subtitle, authors, year, edition_count, english, layer) VALUES (?, ?, ?, '[]', NULL, ?, 0, 'isbn')");
+    for await (const { key, rec } of dumpRecords(files.works, { lines: 0, skipped: 0 }, (type, k) => type === "/type/work" && editionsOf.has(olNum(k, "W") ?? -1))) {
+      const id = olNum(key, "W")!;
+      insWork.run(id, str(rec.title) ?? "", str(rec.subtitle), editionsOf.get(id)!);
+    }
+    // editions whose work is not in the works dump (a redirect, say) cannot be crosswalked
+    db.exec("DELETE FROM ol_editions WHERE work_id NOT IN (SELECT id FROM ol_works)");
+    const count = (t: string) => (db.prepare(`SELECT COUNT(*) AS n FROM ${t}`).get() as { n: number }).n;
+    const rows = { works: count("ol_works"), editions: count("ol_editions"), authors: 0 };
+    const insMeta = db.prepare("INSERT INTO meta (key, value) VALUES (?, ?)");
+    insMeta.run("schema_version", String(OL_STAGING_SCHEMA_VERSION));
+    insMeta.run("layer", "isbn");
+    for (const [k, v] of Object.entries(meta)) insMeta.run(k, v);
+    for (const [k, v] of Object.entries(rows)) insMeta.run(`rows.ol_${k}`, String(v));
+    db.exec("COMMIT");
+    db.exec(`PRAGMA user_version = ${OL_STAGING_SCHEMA_VERSION}`);
+    db.close();
+    rmSync(out, { force: true });
+    renameSync(partial, out);
+    return { out, rows, seconds: (Date.now() - t0) / 1000 };
   } catch (e) {
     try {
       db.close();
