@@ -1,6 +1,6 @@
 # G-SWEEP · The sweep gate (replaces G-LIVE)
 
-**Status: proposed 2026-11-05 by the capture sub-conductor; not yet ruled.** The owner decided on 2026-11-05 that a
+**Status: proposed 2026-11-05 by the capture sub-conductor. The owner approved the S9 re-plan (PR #77) and ruled the four questions below on 2026-11-05; the gate itself is not yet ruled (no evidence exists).** The owner decided on 2026-11-05 that a
 sweep gate replaces G-LIVE and that G-V2 opens there. This packet holds the gate's question, measures, the targets the
 owner sets **before** the write-up exists, and four rulings the programme needs now. Evidence is added when V-5′ and
 E-6′ run. The plan text is `docs/plan/DELIVERY-PLAN.md` S9.
@@ -46,7 +46,7 @@ checklist #16.
 
 Each is one question with buttons. The recommended option is first. Record the ruling in this file, dated.
 
-### Ruling 1 · What does green mean on glass?
+### Ruling 1 · What does green mean on glass? — **Ruled 2026-11-05: `text-read`, measured after each sweep.**
 
 The cheap-signal student that would predict a per-book fill is NO-GO twice (Q-2 AUC 0.729, Q-2b 0.711, bar 0.75).
 Q-0's fill line is `text-read`: re-panning cannot fix a catalog gap, so the fill must not ask for it.
@@ -56,7 +56,7 @@ Q-0's fill line is `text-read`: re-panning cannot fix a catalog gap, so the fill
 - **`seen` only** until a student passes its bar: honest, but the fill then says nothing about reading.
 - **`confirmed` only**: the app would ask shoppers to re-sweep catalog gaps forever.
 
-### Ruling 2 · Haptics granularity
+### Ruling 2 · Haptics granularity — **Ruled 2026-11-05: one notification haptic per completed bay or shelf.**
 
 The HIG says haptics "complement other feedback", warns against overuse, and reserves notification haptics for the
 outcome of a task. Sommy ticks per label.
@@ -66,7 +66,7 @@ outcome of a task. Sommy ticks per label.
 - **Per book**, as Sommy does.
 - **None**; visual and VoiceOver only.
 
-### Ruling 3 · Relocalization
+### Ruling 3 · Relocalization — **Ruled 2026-11-05: hide, then redisplay the coverage segments in place; Start Over is never automatic.**
 
 After ARKit loses and regains tracking, the HIG says to hide virtual objects and redisplay them in their new
 positions, and to wait up to one second before fading.
@@ -76,7 +76,7 @@ positions, and to wait up to one second before fading.
 - **Start Over begins a `new-session`**: simpler, loses the sweep's coverage.
 - **Ask each time** tracking is regained.
 
-### Ruling 4 · Degraded-tier simulation protocol until a borrowed non-Pro session exists
+### Ruling 4 · Degraded-tier simulation protocol until a borrowed non-Pro session exists — **Ruled 2026-11-05: withhold depth from Pro captures at ingest, reported as a simulation, replaced by real non-Pro sessions at the gate.**
 
 - **Withhold depth from Pro captures at ingest** (recommended): same frames, depth and confidence masked, run through
   the degraded path; reported as "simulated degraded tier", never as a real-use number; the first real non-Pro
@@ -103,4 +103,4 @@ To be added: `evals/E6/` (E-6′), the V-5′ run record, the replay demo link (
 
 ## Ruling
 
-Not yet ruled.
+The gate is not yet ruled. Owner rulings 1–4 above were given on 2026-11-05 in the capture sub-conductor's session, each on the recommended option; the sweep targets are still to be set.
