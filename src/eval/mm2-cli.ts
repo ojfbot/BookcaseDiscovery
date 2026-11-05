@@ -39,6 +39,7 @@ import { confirms, readJsonl, READERS, variantsOf, type ReaderName, type SpineDe
 import { appearanceMode, MmRecord, pairBootstrap, type Interval } from "./mm1.ts";
 import { assertUnchanged, bookKey, LOOKALIKE_KINDS, lookalikeKind, countOf, MM2, newAccept, ShadowRow, shareOf, stressPairs, type Mm2Set, type StressModel } from "./mm2.ts";
 import { compactJson, yardstickTruth } from "./q1-cli.ts";
+import { assertTrainable } from "./set-roles.ts";
 import { contentHash, sha256 } from "./ts0.ts";
 
 const REPO = fileURLToPath(new URL("../../", import.meta.url));
@@ -240,6 +241,7 @@ interface Calibration {
 /** The gallery and every threshold, from pilot-000's train photos only. */
 function calibrate(p: Ctx, sp: ReturnType<typeof splits>): { gallery: Record<StressModel, GalleryEntry[]>; recs: MmRecord[]; cal: Calibration } {
   const recs = p.records.filter((r) => r.workId && r.strip.valid && sp.get(imageOf(r.key.boxId))?.split === "train" && !r.evaluationOnly);
+  for (const r of recs) assertTrainable(r.set, "MM-2");
   const entry = (m: StressModel) => recs.map((r) => ({ id: r.key.boxId, group: sp.get(imageOf(r.key.boxId))!.group, workId: r.workId!, vec: p.vec(r, m) }));
   const gallery = { siglip2: entry("siglip2"), dinov2: entry("dinov2") };
   const key = (w: string) => p.works["pilot-000"].get(w)?.key ?? w;

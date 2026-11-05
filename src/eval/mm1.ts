@@ -9,6 +9,7 @@ import { z } from "zod";
 import { READERS, type ReaderName } from "./f0.ts";
 import { rng } from "./q1.ts";
 import { RUNGS } from "./q2.ts";
+import { isTrainable } from "./set-roles.ts";
 import { BASES, contentHash, sha256, type Basis } from "./ts0.ts";
 
 // --- the appearance switch -------------------------------------------------------------------------------
@@ -51,9 +52,8 @@ export type ModelName = keyof typeof MM1.models;
 export const MODELS = Object.keys(MM1.models) as ModelName[];
 export type MmSet = (typeof MM1.sets)[number];
 
-/** A yardstick or audit set: never trained on (OC35). Its records carry `evaluationOnly: true`. */
-const EVAL_ONLY = /yardstick|audit|proxy/i;
-export const isEvaluationOnly = (set: string): boolean => EVAL_ONLY.test(set);
+/** Any set that is not a declared training source (DL-5's set roles, fail closed): never trained on (OC35). Its records carry `evaluationOnly: true`. */
+export const isEvaluationOnly = (set: string): boolean => !isTrainable(set);
 
 // --- keys (INV-14) -----------------------------------------------------------------------------------------
 

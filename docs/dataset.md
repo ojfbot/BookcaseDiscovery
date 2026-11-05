@@ -103,11 +103,18 @@ The strong class is a flag, never a filter. TS-2 chooses what to train on.
 
 ## What is never exported
 
-- **Yardstick, PROXY and audit sets (OC35).** `assertTrainable` refuses any set or session whose name holds
-  `yardstick`, `proxy` or `audit`. It runs:
-  - before `build` reads anything;
-  - on every row;
-  - on every manifest photo, in `assertExportable` before anything is written.
+- **Anything that is not a declared training source (OC35, DL-5).** Every set and session has a **set role** in
+  one registry, `src/eval/set-roles.ts`: `training-source`, `yardstick`, `proxy`, `audit` or `held-out`.
+  `assertTrainable` lets through only a `training-source` (today `pilot-000` alone). It refuses:
+  - a set with **no declared role**: fail closed, so an evaluation set under a new name is never exported;
+  - a yardstick, PROXY, audit or held-out set, whatever it is called (`sf-store-002` is F-1's held-out set);
+  - as a second check, a `training-source` whose name holds `yardstick`, `proxy` or `audit`.
+
+  It runs before `build` reads anything, on every row, and on every manifest photo in `assertExportable` before
+  anything is written. The same guard checks TS-2's training rows (`trainRows`), MM-2's gallery and the Q-1 and Q-2
+  fits; MM-1 marks a record evaluation-only for any set the guard refuses. Declare a new set in the registry before
+  anything exports or trains on it. A held-out session is refused here too, so its photos cannot sit in a ledger
+  manifest; freezing their split is left to a later card ([`evals/DL5`](../evals/DL5/report.md)).
 - **Hand labels (OC36).** `assertMachineBasis` refuses any basis but the three shipped machine bases. That includes
   owner corrections, taps and `confirmed-by-pooling` (F-0g2 did not ship).
 - **Crops.** Rows carry crop geometry and the store path. The trainer cuts its own crops, under the data root.
