@@ -9,7 +9,7 @@
 // Every other kept Open Library work becomes a Work `ol:OL<n>W`. Work and Edition stay separate (CONTEXT.md).
 import type { DatabaseSync } from "node:sqlite";
 import { normalize, splitSubtitle, surnameFirstToGivenFirst, tokenize } from "./normalize.ts";
-import { OL_STAGING_SCHEMA_VERSION, titleKey } from "./ol-dump.ts";
+import { READABLE_OL_STAGING_VERSIONS, titleKey } from "./ol-dump.ts";
 import { surnameOf } from "./coverage.ts";
 
 /** Open Library has no work type; its works are stored with this `ttype`. */
@@ -32,15 +32,18 @@ export interface MergeCounts {
 }
 
 interface OlWork { id: number; title: string; subtitle: string | null; authors: string; year: number | null; english: number; layer: string }
-interface OlEdition { id: number; isbn13: string | null; isbns: string; isbn: string | null; publisher: string | null; year: number | null; title: string | null; format: string | null }
+interface OlEdition { id: number; isbn13: string | null; isbns: string; isbn: string | null; publisher: string | null; publishers: string | null; year: number | null; title: string | null; format: string | null }
 
 const noArticle = (t: string) => t.replace(/^(the|a|an) /, "");
 
-/** Attaches the staging file as schema `ol` (outside any transaction: SQLite refuses ATTACH inside one); returns its dump date. */
+/**
+ * Attaches the staging file as schema `ol` (outside any transaction: SQLite refuses ATTACH inside one); returns its dump
+ * date. A version 1 file has no `publishers` column: its editions keep the first publisher only.
+ */
 export function attachOpenLibrary(db: DatabaseSync, stagingPath: string): string {
   db.exec(`ATTACH DATABASE 'file:${stagingPath.replace(/\\/g, "/")}?mode=ro' AS ol`);
   const meta = Object.fromEntries((db.prepare("SELECT key, value FROM ol.meta").all() as Array<{ key: string; value: string }>).map((r) => [r.key, r.value]));
-  if (Number(meta.schema_version) !== OL_STAGING_SCHEMA_VERSION) {
+  if (!READABLE_OL_STAGING_VERSIONS.includes(Number(meta.schema_version))) {
     db.exec("DETACH DATABASE ol");
     throw new Error(`unsupported Open Library staging schema_version ${meta.schema_version}`);
   }
@@ -87,9 +90,10 @@ function merge(db: DatabaseSync, dumpDate: string, log: (s: string) => void): Me
   const edCount = (id: string) => ((workRow.get(id) as { edition_count: number } | undefined)?.edition_count ?? 0);
 
   const olAuthor = db.prepare("SELECT name FROM ol.ol_authors WHERE id = ?");
-  const olEditions = db.prepare("SELECT id, isbn13, isbns, isbn, publisher, year, title, format FROM ol.ol_editions WHERE work_id = ? ORDER BY id");
+  const hasPublishers = (db.prepare("SELECT COUNT(*) AS n FROM pragma_table_info('ol_editions', 'ol') WHERE name = 'publishers'").get() as { n: number }).n > 0;
+  const olEditions = db.prepare(`SELECT id, isbn13, isbns, isbn, publisher, ${hasPublishers ? "publishers" : "NULL AS publishers"}, year, title, format FROM ol.ol_editions WHERE work_id = ? ORDER BY id`);
   const isbnsOnWork = db.prepare("SELECT isbn13 FROM editions WHERE work_id = ? AND isbn13 IS NOT NULL");
-  const insEdition = db.prepare("INSERT OR IGNORE INTO editions (edition_id, work_id, isbn13, isbn, publisher, year, title, format, source) VALUES (?,?,?,?,?,?,?,?, 'openlibrary')");
+  const insEdition = db.prepare("INSERT OR IGNORE INTO editions (edition_id, work_id, isbn13, isbn, publisher, publishers, year, title, format, source) VALUES (?,?,?,?,?,?,?,?,?, 'openlibrary')");
   const updWork = db.prepare("UPDATE works SET sources = ?, edition_count = edition_count + ? WHERE id = ?");
   const insWork = db.prepare(`INSERT INTO works (id, title, subtitle, authors, series, series_num, year, ttype, language, non_genre, graphic, tags, sources,
       edition_count, title_norm, author_norm, series_norm) VALUES (?,?,?,?,NULL,NULL,?,?,?,0,0,'[]',?,?,?,?,'')`);
@@ -168,7 +172,7 @@ function merge(db: DatabaseSync, dumpDate: string, log: (s: string) => void): Me
       let added = 0;
       for (const e of eds) {
         if (e.isbn13 && have.has(e.isbn13)) continue;
-        insEdition.run(`ol:OL${e.id}M`, target, e.isbn13, e.isbn, e.publisher, e.year, e.title, e.format);
+        insEdition.run(`ol:OL${e.id}M`, target, e.isbn13, e.isbn, e.publisher, e.publishers, e.year, e.title, e.format);
         if (e.isbn13) have.add(e.isbn13);
         added++;
       }
@@ -210,7 +214,7 @@ function merge(db: DatabaseSync, dumpDate: string, log: (s: string) => void): Me
       if (!names.includes(au.name)) names.push(au.name);
       for (const f of au.forms) authorNorms.add(f);
     }
-    for (const e of eds) insEdition.run(`ol:OL${e.id}M`, workId, e.isbn13, e.isbn, e.publisher, e.year, e.title, e.format);
+    for (const e of eds) insEdition.run(`ol:OL${e.id}M`, workId, e.isbn13, e.isbn, e.publisher, e.publishers, e.year, e.title, e.format);
     insWork.run(
       workId, main, subtitle, JSON.stringify(names), w.year, OL_TTYPE, w.english ? "English" : null,
       JSON.stringify([{ source: "openlibrary", id: `OL${w.id}W`, dump: dumpDate, layer: w.layer }]), eds.length,

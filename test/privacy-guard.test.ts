@@ -191,6 +191,33 @@ describe("rule: image, RAW, video and weight types outside test/fixtures/synthet
   });
 });
 
+describe("rule: nothing but schema and counts under a datasets/ directory (F-1)", () => {
+  const media: [string, Buffer | string][] = [
+    ["datasets/label-ledger/v-1/crop.jpg", jpeg("none")],
+    ["datasets/label-ledger/v-1/crop.png", png(false)],
+    ["datasets/clips/sweep.mov", mp4()],
+    ["datasets/label-ledger/v-1/renamed.dat", jpeg("none")],
+    ["datasets/models/student.safetensors", "w"],
+    ["datasets/models/student.mlpackage/Data/w.bin", "w"],
+    ["Datasets/a/b.pt", "w"],
+    // The synthetic directory's exemption does not reach a datasets/ directory inside it.
+    ["test/fixtures/synthetic/datasets/a.jpg", jpeg("none")],
+    ["test/fixtures/synthetic/datasets/clip.mp4", mp4()],
+    ["test/fixtures/synthetic/datasets/w.onnx", "w"],
+  ];
+  it.each(media)("rejects image, video and weight file %s", (path, content) => {
+    expect(rulesOf(repoWith({ [path]: content }))).toContain("datasets-dir");
+  });
+
+  it.each(["datasets/label-ledger/v-1/labels.jsonl", "src/datasets/rows.csv", "test/fixtures/synthetic/datasets/rows.parquet", "datasets/x.npy"])("rejects row file %s", (path) => {
+    expect(rulesOf(repoWith({ [path]: "{}\n" }))).toEqual(["datasets-dir"]);
+  });
+
+  it("allows a schema or note in a datasets directory, and the same names elsewhere", () => {
+    expect(guard(repoWith({ "docs/datasets/README.md": "schema\n", "test/fixtures/synthetic/a.jpg": jpeg("none"), "test/fixtures/rows.jsonl": "{}\n" })).violations).toEqual([]);
+  });
+});
+
 describe("rule: EXIF GPS tags, even under an allowed path", () => {
   const withGps: [string, string, Buffer][] = [
     ["jpeg APP1", "test/fixtures/synthetic/gps.jpg", jpeg(true)],

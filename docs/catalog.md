@@ -154,7 +154,7 @@ A **work** is a root ISFDB title (`title_parent = 0`) of one of six types, with 
 
 ## Tables
 
-`works` (id, title, subtitle, authors JSON, series, series_num, year, ttype, language, non_genre, graphic, tags JSON, sources JSON, edition_count, plus three normalised form columns the scorer reads), `editions` (edition_id, work_id, isbn13, isbn, publisher, year, title, format; indexed on `isbn13`), `authors` / `work_authors`, `series` / `work_series`, and the forms tables `title_forms`, `author_forms`, `series_forms` that the three FTS5 indexes `fts_title`, `fts_author`, `fts_series` point at (`tokenize='trigram'`, contentless, so the text is stored once). `meta` carries the staging content hash and dump date, the work types and row counts. `year` is the first-publication year (`NULL` for `0000` and `8888` dates).
+`works` (id, title, subtitle, authors JSON, series, series_num, year, ttype, language, non_genre, graphic, tags JSON, sources JSON, edition_count, plus three normalised form columns the scorer reads), `editions` (edition_id, work_id, isbn13, isbn, publisher, publishers, pub_series, year, title, format; indexed on `isbn13`; `publishers` and `pub_series` since schema 3, § Imprint data (C-9)), `authors` / `work_authors`, `series` / `work_series`, and the forms tables `title_forms`, `author_forms`, `series_forms` that the three FTS5 indexes `fts_title`, `fts_author`, `fts_series` point at (`tokenize='trigram'`, contentless, so the text is stored once). `meta` carries the staging content hash and dump date, the work types and row counts. `year` is the first-publication year (`NULL` for `0000` and `8888` dates).
 
 ## Normalisation
 
@@ -281,7 +281,7 @@ the works dump (redirected or deleted), are counted and dropped. **English** mea
 2. **Breadth**: English-language works first published in 1960 or later with at least two editions.
 
 A kept work keeps **every** edition (all languages), with its ISBN-10/13 (`isbns`, all valid ISBN-13s; `isbn13`, the
-first), title (with subtitle), publisher (the first listed), publish year and physical format, and its authors'
+first), title (with subtitle), publisher (the first listed; since C-9 also every distinct publisher string, `ol_editions.publishers`, staging schema 2), publish year and physical format, and its authors'
 names. The layer is stored on the work's `sources` entry (`shelf`, `breadth` or `shelf+breadth`).
 
 ## Crosswalk and merge
@@ -474,4 +474,52 @@ statement `retrieve` runs uses an index on v2 (`EXPLAIN QUERY PLAN`; a unit test
 
 The recall loss is the list's tail: 26 of the 27 readings that lost the right work had it at rank 15-49 under C-3,
 and 20 of them still generate it, below rank 50.
+
+# Imprint data (C-9)
+
+F-0d found that a read imprint matches a confirmed work's houses on 39.5 % of boxes against 7.8 % chance, and C-R2
+(§3.4) traced the misses to the catalog's data: Open Library's import kept only the first publisher of an edition,
+ISFDB's publisher series were staged but unused, and the parent houses were three hand aliases plus ISFDB's
+"Imprint / Publisher" pairs. C-9 adds the data, and rule IMP-1 uses it (`src/eval/f0d.ts`). Pre-registration and
+verdicts: `evals/C9/prereg.md`, `evals/C9/report.md`.
+
+**Schema version 3** adds two `editions` columns; readers that do not read them open versions 1–3.
+
+| column | holds | source |
+|---|---|---|
+| `publishers` | JSON array of every distinct publisher string, in order, when an edition has 2 or more; `NULL` when `publisher` is the only one | Open Library `publishers` (staging schema 2, `ol_editions.publishers`) |
+| `pub_series` | the ISFDB publisher series the edition belongs to | ISFDB `pubs.pub_series_id` → `pub_series.pub_series_name` |
+
+`publisher` is unchanged (the first string), so every pre-C-9 reader sees the same data. A version 1 Open Library
+staging file still merges (its editions get `publishers = NULL`).
+
+**Imprint keys of an edition** (`editionImprintKeys` in `src/catalog/imprint.ts`) come in two strengths:
+
+- **strict**: what the edition itself says. Every " / " segment of every publisher string, its publisher series,
+  and a **dated** Wikidata parent whose dates cover the edition's year.
+- **any**: strict plus the undated parents: F-0d's ISFDB-derived pairs (`buildImprintTable`), undated Wikidata
+  links, and dated ones when the edition has no year.
+
+F-0d's tie-break and p1 read `any`; IMP-1 withholds only on a rival's `strict` match.
+
+**Counts and verdicts** (2026-10-31 dumps): 531,138 Open Library editions carry 2+ publisher strings; 141,382
+ISFDB editions carry a publisher series; the Wikidata export gives 393 parent links on 282 houses (116 dated). The
+data fix moved p1 by one box (+2.8 points, under the pre-registered 10) and IMP-1's yardstick arm was uninformative,
+so both stay off and the default catalogs are unchanged (`evals/C9/report.md`).
+
+**Wikidata parents** (`wikidataParents`): one SPARQL query (`WIKIDATA_QUERY` in `src/catalog/c9-eval.ts`) for
+every item with an ISFDB publisher ID (P1239) and a parent organisation (P749) or owner (P127), with the
+statement's start and end (P580/P582). Each side is named by ISFDB's publisher name when it has a P1239 id, else by
+its English label. Wikidata is CC0. The export stays private (the data root's `private/c9/wikidata/<date>.json`,
+with the query and the response's SHA-256); committing it as repo data needs the owner's OK. Links are one level
+deep (an imprint's parent, not the parent's parent).
+
+**Shelf-mark filter** (`shelfMark`, `usableImprint`): a read imprint that holds a digit, or whose words are all at
+most 3 letters with one of them beginning a surname of the box's candidate authors, is a library sticker and is
+dropped before IMP-1. Label-free; its cost is a real house name that begins a candidate's surname.
+
+| Builds (C-9) | `bookcase catalog build --out $BOOKCASE_DATA/catalog/catalog-c9.sqlite`; `pnpm catalog:ol stage --out $BOOKCASE_DATA/catalog/ol-staging-c9.sqlite`, then `bookcase catalog build --ol-staging …/ol-staging-c9.sqlite --out $BOOKCASE_DATA/catalog/catalog-v2-c9.sqlite`. Today's `catalog.sqlite`, `catalog-v2.sqlite` and `ol-staging.sqlite` are not touched. |
+|---|---|
+| Evaluation | `node src/catalog/c9-eval.ts wikidata`, `lists --set <name> --catalog <v1\|v2>`, `analyse` |
+| Tests | `test/f0d-imprint.test.ts` (keys, parents, shelf marks, IMP-1), `test/catalog-openlibrary.test.ts` (columns, staging v1) |
 
