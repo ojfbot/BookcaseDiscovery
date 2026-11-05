@@ -272,7 +272,7 @@ function analyseSet(set: SetName) {
   // Gate G1: F-0's vote on the cached ranked tops, no prior, reproduces F-0's own `decide` on the same readings.
   const ids = [...sd.members.keys()];
   const g1same = ids.filter((id) => baseFor(id).accepted === rk.get(id)!.decided).length;
-  const gate = { boxes: ids.length, reproduced: share(g1same, ids.length), holds: ids.length > 0 && g1same / ids.length >= EVAL.reproduce };
+  const gate = { bookBoxes: ids.length, reproduced: share(g1same, ids.length), holds: ids.length > 0 && g1same / ids.length >= EVAL.reproduce };
   if (!gate.holds) log(`${set}: gate G1 fails (${g1same} of ${ids.length}); figures below are not read`);
   // For the record: agreement with the stored base F-0h and SC-1 read (it may predate later retrieval changes).
   const storedPath = join(ROOT, "f0c", set, "base-decisions.jsonl");
@@ -318,6 +318,7 @@ function analyseSet(set: SetName) {
 
   // Stress test: each `readers-agree` box in a row, left out of its own row's mix, under the prior.
   const loo: LooOutcome[] = [];
+  const looLog: string[] = [];
   for (const [key, ids] of sd.rows) {
     for (const id of ids) {
       const m = sd.members.get(id)!;
@@ -330,8 +331,10 @@ function analyseSet(set: SetName) {
       const formOut = own?.form != null && maj !== null && own.form !== maj;
       const genreOut = mix !== null && mix.weight.genre > 0 && own !== null && own.genre.length > 0 && own.genre.every((g) => !mix.shares.genre[g]);
       loo.push({ imageId: m.imageId, id, change: record.prior.change, formOut, genreOut });
+      looLog.push(JSON.stringify({ ...record, formOut, genreOut }));
     }
   }
+  writeFileSync(join(stage(set), "loo.jsonl"), looLog.join("\n") + "\n");
 
   // Shuffle control: each target's mix replaced by a random other row's (same set), seeded.
   const withMix = [...mixes].filter(([, p]) => p !== null).map(([k]) => k);
@@ -373,7 +376,7 @@ function analyseSet(set: SetName) {
     catalog: CATALOGS[set].split("/").at(-1),
     gate,
     storedAgreement,
-    boxes: sd.members.size,
+    bookBoxes: sd.members.size,
     rows: rowsN,
     targets: targets.length,
     inForce: {

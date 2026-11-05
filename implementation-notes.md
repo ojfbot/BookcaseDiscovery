@@ -4,6 +4,7 @@ Card sessions and the conductor log deviations here (docs/plan/OPERATING-MODEL.m
 The count is a discovery rate, not a defect rate.
 
 ## Deviations
+- **2026-11-05 (KN-2).** Not in the plan: after the first `analyse`, the runner gained a private leave-one-out log (`private/kn2/<set>/loo.jsonl`), so the one stress-test failure could be described without titles. A re-run gives a byte-identical `metrics.json`, so no figure changed.
 - **2026-11-05 (KN-2).** After the pre-registration was committed (0c17829) and before any figure was computed, KN-1's follow-up (#70) and a correction from the conductor changed four inputs. The pre-registration is not rewritten; these are the changes, and the report names them:
   - **Yardstick catalog.** It moves from `catalog-kn1.sqlite` back to its own inventory catalog with KN-1's features (`f0-inventory-catalog-kn1.sqlite`, ids `isfdb:<row>`), where F-0 decides it. The yardstick's stored decisions are **not** stale there (269 of 269 accepts reproduce; my earlier note citing 13 was about the v1 catalog). F-0's accept is still re-decided, now on that catalog. The ranked cache built on the v1 catalog was discarded unread and rebuilt.
   - **Yardstick bases in force.** F-0g's copy and F-0h's context caches name inventory-catalog works, which now match, so they are in force on the yardstick as on `pilot-000` (the pre-registration had `readers-agree` alone).
