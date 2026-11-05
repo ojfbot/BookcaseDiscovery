@@ -198,7 +198,7 @@ export interface BoxFacts {
 export interface CaseTally {
   case: string;
   stills: number;
-  boxes: number;
+  boxCount: number;
   lifted: number;
   fusedBooks: number;
   /** Fused books of two or more boxes. */
@@ -213,6 +213,9 @@ export interface CaseTally {
   frameEdgeReadAgree: number;
   /** Frame-edge boxes read elsewhere that carry a confirmed work of their own (M3b's denominator). */
   frameEdgeReadOwn: number;
+  /** Supplementary (not pre-registered): frame-edge boxes with no confirmed work of their own, and those read in full elsewhere. */
+  frameEdgeUnread: number;
+  frameEdgeUnreadReadElsewhere: number;
   copyBooksSameStill: number;
   copyBooksSameGroup: number;
   copyExposure: number;
@@ -230,9 +233,9 @@ export function tallyCase(name: string, boxes: readonly BoxFacts[], books: reado
   const bookOf = new Map<string, FusedBook>();
   for (const bk of books) for (const m of bk.members) bookOf.set(m, bk);
   const t: CaseTally = {
-    case: name, stills: new Set(boxes.map((b) => b.photo)).size, boxes: boxes.length, lifted: liftedIds.size, fusedBooks: books.length,
+    case: name, stills: new Set(boxes.map((b) => b.photo)).size, boxCount: boxes.length, lifted: liftedIds.size, fusedBooks: books.length,
     joinedBooks: 0, boxesInJoined: 0, singleReader: 0, singleReaderJoined: 0, gain: 0, conflict: 0, frameEdge: 0, frameEdgeReadElsewhere: 0,
-    frameEdgeReadAgree: 0, frameEdgeReadOwn: 0, copyBooksSameStill: 0, copyBooksSameGroup: 0, copyExposure: 0, copyExposureTied: 0,
+    frameEdgeReadAgree: 0, frameEdgeReadOwn: 0, frameEdgeUnread: 0, frameEdgeUnreadReadElsewhere: 0, copyBooksSameStill: 0, copyBooksSameGroup: 0, copyExposure: 0, copyExposureTied: 0,
     pairsRead: 0, pairsSame: 0, sameWorkPairs: 0, sameWorkMerged: 0, candidates: 0, candidateConflicts: 0,
   };
   for (const bk of books) {
@@ -267,6 +270,7 @@ export function tallyCase(name: string, boxes: readonly BoxFacts[], books: reado
     if (b.frameEdge) {
       t.frameEdge++;
       const full = others.filter((o) => !o.frameEdge && o.works.length > 0);
+      if (b.works.length === 0) (t.frameEdgeUnread++, full.length > 0 && t.frameEdgeUnreadReadElsewhere++);
       if (full.length > 0) {
         t.frameEdgeReadElsewhere++;
         if (b.works.length > 0) {

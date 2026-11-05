@@ -68,10 +68,10 @@ def fit_plane(pts: np.ndarray, thr: float, rng: np.random.Generator) -> tuple[np
     return n, float(-n @ c)
 
 
-def box_pixels(polygon, width: int, height: int, scale: tuple[float, float], size: tuple[int, int]) -> np.ndarray:
-    """Mask of the map the box covers, from its working-copy outline."""
+def box_pixels(polygon, scale, offset, size) -> np.ndarray:
+    """Mask of the map the box covers, from its working-copy outline (scaled, then moved by the view's padding offset)."""
     h, w = size
-    pts = np.round(np.array(polygon, dtype=np.float64) * [scale[0], scale[1]]).astype(np.int32)
+    pts = np.round(np.array(polygon, dtype=np.float64) * [scale[0], scale[1]] + [offset[0], offset[1]]).astype(np.int32)
     m = np.zeros((h, w), np.uint8)
     cv2.fillPoly(m, [pts], 1)
     return m.astype(bool)
@@ -85,7 +85,7 @@ def load_group(cache_dir: Path, views: list[dict]) -> list[dict]:
     return out
 
 
-def moge_check(view: dict, boxes: list[dict], plane_cam: tuple[np.ndarray, float], h2: Path, geometry_key: str, rng) -> dict | None:
+def moge_check(view: dict, boxes: list[dict], plane_cam: tuple[np.ndarray, float], own_n: np.ndarray | None, h2: Path, geometry_key: str, rng) -> dict | None:
     """Angle, relative depth difference and scale ratio of the teacher's plane against MoGe-2's, for one still."""
     hits = sorted((h2 / "cache" / "geometry").glob(f"*/{geometry_key}.npz"))
     if not hits:
@@ -116,8 +116,9 @@ def moge_check(view: dict, boxes: list[dict], plane_cam: tuple[np.ndarray, float
     xn, yn = (xs[pick] + 0.5) / wm, (ys[pick] + 0.5) / hm
     rm = np.stack([(xn - kn[0, 2]) / kn[0, 0], (yn - kn[1, 2]) / kn[1, 1], np.ones_like(xn)], 1)
     ka = view["intrinsics"].astype(np.float64)
-    h, w = view["size"]
-    ra = np.stack([(xn * w - ka[0, 2]) / ka[0, 0], (yn * h - ka[1, 2]) / ka[1, 1], np.ones_like(xn)], 1)
+    hi, wi = (int(x) for x in view["image"])  # the view's own pixels on the canvas, past the padding
+    xa, ya = xn * wi + view["offset"][0], yn * hi + view["offset"][1]
+    ra = np.stack([(xa - ka[0, 2]) / ka[0, 0], (ya - ka[1, 2]) / ka[1, 1], np.ones_like(xn)], 1)
     with np.errstate(divide="ignore", invalid="ignore"):
         zm = -dm / (rm @ nm)
         za = -da / (ra @ na)
@@ -126,7 +127,10 @@ def moge_check(view: dict, boxes: list[dict], plane_cam: tuple[np.ndarray, float
         return None
     ratio = float(np.median(zm[ok] / za[ok]))
     rel = float(np.median(np.abs(za[ok] * ratio - zm[ok]) / zm[ok]))
-    return {"angleDeg": angle, "relDepth": rel, "scaleRatio": ratio}
+    out = {"angleDeg": angle, "relDepth": rel, "scaleRatio": ratio}
+    if own_n is not None:  # supplementary (not pre-registered): the teacher's plane fitted to this still alone
+        out["ownAngleDeg"] = float(np.degrees(np.arccos(min(1.0, abs(float(nm @ own_n))))))
+    return out
 
 
 def main() -> None:
@@ -165,7 +169,9 @@ def main() -> None:
         g = json.loads(line)
         views = g["views"]
         # the group's cache folder is named by its key: find it from the sidecars rather than recompute the key
-        folder = next((d for d in gdir.glob("*") if (d / "group.json").exists() and json.loads((d / "group.json").read_text()).get("viewIds") == [v["id"] for v in views]), None)
+        code = S.sha256_file(Path(S.__file__))[:16]
+        sidecars = ((d, json.loads((d / "group.json").read_text())) for d in gdir.glob("*") if (d / "group.json").exists())
+        folder = next((d for d, j in sidecars if j.get("viewIds") == [v["id"] for v in views] and j.get("code") == code), None)
         if folder is None:
             summary.append({"group": g["group"], "views": len(views), "poseOk": False, "viewsUsable": 0, "why": "no-geometry"})
             continue
@@ -175,7 +181,7 @@ def main() -> None:
         all_conf = []
         for v in vs:
             bs = boxes_by_photo.get(v["id"], [])
-            masks = [box_pixels(b["polygon"], b["width"], b["height"], tuple(v["scale"]) if np.ndim(v["scale"]) else (float(v["scale"]),) * 2, tuple(int(x) for x in v["size"])) for b in bs]
+            masks = [box_pixels(b["polygon"], v["scale"], v["offset"], tuple(int(x) for x in v["size"])) for b in bs]
             valid = v["mask"] & np.isfinite(v["pts3d"]).all(-1)
             inbox = np.zeros_like(valid)
             for m in masks:
@@ -206,7 +212,7 @@ def main() -> None:
             eu = -eu
         origin = -d * n
         ups = [float(np.degrees(np.arccos(np.clip((-v["pose"][:3, :3][:, 1]) @ up, -1, 1)))) for v in vs]
-        usable, poses_ok, moge = 0, True, {"angleDeg": [], "relDepth": [], "scaleRatio": []}
+        usable, poses_ok, moge = 0, True, {"angleDeg": [], "relDepth": [], "scaleRatio": [], "ownAngleDeg": []}
         for v, (bs, masks, valid) in zip(vs, per_view):
             conf_v = v["conf"][np.any(masks, axis=0) & valid] if masks else np.zeros(0)
             poses_ok &= bool(np.isfinite(v["pose"]).all()) and len(conf_v) > 0 and float(np.median(conf_v)) > POSE_CONF
@@ -228,10 +234,16 @@ def main() -> None:
             if bs and v["id"] in h2_keys:
                 R, t = v["pose"][:3, :3].astype(np.float64), v["pose"][:3, 3].astype(np.float64)
                 plane_cam = (R.T @ n, float(n @ t + d))
-                c = moge_check(v, bs, plane_cam, Path(args.h2), h2_keys[v["id"]], rng)
+                own = None
+                pc = v["pts3d_cam"][valid & np.any(masks, axis=0)].astype(np.float64)
+                if len(pc) >= MIN_PIXELS:
+                    f_own = fit_plane(pc, INLIER_FRAC * float(np.median(np.abs(pc[:, 2]))), rng)
+                    own = f_own[0] if f_own else None
+                c = moge_check(v, bs, plane_cam, own, Path(args.h2), h2_keys[v["id"]], rng)
                 if c:
                     for k in moge:
-                        moge[k].append(c[k])
+                        if k in c:
+                            moge[k].append(c[k])
         run = runs.get(g["group"], {})
         summary.append({
             "group": g["group"], "views": len(vs), "poseOk": bool(poses_ok), "viewsUsable": usable, "planeInliersMedianDepth": med_depth,

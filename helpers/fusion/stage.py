@@ -24,6 +24,7 @@ are never downloaded here; they are read from ``$BOOKCASE_DATA/models/map-anythi
 from __future__ import annotations
 
 import argparse
+import contextlib
 import hashlib
 import json
 import os
@@ -69,7 +70,10 @@ def weights_pin() -> dict:
 
 
 def load_view(path: str, long_side: int) -> tuple[np.ndarray, tuple[float, float], tuple[int, int]]:
-    """The working copy shrunk whole to a long side of ``long_side`` px (both sides a multiple of 14), normalised."""
+    """The working copy shrunk whole to a long side of ``long_side`` px (both sides a multiple of 14), normalised.
+
+    Returns the (3, h, w) array, the (x, y) factors from working copy to map and the map's (h, w).
+    """
     im = Image.open(path)
     w0, h0 = im.size
     s = long_side / max(w0, h0)
@@ -78,6 +82,24 @@ def load_view(path: str, long_side: int) -> tuple[np.ndarray, tuple[float, float
     im = im.convert("RGB").resize((w1, h1), Image.LANCZOS)
     x = (np.asarray(im, dtype=np.float32) / 255.0 - DINOV2_MEAN) / DINOV2_STD
     return x.transpose(2, 0, 1), (w1 / w0, h1 / h0), (h1, w1)
+
+
+def pad_to_common(loaded: list) -> tuple[list[np.ndarray], list[tuple[int, int]], tuple[int, int]]:
+    """MapAnything stacks a group's views, so they must share one shape: a mixed portrait and landscape group is padded
+    (centred, with the normalisation's zero, i.e. the mean colour) to the largest height and width. Nothing is cropped
+    or stretched; ``offset`` is where the view's top-left corner sits on the canvas."""
+    H = max(a.shape[1] for a, _, _ in loaded)
+    W = max(a.shape[2] for a, _, _ in loaded)
+    arrays, offsets = [], []
+    for a, _, _ in loaded:
+        oy, ox = (H - a.shape[1]) // 2, (W - a.shape[2]) // 2
+        # the offset is a multiple of 14 so the padding is whole patches
+        oy, ox = oy // 14 * 14, ox // 14 * 14
+        c = np.zeros((3, H, W), np.float32)
+        c[:, oy:oy + a.shape[1], ox:ox + a.shape[2]] = a
+        arrays.append(c)
+        offsets.append((ox, oy))
+    return arrays, offsets, (H, W)
 
 
 class PeakMemory:
@@ -109,6 +131,19 @@ class PeakMemory:
     @staticmethod
     def rss_mb() -> float:
         return resource.getrusage(resource.RUSAGE_SELF).ru_maxrss / 1e6  # bytes on macOS
+
+
+def hub_code_hash() -> str | None:
+    """MapAnything builds its DINOv2 encoder from torch hub's copy of the DINOv2 code (code only: the weights come from
+    the pinned checkpoint). The hub's ``main`` is unpinned, so the sidecar records the hash of the code that was used."""
+    d = Path.home() / ".cache" / "torch" / "hub" / "facebookresearch_dinov2_main"
+    if not d.exists():
+        return None
+    h = hashlib.sha256()
+    for f in sorted(d.rglob("*.py")):
+        h.update(str(f.relative_to(d)).encode())
+        h.update(f.read_bytes())
+    return h.hexdigest()[:16]
 
 
 def load_model():
@@ -177,37 +212,40 @@ def main() -> None:
             continue
         t = time.time()
         loaded = [load_view(v["image"], args.long) for v in views]
+        arrays, offsets, canvas = pad_to_common(loaded)
         decode = time.time() - t
         if model is None:
             t = time.time()
-            model, device = load_model()
+            with contextlib.redirect_stdout(sys.stderr):  # the encoder prints to stdout; stdout carries the rows only
+                model, device = load_model()
             load_seconds = time.time() - t
             print(f"loaded MapAnything on {device} in {load_seconds:.1f}s", file=sys.stderr)
         amp = not args.no_amp
         t = time.time()
-        with PeakMemory() as mem:
+        with PeakMemory() as mem, contextlib.redirect_stdout(sys.stderr):
             try:
-                preds = infer(model, device, [x for x, _, _ in loaded], amp)
+                preds = infer(model, device, arrays, amp)
             except Exception as e:  # bf16 autocast is not everywhere on MPS: fp32 is the fallback, and is logged
                 if not amp:
                     raise
                 print(f"bf16 failed ({type(e).__name__}: {str(e)[:120]}); retrying in fp32", file=sys.stderr)
                 amp = False
-                preds = infer(model, device, [x for x, _, _ in loaded], False)
+                preds = infer(model, device, arrays, False)
         infer_s = time.time() - t
         t = time.time()
         out.mkdir(parents=True, exist_ok=True)
         finite = True
-        for v, p, (_, scale, size) in zip(views, preds, loaded):
+        for v, p, (a, scale, _), off in zip(views, preds, loaded, offsets):
             pose = arr(p["camera_poses"])[0]
             finite &= bool(np.isfinite(pose).all())
             np.savez_compressed(
                 out / f"{v['id'][:16]}.npz",
                 pts3d=arr(p["pts3d"])[0], pts3d_cam=arr(p["pts3d_cam"])[0], conf=arr(p["conf"])[0],
                 mask=arr(p["mask"])[0, ..., 0] > 0.5, intrinsics=arr(p["intrinsics"])[0], pose=pose,
-                scale=np.float32(scale), size=np.int32(size),
+                scale=np.float32(scale), offset=np.int32(off), image=np.int32(a.shape[1:]), size=np.int32(canvas),
             )
         fields["ampUsed"] = amp
+        fields["hubCode"] = hub_code_hash()
         (out / "group.json").write_text(json.dumps({**fields, "viewIds": [v["id"] for v in views]}, sort_keys=True) + "\n")
         row.update(hit=False, posesFinite=finite, amp=amp, device=str(device), modelLoadSeconds=round(load_seconds, 2),
                    seconds={"decode": round(decode, 2), "infer": round(infer_s, 2), "save": round(time.time() - t, 2)},
