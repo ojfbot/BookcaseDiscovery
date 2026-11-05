@@ -33,6 +33,7 @@ import {
   auc,
 } from "./q1.ts";
 import type { Outcome, Row } from "./q1.ts";
+import { assertTrainable } from "./set-roles.ts";
 
 const REPO = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
 const HELPER = join(REPO, "helpers", "coverage");
@@ -230,6 +231,7 @@ const complete = (r: Row) => MODEL.every((f) => r.f[f] !== null && Number.isFini
 
 /** Logistic regression and depth-3 tree, confirmed (1) vs no-text (0), fit on two thirds of pilot-000's photos. */
 function models(pilot: Row[], others: Record<string, Row[]>) {
+  assertTrainable(PILOT, "Q-1");
   const use = pilot.filter((r) => (isConf(r.outcome) || isNoText(r.outcome)) && complete(r));
   const { train, test } = splitByImage(use, 3);
   const y = (rs: Row[]) => rs.map((r) => (isConf(r.outcome) ? 1 : 0));

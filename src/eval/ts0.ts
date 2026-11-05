@@ -3,13 +3,14 @@
 // Each row is one confirmed label: its decision basis, the readers that voted, its coverage rung, TS-1's label-filter
 // fields (title class, agreeing pair, third-reader dissent, whether C-7's namesake test or an author read backs a
 // shared title) and the F-1 split of its photo. The **strong class** (distinctive title, two readers, no dissent) is
-// flagged, never filtered: TS-2 chooses. Yardstick and audit sets are never exported (OC35, OC36), and only machine
+// flagged, never filtered: TS-2 chooses. Only declared training sources are exported (OC35, DL-5's set roles), and only machine
 // bases are (OC36: no hand labels). Pure; the runner is src/eval/ts0-cli.ts. Rows live only under the data root's
 // `datasets/`; the repo gets the schema, this code and the aggregates in evals/TS0.
 import { createHash } from "node:crypto";
 import { z } from "zod";
 import { SPLITS, type DatasetManifest, type ManifestPhoto } from "../capture/dataset.ts";
 import { READERS, type ReaderName } from "./f0.ts";
+import { assertTrainable } from "./set-roles.ts";
 import { RUNGS, type Rung } from "./q2.ts";
 import { AGREEING, agreeingKey, THIRD_OUTCOMES, thirdOf, type Agreeing, type Box, type Rarity } from "./ts1.ts";
 
@@ -25,13 +26,11 @@ export const BASES = ["readers-agree", "confirmed-by-copy", "confirmed-by-contex
 export type Basis = (typeof BASES)[number];
 export type TitleClass = Rarity;
 
-/** Sets that score the stack and are never trained on: the public yardstick, any PROXY set, any audit slice. */
-const NEVER_TRAIN = /yardstick|proxy|audit/i;
-
-/** OC35 / OC36: throws for a yardstick, PROXY or audit set. */
-export function assertTrainable(set: string): void {
-  if (NEVER_TRAIN.test(set)) throw new Error(`TS-0: "${set}" is a yardstick or audit set and is never exported for training (OC35)`);
-}
+/**
+ * OC35: throws unless the set is a declared `training-source` (DL-5: by its role in src/eval/set-roles.ts, fail closed,
+ * with the old name test as a second check). Re-exported so every exporter and trainer calls the one guard.
+ */
+export { assertTrainable };
 
 /** OC36: throws for anything but a shipped machine basis (an owner correction, a tap, a hand label). */
 export function assertMachineBasis(basis: string): asserts basis is Basis {

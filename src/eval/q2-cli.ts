@@ -42,6 +42,7 @@ import {
   topClass,
 } from "./q2.ts";
 import type { Feature, Interval, Monotone, Readings, Rung, Scored, TeacherInput, TopClass } from "./q2.ts";
+import { assertTrainable } from "./set-roles.ts";
 
 const REPO = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
 const HELPER = join(REPO, "helpers", "coverage");
@@ -320,6 +321,7 @@ interface Fitted { pilot: Scored[]; yard: Scored[]; full: Record<string, Monoton
 
 /** Every config: leave-one-image-out scores on pilot-000; the full pilot fit scores the yardstick unchanged. */
 function fitAll(pilot: Box[], yard: Box[], configs: Config[]): Fitted {
+  assertTrainable(PILOT, "Q-2");
   const ps: Scored[] = pilot.map((b) => ({ imageId: b.imageId, y: b.y, s: {} }));
   const ys: Scored[] = yard.map((b) => ({ imageId: b.imageId, y: b.y, s: {} }));
   const full: Record<string, Monotone> = {}, folds: Record<string, Monotone[]> = {};
