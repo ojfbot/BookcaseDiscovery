@@ -62,7 +62,7 @@ export function trainRows(rows: readonly LabelRow[]): { rows: LabelRow[]; exclud
   const excluded: Record<Exclusion, number> = { "val-split": 0, "not-strong": 0, "one-reader": 0 };
   const out: LabelRow[] = [];
   for (const r of rows) {
-    assertTrainable(r.set);
+    assertTrainable(r.set, "TS-2");
     assertMachineBasis(r.basis);
     if (r.split !== "train") excluded["val-split"]++;
     else if (r.readers.length < 2) excluded["one-reader"]++;

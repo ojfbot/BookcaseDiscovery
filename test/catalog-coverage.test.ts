@@ -11,7 +11,7 @@ import {
   isfdbHolds,
   keywordTokens,
   liveQueries,
-  LiveCache,
+  openLookup,
   parseMods,
   parseOpenLibrary,
   qwenFields,
@@ -201,37 +201,37 @@ describe("live cache", () => {
     let clock = 0;
     const waits: number[] = [];
     const { f, calls } = mockFetch(() => ({ status: 200, body: olBody([]) }));
-    const live = new LiveCache(cdir, { fetch: f, now: () => clock, sleep: async (ms) => { waits.push(ms); clock += ms; } });
-    await live.get("openlibrary", "https://openlibrary.org/search.json?q=a");
-    await live.get("openlibrary", "https://openlibrary.org/search.json?q=b");
+    const live = openLookup(cdir, { fetch: f, now: () => clock, sleep: async (ms) => { waits.push(ms); clock += ms; } });
+    await live.get("openlibrary", "https://openlibrary.org/search.json?q=abc");
+    await live.get("openlibrary", "https://openlibrary.org/search.json?q=bcd");
     expect(waits).toEqual([1100]);
-    expect(await live.get("openlibrary", "https://openlibrary.org/search.json?q=a")).toBe(olBody([]));
+    expect((await live.get("openlibrary", "https://openlibrary.org/search.json?q=abc")).body).toBe(olBody([]));
     expect(calls).toHaveLength(2);
     expect(calls[0]!.ua).toMatch(/^BookcaseDiscovery\//);
     expect(calls[0]!.ua).not.toMatch(/@/);
-    expect(existsSync(live.path("openlibrary", "https://openlibrary.org/search.json?q=a"))).toBe(true);
-    const offline = new LiveCache(cdir, { offline: true, fetch: f });
-    expect(await offline.get("openlibrary", "https://openlibrary.org/search.json?q=a")).toBe(olBody([]));
+    expect(existsSync(live.path("openlibrary", live.peek("openlibrary", "https://openlibrary.org/search.json?q=abc").key))).toBe(true);
+    const offline = openLookup(cdir, { offline: true, fetch: f, now: () => clock });
+    expect((await offline.get("openlibrary", "https://openlibrary.org/search.json?q=abc")).body).toBe(olBody([]));
     await expect(offline.get("openlibrary", "https://openlibrary.org/search.json?q=new")).rejects.toThrow(/offline/);
   });
 
   it("retries an HTTP error three times, then caches the failure so a rerun sees the same", async () => {
     const cdir = mkdtempSync(join(dir, "cache-"));
     const { f, calls } = mockFetch(() => ({ status: 500, body: "" }));
-    const live = new LiveCache(cdir, { fetch: f, sleep: async () => {} });
-    expect(await live.get("loc", "http://lx2.loc.gov:210/LCDB?q")).toBeNull();
+    const live = openLookup(cdir, { fetch: f, sleep: async () => {} });
+    expect((await live.get("loc", "http://lx2.loc.gov:210/LCDB?query=abc")).body).toBeNull();
     expect(calls).toHaveLength(3);
     expect(live.errors.loc).toBe(1);
-    const offline = new LiveCache(cdir, { offline: true });
-    expect(await offline.get("loc", "http://lx2.loc.gov:210/LCDB?q")).toBeNull();
+    const offline = openLookup(cdir, { offline: true });
+    expect((await offline.get("loc", "http://lx2.loc.gov:210/LCDB?query=abc")).body).toBeNull();
     expect(offline.errors.loc).toBe(1);
   });
 
   it("does not cache a network error", async () => {
     const cdir = mkdtempSync(join(dir, "cache-"));
-    const live = new LiveCache(cdir, { fetch: async () => { throw new Error("down"); }, sleep: async () => {} });
-    expect(await live.get("openlibrary", "https://openlibrary.org/search.json?q=z")).toBeNull();
-    expect(existsSync(live.path("openlibrary", "https://openlibrary.org/search.json?q=z"))).toBe(false);
+    const live = openLookup(cdir, { fetch: async () => { throw new Error("down"); }, sleep: async () => {} });
+    expect((await live.get("openlibrary", "https://openlibrary.org/search.json?q=zzz")).body).toBeNull();
+    expect(existsSync(live.path("openlibrary", live.peek("openlibrary", "https://openlibrary.org/search.json?q=zzz").key))).toBe(false);
   });
 });
 
@@ -240,14 +240,14 @@ describe("one box", () => {
 
   it("resolves through Open Library and finds the book in ISFDB", async () => {
     const { f } = mockFetch((url) => ({ status: 200, body: url.includes("openlibrary") ? olBody([{ key: "/works/OL27258W", title: "Neuromancer", author_name: ["William Gibson"], isbn: ["9780441569595"] }]) : modsBody }));
-    const live = new LiveCache(mkdtempSync(join(dir, "cache-")), { fetch: f, sleep: async () => {} });
+    const live = openLookup(mkdtempSync(join(dir, "cache-")), { fetch: f, sleep: async () => {} });
     const r = await resolveBox(db, live, box, { vision: read("vision", "NEUROMANCER\nGIBSON") }, null);
-    expect(r).toMatchObject({ cls: "in-isfdb", resolvedBy: "openlibrary", inOpenLibrary: true, isfdb: { workId: "isfdb:201", how: "isbn" }, genre: null });
+    expect(r).toMatchObject({ cls: "in-isfdb", resolvedBy: "openlibrary", tier: "live", skipped: null, inOpenLibrary: true, isfdb: { workId: "isfdb:201", how: "isbn" }, genre: null });
   });
 
   it("falls back to LoC, then checks Open Library with the clean label", async () => {
     const { f, calls } = mockFetch((url) => ({ status: 200, body: url.includes("openlibrary") ? olBody([]) : modsBody }));
-    const live = new LiveCache(mkdtempSync(join(dir, "cache-")), { fetch: f, sleep: async () => {} });
+    const live = openLookup(mkdtempSync(join(dir, "cache-")), { fetch: f, sleep: async () => {} });
     const r = await resolveBox(db, live, box, { ppocr: read("ppocr", "DIFFERENCE ENGINE\nGIBSON STERLING") }, null);
     expect(r).toMatchObject({ cls: "not-in-isfdb", resolvedBy: "loc", inOpenLibrary: false, genre: "sf" });
     expect(calls.at(-1)!.url).toContain("title=difference+engine&author=gibson+william");
@@ -255,7 +255,7 @@ describe("one box", () => {
 
   it("stays unresolved when nothing matches", async () => {
     const { f } = mockFetch((url) => ({ status: 200, body: url.includes("openlibrary") ? olBody([{ key: "/works/OL2W", title: "Count Zero", author_name: ["William Gibson"] }]) : modsBody }));
-    const live = new LiveCache(mkdtempSync(join(dir, "cache-")), { fetch: f, sleep: async () => {} });
+    const live = openLookup(mkdtempSync(join(dir, "cache-")), { fetch: f, sleep: async () => {} });
     const r = await resolveBox(db, live, box, { vision: read("vision", "XQZV WPLM") }, null);
     expect(r.cls).toBe("unresolved");
     expect(r.record).toBeNull();

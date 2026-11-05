@@ -224,13 +224,14 @@ C-4 measures what share of a session's readable spines ISFDB holds, using F-0's 
 
 | | |
 |---|---|
-| Code | `src/catalog/coverage.ts` (sample, queries, MODS / Open Library parsing, resolution rule, ISFDB check, estimates), `src/catalog/coverage-cli.ts` |
-| Commands | `bookcase catalog coverage --tune` (the confirmed tuning rows), `bookcase catalog coverage [--run-id C4] [--offline] [--session <name>]` |
+| Code | `src/catalog/coverage.ts` (sample, queries, MODS / Open Library parsing, resolution rule, ISFDB check, estimates), `src/catalog/coverage-cli.ts`; C-10's `src/catalog/lookup.ts` (cache, key, expiry, budget, migration), `lookup-local.ts` (local tier), `lookup-plan.ts` (plan, batching attribution), `lookup-eval.ts` |
+| Commands | `bookcase catalog coverage --tune` (the confirmed tuning rows), `bookcase catalog coverage [--run-id C4] [--offline] [--budget <n>] [--no-local] [--session <name>]`, `bookcase catalog coverage --plan [--all]` (C-10: the live calls a run would make, per source, no network) |
 | Inputs | F-0's stage cache `f0/<session>/{decisions,vision,ppocr,qwen}.jsonl` and `catalog/catalog.sqlite`, under `$BOOKCASE_DATA` |
 | Live sources | Open Library search (≤ 1 request/s), then LoC SRU `lx2.loc.gov:210/LCDB` over HTTP (≤ 10 requests/min), keyless, app User-Agent with no email address |
-| Cache | every response under `$BOOKCASE_DATA/catalog/coverage/{openlibrary,loc}/<sha256 of URL>.json`; `--offline` reruns make no calls and fail on a miss |
-| Output | the per-box table in the data root's `private/c4/<session>.<role>.jsonl` (reader text, queries, records: private); aggregates in `evals/<run-id>/metrics.json` |
-| Tests | `test/catalog-coverage.test.ts` (mocked fetch, public example titles, the mini staging catalog) |
+| Cache | C-10's lookup cache, `$BOOKCASE_DATA/catalog/coverage/v2/{openlibrary,loc}/<sha256 of key>.json`, keyed on the **normalized query key**, schema 2; C-4's URL-keyed files (schema 1) beside it are migrated on first open and left in place. No-match entries expire after 30 days, failed ones after 7. `--offline` reruns make no calls and fail on a miss |
+| Lookup tiers | cache, then (only when a call would be needed) records known for the box's copy group or work (`v2/known.json`), then the local catalogs (`--db`, then `catalog-v2.sqlite`'s Open Library works), then live within `--budget` (default 100 requests a run). See **lookup tier** in `CONTEXT.md` and [`evals/C10`](../evals/C10/report.md) |
+| Output | the per-box table in the data root's `private/c4/<session>.<role>.jsonl` for `--run-id C4`, else `private/coverage/<run id or adhoc>/` (reader text, queries, records: private); aggregates in `evals/<run-id>/metrics.json` |
+| Tests | `test/catalog-coverage.test.ts`, `test/lookup.test.ts` (mocked fetch, public example titles, the mini staging catalog and Open Library dump) |
 
 The live APIs are verifiers, not a search backend (backend-options §2): neither tolerates OCR noise, so the queries are per text line (AND) and per reading (OR), and the resolution rule, not the engine's ranking, decides whether a record is the book.
 
