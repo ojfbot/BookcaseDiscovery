@@ -54,6 +54,8 @@ const WEIGHT_EXT = new Set([
 ]);
 // Core ML packages are directories; any path inside one is a weight file.
 const WEIGHT_DIR_SUFFIXES = ['.mlpackage', '.mlmodelc'];
+// Dataset rows and tensors (F-1): these live under $BOOKCASE_DATA/datasets/, never under a repo datasets/ directory.
+const DATASET_ROW_EXT = new Set(['jsonl', 'ndjson', 'csv', 'tsv', 'parquet', 'arrow', 'feather', 'npy', 'tfrecord']);
 
 const CHATGPT_FILE_NAMES = new Set(['conversations.json', 'chat.html']);
 const BANNED_PROVENANCE = new Set(['chatgpt-export', 'selfco']);
@@ -304,6 +306,12 @@ function checkFile(path, buf, cache, oid) {
     if (isImage) add('image-type', 'image or RAW file outside test/fixtures/synthetic/');
     if (isVideo) add('video-type', 'video file outside test/fixtures/synthetic/');
     if (isWeight) add('weight-type', 'model weight file outside test/fixtures/synthetic/');
+  }
+
+  // --- datasets/ (F-1): no images, videos, weights or rows under a datasets directory, synthetic or not ---------
+  if (lowerSegments.slice(0, -1).includes('datasets')) {
+    if (isImage || isVideo || isWeight) add('datasets-dir', 'image, video or weight file under a datasets/ directory');
+    else if (DATASET_ROW_EXT.has(ext)) add('datasets-dir', 'dataset row file under a datasets/ directory');
   }
 
   // --- GPS in image metadata (everywhere, including the synthetic dir) ---------------------------
