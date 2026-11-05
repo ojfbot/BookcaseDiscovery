@@ -125,8 +125,30 @@ describe("Open Library import (synthetic dumps)", () => {
     expect(retrieve(db, ["IRMA ROMBAUER"], 3).map((c) => c.workId)).not.toContain("ol:OL3W");
   });
 
-  it("writes schema version 2 and still opens version 1 files", () => {
-    expect(CATALOG_SCHEMA_VERSION).toBe(2);
+  it("keeps every Open Library publisher string and ISFDB's publisher series on editions (C-9)", () => {
+    expect(db.prepare("SELECT publisher, publishers FROM editions WHERE edition_id = 'ol:OL401M'").get()).toEqual({ publisher: "Penguin Press", publishers: '["Penguin Press","Penguin Group"]' });
+    expect(db.prepare("SELECT publisher, publishers FROM editions WHERE edition_id = 'ol:OL402M'").get()).toMatchObject({ publishers: null });
+    expect(db.prepare("SELECT pub_series FROM editions WHERE edition_id = 'isfdb-pub:401'").get()).toEqual({ pub_series: "Ace Science Fiction Specials" });
+    expect(db.prepare("SELECT COUNT(*) AS n FROM editions WHERE pub_series IS NOT NULL").get()).toEqual({ n: 1 });
+  });
+
+  it("still merges a version 1 staging file (first publisher only)", () => {
+    const old = join(dir, "ol-staging-v1.sqlite");
+    const raw = new DatabaseSync(join(dir, "ol-staging.sqlite"));
+    raw.exec(`VACUUM INTO '${old}'`);
+    raw.close();
+    const v1 = new DatabaseSync(old);
+    v1.exec("ALTER TABLE ol_editions DROP COLUMN publishers; UPDATE meta SET value = '1' WHERE key = 'schema_version'; PRAGMA user_version = 1");
+    v1.close();
+    const out = join(dir, "catalog-v2-from-v1.sqlite");
+    buildCatalog({ staging: join(dir, "isfdb-staging.sqlite"), openLibrary: old, out });
+    const c = openCatalog(out);
+    expect(c.prepare("SELECT publisher, publishers FROM editions WHERE edition_id = 'ol:OL401M'").get()).toEqual({ publisher: "Penguin Press", publishers: null });
+    c.close();
+  });
+
+  it("writes schema version 3 and still opens version 1 files", () => {
+    expect(CATALOG_SCHEMA_VERSION).toBe(3);
     const v1 = join(dir, "v1.sqlite");
     buildCatalog({ staging: join(dir, "isfdb-staging.sqlite"), out: v1 });
     const raw = new DatabaseSync(v1);
@@ -134,9 +156,9 @@ describe("Open Library import (synthetic dumps)", () => {
     raw.close();
     expect(() => openCatalog(v1).close()).not.toThrow();
     const raw3 = new DatabaseSync(v1);
-    raw3.exec("PRAGMA user_version = 3");
+    raw3.exec("PRAGMA user_version = 4");
     raw3.close();
-    expect(() => openCatalog(v1)).toThrow(/schema version 3/);
+    expect(() => openCatalog(v1)).toThrow(/schema version 4/);
   });
 
   it("selects the catalog file from BOOKCASE_CATALOG, defaulting to catalog.sqlite", () => {

@@ -69,7 +69,7 @@ describe("buildCatalog", () => {
 
   it("records provenance in meta and refuses a missing staging file", () => {
     const meta = Object.fromEntries((db.prepare("SELECT key, value FROM meta").all() as Array<{ key: string; value: string }>).map((r) => [r.key, r.value]));
-    expect(meta).toMatchObject({ schema_version: "2", staging_content_hash: "test-hash", staging_dump_date: "2026-10-31", "rows.works": "8" });
+    expect(meta).toMatchObject({ schema_version: "3", staging_content_hash: "test-hash", staging_dump_date: "2026-10-31", "rows.works": "8" });
     expect(() => buildCatalog({ staging: join(dir, "nope.sqlite"), out: join(dir, "x.sqlite") })).toThrow(/not found/);
   });
 });
