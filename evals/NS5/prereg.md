@@ -93,10 +93,10 @@ For one experiment, in the real degraded-tier column only:
 
 | Quantity | Proposed range (label: proposal) | Owner's pick | Date |
 |---|---|---|---|
-| Minimum cases in the real column | 8 to 20 (floor 5, NS1's) | | |
-| One-sided confidence level of the lower bound | 90 % to 97.5 % | | |
-| Margin the lower bound must clear (percentage points; 0 = the card's bare rule) | 0 to 5 | | |
-| Fixed down-weight, if the scheme `fixed-downweight` is used | 0.1 to 0.5 | | |
+| Minimum cases in the real column | 8 to 20 (floor 5, NS1's) | **14** | 2026-11-05 |
+| One-sided confidence level of the lower bound | 90 % to 97.5 % | **93.75 %** | 2026-11-05 |
+| Margin the lower bound must clear (percentage points; 0 = the card's bare rule) | 0 to 5 | **2.5** | 2026-11-05 |
+| Fixed down-weight, if the scheme `fixed-downweight` is used | 0.1 to 0.5 | **0.3** | 2026-11-05 |
 
 ## 5. The recoverability rule (operational)
 
