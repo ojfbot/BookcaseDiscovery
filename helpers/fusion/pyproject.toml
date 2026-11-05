@@ -1,0 +1,19 @@
+[project]
+name = "bookcase-fusion"
+version = "0.1.0"
+description = "NS-10 spike: multi-view geometry (MapAnything, Apache-2.0 variant) per capture group of shelf stills, for label fusion across views. Standalone; not part of the default pipeline."
+license = "AGPL-3.0-only"
+requires-python = ">=3.12,<3.13"
+dependencies = [
+  "torch>=2.8",
+  "torchvision>=0.23",
+  "numpy>=2",
+  "pillow>=11",
+  "opencv-python-headless==4.10.0.84",
+  # MapAnything (Apache-2.0 code), pinned to the v1.1.3 tag; the weights are facebook/map-anything-apache.
+  "mapanything @ git+https://github.com/facebookresearch/map-anything.git@9d1db2dd728bd8a10e74b15d2eb646e1bf933791",
+]
+
+[tool.uv]
+package = false
+override-dependencies = ["opencv-python==4.10.0.84", "opencv-python-headless==4.10.0.84"]
