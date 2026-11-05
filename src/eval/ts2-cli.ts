@@ -30,6 +30,7 @@ import {
   ARMS,
   BAR,
   decisionRelevant,
+  gainBreakdown,
   keeps,
   secondsPerCrop,
   steerCandidates,
@@ -129,10 +130,21 @@ function readSet(set: SetName): Set<string> {
 
 // --- GPU discipline -----------------------------------------------------------------------------------------
 
-/** OC: one GPU job at a time. Throws when another mlx, torch or qwen process is running. */
+/**
+ * One GPU job at a time: throws when another mlx, torch or qwen process is running. A pid the conductor named idle
+ * (`TS2_GPU_IDLE_PIDS`, comma-separated) is ignored only while it has no child process.
+ */
 function assertGpuFree(): void {
+  const idle = new Set((process.env.TS2_GPU_IDLE_PIDS ?? "").split(",").map((x) => x.trim()).filter(Boolean));
+  const childless = (pid: string) => !(spawnSync("pgrep", ["-P", pid], { encoding: "utf8" }).stdout ?? "").trim();
   const r = spawnSync("pgrep", ["-fl", "mlx|torch|qwen"], { encoding: "utf8" });
-  const others = (r.stdout ?? "").split("\n").filter((l) => l.trim());
+  const others = (r.stdout ?? "")
+    .split("\n")
+    .filter((l) => l.trim())
+    .filter((l) => {
+      const pid = l.trim().split(/\s+/)[0]!;
+      return !(idle.has(pid) && childless(pid));
+    });
   if (others.length > 0) throw new Error(`${others.length} other mlx/torch/qwen process(es) running: wait for the GPU lane`);
 }
 
@@ -320,10 +332,11 @@ interface StudentRead {
   error?: string;
 }
 
-function studentVotes(set: SetName, free: boolean, db: DatabaseSync): { votes: Map<string, StudentVote>; seconds: number[]; steeredShare: number | null; errors: number } {
+function studentVotes(set: SetName, free: boolean, db: DatabaseSync): { votes: Map<string, StudentVote>; verbatim: Set<string>; seconds: number[]; steeredShare: number | null; errors: number } {
   const rows = readJsonl<StudentRead>(outPath(set, free));
   const cache = new Map<string, Candidate | undefined>();
   const votes = new Map<string, StudentVote>();
+  const verbatim = new Set<string>();
   const seconds: number[] = [];
   let steered = 0, variants = 0, errors = 0;
   for (const r of rows) {
@@ -335,8 +348,9 @@ function studentVotes(set: SetName, free: boolean, db: DatabaseSync): { votes: M
     votes.set(r.id, { confirmed: studentConfirms(topFor(db, reading, cache)), readText: variantsOf(reading).length > 0 });
     seconds.push(r.seconds);
     for (const s of r.steered ?? []) (variants++, s && steered++);
+    if ((r.steered ?? []).some(Boolean)) verbatim.add(r.id);
   }
-  return { votes, seconds, steeredShare: variants ? steered / variants : null, errors };
+  return { votes, verbatim, seconds, steeredShare: variants ? steered / variants : null, errors };
 }
 
 /** Each kept box under the three arms, the student's vote taken from `free` or steered reads. */
@@ -384,9 +398,12 @@ function analyse(): void {
     for (const free of [false, true]) {
       if (!existsSync(outPath("yardstick", free))) continue;
       const sv = studentVotes("yardstick", free, db);
-      const m = armMeasures(armRows("yardstick", sv.votes));
+      const rows = armRows("yardstick", sv.votes);
+      const m = armMeasures(rows);
       const arm = free ? "free" : "steered";
-      yard[arm] = { read: sv.votes.size, errors: sv.errors, steeredOutputShare: sv.steeredShare === null ? null : r4(sv.steeredShare), secondsPerCrop: tri(secondsPerCrop(sv.seconds)), arms: triAll(m), keep: { fourth: keeps(m, "fourth"), replace: keeps(m, "replace") } };
+      const byId = new Map(baseBoxes("yardstick").map((b) => [b.id, b]));
+      const gains = gainBreakdown(rows.map((r) => ({ base: byId.get(r.id)!, accepted: r.accepted.fourth, truth: r.truth, verbatim: sv.verbatim.has(r.id) })));
+      yard[arm] = { read: sv.votes.size, errors: sv.errors, steeredOutputShare: sv.steeredShare === null ? null : r4(sv.steeredShare), secondsPerCrop: tri(secondsPerCrop(sv.seconds)), arms: triAll(m), keep: { fourth: keeps(m, "fourth"), replace: keeps(m, "replace") }, fourthGainsExploratory: gains };
       if (!free) verdict.yardstick = { fourth: keeps(m, "fourth").keep, replace: keeps(m, "replace").keep };
     }
     db.close();
@@ -462,6 +479,12 @@ function tables(m: any): string {
     }
     out.push(`### ${arm === "steered" ? "Steered student (pre-registered)" : "Free-decoding student (exploratory)"}`, "", `Read ${s.read} boxes (${s.errors} errors); output exactly a candidate on ${s.steeredOutputShare === null ? "–" : `${(s.steeredOutputShare * 100).toFixed(1)} %`} of rotations.`, "");
     out.push(...armTable(s.arms, "confirmed", "wrong"), "");
+    out.push("Fourth-reader gains by the cached reader the student agreed with, and whether its output was a steering candidate verbatim (exploratory):", "", "| partner | student output | confirmed | wrong |", "|---|---|---|---|");
+    for (const [k, v] of Object.entries(s.fourthGainsExploratory as Record<string, { confirmed: number; wrong: number }>).sort()) {
+      const [partner, how] = k.split("|");
+      out.push(`| ${partner} | ${how === "verbatim" ? "a candidate, verbatim" : "its own text"} | ${v.confirmed} | ${v.wrong} |`);
+    }
+    out.push("");
     out.push(`Keep rule: fourth reader **${s.keep.fourth.keep ? "kept" : "not kept"}** (confirmed up: ${s.keep.fourth.confirmedUp}; wrong not up: ${s.keep.fourth.wrongNotUp}); replacing ${m.constants.replaces} **${s.keep.replace.keep ? "kept" : "not kept"}** (confirmed up: ${s.keep.replace.confirmedUp}; wrong not up: ${s.keep.replace.wrongNotUp}).`, "");
   }
   const p = m["pilot-000"];
@@ -471,7 +494,12 @@ function tables(m: any): string {
     const g = p.steered.agreement;
     out.push("| val labels | labels | photos | student confirms the label's work | another work | nothing | agreement (95 %) |", "|---|---|---|---|---|---|---|");
     for (const k of ["all", "strong"]) out.push(`| ${k} | ${g[k].labels} | ${g[k].photos} | ${g[k].agree} | ${g[k].otherWork} | ${g[k].noConfirm} | ${ci(g[k].share, 1, 100)} % |`);
-    out.push("", "Arms on the val photos (every accept is machine agreement; no truth):", "", ...armTable(p.steered.arms, "accepted†", "–"), "", "† On real use the table's \"confirmed\" column counts every accept and \"wrong\" is always 0.", "");
+    out.push("", "Arms on the val photos (every accept is machine agreement; there is no truth on real use):", "", "| arm | accepted | Δ accepted (95 %) | gained | lost | changed |", "|---|---|---|---|---|---|");
+    for (const arm of ARMS) {
+      const x = p.steered.arms[arm];
+      out.push(`| ${arm} | ${x.accepted} | ${arm === "base" ? "–" : ci(x.deltaConfirmed, 0)} | ${x.gained ?? "–"} | ${x.lost ?? "–"} | ${x.changed ?? "–"} |`);
+    }
+    out.push("");
   }
   out.push("## Speed (seconds a crop, both rotations; mean, 95 % interval over crops)", "", "| set | student (steered) | student (free) | Vision | PP-OCR | Qwen |", "|---|---|---|---|---|---|");
   for (const [set, s] of [["yardstick", y], ["pilot-000 val", p]] as [string, any][])

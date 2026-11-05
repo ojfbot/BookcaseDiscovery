@@ -1,0 +1,45 @@
+{
+  "name": "ts2-spine-reader",
+  "card": "TS-2",
+  "kind": "lora-adapter",
+  "base": {
+    "name": "qwen3-vl-4b-instruct-8bit",
+    "repo": "mlx-community/Qwen3-VL-4B-Instruct-8bit",
+    "revision": "0943db6e15185b86be368d3cf0704aec740b142b",
+    "licence": "Apache-2.0"
+  },
+  "trainer": {
+    "library": "mlx-vlm",
+    "version": "0.7.11"
+  },
+  "ledger": {
+    "dataset": "label-ledger",
+    "version": "v-4e0ec70a69de",
+    "class": "strong",
+    "split": "train",
+    "trainingSetHash": "387c5d1565c9405fb44454b52f9183b164bd89607f496f03d96a0153a6749383",
+    "examples": 379
+  },
+  "hyperparameters": {
+    "rank": 8,
+    "alpha": 16,
+    "dropout": 0.05,
+    "learningRate": 0.0001,
+    "epochs": 2,
+    "batchSize": 1,
+    "seed": 20261105,
+    "maxSeqLength": 1024,
+    "trainOnCompletions": true,
+    "trainVision": false
+  },
+  "adapterSha256": "ee71ba7dcb7b771f795157aa9027e960fc54ea52f189469c731f76d037087893",
+  "release": {
+    "status": "private-only",
+    "gates": {
+      "G-W": "not eligible",
+      "G-PUB": "not eligible"
+    },
+    "why": "Trained on labels where Apple Vision is in the agreeing pair; Vision's output stays private. Nothing is uploaded anywhere."
+  },
+  "evals": "evals/TS2/report.md"
+}

@@ -9,6 +9,7 @@ import {
   armMeasures,
   bestRotation,
   decisionRelevant,
+  gainBreakdown,
   keeps,
   outcomeOf,
   secondsPerCrop,
@@ -198,5 +199,17 @@ describe("secondsPerCrop", () => {
     expect(t.lo).toBeLessThanOrEqual(2);
     expect(t.hi).toBeGreaterThanOrEqual(2);
     expect(secondsPerCrop([])).toBeNull();
+  });
+});
+
+describe("gainBreakdown (exploratory)", () => {
+  it("keys each gained accept by the agreeing cached reader and whether the student's output was a candidate verbatim", () => {
+    const b = (confirmed: BaseBox["confirmed"], accepted: string | null = null): BaseBox => ({ id: "i:1", imageId: "i", confirmed, readText: {}, accepted });
+    const got = gainBreakdown([
+      { base: b({ vision: "w", ppocr: null }), accepted: "w", truth: new Set(["w"]), verbatim: true },
+      { base: b({ ppocr: "x" }), accepted: "x", truth: new Set(["w"]), verbatim: false },
+      { base: b({ vision: "w", ppocr: "w" }, "w"), accepted: "w", truth: new Set(["w"]), verbatim: false },
+    ]);
+    expect(got).toEqual({ "vision|verbatim": { confirmed: 1, wrong: 0 }, "ppocr|own": { confirmed: 0, wrong: 1 } });
   });
 });

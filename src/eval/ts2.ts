@@ -244,5 +244,24 @@ export function secondsPerCrop(xs: readonly number[], reps: number = TS2.reps, s
   return { value: mean(xs), lo: quantile(draws, 0.025), hi: quantile(draws, 0.975) };
 }
 
+/**
+ * Exploratory (not pre-registered): on the boxes the fourth arm gains, which cached reader the student agreed with,
+ * whether its output was a steering candidate verbatim, and the outcome. Asks whether steering towards Vision's and
+ * PP-OCR's candidates makes the student share their errors (TS-1's correlated-error finding).
+ */
+export function gainBreakdown(rows: { base: BaseBox; accepted: string | null; truth?: ReadonlySet<string>; verbatim: boolean }[]) {
+  const out: Record<string, { confirmed: number; wrong: number }> = {};
+  for (const r of rows) {
+    if (r.base.accepted || !r.accepted) continue;
+    const partners = (Object.entries(r.base.confirmed) as [ReaderName, string | null][]).filter(([, w]) => w === r.accepted).map(([k]) => k).sort().join("+") || "none";
+    const key = `${partners}|${r.verbatim ? "verbatim" : "own"}`;
+    const o = outcomeOf(r.accepted, r.truth);
+    out[key] ??= { confirmed: 0, wrong: 0 };
+    if (o === "confirmed") out[key].confirmed++;
+    else if (o === "wrong") out[key].wrong++;
+  }
+  return out;
+}
+
 /** The acceptance bar the student's reads are held to (F-0's, re-exported so the report can print it). */
 export const BAR = ACCEPT;
