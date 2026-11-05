@@ -245,7 +245,7 @@ function analyse(): void {
     const ids = [...new Set(Object.values(g.confirmed))].sort();
     log(`${set}: ${Object.keys(g.confirmed).length} confirmed boxes, ${ids.length} works`);
     sets[set] = { confirmedBoxes: Object.keys(g.confirmed).length, ...summarise([...views(db, ids).values()]) };
-    gates[set] = { boxes: g.boxes, rb1Boxes: g.rb1Boxes, accepts: g.accepts, reproducedVsToday: g.reproducedVsToday, reproducedVsC6: g.reproducedVsC6, reproducedVsStored: Math.round(g.reproducedVsStored * 10000) / 10000 };
+    gates[set] = { decided: g.boxes, inRb1BoxSet: g.rb1Boxes, accepts: g.accepts, reproducedVsToday: g.reproducedVsToday, reproducedVsC6: g.reproducedVsC6, reproducedVsStored: Math.round(g.reproducedVsStored * 10000) / 10000 };
   }
   log("catalog-wide");
   const all = summarise([...views(db, null).values()]);

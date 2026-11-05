@@ -1,0 +1,1105 @@
+{
+ "runId": "KN1",
+ "card": "KN-1",
+ "date": "2026-11-05",
+ "note": "Aggregates only: no titles, no ids. pilot-000 is machine agreement, never accuracy (INV-17); the yardstick is PROXY (library shelves) and its accepts include wrong ones. Never pooled (OC35). Nothing here reads the profile (INV-13) or changes a decision, so there is no keep rule.",
+ "catalog": {
+  "file": "catalog-kn1.sqlite",
+  "schemaVersion": 4,
+  "workFeatures": "isfdb-tag,openlibrary-subject",
+  "isfdbDumpDate": "2026-10-31",
+  "openLibrarySubjectsDumpDate": "2026-10-31",
+  "openLibraryLinkedWorks": 116704,
+  "rows": 631048,
+  "rowsByKind": {
+   "genre": 216348,
+   "form": 84795,
+   "subject": 329905
+  },
+  "isfdbPrivateTagLinksSkipped": 24584,
+  "notABookFactDropped": 16184
+ },
+ "confirmed": "F-0's readers-agree accepts, re-decided on catalog-kn1, on RB-1's box set; distinct works per set",
+ "gate": {
+  "rule": "every box's accept on catalog-kn1 equals its accept on today's catalog.sqlite (1.000)",
+  "pilot-000": {
+   "decided": 6894,
+   "inRb1BoxSet": 5748,
+   "accepts": {
+    "today": 718,
+    "kn1": 718
+   },
+   "reproducedVsToday": 1,
+   "reproducedVsC6": 1,
+   "reproducedVsStored": 1
+  },
+  "yardstick": {
+   "decided": 1132,
+   "inRb1BoxSet": 1038,
+   "accepts": {
+    "today": 13,
+    "kn1": 13
+   },
+   "reproducedVsToday": 1,
+   "reproducedVsC6": 1,
+   "reproducedVsStored": 0.7597
+  }
+ },
+ "sets": {
+  "pilot-000": {
+   "confirmedBoxes": 643,
+   "works": 471,
+   "coverage": {
+    "genreOrForm": {
+     "isfdb": {
+      "k": 309,
+      "n": 471,
+      "pct": 65.6,
+      "lo": 61.2,
+      "hi": 69.8
+     },
+     "openlibrary": {
+      "k": 294,
+      "n": 471,
+      "pct": 62.4,
+      "lo": 58,
+      "hi": 66.7
+     },
+     "either": {
+      "k": 377,
+      "n": 471,
+      "pct": 80,
+      "lo": 76.2,
+      "hi": 83.4
+     },
+     "both": {
+      "k": 226,
+      "n": 471,
+      "pct": 48,
+      "lo": 43.5,
+      "hi": 52.5
+     }
+    },
+    "genre": {
+     "isfdb": {
+      "k": 309,
+      "n": 471,
+      "pct": 65.6,
+      "lo": 61.2,
+      "hi": 69.8
+     },
+     "openlibrary": {
+      "k": 279,
+      "n": 471,
+      "pct": 59.2,
+      "lo": 54.7,
+      "hi": 63.6
+     },
+     "either": {
+      "k": 372,
+      "n": 471,
+      "pct": 79,
+      "lo": 75.1,
+      "hi": 82.4
+     },
+     "both": {
+      "k": 216,
+      "n": 471,
+      "pct": 45.9,
+      "lo": 41.4,
+      "hi": 50.4
+     }
+    },
+    "form": {
+     "isfdb": {
+      "k": 2,
+      "n": 471,
+      "pct": 0.4,
+      "lo": 0.1,
+      "hi": 1.5
+     },
+     "openlibrary": {
+      "k": 233,
+      "n": 471,
+      "pct": 49.5,
+      "lo": 45,
+      "hi": 54
+     },
+     "either": {
+      "k": 234,
+      "n": 471,
+      "pct": 49.7,
+      "lo": 45.2,
+      "hi": 54.2
+     },
+     "both": {
+      "k": 1,
+      "n": 471,
+      "pct": 0.2,
+      "lo": 0,
+      "hi": 1.2
+     }
+    },
+    "subject": {
+     "isfdb": {
+      "k": 129,
+      "n": 471,
+      "pct": 27.4,
+      "lo": 23.6,
+      "hi": 31.6
+     },
+     "openlibrary": {
+      "k": 270,
+      "n": 471,
+      "pct": 57.3,
+      "lo": 52.8,
+      "hi": 61.7
+     },
+     "either": {
+      "k": 306,
+      "n": 471,
+      "pct": 65,
+      "lo": 60.6,
+      "hi": 69.1
+     },
+     "both": {
+      "k": 93,
+      "n": 471,
+      "pct": 19.7,
+      "lo": 16.4,
+      "hi": 23.6
+     }
+    },
+    "any": {
+     "isfdb": {
+      "k": 325,
+      "n": 471,
+      "pct": 69,
+      "lo": 64.7,
+      "hi": 73
+     },
+     "openlibrary": {
+      "k": 317,
+      "n": 471,
+      "pct": 67.3,
+      "lo": 62.9,
+      "hi": 71.4
+     },
+     "either": {
+      "k": 393,
+      "n": 471,
+      "pct": 83.4,
+      "lo": 79.8,
+      "hi": 86.5
+     },
+     "both": {
+      "k": 249,
+      "n": 471,
+      "pct": 52.9,
+      "lo": 48.4,
+      "hi": 57.3
+     }
+    }
+   },
+   "termsPerWork": {
+    "isfdb": {
+     "meanAllWorks": 1.91,
+     "medianAllWorks": 1,
+     "meanWorksWithAny": 2.77,
+     "medianWorksWithAny": 1,
+     "meanByKind": {
+      "genre": 0.86,
+      "form": 0,
+      "subject": 1.04
+     }
+    },
+    "openlibrary": {
+     "meanAllWorks": 4.83,
+     "medianAllWorks": 3,
+     "meanWorksWithAny": 7.17,
+     "medianWorksWithAny": 6,
+     "meanByKind": {
+      "genre": 1.54,
+      "form": 0.67,
+      "subject": 2.62
+     }
+    }
+   },
+   "agreement": {
+    "genre": {
+     "worksWithBoth": 216,
+     "shareWithOneInCommon": {
+      "k": 171,
+      "n": 216,
+      "pct": 79.2,
+      "lo": 73.3,
+      "hi": 84
+     },
+     "meanJaccard": 0.52
+    },
+    "genreFamily": {
+     "worksWithBoth": 216,
+     "shareWithOneInCommon": {
+      "k": 195,
+      "n": 216,
+      "pct": 90.3,
+      "lo": 85.6,
+      "hi": 93.6
+     },
+     "meanJaccard": 0.67
+    },
+    "form": {
+     "worksWithBoth": 1,
+     "shareWithOneInCommon": {
+      "k": 0,
+      "n": 1,
+      "pct": 0,
+      "lo": 0,
+      "hi": 79.3
+     },
+     "meanJaccard": 0
+    }
+   },
+   "byIsfdbGenreFlag": {
+    "genre": {
+     "works": 470,
+     "genreOrForm": {
+      "isfdb": {
+       "k": 309,
+       "n": 470,
+       "pct": 65.7,
+       "lo": 61.3,
+       "hi": 69.9
+      },
+      "openlibrary": {
+       "k": 293,
+       "n": 470,
+       "pct": 62.3,
+       "lo": 57.9,
+       "hi": 66.6
+      },
+      "either": {
+       "k": 376,
+       "n": 470,
+       "pct": 80,
+       "lo": 76.1,
+       "hi": 83.4
+      },
+      "both": {
+       "k": 226,
+       "n": 470,
+       "pct": 48.1,
+       "lo": 43.6,
+       "hi": 52.6
+      }
+     },
+     "form": {
+      "isfdb": {
+       "k": 2,
+       "n": 470,
+       "pct": 0.4,
+       "lo": 0.1,
+       "hi": 1.5
+      },
+      "openlibrary": {
+       "k": 232,
+       "n": 470,
+       "pct": 49.4,
+       "lo": 44.9,
+       "hi": 53.9
+      },
+      "either": {
+       "k": 233,
+       "n": 470,
+       "pct": 49.6,
+       "lo": 45.1,
+       "hi": 54.1
+      },
+      "both": {
+       "k": 1,
+       "n": 470,
+       "pct": 0.2,
+       "lo": 0,
+       "hi": 1.2
+      }
+     }
+    },
+    "nonGenre": {
+     "works": 1,
+     "genreOrForm": {
+      "isfdb": {
+       "k": 0,
+       "n": 1,
+       "pct": 0,
+       "lo": 0,
+       "hi": 79.3
+      },
+      "openlibrary": {
+       "k": 1,
+       "n": 1,
+       "pct": 100,
+       "lo": 20.7,
+       "hi": 100
+      },
+      "either": {
+       "k": 1,
+       "n": 1,
+       "pct": 100,
+       "lo": 20.7,
+       "hi": 100
+      },
+      "both": {
+       "k": 0,
+       "n": 1,
+       "pct": 0,
+       "lo": 0,
+       "hi": 79.3
+      }
+     },
+     "form": {
+      "isfdb": {
+       "k": 0,
+       "n": 1,
+       "pct": 0,
+       "lo": 0,
+       "hi": 79.3
+      },
+      "openlibrary": {
+       "k": 1,
+       "n": 1,
+       "pct": 100,
+       "lo": 20.7,
+       "hi": 100
+      },
+      "either": {
+       "k": 1,
+       "n": 1,
+       "pct": 100,
+       "lo": 20.7,
+       "hi": 100
+      },
+      "both": {
+       "k": 0,
+       "n": 1,
+       "pct": 0,
+       "lo": 0,
+       "hi": 79.3
+      }
+     }
+    }
+   }
+  },
+  "yardstick": {
+   "confirmedBoxes": 12,
+   "works": 12,
+   "coverage": {
+    "genreOrForm": {
+     "isfdb": {
+      "k": 5,
+      "n": 12,
+      "pct": 41.7,
+      "lo": 19.3,
+      "hi": 68
+     },
+     "openlibrary": {
+      "k": 6,
+      "n": 12,
+      "pct": 50,
+      "lo": 25.4,
+      "hi": 74.6
+     },
+     "either": {
+      "k": 7,
+      "n": 12,
+      "pct": 58.3,
+      "lo": 32,
+      "hi": 80.7
+     },
+     "both": {
+      "k": 4,
+      "n": 12,
+      "pct": 33.3,
+      "lo": 13.8,
+      "hi": 60.9
+     }
+    },
+    "genre": {
+     "isfdb": {
+      "k": 5,
+      "n": 12,
+      "pct": 41.7,
+      "lo": 19.3,
+      "hi": 68
+     },
+     "openlibrary": {
+      "k": 4,
+      "n": 12,
+      "pct": 33.3,
+      "lo": 13.8,
+      "hi": 60.9
+     },
+     "either": {
+      "k": 7,
+      "n": 12,
+      "pct": 58.3,
+      "lo": 32,
+      "hi": 80.7
+     },
+     "both": {
+      "k": 2,
+      "n": 12,
+      "pct": 16.7,
+      "lo": 4.7,
+      "hi": 44.8
+     }
+    },
+    "form": {
+     "isfdb": {
+      "k": 1,
+      "n": 12,
+      "pct": 8.3,
+      "lo": 1.5,
+      "hi": 35.4
+     },
+     "openlibrary": {
+      "k": 5,
+      "n": 12,
+      "pct": 41.7,
+      "lo": 19.3,
+      "hi": 68
+     },
+     "either": {
+      "k": 5,
+      "n": 12,
+      "pct": 41.7,
+      "lo": 19.3,
+      "hi": 68
+     },
+     "both": {
+      "k": 1,
+      "n": 12,
+      "pct": 8.3,
+      "lo": 1.5,
+      "hi": 35.4
+     }
+    },
+    "subject": {
+     "isfdb": {
+      "k": 4,
+      "n": 12,
+      "pct": 33.3,
+      "lo": 13.8,
+      "hi": 60.9
+     },
+     "openlibrary": {
+      "k": 7,
+      "n": 12,
+      "pct": 58.3,
+      "lo": 32,
+      "hi": 80.7
+     },
+     "either": {
+      "k": 7,
+      "n": 12,
+      "pct": 58.3,
+      "lo": 32,
+      "hi": 80.7
+     },
+     "both": {
+      "k": 4,
+      "n": 12,
+      "pct": 33.3,
+      "lo": 13.8,
+      "hi": 60.9
+     }
+    },
+    "any": {
+     "isfdb": {
+      "k": 6,
+      "n": 12,
+      "pct": 50,
+      "lo": 25.4,
+      "hi": 74.6
+     },
+     "openlibrary": {
+      "k": 7,
+      "n": 12,
+      "pct": 58.3,
+      "lo": 32,
+      "hi": 80.7
+     },
+     "either": {
+      "k": 8,
+      "n": 12,
+      "pct": 66.7,
+      "lo": 39.1,
+      "hi": 86.2
+     },
+     "both": {
+      "k": 5,
+      "n": 12,
+      "pct": 41.7,
+      "lo": 19.3,
+      "hi": 68
+     }
+    }
+   },
+   "termsPerWork": {
+    "isfdb": {
+     "meanAllWorks": 3.17,
+     "medianAllWorks": 0.5,
+     "meanWorksWithAny": 6.33,
+     "medianWorksWithAny": 3.5,
+     "meanByKind": {
+      "genre": 0.58,
+      "form": 0.08,
+      "subject": 2.5
+     }
+    },
+    "openlibrary": {
+     "meanAllWorks": 13.67,
+     "medianAllWorks": 11.5,
+     "meanWorksWithAny": 23.43,
+     "medianWorksWithAny": 17,
+     "meanByKind": {
+      "genre": 1.25,
+      "form": 1.33,
+      "subject": 11.08
+     }
+    }
+   },
+   "agreement": {
+    "genre": {
+     "worksWithBoth": 2,
+     "shareWithOneInCommon": {
+      "k": 2,
+      "n": 2,
+      "pct": 100,
+      "lo": 34.2,
+      "hi": 100
+     },
+     "meanJaccard": 0.21
+    },
+    "genreFamily": {
+     "worksWithBoth": 2,
+     "shareWithOneInCommon": {
+      "k": 2,
+      "n": 2,
+      "pct": 100,
+      "lo": 34.2,
+      "hi": 100
+     },
+     "meanJaccard": 0.25
+    },
+    "form": {
+     "worksWithBoth": 1,
+     "shareWithOneInCommon": {
+      "k": 0,
+      "n": 1,
+      "pct": 0,
+      "lo": 0,
+      "hi": 79.3
+     },
+     "meanJaccard": 0
+    }
+   },
+   "byIsfdbGenreFlag": {
+    "genre": {
+     "works": 12,
+     "genreOrForm": {
+      "isfdb": {
+       "k": 5,
+       "n": 12,
+       "pct": 41.7,
+       "lo": 19.3,
+       "hi": 68
+      },
+      "openlibrary": {
+       "k": 6,
+       "n": 12,
+       "pct": 50,
+       "lo": 25.4,
+       "hi": 74.6
+      },
+      "either": {
+       "k": 7,
+       "n": 12,
+       "pct": 58.3,
+       "lo": 32,
+       "hi": 80.7
+      },
+      "both": {
+       "k": 4,
+       "n": 12,
+       "pct": 33.3,
+       "lo": 13.8,
+       "hi": 60.9
+      }
+     },
+     "form": {
+      "isfdb": {
+       "k": 1,
+       "n": 12,
+       "pct": 8.3,
+       "lo": 1.5,
+       "hi": 35.4
+      },
+      "openlibrary": {
+       "k": 5,
+       "n": 12,
+       "pct": 41.7,
+       "lo": 19.3,
+       "hi": 68
+      },
+      "either": {
+       "k": 5,
+       "n": 12,
+       "pct": 41.7,
+       "lo": 19.3,
+       "hi": 68
+      },
+      "both": {
+       "k": 1,
+       "n": 12,
+       "pct": 8.3,
+       "lo": 1.5,
+       "hi": 35.4
+      }
+     }
+    },
+    "nonGenre": {
+     "works": 0,
+     "genreOrForm": {
+      "isfdb": {
+       "k": 0,
+       "n": 0,
+       "pct": null,
+       "lo": null,
+       "hi": null
+      },
+      "openlibrary": {
+       "k": 0,
+       "n": 0,
+       "pct": null,
+       "lo": null,
+       "hi": null
+      },
+      "either": {
+       "k": 0,
+       "n": 0,
+       "pct": null,
+       "lo": null,
+       "hi": null
+      },
+      "both": {
+       "k": 0,
+       "n": 0,
+       "pct": null,
+       "lo": null,
+       "hi": null
+      }
+     },
+     "form": {
+      "isfdb": {
+       "k": 0,
+       "n": 0,
+       "pct": null,
+       "lo": null,
+       "hi": null
+      },
+      "openlibrary": {
+       "k": 0,
+       "n": 0,
+       "pct": null,
+       "lo": null,
+       "hi": null
+      },
+      "either": {
+       "k": 0,
+       "n": 0,
+       "pct": null,
+       "lo": null,
+       "hi": null
+      },
+      "both": {
+       "k": 0,
+       "n": 0,
+       "pct": null,
+       "lo": null,
+       "hi": null
+      }
+     }
+    }
+   }
+  }
+ },
+ "catalogWide": {
+  "works": 340829,
+  "coverage": {
+   "genreOrForm": {
+    "isfdb": {
+     "k": 92531,
+     "n": 340829,
+     "pct": 27.1,
+     "lo": 27,
+     "hi": 27.3
+    },
+    "openlibrary": {
+     "k": 63687,
+     "n": 340829,
+     "pct": 18.7,
+     "lo": 18.6,
+     "hi": 18.8
+    },
+    "either": {
+     "k": 126106,
+     "n": 340829,
+     "pct": 37,
+     "lo": 36.8,
+     "hi": 37.2
+    },
+    "both": {
+     "k": 30112,
+     "n": 340829,
+     "pct": 8.8,
+     "lo": 8.7,
+     "hi": 8.9
+    }
+   },
+   "genre": {
+    "isfdb": {
+     "k": 91378,
+     "n": 340829,
+     "pct": 26.8,
+     "lo": 26.7,
+     "hi": 27
+    },
+    "openlibrary": {
+     "k": 49928,
+     "n": 340829,
+     "pct": 14.6,
+     "lo": 14.5,
+     "hi": 14.8
+    },
+    "either": {
+     "k": 116518,
+     "n": 340829,
+     "pct": 34.2,
+     "lo": 34,
+     "hi": 34.3
+    },
+    "both": {
+     "k": 24788,
+     "n": 340829,
+     "pct": 7.3,
+     "lo": 7.2,
+     "hi": 7.4
+    }
+   },
+   "form": {
+    "isfdb": {
+     "k": 2551,
+     "n": 340829,
+     "pct": 0.7,
+     "lo": 0.7,
+     "hi": 0.8
+    },
+    "openlibrary": {
+     "k": 48472,
+     "n": 340829,
+     "pct": 14.2,
+     "lo": 14.1,
+     "hi": 14.3
+    },
+    "either": {
+     "k": 50699,
+     "n": 340829,
+     "pct": 14.9,
+     "lo": 14.8,
+     "hi": 15
+    },
+    "both": {
+     "k": 324,
+     "n": 340829,
+     "pct": 0.1,
+     "lo": 0.1,
+     "hi": 0.1
+    }
+   },
+   "subject": {
+    "isfdb": {
+     "k": 38964,
+     "n": 340829,
+     "pct": 11.4,
+     "lo": 11.3,
+     "hi": 11.5
+    },
+    "openlibrary": {
+     "k": 51564,
+     "n": 340829,
+     "pct": 15.1,
+     "lo": 15,
+     "hi": 15.2
+    },
+    "either": {
+     "k": 78272,
+     "n": 340829,
+     "pct": 23,
+     "lo": 22.8,
+     "hi": 23.1
+    },
+    "both": {
+     "k": 12256,
+     "n": 340829,
+     "pct": 3.6,
+     "lo": 3.5,
+     "hi": 3.7
+    }
+   },
+   "any": {
+    "isfdb": {
+     "k": 104062,
+     "n": 340829,
+     "pct": 30.5,
+     "lo": 30.4,
+     "hi": 30.7
+    },
+    "openlibrary": {
+     "k": 69029,
+     "n": 340829,
+     "pct": 20.3,
+     "lo": 20.1,
+     "hi": 20.4
+    },
+    "either": {
+     "k": 138200,
+     "n": 340829,
+     "pct": 40.5,
+     "lo": 40.4,
+     "hi": 40.7
+    },
+    "both": {
+     "k": 34891,
+     "n": 340829,
+     "pct": 10.2,
+     "lo": 10.1,
+     "hi": 10.3
+    }
+   }
+  },
+  "termsPerWork": {
+   "isfdb": {
+    "meanAllWorks": 0.54,
+    "medianAllWorks": 0,
+    "meanWorksWithAny": 1.75,
+    "medianWorksWithAny": 1,
+    "meanByKind": {
+     "genre": 0.33,
+     "form": 0.01,
+     "subject": 0.2
+    }
+   },
+   "openlibrary": {
+    "meanAllWorks": 1.32,
+    "medianAllWorks": 0,
+    "meanWorksWithAny": 6.5,
+    "medianWorksWithAny": 5,
+    "meanByKind": {
+     "genre": 0.31,
+     "form": 0.24,
+     "subject": 0.77
+    }
+   }
+  },
+  "agreement": {
+   "genre": {
+    "worksWithBoth": 24788,
+    "shareWithOneInCommon": {
+     "k": 15717,
+     "n": 24788,
+     "pct": 63.4,
+     "lo": 62.8,
+     "hi": 64
+    },
+    "meanJaccard": 0.44
+   },
+   "genreFamily": {
+    "worksWithBoth": 24788,
+    "shareWithOneInCommon": {
+     "k": 19830,
+     "n": 24788,
+     "pct": 80,
+     "lo": 79.5,
+     "hi": 80.5
+    },
+    "meanJaccard": 0.6
+   },
+   "form": {
+    "worksWithBoth": 324,
+    "shareWithOneInCommon": {
+     "k": 95,
+     "n": 324,
+     "pct": 29.3,
+     "lo": 24.6,
+     "hi": 34.5
+    },
+    "meanJaccard": 0.24
+   }
+  },
+  "byIsfdbGenreFlag": {
+   "genre": {
+    "works": 336606,
+    "genreOrForm": {
+     "isfdb": {
+      "k": 92324,
+      "n": 336606,
+      "pct": 27.4,
+      "lo": 27.3,
+      "hi": 27.6
+     },
+     "openlibrary": {
+      "k": 62596,
+      "n": 336606,
+      "pct": 18.6,
+      "lo": 18.5,
+      "hi": 18.7
+     },
+     "either": {
+      "k": 124884,
+      "n": 336606,
+      "pct": 37.1,
+      "lo": 36.9,
+      "hi": 37.3
+     },
+     "both": {
+      "k": 30036,
+      "n": 336606,
+      "pct": 8.9,
+      "lo": 8.8,
+      "hi": 9
+     }
+    },
+    "form": {
+     "isfdb": {
+      "k": 2531,
+      "n": 336606,
+      "pct": 0.8,
+      "lo": 0.7,
+      "hi": 0.8
+     },
+     "openlibrary": {
+      "k": 47567,
+      "n": 336606,
+      "pct": 14.1,
+      "lo": 14,
+      "hi": 14.2
+     },
+     "either": {
+      "k": 49779,
+      "n": 336606,
+      "pct": 14.8,
+      "lo": 14.7,
+      "hi": 14.9
+     },
+     "both": {
+      "k": 319,
+      "n": 336606,
+      "pct": 0.1,
+      "lo": 0.1,
+      "hi": 0.1
+     }
+    }
+   },
+   "nonGenre": {
+    "works": 4223,
+    "genreOrForm": {
+     "isfdb": {
+      "k": 207,
+      "n": 4223,
+      "pct": 4.9,
+      "lo": 4.3,
+      "hi": 5.6
+     },
+     "openlibrary": {
+      "k": 1091,
+      "n": 4223,
+      "pct": 25.8,
+      "lo": 24.5,
+      "hi": 27.2
+     },
+     "either": {
+      "k": 1222,
+      "n": 4223,
+      "pct": 28.9,
+      "lo": 27.6,
+      "hi": 30.3
+     },
+     "both": {
+      "k": 76,
+      "n": 4223,
+      "pct": 1.8,
+      "lo": 1.4,
+      "hi": 2.2
+     }
+    },
+    "form": {
+     "isfdb": {
+      "k": 20,
+      "n": 4223,
+      "pct": 0.5,
+      "lo": 0.3,
+      "hi": 0.7
+     },
+     "openlibrary": {
+      "k": 905,
+      "n": 4223,
+      "pct": 21.4,
+      "lo": 20.2,
+      "hi": 22.7
+     },
+     "either": {
+      "k": 920,
+      "n": 4223,
+      "pct": 21.8,
+      "lo": 20.6,
+      "hi": 23.1
+     },
+     "both": {
+      "k": 5,
+      "n": 4223,
+      "pct": 0.1,
+      "lo": 0.1,
+      "hi": 0.3
+     }
+    }
+   }
+  },
+  "worksWithGenreByFamily": {
+   "isfdb-tag|fantasy": 45024,
+   "isfdb-tag|sf": 29098,
+   "isfdb-tag|horror": 10790,
+   "isfdb-tag|romance": 10668,
+   "isfdb-tag|crime": 1905,
+   "isfdb-tag|thriller": 1722,
+   "isfdb-tag|humour": 910,
+   "isfdb-tag|adventure": 785,
+   "isfdb-tag|erotica": 513,
+   "isfdb-tag|western": 225,
+   "isfdb-tag|historical": 156,
+   "isfdb-tag|literary": 19,
+   "openlibrary-subject|fantasy": 18837,
+   "openlibrary-subject|sf": 16526,
+   "openlibrary-subject|horror": 8622,
+   "openlibrary-subject|adventure": 6979,
+   "openlibrary-subject|romance": 5057,
+   "openlibrary-subject|crime": 4505,
+   "openlibrary-subject|thriller": 4441,
+   "openlibrary-subject|historical": 3077,
+   "openlibrary-subject|humour": 2055,
+   "openlibrary-subject|literary": 1273,
+   "openlibrary-subject|erotica": 719,
+   "openlibrary-subject|western": 191,
+   "openlibrary-subject|war": 181
+  }
+ }
+}
