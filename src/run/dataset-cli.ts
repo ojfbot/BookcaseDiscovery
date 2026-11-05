@@ -13,13 +13,16 @@ commands:
 options:
   --set <name>       build: a set to export (repeatable; default pilot-000). Yardstick and audit sets are refused.
   --version <v>      report: a version other than the latest
+  --allow-stale      read a cache or version whose lineage stamp is missing or names other weights or catalog (DL-3)
 
-Run build again after any box-set or model change: a new version is written beside the old ones.`;
+Run build again after any box-set or model change: a new version is written beside the old ones. Every file of a
+version carries a lineage stamp (<file>.lineage.json, docs/lineage.md); a version whose stamp names other weights
+or another catalog than the current ones is refused by report.`;
 
 export async function datasetCommand(argv: string[]): Promise<number> {
   let parsed;
   try {
-    parsed = parseArgs({ args: argv, allowPositionals: true, options: { set: { type: "string", multiple: true }, version: { type: "string" }, help: { type: "boolean", short: "h" } } });
+    parsed = parseArgs({ args: argv, allowPositionals: true, options: { set: { type: "string", multiple: true }, version: { type: "string" }, "allow-stale": { type: "boolean" }, help: { type: "boolean", short: "h" } } });
   } catch (e) {
     console.error(`bookcase dataset: ${e instanceof Error ? e.message : e}\n\n${datasetUsage}`);
     return 1;

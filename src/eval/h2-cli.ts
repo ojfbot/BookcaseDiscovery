@@ -18,7 +18,10 @@ import { fileURLToPath } from "node:url";
 import type { Candidate } from "../catalog/retrieve.ts";
 import { openCatalog } from "../catalog/cli.ts";
 import { dataRoot } from "../ledger/images.ts";
+import { checkLineage, makeStamp, writeLineage } from "../ledger/lineage.ts";
+import { modelHashes } from "../ledger/models.ts";
 import { CROP, decide, loadReadings, pyReaderStage, readJsonl, visionStage, type Detection, type InputImage, type Reading, type SpineDecision } from "./f0.ts";
+import { DEPTH_MODELS, DEPTH_STAGE_SCHEMA, FACES_SCHEMA } from "./lineage-classes.ts";
 import { F0_CROP, FACE3D_CROP, cropFor, cropName, type CropMethod, type Point } from "../perceive/crop.ts";
 import { dominantExtra, elevationBand, faceShares, face3dTrim, topFace, FACE_CLASSES, type FaceRow } from "../perceive/faces3d.ts";
 import { SETS as F0B_SETS, cost, delta, firstPassHard, geometry, type Geo, type Pair } from "./f0b-cli.ts";
@@ -74,6 +77,7 @@ const keptIds = (set: SetName): Set<string> => spineIds(join(SETS[set].stage, "d
 function faceRows(set: SetName): Map<string, FaceRow> {
   const path = join(PRIV, set, "stage-latest.jsonl");
   if (!existsSync(path)) throw new Error(`${set}: no depth stage output; run \`h2-cli.ts stage ${set}\` first`);
+  checkLineage(path, { schema: DEPTH_STAGE_SCHEMA, models: modelHashes(DEPTH_MODELS) });
   return new Map(readJsonl<FaceRow & { photo?: boolean }>(path).filter((r) => !r.photo).map((r) => [`${r.id}:${r.box}`, r]));
 }
 
@@ -123,6 +127,10 @@ function stage(set: SetName, tag: string): void {
   closeSync(fd);
   if (r.status !== 0) throw new Error(`stage.py failed on ${set}`);
   writeFileSync(join(dir, "stage-latest.jsonl"), readFileSync(out));
+  // DL-3: the stage's output names the depth model's weights (stage.py's cache keys name its revision, not its bytes).
+  const stamp = makeStamp({ schema: DEPTH_STAGE_SCHEMA, models: modelHashes(DEPTH_MODELS) });
+  writeLineage(out, stamp);
+  writeLineage(join(dir, "stage-latest.jsonl"), stamp);
   faces(set);
 }
 
@@ -149,6 +157,7 @@ function faces(set: SetName): void {
       )
       .join("\n") + "\n",
   );
+  writeLineage(join(dir, "faces.jsonl"), makeStamp({ schema: FACES_SCHEMA, models: modelHashes(DEPTH_MODELS) }));
   log(`${set}: face shares for ${rows.length} kept boxes under the data root's private/h2/${set}/faces.jsonl`);
 }
 
