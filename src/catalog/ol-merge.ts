@@ -50,15 +50,23 @@ export function attachOpenLibrary(db: DatabaseSync, stagingPath: string): string
   return meta.dump_date ?? "";
 }
 
-/** Merges the attached `ol` staging schema into the catalog's tables. Call inside the build's transaction. */
-export function mergeOpenLibrary(db: DatabaseSync, dumpDate: string, log: (s: string) => void = () => {}): MergeCounts {
-  return merge(db, dumpDate, log);
+/**
+ * Merges the attached `ol` staging schema into the catalog's tables. Call inside the build's transaction. Every
+ * Open Library work's catalog work (the ISFDB work it crosswalks to, or its own new Work) is also recorded in
+ * `temp.ol_crosswalk (work_id, ol_id)`, which KN-1's work features read. With
+ * `crosswalkOnly` (KN-1, on a build without Open Library works) only that table is filled: the crosswalk runs as in
+ * a merge, and no edition, work, author or `sources` entry is added, so the catalog is the ISFDB-only one.
+ */
+export function mergeOpenLibrary(db: DatabaseSync, dumpDate: string, log: (s: string) => void = () => {}, opts: { crosswalkOnly?: boolean } = {}): MergeCounts {
+  return merge(db, dumpDate, log, opts.crosswalkOnly ?? false);
 }
 
-function merge(db: DatabaseSync, dumpDate: string, log: (s: string) => void): MergeCounts {
+function merge(db: DatabaseSync, dumpDate: string, log: (s: string) => void, crosswalkOnly: boolean): MergeCounts {
   const counts: MergeCounts = { olWorks: 0, crosswalkIsbn: 0, crosswalkIsbnTitleDiffers: 0, crosswalkTitleAuthor: 0, newWorks: 0, newWorksShelf: 0, editionsAdded: 0, editionsToIsfdbWorks: 0, newAuthors: 0, reusedIsfdbAuthors: 0 };
 
   log("open library: crosswalk tables");
+  db.exec("CREATE TEMP TABLE IF NOT EXISTS ol_crosswalk (work_id TEXT NOT NULL, ol_id INTEGER NOT NULL)");
+  const insCrosswalk = db.prepare("INSERT INTO temp.ol_crosswalk (work_id, ol_id) VALUES (?, ?)");
   const worksByIsbn = new Map<string, string[]>();
   for (const r of db.prepare("SELECT isbn13, work_id FROM editions WHERE isbn13 IS NOT NULL").iterate() as Iterable<{ isbn13: string; work_id: string }>) {
     const list = worksByIsbn.get(r.isbn13);
@@ -167,6 +175,8 @@ function merge(db: DatabaseSync, dumpDate: string, log: (s: string) => void): Me
       }
     }
 
+    if (target) insCrosswalk.run(target, w.id);
+    if (crosswalkOnly) continue;
     if (target) {
       const have = new Set((isbnsOnWork.all(target) as Array<{ isbn13: string }>).map((r) => r.isbn13));
       let added = 0;
@@ -220,6 +230,7 @@ function merge(db: DatabaseSync, dumpDate: string, log: (s: string) => void): Me
       JSON.stringify([{ source: "openlibrary", id: `OL${w.id}W`, dump: dumpDate, layer: w.layer }]), eds.length,
       [...forms].map(([norm, kind]) => `${kind}:${norm}`).join("|"), [...authorNorms].join("|"),
     );
+    insCrosswalk.run(workId, w.id);
     counts.newWorks++;
     if (w.layer !== "breadth") counts.newWorksShelf++;
     counts.editionsAdded += eds.length;
