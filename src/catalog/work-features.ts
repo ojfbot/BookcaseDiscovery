@@ -417,3 +417,79 @@ export function workGenres(features: WorkFeature[], kinds: readonly FeatureKind[
   for (const f of features) if (f.canon && kinds.includes(f.kind) && !out[f.source].includes(f.canon)) out[f.source].push(f.canon);
   return out;
 }
+
+/** A work's shared book knowledge as KN-2 reads it: genre and subject terms, and one form, each a row with provenance. */
+export interface WorkKnowledge {
+  workId: string;
+  genres: WorkFeature[];
+  subjects: WorkFeature[];
+  /** The one form term (`pickForm`), or null when no source names one. */
+  form: WorkFeature | null;
+  /** Every form row, for audit. */
+  forms: WorkFeature[];
+}
+
+/**
+ * The one form of a work, from its form rows: a specific form (`novel`, `short-stories`, …) over the bare `fiction`,
+ * then the most-carried (`count`), then ISFDB over Open Library, then the term. ISFDB's `works.ttype` is not used:
+ * the yardstick's inventory catalog writes NOVEL for every book, so it is not a fact there.
+ */
+export function pickForm(forms: readonly WorkFeature[]): WorkFeature | null {
+  const rank = (f: WorkFeature) => [f.canon === "fiction" ? 1 : 0, -f.count, FEATURE_SOURCES.indexOf(f.source), f.term] as const;
+  const sorted = [...forms].sort((a, b) => {
+    const x = rank(a);
+    const y = rank(b);
+    for (let i = 0; i < x.length; i++) if (x[i] !== y[i]) return x[i]! < y[i]! ? -1 : 1;
+    return 0;
+  });
+  return sorted[0] ?? null;
+}
+
+/** `workFeatures` split for KN-2: genres, subjects and one form. */
+export function workKnowledge(db: DatabaseSync, workId: string): WorkKnowledge {
+  const all = workFeatures(db, workId);
+  const forms = all.filter((f) => f.kind === "form");
+  return { workId, genres: all.filter((f) => f.kind === "genre"), subjects: all.filter((f) => f.kind === "subject"), form: pickForm(forms), forms };
+}
+
+// ---------------------------------------------------------------------------------------------
+// Store sections (SC-1) → genre and form terms
+// ---------------------------------------------------------------------------------------------
+
+/** SC-1's section families (`Family` in src/eval/sc1.ts; test/work-features.test.ts checks the two lists agree). */
+export const SECTION_FAMILIES = ["sf-fantasy", "sf", "fantasy", "horror", "mystery", "romance", "young-adult", "children", "graphic", "poetry-drama", "classics", "literature", "nonfiction"] as const;
+export type SectionFamily = (typeof SECTION_FAMILIES)[number];
+
+/**
+ * What a store section says in `work_features` terms: the genre families (`LEXICON`'s `family`) and the canons
+ * (genre or form) a book shelved there may carry. Empty means the section names nothing the table records:
+ * audience (`young-adult`, `children`, beyond picture books) and canon (`classics`) are not genres or forms here.
+ */
+export const SECTION_GENRES: Readonly<Record<SectionFamily, { families: readonly string[]; canons: readonly string[] }>> = {
+  "sf-fantasy": { families: ["sf", "fantasy"], canons: [] },
+  sf: { families: ["sf"], canons: [] },
+  fantasy: { families: ["fantasy"], canons: [] },
+  horror: { families: ["horror"], canons: [] },
+  mystery: { families: ["crime", "thriller"], canons: [] },
+  romance: { families: ["romance"], canons: [] },
+  "young-adult": { families: [], canons: [] },
+  children: { families: [], canons: ["picture-book"] },
+  graphic: { families: [], canons: ["graphic-novel"] },
+  "poetry-drama": { families: [], canons: ["poetry", "drama"] },
+  classics: { families: [], canons: [] },
+  literature: { families: ["literary"], canons: [] },
+  nonfiction: { families: [], canons: ["nonfiction", "essays", "biography", "criticism", "letters", "reference"] },
+};
+
+/**
+ * Does a work's shared book knowledge fit a store section? `true` when one of its genre or form rows names the
+ * section's families or canons; `false` when it has genre or form rows and none does; `null` (unknown) when the
+ * section maps to nothing or the work has no genre or form row. A missing term is never evidence against a section.
+ */
+export function sectionFits(section: SectionFamily, features: readonly WorkFeature[]): boolean | null {
+  const want = SECTION_GENRES[section];
+  if (want.families.length === 0 && want.canons.length === 0) return null;
+  const typed = features.filter((f) => f.kind !== "subject" && f.canon !== null);
+  if (typed.length === 0) return null;
+  return typed.some((f) => (f.kind === "genre" && f.family !== null && want.families.includes(f.family)) || want.canons.includes(f.canon!));
+}
