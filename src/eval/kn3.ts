@@ -377,6 +377,8 @@ export function limits(input: ShelfInput) {
     genreKnownSfOrFantasy: share(genreKnown.filter((t) => t.genre.includes("sf") || t.genre.includes("fantasy")).length, genreKnown.length),
     distinctGenreFamilies: families.size,
     formKnownNovel: share(formKnown.filter((t) => t.form === "novel").length, formKnown.length),
+    /** Diagnostic, added after the first run (implementation-notes.md): KN-1's form is mostly bare `fiction`. */
+    formKnownFiction: share(formKnown.filter((t) => t.form === "fiction").length, formKnown.length),
     rowsWithSign: input.signs.size,
     rowsWithSignTerms: input.rows.filter((r) => signTermsOf(input.signs.get(r.key)) !== null).length,
     signFamilies,
