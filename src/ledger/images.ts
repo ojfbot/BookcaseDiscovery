@@ -5,9 +5,10 @@
 //
 // Other modules (K-1's ingest) agree with this one only through the path layout above.
 import { createHash } from "node:crypto";
-import { chmodSync, existsSync, mkdirSync, readFileSync, readdirSync, renameSync, writeFileSync } from "node:fs";
+import { chmodSync, existsSync, mkdirSync, readFileSync, readdirSync } from "node:fs";
 import { homedir } from "node:os";
 import { join } from "node:path";
+import { writeFileDurable } from "./durable.ts";
 
 const HASH = /^[0-9a-f]{64}$/;
 const EXT = /^[a-z0-9]{1,8}$/;
@@ -77,9 +78,8 @@ export class ImageStore {
     const path = this.pathFor(hash, ext);
     if (existsSync(path)) return { hash, path, created: false };
     mkdirSync(join(path, ".."), { recursive: true });
-    const tmp = `${path}.${process.pid}.tmp`;
-    writeFileSync(tmp, bytes, { mode: 0o444 });
-    renameSync(tmp, path);
+    // fsynced before and after the rename (DL-1): an original is a fact nothing can rebuild.
+    writeFileDurable(path, bytes, { mode: 0o444 });
     chmodSync(path, 0o444);
     return { hash, path, created: true };
   }

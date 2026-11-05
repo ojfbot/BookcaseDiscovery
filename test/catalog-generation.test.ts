@@ -108,8 +108,15 @@ describe("catalogDf", () => {
     expect(df("nowordlikethis")).toBe(0);
     withStats.close();
 
+    // DL-1: a touched catalog is the same catalog; one whose content stamp differs is stale.
     const later = new Date(Date.now() + 60_000);
     utimesSync(path, later, later);
+    const touched = new DatabaseSync(path, { readOnly: true });
+    expect(catalogDf(touched)).not.toBeNull();
+    touched.close();
+    const rw = new DatabaseSync(path);
+    rw.prepare("UPDATE meta SET value = ? WHERE key = 'content_sha256'").run("0".repeat(64));
+    rw.close();
     const warn = vi.spyOn(console, "error").mockImplementation(() => {});
     const stale = new DatabaseSync(path, { readOnly: true });
     expect(catalogDf(stale)).toBeNull();

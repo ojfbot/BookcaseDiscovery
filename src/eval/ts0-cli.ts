@@ -8,7 +8,7 @@
 // rarity and C-7's evidence from the v1 catalog and its statistics sidecar. The version key is a hash of the box set
 // and the model revision (detector, readers, crops, catalog, acceptance bar and every cache read), so any change to
 // either gives a new version and nothing is overwritten. Rows, paths and the dHash cache stay under `datasets/`.
-import { existsSync, mkdirSync, readFileSync, renameSync, statSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
 import { join, relative } from "node:path";
 import { fileURLToPath } from "node:url";
 import { privateManifestPath, publicManifest, type PrivateManifest } from "../capture/manifest.ts";
@@ -18,6 +18,7 @@ import { dhashFile } from "../capture/phash.ts";
 import { catalogPaths, openCatalog } from "../catalog/cli.ts";
 import { catalogStamp, counterEvidence, openStats, RARITY, rarityBasis, rarityEvidence, statsPathFor } from "../catalog/rarity.ts";
 import type { Candidate } from "../catalog/retrieve.ts";
+import { writeFileDurable } from "../ledger/durable.ts";
 import { dataRoot, ImageStore } from "../ledger/images.ts";
 import { SqliteLedger } from "../ledger/sqlite.ts";
 import { cropName, F0_CROP } from "../perceive/crop.ts";
@@ -125,7 +126,7 @@ function photosOf(session: string, root: string): DatasetPhotoInput[] {
     };
   });
   mkdirSync(join(root, "datasets", "cache"), { recursive: true });
-  writeFileSync(cachePath, JSON.stringify(cache, null, 1) + "\n");
+  writeFileDurable(cachePath, JSON.stringify(cache, null, 1) + "\n");
   return out;
 }
 
@@ -315,22 +316,26 @@ export function build(sets: readonly string[] = TS0.sets, root = dataRoot()): Bu
   db.close();
   assertExportable(rows, manifest);
 
-  // Write the version beside the others; a re-run of the same version rewrites identical content.
-  mkdirSync(dir, { recursive: true });
-  const write = (name: string, text: string) => {
-    writeFileSync(join(dir, `${name}.tmp`), text, { mode: 0o600 });
-    renameSync(join(dir, `${name}.tmp`), join(dir, name));
-  };
-  write("manifest.json", JSON.stringify(manifest, null, 1) + "\n");
-  write("labels.jsonl", rows.map((r) => JSON.stringify(r)).join("\n") + (rows.length ? "\n" : ""));
-  write(
-    "build.json",
-    JSON.stringify({ version, boxSet, modelRevision, sets, keptBoxes: inputs.reduce((s, i) => s + i.kept.length, 0), skipped, manifest: manifestCounts(manifest.photos), labels: labelCounts(rows) }, null, 1) + "\n",
-  );
-  writeFileSync(splitsPath, JSON.stringify(built.frozen, null, 1) + "\n", { mode: 0o600 });
-  writeFileSync(join(datasetDir(root), "latest.json"), JSON.stringify({ version }) + "\n");
+  commitVersion(root, dir, {
+    "manifest.json": JSON.stringify(manifest, null, 1) + "\n",
+    "labels.jsonl": rows.map((r) => JSON.stringify(r)).join("\n") + (rows.length ? "\n" : ""),
+    "build.json": JSON.stringify({ version, boxSet, modelRevision, sets, keptBoxes: inputs.reduce((s, i) => s + i.kept.length, 0), skipped, manifest: manifestCounts(manifest.photos), labels: labelCounts(rows) }, null, 1) + "\n",
+  }, built.frozen, version);
   log(`${rows.length} labels on ${manifest.photos.length} photos (${skipped.conflict} copy/context conflicts) in ${Math.round((Date.now() - t0) / 1000)} s`);
   return { version, dir, labels: rows.length, photos: manifest.photos.length };
+}
+
+/**
+ * Write one version beside the others (a re-run of the same version rewrites identical content), then the frozen
+ * splits, then `latest.json`. Every file goes through `writeFileDurable` (DL-1): `splits.json` is frozen history no
+ * rebuild can regenerate, so a crash must leave the previous one whole, and `latest.json` must never name a
+ * version whose files are not all on disk.
+ */
+export function commitVersion(root: string, dir: string, files: Record<string, string>, splits: FrozenSplits, version: string): void {
+  mkdirSync(dir, { recursive: true });
+  for (const [name, text] of Object.entries(files)) writeFileDurable(join(dir, name), text, { mode: 0o600 });
+  writeFileDurable(join(datasetDir(root), "splits.json"), JSON.stringify(splits, null, 1) + "\n", { mode: 0o600 });
+  writeFileDurable(join(datasetDir(root), "latest.json"), JSON.stringify({ version }) + "\n");
 }
 
 // --- report: aggregates only ------------------------------------------------------------------------------

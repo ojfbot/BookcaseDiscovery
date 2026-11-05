@@ -9,6 +9,7 @@ import { dirname } from "node:path";
 import { DatabaseSync } from "node:sqlite";
 import { decodeEntities, normalize, splitSubtitle, surnameFirstToGivenFirst } from "./normalize.ts";
 import { attachOpenLibrary, mergeOpenLibrary, type MergeCounts } from "./ol-merge.ts";
+import { sealContentHash } from "./rarity.ts";
 import { attachOlSubjects, fillWorkFeatures, type FeatureCounts } from "./work-features.ts";
 
 /**
@@ -360,7 +361,6 @@ export function buildCatalog(opts: { staging: string; out: string; openLibrary?:
     }
     const insMeta = db.prepare("INSERT INTO meta (key, value) VALUES (?, ?)");
     insMeta.run("schema_version", String(CATALOG_SCHEMA_VERSION));
-    insMeta.run("built_at", (opts.now ?? (() => new Date()))().toISOString());
     insMeta.run("staging_content_hash", stMeta.content_hash ?? "");
     insMeta.run("staging_dump_date", dumpDate ?? "");
     insMeta.run("work_ttypes", WORK_TTYPES.join(","));
@@ -384,6 +384,9 @@ export function buildCatalog(opts: { staging: string; out: string; openLibrary?:
     if (subjDate !== null) db.exec("DETACH DATABASE subj");
     db.exec(`PRAGMA user_version = ${CATALOG_SCHEMA_VERSION}`);
     db.close();
+    // DL-1: the content hash goes in `meta`, so readers stamp the catalog by content without hashing it on open.
+    // The build time is written after it, so a rebuild from the same inputs records the same hash.
+    sealContentHash(partial, { built_at: (opts.now ?? (() => new Date()))().toISOString() });
     rmSync(opts.out, { force: true });
     renameSync(partial, opts.out);
     return { out: opts.out, counts, stagingHash: stMeta.content_hash ?? null, openLibrary: ol?.counts ?? null, features, seconds: (Date.now() - t0) / 1000 };

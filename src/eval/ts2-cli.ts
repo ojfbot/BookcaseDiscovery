@@ -17,6 +17,7 @@ import { fileURLToPath } from "node:url";
 import type { DatabaseSync } from "node:sqlite";
 import { catalogPaths, openCatalog } from "../catalog/cli.ts";
 import { retrieve, scoreWorks, type Candidate } from "../catalog/retrieve.ts";
+import { writeFileDurable } from "../ledger/durable.ts";
 import { dataRoot, ImageStore } from "../ledger/images.ts";
 import { cropFor, F0_CROP } from "../perceive/crop.ts";
 import { loadReadings, readJsonl, topFor, variantsOf, type Detection, type Reading, type ReaderName } from "./f0.ts";
@@ -533,7 +534,7 @@ function register(): void {
   };
   const dir = join(REPO, "models", "registry");
   mkdirSync(dir, { recursive: true });
-  writeFileSync(join(dir, "ts2-spine-reader.json"), `${JSON.stringify(record, null, 2)}\n`);
+  writeFileDurable(join(dir, "ts2-spine-reader.json"), `${JSON.stringify(record, null, 2)}\n`);
   log(`register: models/registry/ts2-spine-reader.json (record hash ${contentHash(record).slice(0, 12)})`);
 }
 

@@ -7,6 +7,7 @@
 //    read, so it is in neither.
 import { mkdirSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
+import { writeFileDurable } from "../ledger/durable.ts";
 import { fixtureManifestSchemaErrors } from "../ledger/schemas.ts";
 import type { Ledger } from "../ledger/index.ts";
 import type { FileOutcome, IngestResult } from "./ingest.ts";
@@ -149,6 +150,7 @@ export const privateManifestPath = (dataDir: string, session: string): string =>
 export function writePrivateManifest(dataDir: string, manifest: PrivateManifest): string {
   const path = privateManifestPath(dataDir, manifest.session);
   mkdirSync(dirname(path), { recursive: true });
-  writeFileSync(path, stringifyManifest(manifest), { mode: 0o600 });
+  // Ingest facts (file names, capture instants): nothing rebuilds them, so the write is atomic and durable (DL-1).
+  writeFileDurable(path, stringifyManifest(manifest), { mode: 0o600 });
   return path;
 }
