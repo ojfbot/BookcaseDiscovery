@@ -79,7 +79,7 @@ export async function restamp(root: string = dataRoot(), opts: { dryRun?: boolea
       stamp = restampedStamp({ schema: PARTITION_SCHEMA, models: modelHashes(PARTITION_MODELS, root) }, ["models"], now);
     } else {
       const p = versionStampParts(root, join(root, rel, ".."));
-      stamp = restampedStamp({ schema: DATASET_SCHEMA, boxSet: p.boxSet, models: p.models, catalog: p.catalog }, p.assumed, now);
+      stamp = restampedStamp({ schema: { ...DATASET_SCHEMA, version: p.schemaVersion }, boxSet: p.boxSet, models: p.models, catalog: p.catalog }, p.assumed, now);
     }
     if (!opts.dryRun) writeLineage(file, stamp);
     tally(cls, "stamped");

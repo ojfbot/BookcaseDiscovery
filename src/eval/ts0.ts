@@ -2,20 +2,24 @@
 //
 // Each row is one confirmed label: its decision basis, the readers that voted, its coverage rung, TS-1's label-filter
 // fields (title class, agreeing pair, third-reader dissent, whether C-7's namesake test or an author read backs a
-// shared title) and the F-1 split of its photo. The **strong class** (distinctive title, two readers, no dissent) is
-// flagged, never filtered: TS-2 chooses. Only declared training sources are exported (OC35, DL-5's set roles), and only machine
-// bases are (OC36: no hand labels). Pure; the runner is src/eval/ts0-cli.ts. Rows live only under the data root's
-// `datasets/`; the repo gets the schema, this code and the aggregates in evals/TS0.
+// shared title), the F-1 split of its photo and, since NS-4, its capture provenance (device tier, lens, capture mode,
+// case, near-duplicate cluster, label source, RGB-recoverability). The **strong class** (distinctive title, two
+// readers, no dissent) is flagged, never filtered: TS-2 chooses. Only declared training sources are exported (OC35,
+// DL-5's set roles; a held-out session is manifested but gets no row), and only machine bases are (OC36: no hand
+// labels). Pure; the runner is src/eval/ts0-cli.ts. Rows live only under the data root's `datasets/`; the repo gets
+// the schema, this code and the aggregates in evals/TS0.
 import { createHash } from "node:crypto";
 import { z } from "zod";
-import { SPLITS, type DatasetManifest, type ManifestPhoto } from "../capture/dataset.ts";
+import { LEGACY_PROVENANCE, SPLITS, type DatasetManifest, type ManifestPhoto } from "../capture/dataset.ts";
+import { CAPTURE_MODES, DEVICE_CLASSES, LENS_CLASSES, SWEEP_MODES } from "../capture/manifest.ts";
 import { READERS, type ReaderName } from "./f0.ts";
-import { assertTrainable } from "./set-roles.ts";
+import { assertManifestable, assertTrainable } from "./set-roles.ts";
 import { RUNGS, type Rung } from "./q2.ts";
 import { AGREEING, agreeingKey, THIRD_OUTCOMES, thirdOf, type Agreeing, type Box, type Rarity } from "./ts1.ts";
 
 export const TS0 = {
-  schemaVersion: 1,
+  /** 2 since NS-4: every row carries its capture provenance. A schema-1 row is read with `LEGACY_PROVENANCE` (`parseLabelRow`). */
+  schemaVersion: 2,
   dataset: "label-ledger",
   /** The sets with machine labels to export. Only real-use and controlled fixtures; never a yardstick (OC35). */
   sets: ["pilot-000"] as readonly string[],
@@ -25,6 +29,21 @@ export const TS0 = {
 export const BASES = ["readers-agree", "confirmed-by-copy", "confirmed-by-context"] as const;
 export type Basis = (typeof BASES)[number];
 export type TitleClass = Rarity;
+
+/**
+ * NS-4: the evidence family a label came from, beside `basis`, which keeps its meaning. `single-view` is every label
+ * today (one photo, its readers). The others name labels no card makes yet: from monocular geometry (H-2), from fusing
+ * views of one sweep, from LiDAR depth as privileged information, or from LiDAR as a scale prompt to mono geometry.
+ */
+export const LABEL_SOURCES = ["single-view", "mono-geometry", "multiview-fusion", "lidar-privileged", "lidar-scale"] as const;
+export type LabelSource = (typeof LABEL_SOURCES)[number];
+
+/** NS-4: whether a model that sees RGB alone could in principle recover the label (`yes` for every label today). */
+export const RGB_RECOVERABLE = ["yes", "no", "unknown"] as const;
+export type RgbRecoverable = (typeof RGB_RECOVERABLE)[number];
+
+/** What a label row written before NS-4 is read as, beyond its photo's `LEGACY_PROVENANCE`: a single-view label, recoverable from RGB. */
+export const LEGACY_LABEL_PROVENANCE = { ...LEGACY_PROVENANCE, caseId: null, labelSource: "single-view", rgbRecoverable: "yes" } as const;
 
 /**
  * OC35: throws unless the set is a declared `training-source` (DL-5: by its role in src/eval/set-roles.ts, fail closed,
@@ -163,8 +182,31 @@ export const LabelRow = z.strictObject({
   captureGroup: z.string().min(1),
   splitGroup: z.string().min(1),
   nearDuplicate: z.boolean(),
+  // NS-4: capture provenance, from the photo's manifest row (deviceClass, lens, captureMode, caseId, dupClusterId) and
+  // from the labelling card (labelSource, rgbRecoverable). Add-only; see `LEGACY_LABEL_PROVENANCE`.
+  deviceClass: z.enum(DEVICE_CLASSES),
+  lens: z.enum(LENS_CLASSES),
+  captureMode: z.enum(CAPTURE_MODES),
+  /** The physical case (F-1's `bookcaseId`; never a second id): required on a sweep row, the unit of hold-out. */
+  caseId: z.string().min(1).nullable(),
+  dupClusterId: z.string().min(1).nullable(),
+  labelSource: z.enum(LABEL_SOURCES),
+  rgbRecoverable: z.enum(RGB_RECOVERABLE),
+}).superRefine((r, ctx) => {
+  if (SWEEP_MODES.includes(r.captureMode) && r.caseId === null) ctx.addIssue({ code: "custom", message: `a ${r.captureMode} label must name its case (caseId)`, path: ["caseId"] });
 });
 export type LabelRow = z.infer<typeof LabelRow>;
+
+/**
+ * Parse a row of this schema or an earlier one (the owner's add-only rule): a schema-1 row, written before NS-4, is
+ * read with `LEGACY_LABEL_PROVENANCE`. Every reader of `labels.jsonl` goes through here; a stamped reader has already
+ * refused a schema-1 dataset (DL-3) unless it allowed a stale file.
+ */
+export function parseLabelRow(raw: unknown): LabelRow {
+  const r = raw as { schemaVersion?: unknown };
+  if (r && r.schemaVersion === 1) return LabelRow.parse({ ...LEGACY_LABEL_PROVENANCE, ...(raw as object), schemaVersion: TS0.schemaVersion });
+  return LabelRow.parse(raw);
+}
 
 /** Everything a row needs beyond the box's evidence. */
 export interface RowContext {
@@ -181,6 +223,9 @@ export interface RowContext {
   rarity: Rarity | null;
   backing: SharedBacking | null;
   photo: ManifestPhoto;
+  /** NS-4: how the label was made and whether RGB alone could recover it (the labelling card says; `single-view` and `yes` today). */
+  labelSource: LabelSource;
+  rgbRecoverable: RgbRecoverable;
 }
 
 export function labelRow(e: BoxEvidence, l: Label, c: RowContext): LabelRow {
@@ -219,23 +264,35 @@ export function labelRow(e: BoxEvidence, l: Label, c: RowContext): LabelRow {
     captureGroup: c.photo.captureGroup,
     splitGroup: c.photo.splitGroup,
     nearDuplicate: c.photo.nearDuplicates.length > 0,
+    deviceClass: c.photo.deviceClass,
+    lens: c.photo.lens,
+    captureMode: c.photo.captureMode,
+    caseId: c.photo.bookcaseId,
+    dupClusterId: c.photo.dupClusterId,
+    labelSource: c.labelSource,
+    rgbRecoverable: c.rgbRecoverable,
   });
 }
 
 /**
  * The last check before anything is written: every row from a trainable set, on a machine basis, of this version,
- * on a photo in the manifest; every manifest photo from a trainable session. Throws on the first breach.
+ * on a photo in the manifest from a trainable session, with the photo's provenance; every manifest photo from a
+ * session that may be manifested (a training source, or a held-out session, which is frozen but gets no row: NS-4,
+ * DL-5's gap). Throws on the first breach.
  */
 export function assertExportable(rows: LabelRow[], manifest: Pick<DatasetManifest, "version" | "photos">): void {
   const photos = new Map(manifest.photos.map((p) => [p.sha256, p]));
-  for (const p of manifest.photos) assertTrainable(p.session);
+  for (const p of manifest.photos) assertManifestable(p.session);
   for (const r of rows) {
     assertTrainable(r.set);
     assertMachineBasis(r.basis);
     if (r.version !== manifest.version) throw new Error("TS-0: a row from another version");
     const p = photos.get(r.imageSha256);
     if (!p) throw new Error("TS-0: a row's photo is not in the manifest");
+    assertTrainable(p.session);
     if (p.split !== r.split || p.splitGroup !== r.splitGroup) throw new Error("TS-0: a row's split differs from its photo's");
+    if (p.deviceClass !== r.deviceClass || p.lens !== r.lens || p.captureMode !== r.captureMode || p.bookcaseId !== r.caseId || p.dupClusterId !== r.dupClusterId)
+      throw new Error("TS-0: a row's capture provenance differs from its photo's");
   }
 }
 
@@ -269,5 +326,13 @@ export function labelCounts(rows: LabelRow[]) {
     sharedBacking: by(shared, (r) => (!r.sharedBacking ? "unmeasured" : r.sharedBacking.authorRead ? "author read" : r.sharedBacking.namesakeTest ? "namesake test" : "neither"), ["author read", "namesake test", "neither", "unmeasured"]),
     basisByClass: tally(rows, (r) => `${r.basis}|${r.titleClass}|${r.strong ? "strong" : "not strong"}`),
     nearDuplicatePhotoLabels: rows.filter((r) => r.nearDuplicate).length,
+    // NS-4: capture provenance, counts only (no case ids, no cluster ids).
+    deviceClass: by(rows, (r) => r.deviceClass, DEVICE_CLASSES),
+    lens: by(rows, (r) => r.lens, LENS_CLASSES),
+    captureMode: by(rows, (r) => r.captureMode, CAPTURE_MODES),
+    labelSource: by(rows, (r) => r.labelSource, LABEL_SOURCES),
+    rgbRecoverable: by(rows, (r) => r.rgbRecoverable, RGB_RECOVERABLE),
+    withCase: rows.filter((r) => r.caseId !== null).length,
+    inDupCluster: rows.filter((r) => r.dupClusterId !== null).length,
   };
 }

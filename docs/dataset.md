@@ -64,6 +64,18 @@ node bin/bookcase catalog restamp
 node bin/bookcase dataset build
 ```
 
+**NS-4: one new version, schema 2.** Every manifest row and label row now carries its capture provenance (below), so
+the dataset schema is 2 and the version key moves with it. The lineage stamp's `schema` field names the version
+(`ts0/label-ledger`, 2), so every stamped reader (`report`, TS-2, KN-3, MM-2) refuses a schema-1 version as stale,
+naming `schema.version`, until `build` has run once more. A schema-1 file read anyway (`--allow-stale`) is converted
+on read: `readDatasetManifest` and `parseLabelRow` fill the legacy defaults (`LEGACY_PROVENANCE`,
+`LEGACY_LABEL_PROVENANCE`): `deviceClass: metric-depth`, `lens: unknown`, `captureMode: shopper-still`, no case, no
+cluster, `labelSource: single-view`, `rgbRecoverable: yes`. Those describe every row written before NS-4 (all of
+them `pilot-000` stills on the owner's Pro phone), and `metric-depth` is the conservative side for the one field a row
+cannot know about itself: a row of unknown device tier is never counted as one the deployment phones could have
+produced (NS-5). The rebuilt version takes the true values from the private manifest. Fields are add-only: no
+reader ever needs a rewrite of an old file, only a rebuild.
+
 ## Crash safety (DL-1)
 
 Nothing is backed up until a NAS exists, so the files nothing can rebuild are written by `writeFileDurable`
@@ -101,8 +113,28 @@ One row per photo:
 - `dhash`.
 - `captureGroup`, `splitGroup` and `split`.
 - `nearDuplicates` and `crossGroupNearDuplicate`.
+- **Capture provenance (NS-4):** `deviceClass`, `lens`, `captureMode` and `dupClusterId` (below).
 
 The capture instant is read to form capture groups and is never written.
+
+### Capture provenance (NS-4)
+
+Every later training run needs to know, per label, which device tier and capture mode produced it and whether the
+label is recoverable from RGB alone: the privileged-depth go rule (NS-5) and the multi-view fusion spike read these
+fields, and real use is judged on the degraded tier (phones without metric depth, OC39). The vocabulary is in
+`src/capture/manifest.ts`; the glossary entries are *capture provenance* and *device class* in `CONTEXT.md`.
+
+| Field | Values | Where it comes from |
+|---|---|---|
+| `deviceClass` | `metric-depth`, `relative-stereo`, `none` | the phone's device tier, from the private manifest's EXIF device string through `deviceClassOf` (a table of Apple's model names; a model it does not know **refuses the build**, so a tier is never guessed), or from the capture sidecar once an ingest writes it |
+| `lens` | `main`, `ultra-wide`, `telephoto`, `unknown` | the private manifest's lens class (EXIF focal length) |
+| `captureMode` | `shopper-still`, `protocol-still`, `natural-sweep`, `rich-session` | the photo setting until the sidecar says: `real-use` is a `shopper-still`, every controlled setting a `protocol-still`; the sweep modes come only from a sidecar or a sweep ingest |
+| `dupClusterId` | a private cluster name, or null | the near-duplicate cluster (the transitive closure of the dHash pairs); null when the photo has no near-duplicate. A fused scene's frames will share one, so a split never cuts a scene |
+| `caseId` (label rows) | the photo's `bookcaseId`, or null | the physical case. **It is the existing `bookcaseId`**, never a second id; a sweep row (`natural-sweep`, `rich-session`) must have one, since the case is the unit of hold-out |
+
+The sidecar's fields (`docs/capture-protocol.md` §9) land on the private manifest photo as `provenance` (`deviceClass`,
+`captureMode`, `bookcaseId`) when an ingest reads a sidecar; `build` prefers them over the derivations. Nothing that
+could identify a photo (file name, capture instant, GPS) enters a public file: the repo gets counts only.
 
 Splits are assigned to **split groups**, so a split never cuts a group:
 
@@ -135,6 +167,9 @@ One row per confirmed label on a kept box:
 | `sharedBacking` | on a shared title: C-7's namesake test passes, and/or a reader read the author; null when distinctive or when no voting reader's top is the work |
 | `strong` | distinctive, `readers-agree` with two readers, nothing dissenting |
 | `split`, `captureGroup`, `splitGroup`, `nearDuplicate` | the photo's F-1 fields |
+| `deviceClass`, `lens`, `captureMode`, `caseId`, `dupClusterId` | NS-4: the photo's capture provenance (above), copied so a row stands on its own; the export check refuses a row whose values differ from its photo's |
+| `labelSource` | NS-4: the evidence family the label came from, beside `basis`, which keeps its meaning: `single-view` (every label today), `mono-geometry`, `multiview-fusion`, `lidar-privileged`, `lidar-scale` |
+| `rgbRecoverable` | NS-4: whether a model that sees RGB alone could in principle recover the label: `yes` (every label today), `no`, `unknown`. Labels marked `no` are down-weighted or dropped before any student trains (NS-5) |
 
 The strong class is a flag, never a filter. TS-2 chooses what to train on.
 
@@ -147,11 +182,18 @@ The strong class is a flag, never a filter. TS-2 chooses what to train on.
   - a yardstick, PROXY, audit or held-out set, whatever it is called (`sf-store-002` is F-1's held-out set);
   - as a second check, a `training-source` whose name holds `yardstick`, `proxy` or `audit`.
 
-  It runs before `build` reads anything, on every row, and on every manifest photo in `assertExportable` before
+  It runs before `build` reads anything, on every row, and on every row's photo in `assertExportable` before
   anything is written. The same guard checks TS-2's training rows (`trainRows`), MM-2's gallery and the Q-1 and Q-2
   fits; MM-1 marks a record evaluation-only for any set the guard refuses. Declare a new set in the registry before
-  anything exports or trains on it. A held-out session is refused here too, so its photos cannot sit in a ledger
-  manifest; freezing their split is left to a later card ([`evals/DL5`](../evals/DL5/report.md)).
+  anything exports or trains on it.
+- **A held-out session is manifested, never exported (NS-4, closing DL-5's gap).** A second guard,
+  `assertManifestable`, decides which sessions may sit in a ledger manifest at all: a `training-source` or a
+  `held-out` session, and nothing else (undeclared, yardstick, PROXY and audit sets are refused, by role and then by
+  name). `build` manifests every session the registry declares `held-out` whose fixture ledger is at the data root,
+  with its split frozen as `held-out` from its first appearance (the registry's held-out sessions join F-1's
+  `heldOutSessions` constant). No label row is made on its photos: `labelRow` refuses the set, and `assertExportable`
+  refuses a row whose photo's session is not a training source, so the borrowed non-Pro evaluation sets can be frozen
+  in the manifest without a row ever reaching a trainer.
 - **Hand labels (OC36).** `assertMachineBasis` refuses any basis but the three shipped machine bases. That includes
   owner corrections, taps and `confirmed-by-pooling` (F-0g2 did not ship).
 - **Crops.** Rows carry crop geometry and the store path. The trainer cuts its own crops, under the data root.

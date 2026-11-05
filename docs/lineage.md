@@ -64,7 +64,7 @@ with a model it does not name.
 | `private/h2/<set>/stage-<tag>.jsonl`, `stage-latest.jsonl` | `detect.jsonl`, the photos, MoGe-2's weights, `helpers/depth/{stage,geometry,faces}.py` | `src/eval/h2-cli.ts stage <set>` | `models.moge-2-vitl-normal` |
 | `private/h2/<set>/faces.jsonl` | the stage file above, RB-1's kept ids | `h2-cli.ts stage <set>` | `models.moge-2-vitl-normal` |
 | `private/f0i/<set>/partition.jsonl` | `detect.jsonl`, F-R1's pairs, H-2's depth, SAM 2.1 conflict tiles, `helpers/coverage/resolve.py` | `src/eval/f0i-cli.ts plan`, `tiles`, `resolve <set>` | `models.sam2.1-hiera-base-plus`, `models.moge-2-vitl-normal` |
-| `datasets/label-ledger/<version>/{manifest.json,labels.jsonl,build.json}` | RB-1's box set, F-0's decisions, F-0g copies, F-0h context, Q-2b rungs, the readers' caches, the catalog and its statistics sidecar | `bookcase dataset build` (a new version beside the old) | `boxSet`, `models.*`, `catalog` |
+| `datasets/label-ledger/<version>/{manifest.json,labels.jsonl,build.json}` | RB-1's box set, F-0's decisions, F-0g copies, F-0h context, Q-2b rungs, the readers' caches, the catalog and its statistics sidecar, the private fixture manifests (capture provenance, NS-4) | `bookcase dataset build` (a new version beside the old) | `boxSet`, `models.*`, `catalog`, `schema.version` (2 since NS-4; the re-stamp pass stamps a legacy version with its manifest's own schema version, so it is refused as stale until rebuilt) |
 
 A stage folder is any folder holding these file names: `f0/<session>/`, `f0c/<set>/`, `f0e/<set>/<tiling>/`,
 `f0f/<set>/<variant>/` and the reader variants under `private/<card>/<set>/<variant>/`.

@@ -23,7 +23,7 @@ import { cropFor, F0_CROP } from "../perceive/crop.ts";
 import { loadReadings, readJsonl, topFor, variantsOf, type Detection, type Reading, type ReaderName } from "./f0.ts";
 import { compactJson, yardstickTruth } from "./q1-cli.ts";
 import { loadBoxSet } from "./rb1.ts";
-import { contentHash, LabelRow, sha256 } from "./ts0.ts";
+import { contentHash, parseLabelRow, sha256, type LabelRow } from "./ts0.ts";
 import {
   agreement,
   armAccept,
@@ -94,7 +94,7 @@ function ledgerRows(): LabelRow[] {
   return readFileSync(join(LEDGER, version, "labels.jsonl"), "utf8")
     .split("\n")
     .filter((l) => l.trim())
-    .map((l) => LabelRow.parse(JSON.parse(l)));
+    .map((l) => parseLabelRow(JSON.parse(l)));
 }
 
 function frozenSplits(): Map<string, string> {

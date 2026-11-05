@@ -17,6 +17,13 @@ export type SetRole = (typeof SET_ROLES)[number];
 /** The only role whose sets may be exported for training. */
 export const TRAINABLE_ROLES: readonly SetRole[] = ["training-source"];
 
+/**
+ * The roles whose sessions may sit in a ledger manifest (NS-4, closing DL-5's gap): a training source, and a held-out
+ * session, which is manifested so its split is frozen as `held-out` from its first appearance and is never exported
+ * for training (no label row is made on its photos). A yardstick, PROXY or audit set is never manifested either.
+ */
+export const MANIFEST_ROLES: readonly SetRole[] = ["training-source", "held-out"];
+
 export type SetRegistry = Readonly<Record<string, SetRole>>;
 
 /**
@@ -65,12 +72,32 @@ export function refusal(set: string, registry: SetRegistry = SET_REGISTRY): "und
 
 export const isTrainable = (set: string, registry: SetRegistry = SET_REGISTRY): boolean => refusal(set, registry) === null;
 
+/** Why a session may not sit in a ledger manifest, or null when it may (`MANIFEST_ROLES`; fail closed, then by name). */
+export function manifestRefusal(session: string, registry: SetRegistry = SET_REGISTRY): "undeclared" | "role" | "name" | null {
+  const role = roleOf(session, registry);
+  if (role === null) return "undeclared";
+  if (!MANIFEST_ROLES.includes(role)) return "role";
+  if (NEVER_TRAIN_NAME.test(session)) return "name";
+  return null;
+}
+
+/** The sessions the registry declares `held-out`: manifested with their split frozen, never exported for training. */
+export const heldOutSessions = (registry: SetRegistry = SET_REGISTRY): string[] => Object.keys(registry).filter((s) => roleOf(s, registry) === "held-out").sort();
+
 /** OC35: throws unless the set is a declared `training-source` whose name does not read as an evaluation set. */
 export function assertTrainable(set: string, card = "TS-0", registry: SetRegistry = SET_REGISTRY): void {
   const why = refusal(set, registry);
   if (why === "undeclared") throw new Error(`${card}: "${set}" has no declared set role and is never exported for training (OC35, fail closed: declare it in src/eval/set-roles.ts)`);
   if (why === "role") throw new Error(`${card}: "${set}" is a ${roleOf(set, registry)} set and is never exported for training (OC35)`);
   if (why === "name") throw new Error(`${card}: "${set}" is named like a yardstick, PROXY or audit set and is never exported for training (OC35)`);
+}
+
+/** Throws unless the session is a declared training source or held-out session that is not named like an evaluation set. */
+export function assertManifestable(session: string, card = "TS-0", registry: SetRegistry = SET_REGISTRY): void {
+  const why = manifestRefusal(session, registry);
+  if (why === "undeclared") throw new Error(`${card}: "${session}" has no declared set role and is never exported for training or manifested (OC35, fail closed: declare it in src/eval/set-roles.ts)`);
+  if (why === "role") throw new Error(`${card}: "${session}" is a ${roleOf(session, registry)} set and is never exported for training or manifested (OC35)`);
+  if (why === "name") throw new Error(`${card}: "${session}" is named like a yardstick, PROXY or audit set and is never exported for training or manifested (OC35)`);
 }
 
 /** Registered sets by role (counts only; names are not private, but the report needs only the counts). */

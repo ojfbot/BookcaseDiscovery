@@ -11,9 +11,9 @@
 import { existsSync, mkdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
 import { join, relative } from "node:path";
 import { fileURLToPath } from "node:url";
-import { privateManifestPath, publicManifest, type PrivateManifest } from "../capture/manifest.ts";
+import { captureModeOf, deviceClassOf, privateManifestPath, publicManifest, type PrivateManifest } from "../capture/manifest.ts";
 import { sessionLedgerPath } from "../capture/cli.ts";
-import { buildManifestPhotos, DATASET, DatasetManifest, manifestCounts, straddlingGroups, type DatasetPhotoInput, type FrozenSplits } from "../capture/dataset.ts";
+import { buildManifestPhotos, DATASET, DatasetManifest, manifestCounts, readDatasetManifest, straddlingGroups, type DatasetPhotoInput, type FrozenSplits } from "../capture/dataset.ts";
 import { dhashFile } from "../capture/phash.ts";
 import { catalogPaths, openCatalog } from "../catalog/cli.ts";
 import { catalogStamp, counterEvidence, openStats, RARITY, rarityBasis, rarityEvidence, statsPathFor } from "../catalog/rarity.ts";
@@ -29,6 +29,7 @@ import { ACCEPT, ARM_MODELS, armsOf, loadReadings, rankedFor, readJsonl, READER_
 import { compactJson } from "./q1-cli.ts";
 import type { Rung } from "./q2.ts";
 import { loadBoxSet, type PartitionRow } from "./rb1.ts";
+import { assertManifestable, heldOutSessions } from "./set-roles.ts";
 import { ownTitleForm, rarityOf, type Rarity } from "./ts1.ts";
 import {
   assertExportable,
@@ -38,11 +39,12 @@ import {
   labelCounts,
   labelOf,
   labelRow,
-  LabelRow,
+  parseLabelRow,
   sha256,
   TS0,
   versionKey,
   type BoxEvidence,
+  type LabelRow,
   type SharedBacking,
 } from "./ts0.ts";
 
@@ -90,6 +92,7 @@ const split = (id: string): [string, number] => {
 // --- photos: F-1's manifest input -------------------------------------------------------------------------
 
 function photosOf(session: string, root: string): DatasetPhotoInput[] {
+  assertManifestable(session);
   const ledgerPath = must(sessionLedgerPath(root, session), "fixture ledger");
   const ledger = new SqliteLedger(ledgerPath, { readOnly: true });
   let pub;
@@ -98,9 +101,10 @@ function photosOf(session: string, root: string): DatasetPhotoInput[] {
   } finally {
     ledger.close();
   }
-  const privPath = privateManifestPath(root, session);
-  const priv = existsSync(privPath) ? (JSON.parse(readFileSync(privPath, "utf8")) as PrivateManifest) : null;
-  const when = new Map(priv?.photos.map((p) => [p.hash, p.capturedAt ?? null]) ?? []);
+  // NS-4: the capture provenance comes from the private manifest (device and lens from EXIF; the sidecar's fields when
+  // an ingest wrote them), so a session without one cannot be manifested.
+  const priv = JSON.parse(readFileSync(must(privateManifestPath(root, session), "private fixture manifest (capture provenance)"), "utf8")) as PrivateManifest;
+  const facts = new Map(priv.photos.map((p) => [p.hash, p]));
   const store = new ImageStore(root);
   const cachePath = join(root, "datasets", "cache", "dhash.json");
   const cache: Record<string, string | null> = existsSync(cachePath) ? JSON.parse(readFileSync(cachePath, "utf8")) : {};
@@ -114,6 +118,10 @@ function photosOf(session: string, root: string): DatasetPhotoInput[] {
         cache[p.workingCopyHash] = null;
       }
     }
+    const fact = facts.get(p.hash);
+    if (!fact) throw new Error(`${session}: a photo is not in the private fixture manifest (re-run \`bookcase ingest\`)`);
+    const deviceClass = fact.provenance?.deviceClass ?? deviceClassOf(fact.device);
+    if (!deviceClass) throw new Error(`${session}: the device tier of a photo's device is unknown: add it to \`deviceClassOf\` (src/capture/manifest.ts) or supply a capture sidecar (docs/capture-protocol.md §9)`);
     return {
       sha256: p.workingCopyHash,
       originalSha256: p.hash,
@@ -121,11 +129,14 @@ function photosOf(session: string, root: string): DatasetPhotoInput[] {
       size: statSync(file).size,
       session,
       storeId: null,
-      bookcaseId: null,
+      bookcaseId: fact.provenance?.bookcaseId ?? null,
       shelf: p.shelfIndex ?? null,
       setting: p.setting,
-      capturedAt: when.get(p.hash) ?? null,
+      capturedAt: fact.capturedAt ?? null,
       dhash: cache[p.workingCopyHash] ?? null,
+      deviceClass,
+      lens: fact.lens.class,
+      captureMode: fact.provenance?.captureMode ?? captureModeOf(p.setting),
     };
   });
   mkdirSync(join(root, "datasets", "cache"), { recursive: true });
@@ -216,15 +227,28 @@ const datasetModels = (arms: readonly Arm[]): string[] => [...new Set([...arms.f
  * from `build.json`, the weights its source sets' detection caches name and the readers' (as the manifest hashes them
  * now), and the current catalog's stamp when there is one. The pass records which of these it assumed.
  */
-export function versionStampParts(root: string, dir: string): { boxSet: string; models: Record<string, string>; catalog: string | null; assumed: string[] } {
+export function versionStampParts(root: string, dir: string): { boxSet: string; models: Record<string, string>; catalog: string | null; assumed: string[]; schemaVersion: number } {
   const b = JSON.parse(readFileSync(join(dir, "build.json"), "utf8")) as { boxSet: string; sets: string[] };
+  // NS-4: a version's own schema is its manifest's, so a legacy version is stamped as what it is and refused as stale.
+  const schemaVersion = (JSON.parse(readFileSync(join(dir, "manifest.json"), "utf8")) as { schemaVersion?: number }).schemaVersion ?? 1;
   const arms = b.sets.flatMap((s) => {
     const detect = SOURCES(root)[s]?.detect;
     return detect && existsSync(detect) ? armsOf(readJsonl<Detection>(detect)) : [];
   });
   const catalogPath = catalogPaths().catalog;
   const catalog = existsSync(catalogPath) ? catalogStamp(catalogPath) : null;
-  return { boxSet: b.boxSet, models: modelHashes(datasetModels(arms), root), catalog, assumed: ["models", "catalog"] };
+  return { boxSet: b.boxSet, models: modelHashes(datasetModels(arms), root), catalog, assumed: ["models", "catalog"], schemaVersion };
+}
+
+/**
+ * The sessions a build manifests (NS-4, DL-5's gap): every source set's session, and every session the registry declares
+ * `held-out` that has a fixture ledger at the data root. A held-out session sits in the manifest with its split
+ * frozen as `held-out` from its first build on; no row is made on its photos and the export guard refuses one.
+ */
+export function manifestSessions(root: string, sets: readonly string[]): { sessions: string[]; heldOut: string[] } {
+  const sources = [...new Set(sets.map((s) => SOURCES(root)[s]?.session ?? s))];
+  const heldOut = heldOutSessions().filter((s) => !sources.includes(s) && existsSync(sessionLedgerPath(root, s)));
+  return { sessions: [...sources, ...heldOut], heldOut };
 }
 
 // --- build ------------------------------------------------------------------------------------------------
@@ -261,14 +285,17 @@ export function build(sets: readonly string[] = TS0.sets, root = dataRoot()): Bu
   // F-1: the manifest and its grouped splits. Frozen assignments are kept across versions.
   const splitsPath = join(datasetDir(root), "splits.json");
   const frozen: FrozenSplits | null = existsSync(splitsPath) ? JSON.parse(readFileSync(splitsPath, "utf8")) : null;
-  const sessions = [...new Set(inputs.map((i) => SOURCES(root)[i.set]!.session))];
+  const { sessions, heldOut } = manifestSessions(root, sets);
+  if (heldOut.length) log(`manifesting ${heldOut.length} held-out session(s) with their split frozen; no row is exported from them`);
+  // The registry's held-out sessions are frozen `held-out` like F-1's reserved ones.
+  const constants = { ...DATASET, heldOutSessions: [...new Set([...DATASET.heldOutSessions, ...heldOutSessions()])].sort() };
   const photos = sessions.flatMap((s) => photosOf(s, root));
-  const built = buildManifestPhotos(photos, frozen);
+  const built = buildManifestPhotos(photos, frozen, constants);
   const manifest = DatasetManifest.parse({
     schemaVersion: DATASET.schemaVersion,
     dataset: TS0.dataset,
     version,
-    constants: { captureGapSeconds: DATASET.captureGapSeconds, nearDuplicateBits: DATASET.nearDuplicateBits, valShare: DATASET.valShare, seed: DATASET.seed, heldOutSessions: [...DATASET.heldOutSessions] },
+    constants: { captureGapSeconds: constants.captureGapSeconds, nearDuplicateBits: constants.nearDuplicateBits, valShare: constants.valShare, seed: constants.seed, heldOutSessions: constants.heldOutSessions },
     photos: built.photos,
   });
   if (straddlingGroups(manifest.photos).length) throw new Error("F-1: a group straddles splits");
@@ -339,6 +366,9 @@ export function build(sets: readonly string[] = TS0.sets, root = dataRoot()): Bu
           rarity,
           backing: rarity === "distinctive" ? null : backingOf(reads, l.readers, l.workId),
           photo,
+          // NS-4: every label today is one photo's readers, recoverable from RGB.
+          labelSource: "single-view",
+          rgbRecoverable: "yes",
         }),
       );
     }
@@ -393,8 +423,8 @@ export function report(root = dataRoot(), version?: string): string {
   checkLineage(must(join(dir, "build.json"), "dataset build"), (s) => ({ schema: DATASET_SCHEMA, models: modelHashes(Object.keys(s.models), root), catalog: catalogStamp(catalogPaths().catalog) }));
   const b = JSON.parse(readFileSync(join(dir, "build.json"), "utf8")) as BuildJson;
   // Recount from the rows themselves, so the report never trusts a stale summary.
-  const rows = readFileSync(join(dir, "labels.jsonl"), "utf8").split("\n").filter(Boolean).map((l) => LabelRow.parse(JSON.parse(l)));
-  const manifest = DatasetManifest.parse(JSON.parse(readFileSync(join(dir, "manifest.json"), "utf8")));
+  const rows = readFileSync(join(dir, "labels.jsonl"), "utf8").split("\n").filter(Boolean).map((l) => parseLabelRow(JSON.parse(l)));
+  const manifest = readDatasetManifest(JSON.parse(readFileSync(join(dir, "manifest.json"), "utf8")));
   assertExportable(rows, manifest);
   const m = {
     card: "TS-0",
@@ -436,7 +466,17 @@ function tablesMd(m: { version: string; keptBoxes: number; skipped: { conflict: 
   out.push("### Photos and splits (F-1)\n");
   out.push("| split | photos | capture groups | split groups | labels |\n|---|---:|---:|---:|---:|");
   for (const s of ["train", "val", "held-out"] as const) out.push(`| ${s} | ${p.bySplit[s]} | ${p.captureGroups[s]} | ${p.splitGroups[s]} | ${l.bySplit[s]} |`);
-  out.push(`\nNear-duplicate photo pairs: ${p.nearDuplicatePairs.all} (${p.nearDuplicatePairs.acrossCaptureGroups} across capture groups, each joined into one split group). Photos with no dHash: ${p.unhashed}. Groups straddling a split: **${p.straddling}**.\n`);
+  out.push(`\nNear-duplicate photo pairs: ${p.nearDuplicatePairs.all} (${p.nearDuplicatePairs.acrossCaptureGroups} across capture groups, each joined into one split group), in ${p.dupClusters} near-duplicate clusters. Photos with no dHash: ${p.unhashed}. Groups straddling a split: **${p.straddling}**.\n`);
+  out.push("### Capture provenance (NS-4)\n");
+  out.push("Photos by device tier, lens and capture mode; labels by the same and by label source and RGB-recoverability. Counts only.\n");
+  const line = (title: string, c: Record<string, number>) => `| ${title} | ${Object.entries(c).map(([k, n]) => `${k} ${n}`).join(" · ")} |`;
+  out.push("| photos | counts |\n|---|---|", line("device class", p.byDeviceClass), line("lens", p.byLens), line("capture mode", p.byCaptureMode), `| with a case id | ${p.withCase} |`, "");
+  out.push(...table("device class", l.deviceClass as BySplit), "");
+  out.push(...table("lens", l.lens as BySplit), "");
+  out.push(...table("capture mode", l.captureMode as BySplit), "");
+  out.push(...table("label source", l.labelSource as BySplit), "");
+  out.push(...table("RGB-recoverable", l.rgbRecoverable as BySplit), "");
+  out.push(`Labels with a case id: ${l.withCase}; in a near-duplicate cluster: ${l.inDupCluster}.\n`);
   out.push("### Labels\n");
   out.push(...table("strong class", l.strong as BySplit), "");
   out.push(...table("title class", l.titleClass as BySplit), "");

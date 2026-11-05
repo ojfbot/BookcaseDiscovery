@@ -14,7 +14,7 @@ import { fileURLToPath } from "node:url";
 import { openCatalog } from "../catalog/cli.ts";
 import { KN1_CATALOGS } from "../catalog/kn1-eval.ts";
 import { hasWorkFeatures, workKnowledge } from "../catalog/work-features.ts";
-import { DatasetManifest } from "../capture/dataset.ts";
+import { readDatasetManifest } from "../capture/dataset.ts";
 import { termsOf } from "../identify/section-prior-cli.ts";
 import type { SectionSign, WorkFeatureTerms } from "../identify/section-prior.ts";
 import { dataRoot } from "../ledger/images.ts";
@@ -24,7 +24,7 @@ import { buildRows } from "./f0h.ts";
 import { loadBooks, loadDets } from "./f0g-cli.ts";
 import { coverage, EVAL, H_FACETS, homophily, limits, onePerWorkPair, pairsOf, placeShuffle, scorePairs, stability, verdicts, type Facet, type Pair } from "./kn3.ts";
 import { datasetDir } from "./ts0-cli.ts";
-import { LabelRow } from "./ts0.ts";
+import { parseLabelRow } from "./ts0.ts";
 
 const REPO = fileURLToPath(new URL("../../", import.meta.url));
 const ROOT = dataRoot();
@@ -46,9 +46,9 @@ function load(): Loaded {
   if (!existsSync(latest)) throw new Error("no label ledger: run `node bin/bookcase dataset build` first (TS-0)");
   const version = (JSON.parse(readFileSync(latest, "utf8")) as { version: string }).version;
   const labels = readJsonl<unknown>(join(dir, version, "labels.jsonl"))
-    .map((l) => LabelRow.parse(l))
+    .map((l) => parseLabelRow(l))
     .filter((l) => l.set === SET);
-  const manifest = DatasetManifest.parse(JSON.parse(readFileSync(join(dir, version, "manifest.json"), "utf8")));
+  const manifest = readDatasetManifest(JSON.parse(readFileSync(join(dir, version, "manifest.json"), "utf8")));
   const group = new Map(manifest.photos.map((p) => [p.sha256, p.captureGroup]));
   const nearDuplicatePairs = manifest.photos.reduce((a, p) => a + p.nearDuplicates.length, 0) / 2;
 
