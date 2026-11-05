@@ -23,9 +23,16 @@ import { FEATURE_SOURCES, hasWorkFeatures, type FeatureKind, type FeatureSource 
 const REPO = fileURLToPath(new URL("../../", import.meta.url));
 const log = (s: string) => console.error(`[kn1] ${new Date().toISOString().slice(11, 19)} ${s}`);
 
-/** Today's default catalog, and KN-1's rebuild of it with `work_features` (a new file; today's is not touched). */
-export const KN1_CATALOGS = { today: "catalog.sqlite", kn1: "catalog-kn1.sqlite" } as const;
-const catalogFile = (name: keyof typeof KN1_CATALOGS) => join(dataRoot(), "catalog", KN1_CATALOGS[name]);
+/**
+ * Per set, the catalog its F-0 accepts are made on today and KN-1's rebuild of it with `work_features` (new files;
+ * today's are not touched). `pilot-000` runs on the default catalog; the yardstick on its own closed-set inventory
+ * (the Library Dataset's books, staged by `src/eval/f0-cli.ts`), whose staging file the rebuild reuses.
+ */
+export const KN1_CATALOGS: Record<RB1Set, { today: string; kn1: string }> = {
+  "pilot-000": { today: "catalog/catalog.sqlite", kn1: "catalog/catalog-kn1.sqlite" },
+  yardstick: { today: "proxy/library-dataset/f0-inventory-catalog.sqlite", kn1: "proxy/library-dataset/f0-inventory-catalog-kn1.sqlite" },
+};
+const catalogFile = (set: RB1Set, name: "today" | "kn1") => join(dataRoot(), KN1_CATALOGS[set][name]);
 /** RB-1's sets and the F-0 session each is read from. */
 const SESSION: Record<RB1Set, string> = { "pilot-000": "pilot-000", yardstick: "yardstick-library-b2" };
 const SETS = Object.keys(SESSION) as RB1Set[];
@@ -50,9 +57,9 @@ interface GateFile {
   boxes: number;
   /** Re-decided on catalog-kn1 vs re-decided on today's catalog: must be 1. */
   reproducedVsToday: number;
-  /** Re-decided on catalog-kn1 vs C-6's unguarded decisions on today's catalog (private/c6/decisions/). */
-  reproducedVsC6: number;
-  /** Re-decided on catalog-kn1 vs the session's stored decisions.jsonl, which predate C-3's rebuild (for the record). */
+  /** `pilot-000` only: re-decided on catalog-kn1 vs C-6's unguarded decisions on the default catalog. */
+  reproducedVsC6: number | null;
+  /** Re-decided on the KN-1 file vs the session's stored decisions.jsonl. */
   reproducedVsStored: number;
   accepts: { today: number; kn1: number };
   rb1Boxes: number;
@@ -62,13 +69,13 @@ interface GateFile {
 
 function gate(set: RB1Set): void {
   const dir = stageDir(dataRoot(), SESSION[set]);
-  const c6 = c6Unguarded(set);
+  const c6 = set === "pilot-000" ? c6Unguarded(set) : null;
   const stored = readJsonl<SpineDecision & { accepted: { workId: string } | null }>(join(dir, "decisions.jsonl"));
   const readings = loadReadings(dir);
   const box = loadBoxSet(set);
-  const today = openCatalog(catalogFile("today"));
-  const kn1 = openCatalog(catalogFile("kn1"));
-  if (!hasWorkFeatures(kn1)) throw new Error(`${KN1_CATALOGS.kn1} has no work_features table`);
+  const today = openCatalog(catalogFile(set, "today"));
+  const kn1 = openCatalog(catalogFile(set, "kn1"));
+  if (!hasWorkFeatures(kn1)) throw new Error(`${KN1_CATALOGS[set].kn1} has no work_features table`);
   const caches = { today: new Map<string, Candidate | undefined>(), kn1: new Map<string, Candidate | undefined>() };
   const t0 = Date.now();
   let same = 0;
@@ -83,7 +90,7 @@ function gate(set: RB1Set): void {
     const b = decide(kn1, d.id, d.imageId, d.boxScore, reads, caches.kn1).accepted?.workId ?? null;
     if (a === b) same++;
     if (b === (d.accepted?.workId ?? null)) sameStored++;
-    if (b === (c6.get(d.id) ?? null)) sameC6++;
+    if (c6 && b === (c6.get(d.id) ?? null)) sameC6++;
     if (a) accepts.today++;
     if (b) accepts.kn1++;
     const inSet = box.rows.get(d.id)?.state === "kept" && box.keeps(d.id);
@@ -94,10 +101,10 @@ function gate(set: RB1Set): void {
   today.close();
   kn1.close();
   const out: GateFile = {
-    set, catalogs: { today: stamp(catalogFile("today")), kn1: stamp(catalogFile("kn1")) }, boxes: stored.length,
-    reproducedVsToday: same / stored.length, reproducedVsC6: sameC6 / stored.length, reproducedVsStored: sameStored / stored.length, accepts, rb1Boxes, confirmed,
+    set, catalogs: { today: stamp(catalogFile(set, "today")), kn1: stamp(catalogFile(set, "kn1")) }, boxes: stored.length,
+    reproducedVsToday: same / stored.length, reproducedVsC6: c6 ? sameC6 / stored.length : null, reproducedVsStored: sameStored / stored.length, accepts, rb1Boxes, confirmed,
   };
-  log(`${set}: ${stored.length} boxes in ${Math.round((Date.now() - t0) / 1000)} s; accepts agree with today's catalog on ${out.reproducedVsToday.toFixed(4)}, with C-6's on ${out.reproducedVsC6.toFixed(4)}, with the stored decisions on ${out.reproducedVsStored.toFixed(4)}`);
+  log(`${set}: ${stored.length} boxes in ${Math.round((Date.now() - t0) / 1000)} s; accepts agree with today's catalog on ${out.reproducedVsToday.toFixed(4)}, with C-6's on ${out.reproducedVsC6?.toFixed(4) ?? "n/a"}, with the stored decisions on ${out.reproducedVsStored.toFixed(4)}`);
   if (same !== stored.length) throw new Error(`${set}: ${stored.length - same} accepts differ between today's catalog and catalog-kn1 (the gate is 1.000)`);
   writeFileSync(join(privateDir(), `${set}.gate.json`), JSON.stringify(out));
 }
@@ -112,7 +119,7 @@ function loadGate(set: RB1Set): GateFile {
   const p = join(privateDir(), `${set}.gate.json`);
   if (!existsSync(p)) throw new Error(`no gate for ${set}: run \`node src/catalog/kn1-eval.ts gate --set ${set}\``);
   const g = JSON.parse(readFileSync(p, "utf8")) as GateFile;
-  if (g.catalogs.kn1 !== stamp(catalogFile("kn1"))) throw new Error(`the ${set} gate ran on ${g.catalogs.kn1}, not ${stamp(catalogFile("kn1"))}`);
+  if (g.catalogs.kn1 !== stamp(catalogFile(set, "kn1"))) throw new Error(`the ${set} gate ran on ${g.catalogs.kn1}, not ${stamp(catalogFile(set, "kn1"))}`);
   return g;
 }
 
@@ -236,32 +243,41 @@ function summarise(ws: WorkView[]) {
 }
 
 function analyse(): void {
-  const db = openCatalog(catalogFile("kn1"));
-  const meta = Object.fromEntries((db.prepare("SELECT key, value FROM meta").all() as Array<{ key: string; value: string }>).map((r) => [r.key, r.value]));
   const sets: Record<string, unknown> = {};
   const gates: Record<string, unknown> = {};
+  const catalogs: Record<string, unknown> = {};
+  const wide: Record<string, unknown> = {};
   for (const set of SETS) {
     const g = loadGate(set);
+    const db = openCatalog(catalogFile(set, "kn1"));
+    const meta = Object.fromEntries((db.prepare("SELECT key, value FROM meta").all() as Array<{ key: string; value: string }>).map((r) => [r.key, r.value]));
     const ids = [...new Set(Object.values(g.confirmed))].sort();
     log(`${set}: ${Object.keys(g.confirmed).length} confirmed boxes, ${ids.length} works`);
     sets[set] = { confirmedBoxes: Object.keys(g.confirmed).length, ...summarise([...views(db, ids).values()]) };
     gates[set] = { decided: g.boxes, inRb1BoxSet: g.rb1Boxes, accepts: g.accepts, reproducedVsToday: g.reproducedVsToday, reproducedVsC6: g.reproducedVsC6, reproducedVsStored: Math.round(g.reproducedVsStored * 10000) / 10000 };
+    catalogs[set] = {
+      file: KN1_CATALOGS[set].kn1.split("/").at(-1), rebuildOf: KN1_CATALOGS[set].today.split("/").at(-1), schemaVersion: Number(meta.schema_version), workFeatures: meta.work_features,
+      openLibrarySubjectsDumpDate: meta["work_features.openlibrary_subjects_dump_date"] ?? null, openLibraryLinkedWorks: Number(meta["work_features.openlibrary_crosswalk_only"] ?? 0),
+      rows: Number(meta["work_features.rows"]), rowsByKind: { genre: Number(meta["work_features.kind.genre"]), form: Number(meta["work_features.kind.form"]), subject: Number(meta["work_features.kind.subject"]) },
+      isfdbPrivateTagLinksSkipped: Number(meta["work_features.isfdbPrivateSkipped"]), notABookFactDropped: Number(meta["work_features.notABookFact"]),
+    };
+    log(`${set}: catalog-wide`);
+    const all = summarise([...views(db, null).values()]);
+    const families = Object.fromEntries((db.prepare("SELECT source, family, COUNT(DISTINCT work_id) AS n FROM work_features WHERE kind = 'genre' GROUP BY source, family ORDER BY source, n DESC").all() as Array<{ source: string; family: string; n: number }>).map((r) => [`${r.source}|${r.family}`, r.n]));
+    wide[set] = { ...all, worksWithGenreByFamily: families };
+    db.close();
   }
-  log("catalog-wide");
-  const all = summarise([...views(db, null).values()]);
-  const families = Object.fromEntries((db.prepare("SELECT source, family, COUNT(DISTINCT work_id) AS n FROM work_features WHERE kind = 'genre' GROUP BY source, family ORDER BY source, n DESC").all() as Array<{ source: string; family: string; n: number }>).map((r) => [`${r.source}|${r.family}`, r.n]));
-  db.close();
 
   const metrics = {
     runId: "KN1",
     card: "KN-1",
     date: new Date().toISOString().slice(0, 10),
     note: "Aggregates only: no titles, no ids. pilot-000 is machine agreement, never accuracy (INV-17); the yardstick is PROXY (library shelves) and its accepts include wrong ones. Never pooled (OC35). Nothing here reads the profile (INV-13) or changes a decision, so there is no keep rule.",
-    catalog: { file: KN1_CATALOGS.kn1, schemaVersion: Number(meta.schema_version), workFeatures: meta.work_features, isfdbDumpDate: meta.staging_dump_date, openLibrarySubjectsDumpDate: meta["work_features.openlibrary_subjects_dump_date"] ?? null, openLibraryLinkedWorks: Number(meta["work_features.openlibrary_crosswalk_only"] ?? 0), rows: Number(meta["work_features.rows"]), rowsByKind: { genre: Number(meta["work_features.kind.genre"]), form: Number(meta["work_features.kind.form"]), subject: Number(meta["work_features.kind.subject"]) }, isfdbPrivateTagLinksSkipped: Number(meta["work_features.isfdbPrivateSkipped"]), notABookFactDropped: Number(meta["work_features.notABookFact"]) },
-    confirmed: "F-0's readers-agree accepts, re-decided on catalog-kn1, on RB-1's box set; distinct works per set",
-    gate: { rule: "every box's accept on catalog-kn1 equals its accept on today's catalog.sqlite (1.000)", ...gates },
+    catalogs,
+    confirmed: "F-0's readers-agree accepts, re-decided on each set's KN-1 catalog, on RB-1's box set; distinct works per set",
+    gate: { rule: "every box's accept on the set's KN-1 catalog equals its accept on the catalog it runs on today (1.000)", ...gates },
     sets,
-    catalogWide: { ...all, worksWithGenreByFamily: families },
+    catalogWide: wide,
   };
   const out = join(REPO, "evals", "KN1");
   mkdirSync(out, { recursive: true });

@@ -594,12 +594,34 @@ The lexicon is configuration. Growing it changes no identity decision.
 
 The aggregates on confirmed works are in `evals/KN1/report.md`.
 
-**Reproduction.** `catalog-kn1.sqlite` holds the same rows as today's `catalog.sqlite` in every version-1 table. Every
-F-0 accept on `pilot-000` and the yardstick re-decides to the same work on both (`node src/catalog/kn1-eval.ts gate`,
-1.000).
+**The yardstick's inventory catalog.** The yardstick decides against its own closed-set catalog: the Library Dataset's
+15,229 books, staged in ISFDB's shape by `src/eval/f0-cli.ts`, with ids `isfdb:<row>`. KN-1 rebuilds it from the same
+staging file into `proxy/library-dataset/f0-inventory-catalog-kn1.sqlite`.
+
+- It has no ISFDB tags, so every row there is an Open Library subject.
+- The breadth staging is English-only and misses most of this Spanish library. So `pnpm catalog:ol isbn-stage --catalog
+  <inventory> --out <file>` makes a staging file of the Open Library works whose editions share an ISBN-13 with the
+  inventory (layer `isbn`; one offline pass over the editions and works dumps). `subjects --staging` and
+  `--ol-crosswalk` then read it like any staging file.
+- Its `works.ttype` (NOVEL) and `non_genre` are placeholders, not facts.
+- The library's shelf-mark column is not a source, because readers see it printed on the spine.
+
+**For KN-2** (`src/catalog/work-features.ts`):
+
+- `workKnowledge(db, workId)` returns a work's genre rows, subject rows and one form (`pickForm`: a specific form before
+  bare `fiction`, then count, then ISFDB), each with its provenance. It returns `form: null` when no source names a form.
+- `SECTION_GENRES` maps SC-1's section families to `work_features` families and canons.
+- `sectionFits(section, features)` returns `true`, `false` or `null`. It is `null` (unknown) when the section maps to
+  nothing (audience, `classics`) or the work has no genre or form row. A missing term is never evidence against a
+  section.
+
+**Reproduction.** Each KN-1 file holds the same rows as the file it rebuilds in every version-1 table. Every F-0 accept
+re-decides to the same work on both (`node src/catalog/kn1-eval.ts gate`, 1.000): `pilot-000` on `catalog.sqlite`
+against `catalog-kn1.sqlite`, and the yardstick on its inventory against `f0-inventory-catalog-kn1.sqlite`.
 
 | Builds (KN-1) | `pnpm catalog:ol subjects --staging $BOOKCASE_DATA/catalog/ol-staging-c9.sqlite` (about 1 min), then `bookcase catalog build --out $BOOKCASE_DATA/catalog/catalog-kn1.sqlite --ol-subjects …/ol-subjects-2026-10-31.sqlite --ol-crosswalk …/ol-staging-c9.sqlite` (about 90 s). A v2 build takes `--ol-staging` in place of `--ol-crosswalk`. Today's `catalog.sqlite`, `catalog-v2.sqlite` and C-9's files are not touched. |
 |---|---|
-| Readers | `workFeatures(db, workId)`, `workGenres(features)` and `hasWorkFeatures(db)` in `src/catalog/work-features.ts`; `crosswalkFeatures(vocabulary, features)` in `src/recommend/vocabulary.ts` |
+| Builds (yardstick) | `pnpm catalog:ol isbn-stage --catalog $BOOKCASE_DATA/proxy/library-dataset/f0-inventory-catalog.sqlite --out …/ol-staging-inventory-kn1.sqlite`; `pnpm catalog:ol subjects --staging …/ol-staging-inventory-kn1.sqlite --out …/ol-subjects-inventory-kn1.sqlite`; `bookcase catalog build --staging …/f0-inventory-catalog.sqlite.staging.sqlite --out …/f0-inventory-catalog-kn1.sqlite --ol-subjects …/ol-subjects-inventory-kn1.sqlite --ol-crosswalk …/ol-staging-inventory-kn1.sqlite` |
+| Readers | `workFeatures`, `workKnowledge`, `pickForm`, `workGenres`, `hasWorkFeatures`, `SECTION_GENRES` and `sectionFits` in `src/catalog/work-features.ts`; `crosswalkFeatures(vocabulary, features)` in `src/recommend/vocabulary.ts` |
 | Evaluation | `node src/catalog/kn1-eval.ts gate --set <pilot-000\|yardstick>`, then `analyse` |
 | Tests | `test/work-features.test.ts` (classification, drop list, provenance, extract, crosswalk-only build, recommend crosswalk, the wall); `test/catalog-openlibrary.test.ts` (schema 4) |
