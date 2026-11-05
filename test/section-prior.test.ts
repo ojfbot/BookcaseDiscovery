@@ -217,3 +217,29 @@ describe("the wall and popularity (structural)", () => {
     expect(src).not.toMatch(/edition|year|rating|popular|votes?Count|awards?/i);
   });
 });
+
+describe("KN-1 adapter (termsOf, SIGN_FAMILIES)", async () => {
+  const { termsOf, SIGN_FAMILIES } = await import("../src/identify/section-prior-cli.ts");
+  const g = (family: string) => ({ kind: "genre", term: family, canon: `${family}-canon`, family });
+  const f = (canon: string) => ({ kind: "form", term: canon, canon, family: "form" });
+  const s = (term: string) => ({ kind: "subject", term, canon: null, family: null });
+
+  it("takes genre families, subject terms and one form", () => {
+    expect(termsOf([g("sf"), g("sf"), g("fantasy"), f("fiction"), f("short-stories"), f("novel"), s("mars")])).toEqual({ genre: ["fantasy", "sf"], subject: ["mars"], form: "novel" });
+  });
+
+  it("keeps `fiction` as the form only when there is no other", () => {
+    expect(termsOf([f("fiction")])!.form).toBe("fiction");
+    expect(termsOf([f("fiction"), f("anthology")])!.form).toBe("anthology");
+  });
+
+  it("is null for a work with no features (unknown, not evidence against)", () => {
+    expect(termsOf([])).toBeNull();
+  });
+
+  it("maps only genre-bearing section families to genre families", () => {
+    expect(SIGN_FAMILIES["sf-fantasy"]).toEqual(["sf", "fantasy"]);
+    expect(SIGN_FAMILIES["young-adult"]).toBeUndefined();
+    expect(SIGN_FAMILIES.nonfiction).toBeUndefined();
+  });
+});

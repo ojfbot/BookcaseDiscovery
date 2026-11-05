@@ -1,25 +1,32 @@
-// KN-2 runner: the section prior in shadow mode on each set's cached boxes, readings and in-force decisions.
+// KN-2 runner: the section prior in shadow mode on each set's cached boxes and readings, re-decided today.
 //
-//   node src/identify/section-prior-cli.ts ranked <pilot-000|yardstick>   # each row member's readers' ranked candidates (private cache)
+//   node src/identify/section-prior-cli.ts ranked <pilot-000|yardstick>   # each book box's readers' ranked candidates and
+//                                                                        # F-0's decision on them (private cache)
 //   node src/identify/section-prior-cli.ts analyse                       # both sets: evals/KN2/metrics.json (aggregates only),
 //                                                                        # the shadow log under the data root's private/kn2/<set>/
 //
 // Shadow mode: every decision is logged beside what the prior would change; no decision, cache or default changes.
 // The box set is RB-1's (`loadBoxSet`, through F-0g's `loadBooks`) and the rows are F-0h's (`buildRows`, keys
-// `<photo>|<k>`), so SC-1's records land on the rows they were read for. Decisions in force: F-0's `readers-agree`
-// (`f0c/<set>/base-decisions.jsonl`), then F-0g's `confirmed-by-copy`, then F-0h's `confirmed-by-context` (TS-0's
-// order). Work features come from KN-1's `work_features`; nothing reads the reader's taste, seeds or lenses (INV-13).
-// CPU only. Only aggregates leave $BOOKCASE_DATA (evals/KN2/).
+// `<photo>|<k>`), so SC-1's records land on the rows they were read for. Both sets are retrieved and decided on
+// `catalog-kn1.sqlite` (today's catalog plus KN-1's `work_features`; KN-1's gate: the same accepts at 1.000), and F-0's
+// `readers-agree` decision is re-decided from the cached readings, never read from a stored decisions file (they
+// predate later retrieval changes). Decisions in force on `pilot-000`: F-0's `readers-agree`, then F-0g's
+// `confirmed-by-copy`, then F-0h's `confirmed-by-context` (TS-0's order); on the yardstick `readers-agree` only (its
+// copy and context caches name the inventory catalog's works). Nothing reads the reader's taste, seeds or lenses
+// (INV-13). CPU only. Only aggregates leave $BOOKCASE_DATA (evals/KN2/).
 import { existsSync, mkdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import type { DatabaseSync } from "node:sqlite";
+import { isAnnotated, yardstickBooks } from "../catalog/c5-eval.ts";
 import { openCatalog } from "../catalog/cli.ts";
-import { retrieve } from "../catalog/retrieve.ts";
+import { KN1_CATALOGS } from "../catalog/kn1-eval.ts";
+import { retrieve, type Candidate } from "../catalog/retrieve.ts";
+import { hasWorkFeatures, LEXICON, workFeatures } from "../catalog/work-features.ts";
 import { dataRoot } from "../ledger/images.ts";
-import { confirms, loadReadings, readJsonl, READERS, variantsOf, vote, type Detection, type ReaderName, type ReaderVotes } from "../eval/f0.ts";
+import { confirms, decide, loadReadings, readJsonl, READERS, variantsOf, vote, type Detection, type ReaderName, type ReaderVotes } from "../eval/f0.ts";
 import { meanCI, SETS, type SetName, type Slim } from "../eval/f0c-cli.ts";
-import { loadBooks, loadDets, yardstickCopies } from "../eval/f0g-cli.ts";
+import { loadBooks, loadDets } from "../eval/f0g-cli.ts";
 import { buildRows } from "../eval/f0h.ts";
 import { rng, quantile } from "../eval/q1.ts";
 import {
@@ -41,6 +48,7 @@ import {
 const REPO = fileURLToPath(new URL("../../", import.meta.url));
 const ROOT = dataRoot();
 const PRIV = join(ROOT, "private", "kn2");
+const CATALOG = join(ROOT, "catalog", KN1_CATALOGS.kn1);
 const SET_NAMES: SetName[] = ["pilot-000", "yardstick"];
 const log = (s: string): void => console.error(`[kn2] ${new Date().toISOString().slice(11, 19)} ${s}`);
 const r4 = (x: number) => Math.round(x * 10000) / 10000;
@@ -51,7 +59,7 @@ export const EVAL = {
   reps: 2000,
   seed: 20261105,
   shuffles: 200,
-  /** Gate G1: re-voting the cached tops with no prior reproduces F-0's accepts on at least this share of row members. */
+  /** Gate G1: F-0's vote on the cached ranked tops reproduces F-0's own `decide` on at least this share of book boxes. */
   reproduce: 0.999,
 } as const;
 
@@ -65,18 +73,50 @@ const stage = (set: string): string => {
 
 interface Features {
   lookup: FeatureLookup;
-  /** SC-1's section family as genre terms of KN-1's vocabulary (empty: the family maps to none). */
+  /** SC-1's section family as genre terms of the mix (empty: the family maps to none). */
   signTerms: (family: string) => readonly string[];
-  /** Where the features come from (recorded in the metrics). */
-  source: string;
 }
 
+/** Form canons in KN-1's lexicon order; `fiction` stands only when no other form does. */
+const FORM_ORDER = LEXICON.filter((e) => e.kind === "form").map((e) => e.canon);
+
 /**
- * KN-1's `work_features` for a set's catalog. Stub until KN-1 (#KN-1) merges: the adapter is written against its
- * merged interface, never against a guess, so nothing runs before then.
+ * SC-1's section families as KN-1 genre families. Families that name an audience or a form (young adult, children,
+ * graphic, poetry and drama, non-fiction) map to none: the sign adds to the genre facet only.
  */
-function openFeatures(_db: DatabaseSync, _catalogPath: string): Features {
-  throw new Error("KN-1's work_features is not merged yet: the section prior has no features to read");
+export const SIGN_FAMILIES: Record<string, readonly string[]> = {
+  "sf-fantasy": ["sf", "fantasy"],
+  sf: ["sf"],
+  fantasy: ["fantasy"],
+  horror: ["horror"],
+  mystery: ["crime", "thriller"],
+  romance: ["romance"],
+  literature: ["literary"],
+  classics: ["literary"],
+};
+
+/**
+ * One work's mix terms from KN-1's `work_features`, both sources together: genre = the genre **families** (`sf`,
+ * `fantasy`, `crime`, …: canons are too fine for a row of a dozen books), subject = the subject terms, form = one form
+ * canon (the first in the lexicon's order; `fiction` only when there is no other). Null when it has none. The tag and
+ * record `count` is never read.
+ */
+export function termsOf(rows: readonly { kind: string; term: string; canon: string | null; family: string | null }[]): WorkFeatureTerms | null {
+  const genre = [...new Set(rows.filter((f) => f.kind === "genre" && f.family).map((f) => f.family!))].sort();
+  const subject = [...new Set(rows.filter((f) => f.kind === "subject").map((f) => f.term))].sort();
+  const forms = new Set(rows.filter((f) => f.kind === "form" && f.canon).map((f) => f.canon!));
+  const form = FORM_ORDER.find((c) => c !== "fiction" && forms.has(c)) ?? (forms.has("fiction") ? "fiction" : null);
+  return genre.length || subject.length || form ? { genre, subject, form } : null;
+}
+
+function openFeatures(db: DatabaseSync): Features {
+  if (!hasWorkFeatures(db)) throw new Error(`${KN1_CATALOGS.kn1} has no work_features table (KN-1)`);
+  const memo = new Map<string, WorkFeatureTerms | null>();
+  const lookup = (id: string) => {
+    if (!memo.has(id)) memo.set(id, termsOf(workFeatures(db, id)));
+    return memo.get(id)!;
+  };
+  return { lookup, signTerms: (family) => SIGN_FAMILIES[family] ?? [] };
 }
 
 // --- one set's data ------------------------------------------------------------------------------------------------
@@ -93,7 +133,6 @@ interface Member {
 interface SetData {
   set: SetName;
   dets: Map<string, Detection>;
-  base: Map<string, Slim>;
   /** Book boxes by id; rows in order. */
   members: Map<string, Member>;
   rows: Map<string, string[]>;
@@ -101,18 +140,17 @@ interface SetData {
   photos: string[];
 }
 
-function loadSet(set: SetName): SetData {
+/** A set's book boxes and rows; `accepted` (F-0's re-decided accepts) sets what is in force, when given. */
+function loadSet(set: SetName, accepted: Map<string, string | null> | null): SetData {
   const dets = loadDets(set);
   const books = loadBooks(set, dets);
-  const basePath = join(ROOT, "f0c", set, "base-decisions.jsonl");
-  if (!existsSync(basePath)) throw new Error(`run node src/eval/f0c-cli.ts base ${set} first`);
-  const base = new Map(readJsonl<Slim>(basePath).map((d) => [d.id, d]));
   const byBasis = (path: string, basis: string) =>
     new Map(readJsonl<{ id: string; basis: string | null; workId: string | null }>(path).filter((c) => c.basis === basis && c.workId).map((c) => [c.id, c.workId!]));
-  const copies = byBasis(join(ROOT, "private", "f0g", set, "copies.jsonl"), "confirmed-by-copy");
-  const context = byBasis(join(ROOT, "private", "f0h", set, "decisions.jsonl"), "confirmed-by-context");
+  const pilot = set === "pilot-000";
+  const copies = pilot ? byBasis(join(ROOT, "private", "f0g", set, "copies.jsonl"), "confirmed-by-copy") : new Map<string, string>();
+  const context = pilot ? byBasis(join(ROOT, "private", "f0h", set, "decisions.jsonl"), "confirmed-by-context") : new Map<string, string>();
   const inForce = (id: string): Member["inForce"] => {
-    const a = base.get(id)?.accepted;
+    const a = accepted?.get(id);
     if (a) return { workId: a, basis: "readers-agree" };
     if (copies.has(id)) return { workId: copies.get(id)!, basis: "confirmed-by-copy" };
     if (context.has(id)) return { workId: context.get(id)!, basis: "confirmed-by-context" };
@@ -122,12 +160,9 @@ function loadSet(set: SetName): SetData {
   const rows = new Map<string, string[]>();
   for (const d of dets.values()) {
     const isBook = (i: number) => books.get(d.id)![i]!;
-    buildRows(d, isBook).forEach((r, k) => {
-      const key = `${d.id}|${k}`;
-      rows.set(key, r.members.map((i) => `${d.id}:${i}`));
-    });
+    buildRows(d, isBook).forEach((r, k) => rows.set(`${d.id}|${k}`, r.members.map((i) => `${d.id}:${i}`)));
     d.spines.forEach((_, i) => {
-      if (isBook(i)) members.set(`${d.id}:${i}`, { id: `${d.id}:${i}`, imageId: d.id, rowKey: null, inForce: inForce(`${d.id}:${i}`) });
+      if (isBook(i)) members.set(`${d.id}:${i}`, { id: `${d.id}:${i}`, imageId: d.id, rowKey: null, inForce: accepted ? inForce(`${d.id}:${i}`) : null });
     });
   }
   for (const [key, ids] of rows) for (const id of ids) members.get(id)!.rowKey = key;
@@ -138,54 +173,83 @@ function loadSet(set: SetName): SetData {
       .filter((r) => r.family && rows.has(r.key))
       .map((r) => [r.key, { family: r.family!, confidence: r.confidence }]),
   );
-  return { set, dets, base, members, rows, signs, photos: [...dets.keys()].sort() };
+  return { set, dets, members, rows, signs, photos: [...dets.keys()].sort() };
 }
 
-// --- ranked candidates (cached) -------------------------------------------------------------------------------------
+// --- ranked candidates and F-0's decision (cached) ---------------------------------------------------------------------
 
 type Ranked = Partial<Record<ReaderName, RankedCandidate[]>>;
+interface RankedLine {
+  id: string;
+  /** Which readers read any text (F-0's `readText`). */
+  read: Partial<Record<ReaderName, boolean>>;
+  readers: Ranked;
+  /** F-0's own `decide` on catalog-kn1, for gate G1. */
+  decided: string | null;
+}
 
-/** Each book box's readers' ranked candidates, `PRIOR.depth` deep, as the prior may see them (no title or popularity). */
+/**
+ * Each book box's readers' ranked candidates, `PRIOR.depth` deep, as the prior may see them (no title, author or
+ * popularity), and F-0's own decision on the same readings and catalog.
+ */
 function ranked(set: SetName): void {
-  const sd = loadSet(set);
+  const sd = loadSet(set, null);
   const readings = loadReadings(SETS[set].base);
-  const db = openCatalog(SETS[set].catalog);
-  const out = join(stage(set), "ranked.jsonl");
+  const db = openCatalog(CATALOG);
+  const cache = new Map<string, Candidate | undefined>();
   const lines: string[] = [];
   let n = 0;
   const t0 = Date.now();
   for (const m of sd.members.values()) {
+    const reads = readings.get(m.id) ?? {};
+    const read: RankedLine["read"] = {};
     const readers: Ranked = {};
     for (const r of READERS) {
-      const v = variantsOf(readings.get(m.id)?.[r]);
-      if (!v.length) continue;
-      readers[r] = retrieve(db, v, PRIOR.depth).map((c) => ({ workId: c.workId, score: c.score, passes: confirms(c) }));
+      if (!reads[r]) continue;
+      const v = variantsOf(reads[r]);
+      read[r] = v.length > 0;
+      if (v.length) readers[r] = retrieve(db, v, PRIOR.depth).map((c) => ({ workId: c.workId, score: c.score, passes: confirms(c) }));
     }
-    lines.push(JSON.stringify({ id: m.id, readers }));
+    const decided = decide(db, m.id, m.imageId, 0, reads, cache).accepted?.workId ?? null;
+    lines.push(JSON.stringify({ id: m.id, read, readers, decided } satisfies RankedLine));
     if (++n % 500 === 0) log(`${set}: ${n} of ${sd.members.size} boxes (${Math.round((Date.now() - t0) / 1000)} s)`);
   }
-  writeFileSync(out, lines.join("\n") + "\n");
-  log(`${set}: ranked candidates for ${n} boxes under the data root's private/kn2/${set}/`);
+  writeFileSync(join(stage(set), "ranked.jsonl"), lines.join("\n") + "\n");
+  log(`${set}: ranked candidates for ${n} boxes under the data root's private/kn2/${set}/ (${Math.round((Date.now() - t0) / 1000)} s)`);
 }
 
-const loadRanked = (set: SetName): Map<string, Ranked> => {
+const loadRanked = (set: SetName): Map<string, RankedLine> => {
   const path = join(stage(set), "ranked.jsonl");
   if (!existsSync(path)) throw new Error(`run node src/identify/section-prior-cli.ts ranked ${set} first`);
-  return new Map(readJsonl<{ id: string; readers: Ranked }>(path).map((r) => [r.id, r.readers]));
+  return new Map(readJsonl<RankedLine>(path).map((r) => [r.id, r]));
 };
+
+/** F-0's vote on a box's cached ranked tops, with no prior: the re-decided base. */
+function baseOf(line: RankedLine | undefined): Slim & { votes: ReaderVotes } {
+  const confirmed: ReaderVotes["confirmed"] = {};
+  for (const r of READERS) {
+    if (line?.read[r] === undefined) continue;
+    const top = line.readers[r]?.[0];
+    confirmed[r] = top && top.passes ? top.workId : null;
+  }
+  const votes: ReaderVotes = { readText: { ...(line?.read ?? {}) }, top: {}, confirmed };
+  const v = vote(votes);
+  return { id: line?.id ?? "", imageId: "", accepted: v.acceptedId, confirmed, readText: votes.readText, reason: v.reason, votes };
+}
 
 // --- the shadow run -------------------------------------------------------------------------------------------------
 
-const votesOf = (s: Slim | undefined): ReaderVotes => ({ readText: { ...(s?.readText ?? {}) }, top: {}, confirmed: { ...(s?.confirmed ?? {}) } });
+type Base = ReturnType<typeof baseOf>;
 
 /** One box under the prior: each reader's re-rank and F-0's vote on the result. */
-function shadowOf(id: string, rowKey: string | null, mix: SectionMix | null, rk: Ranked, base: Slim | undefined, features: FeatureLookup): { record: ShadowRecord; reranks: Partial<Record<ReaderName, Rerank>> } {
+function shadowOf(id: string, rowKey: string | null, mix: SectionMix | null, line: RankedLine | undefined, base: Base, features: FeatureLookup): { record: ShadowRecord; reranks: Partial<Record<ReaderName, Rerank>> } {
   const reranks: Partial<Record<ReaderName, Rerank>> = {};
+  const rk = line?.readers ?? {};
   for (const r of READERS) if (rk[r]) reranks[r] = rerank(rk[r]!, mix, features);
-  const prior = priorVote(votesOf(base), base?.accepted ?? null, reranks);
+  const prior = priorVote(base.votes, base.accepted, reranks);
   const readers: ShadowRecord["readers"] = {};
   for (const [r, x] of Object.entries(reranks) as [ReaderName, Rerank][]) readers[r] = { top: x.top, prior: x.prior, why: x.why };
-  return { record: { id, rowKey, mix: mix ? { neighbours: mix.neighbours, sign: mix.sign } : null, readers, base: { accepted: base?.accepted ?? null }, prior }, reranks };
+  return { record: { id, rowKey, mix: mix ? { neighbours: mix.neighbours, sign: mix.sign } : null, readers, base: { accepted: base.accepted }, prior }, reranks };
 }
 
 interface TargetOutcome {
@@ -212,28 +276,26 @@ interface LooOutcome {
 
 function analyseSet(set: SetName) {
   const t0 = Date.now();
-  const sd = loadSet(set);
   const rk = loadRanked(set);
-  const db = openCatalog(SETS[set].catalog);
-  const feats = openFeatures(db, SETS[set].catalog);
-  const truth = set === "yardstick" ? yardstickCopies() : null;
+  const base = new Map([...rk].map(([id, l]) => [id, baseOf(l)]));
+  const sd = loadSet(set, new Map([...base].map(([id, b]) => [id, b.accepted])));
+  for (const id of sd.members.keys()) if (!rk.has(id)) throw new Error(`${set}: the ranked cache misses book boxes; re-run \`ranked ${set}\``);
+  const db = openCatalog(CATALOG);
+  const feats = openFeatures(db);
+  const truth = set === "yardstick" ? yardstickBooks() : null;
+  const wrongFor = (workId: string, imageId: string) => !isAnnotated(db, workId, truth!.get(imageId) ?? []);
   const fOf = (workId: string | null): WorkFeatureTerms | null => (workId ? feats.lookup(workId) : null);
+  const baseFor = (id: string) => base.get(id)!;
 
-  // Gate G1: F-0's vote on the cached tops, no prior, reproduces F-0's accepts.
-  let g1n = 0, g1same = 0;
-  for (const m of sd.members.values()) {
-    const s = sd.base.get(m.id);
-    if (!s) continue;
-    const confirmed: ReaderVotes["confirmed"] = {};
-    for (const r of READERS) {
-      const top = rk.get(m.id)?.[r]?.[0];
-      if (s.readText[r] !== undefined) confirmed[r] = top && top.passes ? top.workId : null;
-    }
-    g1n++;
-    if (vote({ readText: s.readText, top: {}, confirmed }).acceptedId === s.accepted) g1same++;
-  }
-  const gate = { boxes: g1n, reproduced: share(g1same, g1n), holds: g1n > 0 && g1same / g1n >= EVAL.reproduce };
-  if (!gate.holds) log(`${set}: gate G1 fails (${g1same} of ${g1n}); figures below are not read`);
+  // Gate G1: F-0's vote on the cached ranked tops, no prior, reproduces F-0's own `decide` on the same readings.
+  const ids = [...sd.members.keys()];
+  const g1same = ids.filter((id) => baseFor(id).accepted === rk.get(id)!.decided).length;
+  const gate = { boxes: ids.length, reproduced: share(g1same, ids.length), holds: ids.length > 0 && g1same / ids.length >= EVAL.reproduce };
+  if (!gate.holds) log(`${set}: gate G1 fails (${g1same} of ${ids.length}); figures below are not read`);
+  // For the record: agreement with the stored base F-0h and SC-1 read (it may predate later retrieval changes).
+  const storedPath = join(ROOT, "f0c", set, "base-decisions.jsonl");
+  const stored = existsSync(storedPath) ? new Map(readJsonl<Slim>(storedPath).map((d) => [d.id, d.accepted])) : null;
+  const storedAgreement = stored ? share(ids.filter((id) => (stored.get(id) ?? null) === baseFor(id).accepted).length, ids.length) : null;
 
   // Mixes: each row from its confirmed members (all bases in force), with SC-1's sign where one exists.
   const workAt = (id: string) => sd.members.get(id)?.inForce?.workId ?? null;
@@ -251,9 +313,9 @@ function analyseSet(set: SetName) {
   let opportunities = 0, separated = 0;
   for (const m of sd.members.values()) {
     const mix = m.rowKey ? mixes.get(m.rowKey)! : null;
-    const s = sd.base.get(m.id);
+    const s = baseFor(m.id);
     const target = m.inForce === null;
-    const { record, reranks } = shadowOf(m.id, m.rowKey, target ? mix : null, rk.get(m.id) ?? {}, s, feats.lookup);
+    const { record, reranks } = shadowOf(m.id, m.rowKey, target ? mix : null, rk.get(m.id), s, feats.lookup);
     shadow.push(JSON.stringify({ ...record, target, inForce: m.inForce }));
     if (!target) continue;
     for (const x of Object.values(reranks)) {
@@ -264,10 +326,10 @@ function analyseSet(set: SetName) {
     const p = record.prior;
     const others = p.accepted ? READERS.filter((r) => !p.agreeing.includes(r)) : [];
     const dissent = others.some((r) => {
-      const c = reranks[r]?.why === "moved" ? reranks[r]!.prior : (s?.confirmed[r] ?? null);
+      const c = reranks[r]?.why === "moved" ? reranks[r]!.prior : (s.confirmed[r] ?? null);
       return c !== null && c !== p.accepted;
     });
-    const wrong = truth && p.change !== "none" && p.accepted ? !(truth.get(m.imageId)?.has(p.accepted) ?? false) : null;
+    const wrong = truth && p.change !== "none" && p.accepted ? wrongFor(p.accepted, m.imageId) : null;
     targets.push({ imageId: m.imageId, id: m.id, rowKey: m.rowKey, change: p.change, accepted: p.accepted, dissent, wrong });
   }
   writeFileSync(join(stage(set), "shadow.jsonl"), shadow.join("\n") + "\n");
@@ -279,7 +341,7 @@ function analyseSet(set: SetName) {
       const m = sd.members.get(id)!;
       if (m.inForce?.basis !== "readers-agree") continue;
       const mix = mixOf(key, id);
-      const { record } = shadowOf(id, key, mix, rk.get(id) ?? {}, sd.base.get(id), feats.lookup);
+      const { record } = shadowOf(id, key, mix, rk.get(id), baseFor(id), feats.lookup);
       const own = fOf(m.inForce.workId);
       const others = ids.filter((x) => x !== id && workAt(x)).map((x) => fOf(workAt(x)));
       const maj = majorityForm(others);
@@ -300,7 +362,7 @@ function analyseSet(set: SetName) {
     for (const t of targetIds) {
       let other = t.rowKey!;
       while (other === t.rowKey) other = withMix[Math.floor(rand() * withMix.length)]!;
-      const { record } = shadowOf(t.id, t.rowKey, mixes.get(other)!, rk.get(t.id) ?? {}, sd.base.get(t.id), feats.lookup);
+      const { record } = shadowOf(t.id, t.rowKey, mixes.get(other)!, rk.get(t.id), baseFor(t.id), feats.lookup);
       if (record.prior.change === "new-accept") k++;
     }
     shuffled.push(k);
@@ -312,7 +374,7 @@ function analyseSet(set: SetName) {
   const built = [...mixes.values()].filter((p): p is SectionMix => p !== null);
   const topShare = (p: SectionMix, f: "genre" | "form") => Math.max(0, ...Object.values(p.shares[f]));
   const confirmedWorks = [...sd.members.values()].filter((m) => m.inForce).map((m) => m.inForce!.workId);
-  const topsKnown = targets.flatMap((t) => READERS.map((r) => rk.get(t.id)?.[r]?.[0]?.workId).filter((w): w is string => Boolean(w)));
+  const topsKnown = targets.flatMap((t) => READERS.map((r) => rk.get(t.id)?.readers[r]?.[0]?.workId).filter((w): w is string => Boolean(w)));
   const genreTerms = new Map<string, number>();
   for (const p of built) for (const g of Object.keys(p.shares.genre)) genreTerms.set(g, (genreTerms.get(g) ?? 0) + 1);
 
@@ -320,14 +382,15 @@ function analyseSet(set: SetName) {
   const changes = (xs: { change: string }[]) => Object.fromEntries(["none", "new-accept", "lost-accept", "changed-accept"].map((c) => [c, xs.filter((x) => x.change === c).length]));
   const lost = (xs: LooOutcome[]) => xs.filter((x) => x.change === "lost-accept" || x.change === "changed-accept").length;
   const baseAccepts = [...sd.members.values()].filter((m) => m.inForce?.basis === "readers-agree");
-  const baseWrong = truth ? baseAccepts.filter((m) => !(truth.get(m.imageId)?.has(m.inForce!.workId) ?? false)).length : null;
+  const baseWrong = truth ? baseAccepts.filter((m) => wrongFor(m.inForce!.workId, m.imageId)).length : null;
 
   log(`${set}: analysed (${Math.round((Date.now() - t0) / 1000)} s)`);
   return {
     set,
     scope: SETS[set].scope,
-    features: feats.source,
+    catalog: KN1_CATALOGS.kn1,
     gate,
+    storedAgreement,
     boxes: sd.members.size,
     rows: rowsN,
     targets: targets.length,
