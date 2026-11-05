@@ -7,13 +7,12 @@
 //
 // Shadow mode: every decision is logged beside what the prior would change; no decision, cache or default changes.
 // The box set is RB-1's (`loadBoxSet`, through F-0g's `loadBooks`) and the rows are F-0h's (`buildRows`, keys
-// `<photo>|<k>`), so SC-1's records land on the rows they were read for. Both sets are retrieved and decided on
-// `catalog-kn1.sqlite` (today's catalog plus KN-1's `work_features`; KN-1's gate: the same accepts at 1.000), and F-0's
-// `readers-agree` decision is re-decided from the cached readings, never read from a stored decisions file (they
-// predate later retrieval changes). Decisions in force on `pilot-000`: F-0's `readers-agree`, then F-0g's
-// `confirmed-by-copy`, then F-0h's `confirmed-by-context` (TS-0's order); on the yardstick `readers-agree` only (its
-// copy and context caches name the inventory catalog's works). Nothing reads the reader's taste, seeds or lenses
-// (INV-13). CPU only. Only aggregates leave $BOOKCASE_DATA (evals/KN2/).
+// `<photo>|<k>`), so SC-1's records land on the rows they were read for. Each set is retrieved and decided on its own
+// catalog with KN-1's `work_features` added (`pilot-000`: `catalog-kn1.sqlite`; the yardstick: its inventory catalog's
+// `f0-inventory-catalog-kn1.sqlite`; KN-1's gates: the same accepts at 1.000), and F-0's `readers-agree` decision is
+// re-decided from the cached readings. Decisions in force: F-0's `readers-agree`, then F-0g's `confirmed-by-copy`, then
+// F-0h's `confirmed-by-context` (TS-0's order). Nothing reads the reader's taste, seeds or lenses (INV-13). CPU only.
+// Only aggregates leave $BOOKCASE_DATA (evals/KN2/).
 import { existsSync, mkdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -22,7 +21,7 @@ import { isAnnotated, yardstickBooks } from "../catalog/c5-eval.ts";
 import { openCatalog } from "../catalog/cli.ts";
 import { KN1_CATALOGS } from "../catalog/kn1-eval.ts";
 import { retrieve, type Candidate } from "../catalog/retrieve.ts";
-import { hasWorkFeatures, LEXICON, workFeatures } from "../catalog/work-features.ts";
+import { hasWorkFeatures, SECTION_GENRES, workKnowledge, type SectionFamily, type WorkKnowledge } from "../catalog/work-features.ts";
 import { dataRoot } from "../ledger/images.ts";
 import { confirms, decide, loadReadings, readJsonl, READERS, variantsOf, vote, type Detection, type ReaderName, type ReaderVotes } from "../eval/f0.ts";
 import { meanCI, SETS, type SetName, type Slim } from "../eval/f0c-cli.ts";
@@ -48,7 +47,8 @@ import {
 const REPO = fileURLToPath(new URL("../../", import.meta.url));
 const ROOT = dataRoot();
 const PRIV = join(ROOT, "private", "kn2");
-const CATALOG = join(ROOT, "catalog", KN1_CATALOGS.kn1);
+/** Each set's catalog with KN-1's `work_features` (KN-1, #68 and #70). */
+const CATALOGS: Record<SetName, string> = { "pilot-000": join(ROOT, KN1_CATALOGS["pilot-000"].kn1), yardstick: join(ROOT, KN1_CATALOGS.yardstick.kn1) };
 const SET_NAMES: SetName[] = ["pilot-000", "yardstick"];
 const log = (s: string): void => console.error(`[kn2] ${new Date().toISOString().slice(11, 19)} ${s}`);
 const r4 = (x: number) => Math.round(x * 10000) / 10000;
@@ -77,46 +77,29 @@ interface Features {
   signTerms: (family: string) => readonly string[];
 }
 
-/** Form canons in KN-1's lexicon order; `fiction` stands only when no other form does. */
-const FORM_ORDER = LEXICON.filter((e) => e.kind === "form").map((e) => e.canon);
-
 /**
- * SC-1's section families as KN-1 genre families. Families that name an audience or a form (young adult, children,
- * graphic, poetry and drama, non-fiction) map to none: the sign adds to the genre facet only.
+ * One work's mix terms from KN-1's `workKnowledge`, both sources together: genre = the genre rows' **families** (`sf`,
+ * `fantasy`, `crime`, …: canons are too fine for a row of a dozen books), subject = the subject terms, form = KN-1's
+ * one form (`pickForm`). Null when it has none.
  */
-export const SIGN_FAMILIES: Record<string, readonly string[]> = {
-  "sf-fantasy": ["sf", "fantasy"],
-  sf: ["sf"],
-  fantasy: ["fantasy"],
-  horror: ["horror"],
-  mystery: ["crime", "thriller"],
-  romance: ["romance"],
-  literature: ["literary"],
-  classics: ["literary"],
-};
-
-/**
- * One work's mix terms from KN-1's `work_features`, both sources together: genre = the genre **families** (`sf`,
- * `fantasy`, `crime`, …: canons are too fine for a row of a dozen books), subject = the subject terms, form = one form
- * canon (the first in the lexicon's order; `fiction` only when there is no other). Null when it has none. The tag and
- * record `count` is never read.
- */
-export function termsOf(rows: readonly { kind: string; term: string; canon: string | null; family: string | null }[]): WorkFeatureTerms | null {
-  const genre = [...new Set(rows.filter((f) => f.kind === "genre" && f.family).map((f) => f.family!))].sort();
-  const subject = [...new Set(rows.filter((f) => f.kind === "subject").map((f) => f.term))].sort();
-  const forms = new Set(rows.filter((f) => f.kind === "form" && f.canon).map((f) => f.canon!));
-  const form = FORM_ORDER.find((c) => c !== "fiction" && forms.has(c)) ?? (forms.has("fiction") ? "fiction" : null);
+export function termsOf(k: Pick<WorkKnowledge, "genres" | "subjects" | "form">): WorkFeatureTerms | null {
+  const genre = [...new Set(k.genres.filter((f) => f.family).map((f) => f.family!))].sort();
+  const subject = [...new Set(k.subjects.map((f) => f.term))].sort();
+  const form = k.form?.canon ?? null;
   return genre.length || subject.length || form ? { genre, subject, form } : null;
 }
 
+/** SC-1's section family as genre families of the mix (KN-1's `SECTION_GENRES`); its form canons are not used. */
+export const signTerms = (family: string): readonly string[] => SECTION_GENRES[family as SectionFamily]?.families ?? [];
+
 function openFeatures(db: DatabaseSync): Features {
-  if (!hasWorkFeatures(db)) throw new Error(`${KN1_CATALOGS.kn1} has no work_features table (KN-1)`);
+  if (!hasWorkFeatures(db)) throw new Error("the catalog has no work_features table (KN-1)");
   const memo = new Map<string, WorkFeatureTerms | null>();
   const lookup = (id: string) => {
-    if (!memo.has(id)) memo.set(id, termsOf(workFeatures(db, id)));
+    if (!memo.has(id)) memo.set(id, termsOf(workKnowledge(db, id)));
     return memo.get(id)!;
   };
-  return { lookup, signTerms: (family) => SIGN_FAMILIES[family] ?? [] };
+  return { lookup, signTerms };
 }
 
 // --- one set's data ------------------------------------------------------------------------------------------------
@@ -146,9 +129,8 @@ function loadSet(set: SetName, accepted: Map<string, string | null> | null): Set
   const books = loadBooks(set, dets);
   const byBasis = (path: string, basis: string) =>
     new Map(readJsonl<{ id: string; basis: string | null; workId: string | null }>(path).filter((c) => c.basis === basis && c.workId).map((c) => [c.id, c.workId!]));
-  const pilot = set === "pilot-000";
-  const copies = pilot ? byBasis(join(ROOT, "private", "f0g", set, "copies.jsonl"), "confirmed-by-copy") : new Map<string, string>();
-  const context = pilot ? byBasis(join(ROOT, "private", "f0h", set, "decisions.jsonl"), "confirmed-by-context") : new Map<string, string>();
+  const copies = byBasis(join(ROOT, "private", "f0g", set, "copies.jsonl"), "confirmed-by-copy");
+  const context = byBasis(join(ROOT, "private", "f0h", set, "decisions.jsonl"), "confirmed-by-context");
   const inForce = (id: string): Member["inForce"] => {
     const a = accepted?.get(id);
     if (a) return { workId: a, basis: "readers-agree" };
@@ -195,7 +177,7 @@ interface RankedLine {
 function ranked(set: SetName): void {
   const sd = loadSet(set, null);
   const readings = loadReadings(SETS[set].base);
-  const db = openCatalog(CATALOG);
+  const db = openCatalog(CATALOGS[set]);
   const cache = new Map<string, Candidate | undefined>();
   const lines: string[] = [];
   let n = 0;
@@ -280,7 +262,7 @@ function analyseSet(set: SetName) {
   const base = new Map([...rk].map(([id, l]) => [id, baseOf(l)]));
   const sd = loadSet(set, new Map([...base].map(([id, b]) => [id, b.accepted])));
   for (const id of sd.members.keys()) if (!rk.has(id)) throw new Error(`${set}: the ranked cache misses book boxes; re-run \`ranked ${set}\``);
-  const db = openCatalog(CATALOG);
+  const db = openCatalog(CATALOGS[set]);
   const feats = openFeatures(db);
   const truth = set === "yardstick" ? yardstickBooks() : null;
   const wrongFor = (workId: string, imageId: string) => !isAnnotated(db, workId, truth!.get(imageId) ?? []);
@@ -388,7 +370,7 @@ function analyseSet(set: SetName) {
   return {
     set,
     scope: SETS[set].scope,
-    catalog: KN1_CATALOGS.kn1,
+    catalog: CATALOGS[set].split("/").at(-1),
     gate,
     storedAgreement,
     boxes: sd.members.size,

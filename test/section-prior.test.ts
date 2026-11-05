@@ -218,28 +218,27 @@ describe("the wall and popularity (structural)", () => {
   });
 });
 
-describe("KN-1 adapter (termsOf, SIGN_FAMILIES)", async () => {
-  const { termsOf, SIGN_FAMILIES } = await import("../src/identify/section-prior-cli.ts");
-  const g = (family: string) => ({ kind: "genre", term: family, canon: `${family}-canon`, family });
-  const f = (canon: string) => ({ kind: "form", term: canon, canon, family: "form" });
-  const s = (term: string) => ({ kind: "subject", term, canon: null, family: null });
+describe("KN-1 adapter (termsOf, signTerms)", async () => {
+  const { termsOf, signTerms } = await import("../src/identify/section-prior-cli.ts");
+  const { pickForm } = await import("../src/catalog/work-features.ts");
+  const feat = (kind: "genre" | "form" | "subject", term: string, canon: string | null, family: string | null) => ({ workId: "w", kind, term, canon, family, count: 1, source: "isfdb-tag" as const, recordId: "r", fetched: "2026-10-31" });
+  const g = (family: string) => feat("genre", family, `${family}-canon`, family);
+  const f = (canon: string) => feat("form", canon, canon, "form");
+  const s = (term: string) => feat("subject", term, null, null);
 
-  it("takes genre families, subject terms and one form", () => {
-    expect(termsOf([g("sf"), g("sf"), g("fantasy"), f("fiction"), f("short-stories"), f("novel"), s("mars")])).toEqual({ genre: ["fantasy", "sf"], subject: ["mars"], form: "novel" });
-  });
-
-  it("keeps `fiction` as the form only when there is no other", () => {
-    expect(termsOf([f("fiction")])!.form).toBe("fiction");
-    expect(termsOf([f("fiction"), f("anthology")])!.form).toBe("anthology");
+  it("takes genre families, subject terms and KN-1's one form", () => {
+    const forms = [f("fiction"), f("novel")];
+    expect(termsOf({ genres: [g("sf"), g("sf"), g("fantasy")], subjects: [s("mars")], form: pickForm(forms) })).toEqual({ genre: ["fantasy", "sf"], subject: ["mars"], form: "novel" });
   });
 
   it("is null for a work with no features (unknown, not evidence against)", () => {
-    expect(termsOf([])).toBeNull();
+    expect(termsOf({ genres: [], subjects: [], form: null })).toBeNull();
   });
 
-  it("maps only genre-bearing section families to genre families", () => {
-    expect(SIGN_FAMILIES["sf-fantasy"]).toEqual(["sf", "fantasy"]);
-    expect(SIGN_FAMILIES["young-adult"]).toBeUndefined();
-    expect(SIGN_FAMILIES.nonfiction).toBeUndefined();
+  it("maps SC-1's sections to genre families only (KN-1's SECTION_GENRES)", () => {
+    expect(signTerms("sf-fantasy")).toEqual(["sf", "fantasy"]);
+    expect(signTerms("mystery")).toEqual(["crime", "thriller"]);
+    expect(signTerms("graphic")).toEqual([]);
+    expect(signTerms("not-a-family")).toEqual([]);
   });
 });
