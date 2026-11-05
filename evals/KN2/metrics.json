@@ -1,0 +1,215 @@
+{
+  "card": "KN-2",
+  "mode": "shadow",
+  "prior": {
+    "minNeighbours": 2,
+    "signWeight": 0.5,
+    "signMinConfidence": 0.3,
+    "facetWeight": {
+      "genre": 1,
+      "subject": 0.5,
+      "form": 1
+    },
+    "band": 0.05,
+    "lambda": 0.05,
+    "minGap": 0.25,
+    "depth": 20,
+    "majority": 0.5
+  },
+  "eval": {
+    "reps": 2000,
+    "seed": 20261105,
+    "shuffles": 200,
+    "reproduce": 0.999
+  },
+  "sets": {
+    "pilot-000": {
+      "set": "pilot-000",
+      "scope": "real use (OC35): machine agreement, never accuracy (INV-17)",
+      "catalog": "catalog-kn1.sqlite",
+      "gate": {
+        "bookBoxes": 5757,
+        "reproduced": 1,
+        "holds": true
+      },
+      "storedAgreement": 1,
+      "bookBoxes": 5757,
+      "rows": 320,
+      "targets": 4933,
+      "inForce": {
+        "readers-agree": 726,
+        "confirmed-by-copy": 9,
+        "confirmed-by-context": 89
+      },
+      "coverage": {
+        "rowsWithMix": 81,
+        "rowsWithMixShare": 0.2531,
+        "rowsWithSign": 67,
+        "mixesWithSign": 30,
+        "confirmedWithFeatures": 0.8617,
+        "targetTopsWithFeatures": 0.6013
+      },
+      "concentration": {
+        "meanTopGenreShare": 0.7972,
+        "mixesTopGenreAtLeast80": 0.5185,
+        "meanTopFormShare": 0.875,
+        "meanGenreTerms": 4.0741,
+        "distinctGenreTermsAcrossMixes": 12
+      },
+      "reranks": {
+        "byWhy": {
+          "gap": 39,
+          "moved": 11,
+          "no-candidates": 796,
+          "no-challenger": 1483,
+          "no-mix": 4380,
+          "top-unknown": 724
+        },
+        "opportunities": 50,
+        "separated": 29,
+        "separatedShare": 0.58
+      },
+      "shadow": {
+        "changes": {
+          "none": 4932,
+          "new-accept": 1,
+          "lost-accept": 0,
+          "changed-accept": 0
+        },
+        "newAcceptsPerPhoto": [
+          0.0323,
+          0,
+          0.0968
+        ],
+        "newAcceptsWithDissent": 0,
+        "newWrongAccepts": null,
+        "baseAccepts": 726,
+        "baseWrongAccepts": null
+      },
+      "shuffle": {
+        "real": 1,
+        "mean": 1.12,
+        "p95": 2,
+        "shuffles": 200
+      },
+      "stress": {
+        "looBoxes": 655,
+        "looChanges": {
+          "none": 654,
+          "new-accept": 0,
+          "lost-accept": 0,
+          "changed-accept": 1
+        },
+        "formOut": 31,
+        "formOutLost": 1,
+        "genreOut": 11,
+        "genreOutLost": 0,
+        "allLost": 1
+      }
+    },
+    "yardstick": {
+      "set": "yardstick",
+      "scope": "PROXY (library shelves): Library Dataset sample, box arm B2; confirmed = accepted and annotated in the image",
+      "catalog": "f0-inventory-catalog-kn1.sqlite",
+      "gate": {
+        "bookBoxes": 1038,
+        "reproduced": 1,
+        "holds": true
+      },
+      "storedAgreement": 1,
+      "bookBoxes": 1038,
+      "rows": 90,
+      "targets": 760,
+      "inForce": {
+        "readers-agree": 266,
+        "confirmed-by-copy": 0,
+        "confirmed-by-context": 12
+      },
+      "coverage": {
+        "rowsWithMix": 12,
+        "rowsWithMixShare": 0.1333,
+        "rowsWithSign": 1,
+        "mixesWithSign": 0,
+        "confirmedWithFeatures": 0.2626,
+        "targetTopsWithFeatures": 0.1984
+      },
+      "concentration": {
+        "meanTopGenreShare": 0.3148,
+        "mixesTopGenreAtLeast80": 0.25,
+        "meanTopFormShare": 0.7384,
+        "meanGenreTerms": 1.25,
+        "distinctGenreTermsAcrossMixes": 9
+      },
+      "reranks": {
+        "byWhy": {
+          "no-candidates": 31,
+          "no-challenger": 80,
+          "no-mix": 968,
+          "top-unknown": 187
+        },
+        "opportunities": 0,
+        "separated": 0,
+        "separatedShare": null
+      },
+      "shadow": {
+        "changes": {
+          "none": 760,
+          "new-accept": 0,
+          "lost-accept": 0,
+          "changed-accept": 0
+        },
+        "newAcceptsPerPhoto": [
+          0,
+          0,
+          0
+        ],
+        "newAcceptsWithDissent": 0,
+        "newWrongAccepts": 0,
+        "baseAccepts": 266,
+        "baseWrongAccepts": 24
+      },
+      "shuffle": {
+        "real": 0,
+        "mean": 0,
+        "p95": 0,
+        "shuffles": 200
+      },
+      "stress": {
+        "looBoxes": 198,
+        "looChanges": {
+          "none": 198,
+          "new-accept": 0,
+          "lost-accept": 0,
+          "changed-accept": 0
+        },
+        "formOut": 5,
+        "formOutLost": 0,
+        "genreOut": 1,
+        "genreOutLost": 0,
+        "allLost": 0
+      }
+    }
+  },
+  "keep": {
+    "K1a": {
+      "holds": false,
+      "newAcceptsPerPhoto": [
+        0.0323,
+        0,
+        0.0968
+      ]
+    },
+    "K1b": {
+      "holds": true,
+      "newWrongAccepts": 0,
+      "informative": false
+    },
+    "K2": {
+      "holds": false,
+      "formOut": 31,
+      "formOutLost": 1,
+      "informative": true
+    },
+    "met": false
+  }
+}
