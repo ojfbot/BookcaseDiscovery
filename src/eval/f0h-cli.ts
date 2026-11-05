@@ -3,6 +3,9 @@
 //   node src/eval/f0h-cli.ts stats              # the yardstick's inventory catalog gets C-7's statistics sidecar (once)
 //   node src/eval/f0h-cli.ts analyse            # both sets: evals/F0h/{metrics.json,report.md} tables (aggregates only)
 //   node src/eval/f0h-cli.ts render             # the data root's private/f0h/renders/pilot-000/index.html (private)
+//   node src/eval/f0h-cli.ts analyse --row-context sc1   # F-0h v2 check: SC-1's shelf context replaces the strip
+//                                                        # adapter; aggregates and per-box files go under the data
+//                                                        # root's private/sc1/f0h-v2/, never evals/F0h/ (off by default)
 //
 // Cached stage folders are read, never written; everything per box (decisions, hypotheses, detection-gap flags) stays
 // under the data root's private/f0h/<set>/. Nothing here changes F-0's decision or default catalog:
@@ -61,7 +64,9 @@ import { clusterBootstrap, quantile, rate, rng } from "./q1.ts";
 
 const REPO = fileURLToPath(new URL("../../", import.meta.url));
 const ROOT = dataRoot();
-const PRIV = join(ROOT, "private", "f0h");
+/** `--row-context sc1`: rows' signage context from SC-1's records instead of F-0f's strips (off by default). */
+const SC1_ROWS = process.argv.includes("--row-context") && process.argv[process.argv.indexOf("--row-context") + 1] === "sc1";
+const PRIV = SC1_ROWS ? join(ROOT, "private", "sc1", "f0h-v2") : join(ROOT, "private", "f0h");
 const REPS = 2000;
 const SEED = 20261103;
 const log = (s: string): void => console.error(`[f0h] ${s}`);
@@ -359,7 +364,15 @@ interface StripRow {
  * standing just above it. Also counts not-a-book boxes of other kinds whose text carries strip wording, which this
  * source leaves out (F-0c's flat-strip flags claim them first).
  */
-function strips(sd: SetData): { strips: number; ordering: number; rows: StripRow[]; otherKindsWithStripWording: number } {
+interface StripInfo {
+  source: string;
+  strips: number;
+  ordering: number;
+  rows: StripRow[];
+  otherKindsWithStripWording: number;
+}
+
+function strips(sd: SetData): StripInfo {
   let n = 0;
   let ord = 0;
   let other = 0;
@@ -382,7 +395,20 @@ function strips(sd: SetData): { strips: number; ordering: number; rows: StripRow
       for (const r of sd.rows.get(d.id) ?? []) if (stripLabels(g, r)) rows.push({ rowKey: r.key, ordering: context.ordering !== null, context });
     });
   }
-  return { strips: n, ordering: ord, rows, otherKindsWithStripWording: other };
+  return { source: "f0f-shelf-strip", strips: n, ordering: ord, rows, otherKindsWithStripWording: other };
+}
+
+/**
+ * Row contexts from SC-1's shelf-context records (`private/sc1/<set>/rows.jsonl`, written by sc1-cli.ts analyse) in
+ * place of the strip adapter: the same `RowContext` fields, read the same way (only `ordering`, for hypotheses).
+ */
+function sc1Rows(sd: SetData): StripInfo {
+  const path = join(ROOT, "private", "sc1", sd.set, "rows.jsonl");
+  if (!existsSync(path)) throw new Error(`run node src/eval/sc1-cli.ts analyse first (${sd.set})`);
+  const rows = readJsonl<RowContext & { key: string }>(path)
+    .filter((r) => sd.rowIds.has(r.key))
+    .map((r) => ({ rowKey: r.key, ordering: r.ordering !== null, context: { ordering: r.ordering, genre: r.genre, letterRange: r.letterRange, source: r.source } }));
+  return { source: "sc1", strips: rows.length, ordering: rows.filter((r) => r.ordering).length, rows, otherKindsWithStripWording: 0 };
 }
 
 function orderStats(sd: SetData, photos: Set<string>, stripRows: StripRow[]) {
@@ -552,7 +578,7 @@ function analyseSet(set: SetName) {
 
   // Hypotheses for targets with no usable text, and their half-B check on accepted spines with every reader hidden.
   const orderPhotos = sd.half ? sd.half.a : new Set(sd.photos);
-  const stripInfo = strips(sd);
+  const stripInfo = SC1_ROWS ? sc1Rows(sd) : strips(sd);
   const orderA = orderStats(sd, orderPhotos, stripInfo.rows);
   const priorBracket = orderA.bracketPurity;
   const priorAnchor = orderA.anchorSameAuthorRate;
@@ -695,7 +721,7 @@ function summarise(sd: SetData, x: any) {
     hypotheses: { kind: string }[];
     hidden: { imageId: string; kind: string; top1: boolean; top5: boolean }[];
     gaps: { boxGaps: number; s1Front: number; bracketsWithFlag: number; flags: object[] };
-    stripInfo: { strips: number; ordering: number; rows: StripRow[]; otherKindsWithStripWording: number };
+    stripInfo: StripInfo;
     orderA: ReturnType<typeof orderStats>;
     evalPhotos: Set<string>;
     inEval: (id: string) => boolean;
@@ -778,7 +804,7 @@ function summarise(sd: SetData, x: any) {
     loro: { all: loro(views), weak: loro(views.filter((v) => v.weak)), stress: loro(views.filter((v) => v.stress)) },
     hypotheses: { total: hypotheses.length, byKind: count(hypotheses.map((h) => h.kind)), hiddenCheck: { all: hid(), bracket: hid("bracket"), adjacent: hid("adjacent") } },
     detectionGaps: { brackets: gaps.bracketsWithFlag, boxGaps: gaps.boxGaps, s1FrontOutlineGaps: gaps.s1Front },
-    strips: { source: "f0f-shelf-strip", found: stripInfo.strips, statingOrder: stripInfo.ordering, rows: sd.rowIds.size, rowsLabelled: new Set(stripInfo.rows.map((r) => r.rowKey)).size, rowsSetOrdered: new Set(stripInfo.rows.filter((r) => r.ordering).map((r) => r.rowKey)).size, rowsWithGenre: new Set(stripInfo.rows.filter((r) => r.context.genre).map((r) => r.rowKey)).size, otherKindsWithStripWording: stripInfo.otherKindsWithStripWording },
+    strips: { source: stripInfo.source, found: stripInfo.strips, statingOrder: stripInfo.ordering, rows: sd.rowIds.size, rowsLabelled: new Set(stripInfo.rows.map((r) => r.rowKey)).size, rowsSetOrdered: new Set(stripInfo.rows.filter((r) => r.ordering).map((r) => r.rowKey)).size, rowsWithGenre: new Set(stripInfo.rows.filter((r) => r.context.genre).map((r) => r.rowKey)).size, otherKindsWithStripWording: stripInfo.otherKindsWithStripWording },
     order: orderA,
     orderOther: sd.half ? orderStats(sd, sd.half.b, stripInfo.rows) : null,
     yardstick: yard,
@@ -830,6 +856,12 @@ function analyse(): void {
     keep: { ...keep, ship: keep.k1PilotLift && keep.k2Shuffle && keep.k3Yardstick && keep.k4Loro },
     seconds: Math.round((Date.now() - t0) / 1000),
   };
+  if (SC1_ROWS) {
+    // F-0h v2 check for SC-1: aggregates stay private beside SC-1's; evals/F0h/ is the default's alone.
+    writeFileSync(join(PRIV, "metrics.json"), JSON.stringify({ ...metrics, rowContext: "sc1" }, null, 2) + "\n");
+    log(`analyse --row-context sc1: ${metrics.seconds} s -> the data root's private/sc1/f0h-v2/`);
+    return;
+  }
   const dir = join(REPO, "evals", "F0h");
   mkdirSync(dir, { recursive: true });
   writeFileSync(join(dir, "metrics.json"), JSON.stringify(metrics, null, 2) + "\n");
