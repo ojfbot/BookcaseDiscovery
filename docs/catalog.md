@@ -523,3 +523,83 @@ dropped before IMP-1. Label-free; its cost is a real house name that begins a ca
 | Evaluation | `node src/catalog/c9-eval.ts wikidata`, `lists --set <name> --catalog <v1\|v2>`, `analyse` |
 | Tests | `test/f0d-imprint.test.ts` (keys, parents, shelf marks, IMP-1), `test/catalog-openlibrary.test.ts` (columns, staging v1) |
 
+
+# Shared book knowledge: `work_features` (KN-1)
+
+The recommender has two halves (owner ruling, 2026-11-04). **Shared book knowledge** is genre, subject and form: catalog
+facts, the same for every reader, which may support `identify`. **Personal taste** is the profile and the lenses, which
+stay behind INV-13. KN-1 builds the first half as a catalog table, `work_features`, in `src/catalog/work-features.ts`.
+That file imports nothing from `src/recommend/` or the profile, so `identify` can read it (KN-2's genre prior, in shadow
+mode). `recommend` reads the same rows through R-0's crosswalk (`crosswalkFeatures` in `src/recommend/vocabulary.ts`),
+not a copy. Nothing in `identify` reads the table yet.
+
+**Schema version 4** adds the table. Every other table is version 3's, and readers open versions 1–4. Each build
+always fills it from ISFDB's tags. With `--ol-subjects`, the build adds Open Library subjects too.
+
+| column | holds |
+|---|---|
+| `work_id` | `works.id` |
+| `kind` | `genre`, `form` or `subject` (`classify`) |
+| `term` | the source's value: entities decoded, case-folded, `&` → `and`, spaces collapsed |
+| `canon`, `family` | the canonical genre or form (`science-fiction`, `short-stories`) and its family (`sf`, `fantasy`, `form`, …); `NULL` for a subject |
+| `count` | ISFDB: distinct users who applied the tag to the work's titles; Open Library: the linked records that carry the subject |
+| `source` | `isfdb-tag` or `openlibrary-subject` |
+| `record_id` | the source record: `isfdb-tag:<tag_id>`, or `OL<n>W` (the lowest, when several carry the subject) |
+| `fetched` | the source dump's date |
+
+The key is (`work_id`, `source`, `term`), and `canon` is indexed.
+
+**Sources** (both are bulk files already on disk; nothing is fetched per book):
+
+- **ISFDB tags.** Every public tag on the work's root and variant titles. That is all of them, not just `works.tags`'
+  top 8, and `works.tags` itself is unchanged. ISFDB's private tags (`tag_status` 1) are left out: they are mostly
+  bookkeeping, such as reading logs, holdings and e-text sources.
+- **Open Library subjects.** The `subjects` field of the 2026-10-31 works dump, read once into
+  `catalog/ol-subjects-<date>.sqlite` by `pnpm catalog:ol subjects --staging <ol-staging>`. Only the staged *breadth*
+  works are read. A work staged only because it is on the owner's shelves (layer `shelf`, C-5) is left out, so the
+  table does not depend on one reader's shelves. Places, people and times are not read, because R-0 gives setting no
+  weight. Subjects reach catalog works through C-5's crosswalk (ISBN, then title plus author surname):
+  - **on a v2 build**, the merge's own crosswalk;
+  - **on a v1 build**, `--ol-crosswalk <ol-staging>` runs the same crosswalk without merging. It adds no edition, work,
+    author or `sources` entry, so the catalog stays ISFDB-only and identical to a plain build.
+- **Not sourced:** LC subject headings, LC genre/form terms and BISAC. No published bulk file of LC *records* is on disk.
+  The only cached LC records are C-4's coverage cache, which was queried with spine text from the owner's shelves, so
+  using it would make the shared table depend on those shelves. Open Library subjects shaped like BISAC headings
+  (`Fiction, science fiction, general`) are kept as Open Library subjects. See `implementation-notes.md` (KN-1).
+
+**Not book facts** (`NOT_BOOK_FACTS`) never enter the table:
+
+- popularity and canon signals: awards, nominations, best-of and reading lists, bestseller lists (OC33);
+- adaptations;
+- bookkeeping: holdings, e-text sources, bundles, reading logs, accessibility flags, bare years.
+
+**Genre, form or subject** (`classify`, `LEXICON`). A value is checked against a lexicon of about 60 canonical genres
+and forms, with their names. It is checked whole first, then segment by segment, splitting on `--`, `/`, `,` and `;`.
+A leading audience or nationality word may be dropped (`juvenile fantasy`, `american science fiction`).
+
+- If any segment names a genre, the value is that genre, and the last such segment wins
+  (`Fiction, science fiction, space opera` → `space-opera`).
+- If every non-filler segment names a form, the value is that form (`Fiction, general` → `fiction`).
+- Otherwise it is a subject. So LCSH's topic plus form subdivision (`Mars (Planet) -- Fiction`, OL's `Texas, fiction`)
+  is a subject.
+
+The lexicon is configuration. Growing it changes no identity decision.
+
+**Counts** (2026-10-31 dumps, `catalog-kn1.sqlite`):
+
+- 631,048 rows on 138,200 of 340,829 works;
+- 182,471 rows from ISFDB tags and 448,577 from Open Library subjects;
+- 116,704 Open Library works crosswalked to 69,233 ISFDB works that carry a subject;
+- 24,584 private-tag links skipped and 16,184 values dropped as not book facts.
+
+The aggregates on confirmed works are in `evals/KN1/report.md`.
+
+**Reproduction.** `catalog-kn1.sqlite` holds the same rows as today's `catalog.sqlite` in every version-1 table. Every
+F-0 accept on `pilot-000` and the yardstick re-decides to the same work on both (`node src/catalog/kn1-eval.ts gate`,
+1.000).
+
+| Builds (KN-1) | `pnpm catalog:ol subjects --staging $BOOKCASE_DATA/catalog/ol-staging-c9.sqlite` (about 1 min), then `bookcase catalog build --out $BOOKCASE_DATA/catalog/catalog-kn1.sqlite --ol-subjects …/ol-subjects-2026-10-31.sqlite --ol-crosswalk …/ol-staging-c9.sqlite` (about 90 s). A v2 build takes `--ol-staging` in place of `--ol-crosswalk`. Today's `catalog.sqlite`, `catalog-v2.sqlite` and C-9's files are not touched. |
+|---|---|
+| Readers | `workFeatures(db, workId)`, `workGenres(features)` and `hasWorkFeatures(db)` in `src/catalog/work-features.ts`; `crosswalkFeatures(vocabulary, features)` in `src/recommend/vocabulary.ts` |
+| Evaluation | `node src/catalog/kn1-eval.ts gate --set <pilot-000\|yardstick>`, then `analyse` |
+| Tests | `test/work-features.test.ts` (classification, drop list, provenance, extract, crosswalk-only build, recommend crosswalk, the wall); `test/catalog-openlibrary.test.ts` (schema 4) |

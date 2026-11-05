@@ -2,19 +2,23 @@
 // tables; this step decides what a *work* is, folds variants in, normalises, and builds the three FTS5
 // trigram indexes that `retrieve` reads. docs/catalog.md has the rules and the reasons. With `openLibrary` set
 // (C-5), the Open Library staging file is crosswalked and merged in the same transaction (`ol-merge.ts`).
+// Last, the shared book knowledge table `work_features` is filled (KN-1, `work-features.ts`): ISFDB tags always,
+// Open Library subjects when `features.olSubjects` is given.
 import { existsSync, mkdirSync, renameSync, rmSync, statSync } from "node:fs";
 import { dirname } from "node:path";
 import { DatabaseSync } from "node:sqlite";
 import { decodeEntities, normalize, splitSubtitle, surnameFirstToGivenFirst } from "./normalize.ts";
 import { attachOpenLibrary, mergeOpenLibrary, type MergeCounts } from "./ol-merge.ts";
+import { attachOlSubjects, fillWorkFeatures, type FeatureCounts } from "./work-features.ts";
 
 /**
  * Bump when a table or column of catalog.sqlite changes. `PRAGMA user_version` and `meta.schema_version` hold it.
  * 2 (C-5): `editions.source`. Version 1 files have no other difference, so readers accept both (`READABLE_SCHEMA_VERSIONS`).
  * 3 (C-9): `editions.publishers` and `editions.pub_series`. Readers that do not read them open every version.
+ * 4 (KN-1): the `work_features` table. Every other table is version 3's.
  */
-export const CATALOG_SCHEMA_VERSION = 3;
-export const READABLE_SCHEMA_VERSIONS: readonly number[] = [1, 2, 3];
+export const CATALOG_SCHEMA_VERSION = 4;
+export const READABLE_SCHEMA_VERSIONS: readonly number[] = [1, 2, 3, 4];
 
 /**
  * ISFDB `title_ttype` values that count as a *work* on a shelf: whole books. Short fiction, essays, poems,
@@ -94,7 +98,18 @@ export interface BuildResult {
   counts: Record<string, number>;
   stagingHash: string | null;
   openLibrary: MergeCounts | null;
+  features: FeatureCounts;
   seconds: number;
+}
+
+/**
+ * KN-1's work features. `olSubjects` is an Open Library subjects extract (`pnpm catalog:ol subjects`). Its works reach
+ * the catalog's through C-5's crosswalk: the merge's own when `openLibrary` is set, else `olCrosswalk` (an Open
+ * Library staging file) is crosswalked without merging, so an ISFDB-only catalog stays ISFDB-only.
+ */
+export interface FeatureOptions {
+  olSubjects?: string;
+  olCrosswalk?: string;
 }
 
 type Row = Record<string, string | number | bigint | null | Uint8Array>;
@@ -107,11 +122,13 @@ function yearOf(date: string | null | undefined): number | null {
   return Number.isInteger(y) && y > 0 && y < 8000 ? y : null;
 }
 
-export function buildCatalog(opts: { staging: string; out: string; openLibrary?: string; now?: () => Date; log?: (s: string) => void }): BuildResult {
+export function buildCatalog(opts: { staging: string; out: string; openLibrary?: string; features?: FeatureOptions; now?: () => Date; log?: (s: string) => void }): BuildResult {
   const log = opts.log ?? (() => {});
   const t0 = Date.now();
   if (!existsSync(opts.staging)) throw new Error(`staging file not found: ${opts.staging} (run pnpm catalog:import)`);
   if (opts.openLibrary && !existsSync(opts.openLibrary)) throw new Error(`Open Library staging file not found: ${opts.openLibrary} (run pnpm catalog:ol stage)`);
+  const crosswalkOnly = !opts.openLibrary && opts.features?.olCrosswalk !== undefined && opts.features.olSubjects !== undefined;
+  if (opts.features?.olSubjects && !opts.openLibrary && !crosswalkOnly) throw new Error("Open Library subjects need --ol-staging (merge) or --ol-crosswalk (crosswalk only)");
   mkdirSync(dirname(opts.out), { recursive: true });
   const partial = `${opts.out}.partial`;
   rmSync(partial, { force: true });
@@ -123,7 +140,8 @@ export function buildCatalog(opts: { staging: string; out: string; openLibrary?:
     db.exec(`ATTACH DATABASE 'file:${opts.staging.replace(/\\/g, "/")}?mode=ro' AS st`);
     const stMeta = Object.fromEntries((db.prepare("SELECT key, value FROM st.meta").all() as Array<{ key: string; value: string }>).map((r) => [r.key, r.value]));
     if (Number(stMeta.schema_version) !== 1) throw new Error(`unsupported staging schema_version ${stMeta.schema_version}`);
-    const olDumpDate = opts.openLibrary ? attachOpenLibrary(db, opts.openLibrary) : null;
+    const olDumpDate = opts.openLibrary ? attachOpenLibrary(db, opts.openLibrary) : crosswalkOnly ? attachOpenLibrary(db, opts.features!.olCrosswalk!) : null;
+    const subjDate = opts.features?.olSubjects ? attachOlSubjects(db, opts.features.olSubjects) : null;
 
     db.exec("BEGIN");
 
@@ -330,7 +348,11 @@ export function buildCatalog(opts: { staging: string; out: string; openLibrary?:
     }
 
     // 7. Open Library (C-5): crosswalk to the ISFDB works above, add the rest as works of their own
-    const ol = olDumpDate !== null ? { dumpDate: olDumpDate, counts: mergeOpenLibrary(db, olDumpDate, log) } : null;
+    const ol = olDumpDate !== null && !crosswalkOnly ? { dumpDate: olDumpDate, counts: mergeOpenLibrary(db, olDumpDate, log) } : null;
+    const crosswalk = crosswalkOnly ? mergeOpenLibrary(db, olDumpDate!, log, { crosswalkOnly: true }) : null;
+
+    // 8. work features (KN-1): ISFDB tags and Open Library subjects, with provenance per term
+    const features = fillWorkFeatures(db, { isfdbDate: stMeta.dump_date ?? "", olDate: subjDate, log });
 
     const counts: Record<string, number> = { works: (db.prepare("SELECT COUNT(*) AS n FROM works").get() as { n: number }).n, isfdbWorks: workCount };
     for (const t of ["editions", "authors", "work_authors", "series", "work_series", "title_forms", "author_forms", "series_forms"]) {
@@ -344,6 +366,11 @@ export function buildCatalog(opts: { staging: string; out: string; openLibrary?:
     insMeta.run("work_ttypes", WORK_TTYPES.join(","));
     for (const [k, v] of Object.entries(counts)) insMeta.run(`rows.${k}`, String(v));
     insMeta.run("sources", ol ? "isfdb,openlibrary" : "isfdb");
+    insMeta.run("work_features", subjDate ? "isfdb-tag,openlibrary-subject" : "isfdb-tag");
+    if (subjDate) insMeta.run("work_features.openlibrary_subjects_dump_date", subjDate);
+    if (crosswalk) insMeta.run("work_features.openlibrary_crosswalk_only", String(crosswalk.crosswalkIsbn + crosswalk.crosswalkTitleAuthor));
+    for (const [k, v] of Object.entries(features)) if (typeof v === "number") insMeta.run(`work_features.${k}`, String(v));
+    for (const [k, v] of Object.entries(features.byKind)) insMeta.run(`work_features.kind.${k}`, String(v));
     if (ol) {
       insMeta.run("openlibrary_dump_date", ol.dumpDate);
       for (const [k, v] of Object.entries(ol.counts)) insMeta.run(`openlibrary.${k}`, String(v));
@@ -353,12 +380,13 @@ export function buildCatalog(opts: { staging: string; out: string; openLibrary?:
     log("optimising");
     db.exec("INSERT INTO fts_title(fts_title) VALUES('optimize'); INSERT INTO fts_author(fts_author) VALUES('optimize'); INSERT INTO fts_series(fts_series) VALUES('optimize');");
     db.exec("DETACH DATABASE st");
-    if (ol) db.exec("DETACH DATABASE ol");
+    if (olDumpDate !== null) db.exec("DETACH DATABASE ol");
+    if (subjDate !== null) db.exec("DETACH DATABASE subj");
     db.exec(`PRAGMA user_version = ${CATALOG_SCHEMA_VERSION}`);
     db.close();
     rmSync(opts.out, { force: true });
     renameSync(partial, opts.out);
-    return { out: opts.out, counts, stagingHash: stMeta.content_hash ?? null, openLibrary: ol?.counts ?? null, seconds: (Date.now() - t0) / 1000 };
+    return { out: opts.out, counts, stagingHash: stMeta.content_hash ?? null, openLibrary: ol?.counts ?? null, features, seconds: (Date.now() - t0) / 1000 };
   } catch (e) {
     try {
       db.close();

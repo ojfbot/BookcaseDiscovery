@@ -19,6 +19,9 @@ const usage = `usage: bookcase catalog <command>
   build  [--staging <file>] [--out <file>] [--ol-staging <file>]
                                                  build catalog.sqlite from the ISFDB staging file; --ol-staging also merges
                                                  the Open Library staging file (C-5; then --out defaults to catalog-v2.sqlite)
+         [--ol-subjects <file> [--ol-crosswalk <ol-staging>]]
+                                                 work_features (KN-1) always holds ISFDB tags; --ol-subjects adds Open Library
+                                                 subjects, linked by the merge or, without --ol-staging, by --ol-crosswalk alone
   stats  [--db <file>]                           build the statistics sidecar beside a catalog (C-7: <catalog>.stats.sqlite;
                                                  the catalog file itself is not written)
   query  <text>... [-k N] [--json] [--db <file>] retrieve candidates; each <text> is one reading (variant) of the spine
@@ -145,15 +148,17 @@ export function catalogCommand(argv: string[], env: NodeJS.ProcessEnv = process.
   }
   try {
     if (cmd === "build") {
-      const { values } = parseArgs({ args: rest, options: { staging: { type: "string" }, out: { type: "string" }, "ol-staging": { type: "string" } } });
+      const { values } = parseArgs({ args: rest, options: { staging: { type: "string" }, out: { type: "string" }, "ol-staging": { type: "string" }, "ol-subjects": { type: "string" }, "ol-crosswalk": { type: "string" } } });
       const ol = values["ol-staging"];
+      const features = values["ol-subjects"] ? { olSubjects: values["ol-subjects"], ...(values["ol-crosswalk"] ? { olCrosswalk: values["ol-crosswalk"] } : {}) } : undefined;
       // Never write the default catalog.sqlite with Open Library merged in: readers may have it open (C-5).
       const out = values.out ?? (ol ? paths.catalogV2 : join(dataRoot(env), "catalog", "catalog.sqlite"));
       const t = (s: string) => console.error(`${new Date().toISOString().slice(11, 19)} ${s}`);
-      const r = buildCatalog({ staging: values.staging ?? paths.staging, out, ...(ol ? { openLibrary: ol } : {}), log: t });
+      const r = buildCatalog({ staging: values.staging ?? paths.staging, out, ...(ol ? { openLibrary: ol } : {}), ...(features ? { features } : {}), log: t });
       console.log(`built ${r.out} in ${r.seconds.toFixed(1)} s (${fmt(catalogFileSize(r.out))} bytes)`);
       for (const [k, v] of Object.entries(r.counts)) console.log(`  ${k.padEnd(14)} ${fmt(v).padStart(10)}`);
       if (r.openLibrary) for (const [k, v] of Object.entries(r.openLibrary)) console.log(`  openlibrary.${k.padEnd(26)} ${fmt(v).padStart(10)}`);
+      for (const [k, v] of Object.entries(r.features)) if (typeof v === "number") console.log(`  work_features.${k.padEnd(22)} ${fmt(v).padStart(10)}`);
       console.log(`  staging content hash ${r.stagingHash}`);
       return 0;
     }

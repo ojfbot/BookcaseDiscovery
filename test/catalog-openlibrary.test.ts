@@ -147,8 +147,8 @@ describe("Open Library import (synthetic dumps)", () => {
     c.close();
   });
 
-  it("writes schema version 3 and still opens version 1 files", () => {
-    expect(CATALOG_SCHEMA_VERSION).toBe(3);
+  it("writes schema version 4 and still opens version 1 files", () => {
+    expect(CATALOG_SCHEMA_VERSION).toBe(4);
     const v1 = join(dir, "v1.sqlite");
     buildCatalog({ staging: join(dir, "isfdb-staging.sqlite"), out: v1 });
     const raw = new DatabaseSync(v1);
@@ -156,9 +156,9 @@ describe("Open Library import (synthetic dumps)", () => {
     raw.close();
     expect(() => openCatalog(v1).close()).not.toThrow();
     const raw3 = new DatabaseSync(v1);
-    raw3.exec("PRAGMA user_version = 4");
+    raw3.exec("PRAGMA user_version = 5");
     raw3.close();
-    expect(() => openCatalog(v1)).toThrow(/schema version 4/);
+    expect(() => openCatalog(v1)).toThrow(/schema version 5/);
   });
 
   it("selects the catalog file from BOOKCASE_CATALOG, defaulting to catalog.sqlite", () => {
