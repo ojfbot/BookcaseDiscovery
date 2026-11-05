@@ -412,6 +412,7 @@ function analyse(): void {
   const imp: Record<string, Record<string, Record<string, unknown>>> = {};
   const marks: Record<string, unknown> = {};
   const rowsOf: Record<string, ImpRow[]> = {};
+  const reach: Record<string, Record<string, unknown>> = {};
   for (const set of SETS) {
     const reads = new Map(readIds(set).map((r) => [r.id, r]));
     const bs = loadBoxSet(set === "pilot-000" ? "pilot-000" : "yardstick");
@@ -419,6 +420,14 @@ function analyse(): void {
       const boxes = loadLists(set, cat);
       const db = openCatalog(catalogFile(cat));
       const ctx = { boxes, reads, wrong: c6None(set, cat), db, table: f0dTable, links, keep: bs.keeps };
+      // Descriptive (added after the pre-registration, decides nothing): how much of the catalog's accepts F-0d read.
+      const acc = [...ctx.wrong.entries()].filter(([id, d]) => d.accepted && bs.keeps(id));
+      const withRead = acc.filter(([id]) => reads.has(id));
+      const keyed = withRead.filter(([id]) => boxImprint(reads.get(id)).key);
+      ((reach[set] ??= {})[cat] = {
+        accepts: acc.length, acceptsRead: withRead.length, acceptsWithImprint: keyed.length,
+        ...(set === "pilot-000" ? {} : { wrongAccepts: acc.filter(([, d]) => d.wrong).length, wrongRead: withRead.filter(([, d]) => d.wrong).length, wrongWithImprint: keyed.filter(([, d]) => d.wrong).length }),
+      });
       if (cat === "v2") marks[set] = shelfMarkEval(set, boxes, reads);
       for (const data of ["today", "c9"] as const) {
         for (const filter of [true, false]) {
@@ -456,6 +465,7 @@ function analyse(): void {
     dataFix: p1,
     shelfMarkFilter: marks,
     imp1Cells: imp,
+    reach,
     verdict: { dataFix: p1.verdict.keep ? "keep" : "off", imp1: imp1.keep ? "keep" : imp1.uninformative ? "uninformative (off)" : "off", detail: imp1 },
   };
   const dir = join(REPO, "evals", "C9");

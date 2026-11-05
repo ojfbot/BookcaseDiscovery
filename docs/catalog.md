@@ -502,6 +502,11 @@ staging file still merges (its editions get `publishers = NULL`).
 
 F-0d's tie-break and p1 read `any`; IMP-1 withholds only on a rival's `strict` match.
 
+**Counts and verdicts** (2026-10-31 dumps): 531,138 Open Library editions carry 2+ publisher strings; 141,382
+ISFDB editions carry a publisher series; the Wikidata export gives 393 parent links on 282 houses (116 dated). The
+data fix moved p1 by one box (+2.8 points, under the pre-registered 10) and IMP-1's yardstick arm was uninformative,
+so both stay off and the default catalogs are unchanged (`evals/C9/report.md`).
+
 **Wikidata parents** (`wikidataParents`): one SPARQL query (`WIKIDATA_QUERY` in `src/catalog/c9-eval.ts`) for
 every item with an ISFDB publisher ID (P1239) and a parent organisation (P749) or owner (P127), with the
 statement's start and end (P580/P582). Each side is named by ISFDB's publisher name when it has a P1239 id, else by
