@@ -26,6 +26,8 @@ const { buildStats, catalogStamp, legacyStamp, openStats, restampStats, stampRec
 const { readJsonl } = await import("../src/eval/f0.ts");
 const { commitVersion, datasetDir } = await import("../src/eval/ts0-cli.ts");
 const { openAppender, writeFileDurable } = await import("../src/ledger/durable.ts");
+const { makeStamp } = await import("../src/ledger/lineage.ts");
+const stamp = makeStamp({ schema: { name: "ts0/label-ledger", version: 1 } });
 const { writePrivateManifest, privateManifestPath } = await import("../src/capture/manifest.ts");
 const { makeMiniStaging: miniStaging } = await import("./helpers/mini-staging.ts");
 
@@ -61,17 +63,17 @@ describe("TS-0 commit: splits.json and latest.json survive a cut-off write", () 
   it("leaves the previous frozen splits and latest version whole", () => {
     const root = join(dir, "ts0");
     const v1 = join(datasetDir(root), "v-1");
-    commitVersion(root, v1, { "build.json": "{}\n" }, { photos: { aaaa: "train" } } as never, "v-1");
+    commitVersion(root, v1, { "build.json": "{}\n" }, { photos: { aaaa: "train" } } as never, "v-1", stamp);
     crash.on = "MARKER";
     const v2 = join(datasetDir(root), "v-2");
-    expect(() => commitVersion(root, v2, { "build.json": "{}\n" }, { photos: { aaaa: "train", MARKER: "val" } } as never, "v-2")).toThrow(/simulated crash/);
+    expect(() => commitVersion(root, v2, { "build.json": "{}\n" }, { photos: { aaaa: "train", MARKER: "val" } } as never, "v-2", stamp)).toThrow(/simulated crash/);
     expect(JSON.parse(readFileSync(join(datasetDir(root), "splits.json"), "utf8"))).toEqual({ photos: { aaaa: "train" } });
     expect(JSON.parse(readFileSync(join(datasetDir(root), "latest.json"), "utf8"))).toEqual({ version: "v-1" });
   });
 
   it("fsyncs splits.json and latest.json", () => {
     const root = join(dir, "ts0-sync");
-    commitVersion(root, join(datasetDir(root), "v-1"), {}, { photos: {} } as never, "v-1");
+    commitVersion(root, join(datasetDir(root), "v-1"), {}, { photos: {} } as never, "v-1", stamp);
     // splits.json and latest.json: a file and a folder fsync each.
     expect(vi.mocked(realFs.fsyncSync).mock.calls.length).toBeGreaterThanOrEqual(4);
   });

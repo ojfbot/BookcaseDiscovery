@@ -3,6 +3,9 @@ import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
+import { makeStamp, writeLineage } from "../src/ledger/lineage.ts";
+import { buildModelsManifest, modelHashes } from "../src/ledger/models.ts";
+import { PARTITION_MODELS, PARTITION_SCHEMA } from "../src/eval/lineage-classes.ts";
 import { NB3_SHIP } from "../src/eval/nb3.ts";
 import { boxSetDrops, loadBoxSet, type Nb3Flag, type PartitionRow } from "../src/eval/rb1.ts";
 import { at, placeSection, SECTION, show, withRebaseline } from "../src/eval/rb1-cli.ts";
@@ -31,15 +34,25 @@ describe("RB-1 box set", () => {
     expect(boxSetDrops(partition, [{ id: "q:9", causes: ["on-lip"] }]).has("q:9")).toBe(false);
   });
 
-  it("loads both files from the data root and refuses a missing one", () => {
+  it("loads both files from the data root and refuses a missing one, or an unstamped partition (DL-3)", async () => {
     const root = mkdtempSync(join(tmpdir(), "rb1-"));
     try {
       expect(() => loadBoxSet("pilot-000", root)).toThrow(/F-0i partition/);
+      const part = join(root, "private", "f0i", "yardstick-library-b2", "partition.jsonl");
       mkdirSync(join(root, "private", "f0i", "yardstick-library-b2"), { recursive: true });
-      writeFileSync(join(root, "private", "f0i", "yardstick-library-b2", "partition.jsonl"), partition.map((r) => JSON.stringify(r)).join("\n") + "\n");
+      writeFileSync(part, partition.map((r) => JSON.stringify(r)).join("\n") + "\n");
       expect(() => loadBoxSet("yardstick", root)).toThrow(/NB-3 flags/);
       mkdirSync(join(root, "private", "nb3", "yardstick"), { recursive: true });
       writeFileSync(join(root, "private", "nb3", "yardstick", "flags.jsonl"), flags.map((r) => JSON.stringify(r)).join("\n") + "\n");
+      // DL-3: the partition's lineage stamp must name the weights the models manifest names now.
+      expect(() => loadBoxSet("yardstick", root)).toThrow(/models manifest/);
+      for (const m of PARTITION_MODELS) {
+        mkdirSync(join(root, "models", m), { recursive: true });
+        writeFileSync(join(root, "models", m, "w.bin"), m);
+      }
+      await buildModelsManifest(root);
+      expect(() => loadBoxSet("yardstick", root)).toThrow(/no lineage stamp/);
+      writeLineage(part, makeStamp({ schema: PARTITION_SCHEMA, models: modelHashes(PARTITION_MODELS, root) }));
       const box = loadBoxSet("yardstick", root);
       expect(["p:0", "p:1", "p:2", "p:3", "q:9"].map(box.keeps)).toEqual([false, false, true, true, true]);
       expect(box.rows.size).toBe(4);

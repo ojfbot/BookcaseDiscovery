@@ -530,6 +530,8 @@ const { positionals, values } = parseArgs({
     session: { type: "string", default: "pilot-000" },
     arm: { type: "string", default: "b2" },
     post: { type: "string", default: "" },
+    // DL-3: read a stage cache whose lineage stamp is missing or names other weights (`staleAllowed` in src/ledger/lineage.ts).
+    "allow-stale": { type: "boolean", default: false },
   },
 });
 const limit = Number(values.limit);

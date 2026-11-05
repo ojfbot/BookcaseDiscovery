@@ -20,9 +20,12 @@ import { catalogStamp, counterEvidence, openStats, RARITY, rarityBasis, rarityEv
 import type { Candidate } from "../catalog/retrieve.ts";
 import { writeFileDurable } from "../ledger/durable.ts";
 import { dataRoot, ImageStore } from "../ledger/images.ts";
+import { checkLineage, makeStamp, writeLineage, type LineageStamp } from "../ledger/lineage.ts";
+import { modelHashes } from "../ledger/models.ts";
+import { DATASET_SCHEMA } from "./lineage-classes.ts";
 import { SqliteLedger } from "../ledger/sqlite.ts";
 import { cropName, F0_CROP } from "../perceive/crop.ts";
-import { ACCEPT, loadReadings, rankedFor, readJsonl, READERS, variantsOf, type Detection, type ReaderName, type Reading } from "./f0.ts";
+import { ACCEPT, ARM_MODELS, armsOf, loadReadings, rankedFor, readJsonl, READER_MODELS, READERS, stageExpect, variantsOf, type Arm, type Detection, type ReaderName, type Reading } from "./f0.ts";
 import { compactJson } from "./q1-cli.ts";
 import type { Rung } from "./q2.ts";
 import { loadBoxSet, type PartitionRow } from "./rb1.ts";
@@ -137,6 +140,8 @@ interface SetInputs {
   kept: string[];
   boxSetHash: string;
   revision: Record<string, unknown>;
+  /** The detector arms the set's detection cache was made with: what its lineage stamp names. */
+  arms: Arm[];
   evidence: (id: string) => BoxEvidence;
   polygon: (id: string) => [number, number][];
   outline: (id: string) => [number, number][] | null;
@@ -150,7 +155,11 @@ function setInputs(set: string, root: string): SetInputs {
   if (!src) throw new Error(`${set}: no machine-label caches are known for this set`);
   const box = loadBoxSet(set as "pilot-000", root);
   const kept = [...box.rows.values()].filter((r: PartitionRow) => r.state === "kept" && box.keeps(r.id)).map((r) => r.id).sort();
-  const dets = new Map(readJsonl<Detection>(must(src.detect, "detection")).filter((d) => !d.error).map((d) => [d.id, d]));
+  const detRows = readJsonl<Detection>(must(src.detect, "detection"));
+  const arms = armsOf(detRows);
+  // DL-3: the detection cache must name the weights the manifest names now (the readings are checked by `loadReadings`).
+  checkLineage(src.detect, stageExpect("detect", arms, root));
+  const dets = new Map(detRows.filter((d) => !d.error).map((d) => [d.id, d]));
   const polygon = (id: string) => {
     const [img, i] = split(id);
     const s = dets.get(img)?.spines[i];
@@ -196,7 +205,26 @@ function setInputs(set: string, root: string): SetInputs {
     if (!r) throw new Error(`${set}: a kept box with no rung`);
     return r;
   };
-  return { set, kept, boxSetHash, revision, evidence, polygon, outline, rung, readings };
+  return { set, kept, boxSetHash, revision, arms, evidence, polygon, outline, rung, readings };
+}
+
+/** The models a version depends on: every source set's detector arms and the three readers. */
+const datasetModels = (arms: readonly Arm[]): string[] => [...new Set([...arms.flatMap((a) => ARM_MODELS[a]), ...READERS.flatMap((r) => READER_MODELS[r])])].sort();
+
+/**
+ * What the re-stamp pass (DL-3, `bookcase lineage restamp`) can say about a version built before stamps: its box set
+ * from `build.json`, the weights its source sets' detection caches name and the readers' (as the manifest hashes them
+ * now), and the current catalog's stamp when there is one. The pass records which of these it assumed.
+ */
+export function versionStampParts(root: string, dir: string): { boxSet: string; models: Record<string, string>; catalog: string | null; assumed: string[] } {
+  const b = JSON.parse(readFileSync(join(dir, "build.json"), "utf8")) as { boxSet: string; sets: string[] };
+  const arms = b.sets.flatMap((s) => {
+    const detect = SOURCES(root)[s]?.detect;
+    return detect && existsSync(detect) ? armsOf(readJsonl<Detection>(detect)) : [];
+  });
+  const catalogPath = catalogPaths().catalog;
+  const catalog = existsSync(catalogPath) ? catalogStamp(catalogPath) : null;
+  return { boxSet: b.boxSet, models: modelHashes(datasetModels(arms), root), catalog, assumed: ["models", "catalog"] };
 }
 
 // --- build ------------------------------------------------------------------------------------------------
@@ -215,9 +243,10 @@ export function build(sets: readonly string[] = TS0.sets, root = dataRoot()): Bu
   const catalogPath = catalogPaths().catalog;
   const statsPath = statsPathFor(catalogPath);
   const boxSet = contentHash(Object.fromEntries(inputs.map((i) => [i.set, i.boxSetHash])));
+  const catalog = catalogStamp(catalogPath);
   const modelRevision = contentHash({
     sets: Object.fromEntries(inputs.map((i) => [i.set, i.revision])),
-    catalog: { file: catalogPath.split("/").at(-1), stamp: catalogStamp(catalogPath), stats: catalogStamp(statsPath) },
+    catalog: { file: catalogPath.split("/").at(-1), stamp: catalog, stats: catalogStamp(statsPath) },
     accept: ACCEPT,
     bases: BASES,
     rarity: RARITY,
@@ -225,6 +254,8 @@ export function build(sets: readonly string[] = TS0.sets, root = dataRoot()): Bu
   });
   const version = versionKey(boxSet, modelRevision);
   const dir = join(datasetDir(root), version);
+  // DL-3: the version's lineage stamp, one sidecar per file: the box set, the weights, the catalog and this code.
+  const stamp = makeStamp({ schema: DATASET_SCHEMA, boxSet, models: modelHashes(datasetModels(inputs.flatMap((i) => i.arms)), root), catalog });
   log(`version ${version} (box set ${boxSet.slice(0, 12)}, model revision ${modelRevision.slice(0, 12)})`);
 
   // F-1: the manifest and its grouped splits. Frozen assignments are kept across versions.
@@ -320,7 +351,7 @@ export function build(sets: readonly string[] = TS0.sets, root = dataRoot()): Bu
     "manifest.json": JSON.stringify(manifest, null, 1) + "\n",
     "labels.jsonl": rows.map((r) => JSON.stringify(r)).join("\n") + (rows.length ? "\n" : ""),
     "build.json": JSON.stringify({ version, boxSet, modelRevision, sets, keptBoxes: inputs.reduce((s, i) => s + i.kept.length, 0), skipped, manifest: manifestCounts(manifest.photos), labels: labelCounts(rows) }, null, 1) + "\n",
-  }, built.frozen, version);
+  }, built.frozen, version, stamp);
   log(`${rows.length} labels on ${manifest.photos.length} photos (${skipped.conflict} copy/context conflicts) in ${Math.round((Date.now() - t0) / 1000)} s`);
   return { version, dir, labels: rows.length, photos: manifest.photos.length };
 }
@@ -329,11 +360,15 @@ export function build(sets: readonly string[] = TS0.sets, root = dataRoot()): Bu
  * Write one version beside the others (a re-run of the same version rewrites identical content), then the frozen
  * splits, then `latest.json`. Every file goes through `writeFileDurable` (DL-1): `splits.json` is frozen history no
  * rebuild can regenerate, so a crash must leave the previous one whole, and `latest.json` must never name a
- * version whose files are not all on disk.
+ * version whose files are not all on disk. Each file gets its lineage stamp (DL-3) as `<file>.lineage.json`, written
+ * after the file, so a crash between the two leaves a file with no stamp, which readers refuse.
  */
-export function commitVersion(root: string, dir: string, files: Record<string, string>, splits: FrozenSplits, version: string): void {
+export function commitVersion(root: string, dir: string, files: Record<string, string>, splits: FrozenSplits, version: string, stamp: LineageStamp): void {
   mkdirSync(dir, { recursive: true });
-  for (const [name, text] of Object.entries(files)) writeFileDurable(join(dir, name), text, { mode: 0o600 });
+  for (const [name, text] of Object.entries(files)) {
+    writeFileDurable(join(dir, name), text, { mode: 0o600 });
+    writeLineage(join(dir, name), stamp);
+  }
   writeFileDurable(join(datasetDir(root), "splits.json"), JSON.stringify(splits, null, 1) + "\n", { mode: 0o600 });
   writeFileDurable(join(datasetDir(root), "latest.json"), JSON.stringify({ version }) + "\n");
 }
@@ -354,7 +389,9 @@ const MARK = "<!-- generated by `bookcase dataset report`: edit above this line 
 export function report(root = dataRoot(), version?: string): string {
   const v = version ?? (JSON.parse(readFileSync(must(join(datasetDir(root), "latest.json"), "dataset build"), "utf8")) as { version: string }).version;
   const dir = join(datasetDir(root), v);
-  const b = JSON.parse(readFileSync(must(join(dir, "build.json"), "dataset build"), "utf8")) as BuildJson;
+  // DL-3: the version is refused when the weights or the catalog it names have changed (its box set is its own).
+  checkLineage(must(join(dir, "build.json"), "dataset build"), (s) => ({ schema: DATASET_SCHEMA, models: modelHashes(Object.keys(s.models), root), catalog: catalogStamp(catalogPaths().catalog) }));
+  const b = JSON.parse(readFileSync(join(dir, "build.json"), "utf8")) as BuildJson;
   // Recount from the rows themselves, so the report never trusts a stale summary.
   const rows = readFileSync(join(dir, "labels.jsonl"), "utf8").split("\n").filter(Boolean).map((l) => LabelRow.parse(JSON.parse(l)));
   const manifest = DatasetManifest.parse(JSON.parse(readFileSync(join(dir, "manifest.json"), "utf8")));
