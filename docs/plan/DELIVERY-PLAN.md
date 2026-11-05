@@ -863,6 +863,7 @@ The first five need no device. **NS-1, NS-2 and NS-3 share one shoot.** NS-Z1 la
 - **do:** `evals/NS5/prereg.md`: the student takes RGB only; its gain over a **no-privileged-information baseline** trained on the same frames is measured on **held-out, uncoached, degraded-tier sessions**, split by `caseId` and session, never on the yardstick and never on fused scenes it trained on; the interval of the lift must exclude 0; labels with `rgbRecoverable: no` are down-weighted or dropped (the recoverability rule, after Ortiz-Jimenez et al. 2023 and Hu et al. 2026: privileged information that is too predictive of the label hurts); teacher errors are reported as machine agreement, never accuracy (OC36); simulated degraded tier (depth withheld) is reported apart from real non-Pro sessions. Names the first two experiments it governs (NS-10 fusion, NS-11 mono-geometry student).
 - **exit:** the pre-registration merged, dated, before `evals/NS10/` or `evals/NS11/` exist; the conductor's review confirms no measurement is yet taken.
 - **tier:** T2 Sonnet · S (one page) · Low · feeds NS-10, NS-11, G-SWEEP · budget 20.
+- **landed:** 2026-11-05, `evals/NS5/prereg.md` (pre-registration only; no measurement taken; the owner's picks table is still blank).
 
 #### NS-Z1 · Z-1 guard file classes for rich sessions
 - **goal:** the privacy guard refuses every rich-session artefact class **before the first capture lands** (INV-19).
