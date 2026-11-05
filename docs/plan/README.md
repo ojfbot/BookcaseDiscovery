@@ -29,6 +29,10 @@ Inputs (read-only):
 
 Format precedent: `~/ojfbot/selfco-inbox/docs/plan/`.
 
+## Changelog: natural sweep replaces the guided sweep and the live track, 2026-11-05 (OC37–OC39, INV-25) — PROPOSAL
+
+Owner decisions of 2026-11-05 (grill): a casual, **uncoached natural sweep** replaces OC31's guided sweep and the S9 live track; the stills MVP and G-MVP stay; the **sweep gate G-SWEEP** replaces G-LIVE and **G-V2 opens there**; INV-22 is amended for **opt-in rich sessions** only (full-rate video, depth and confidence, pose and intrinsics, private, about 22 GB a visit, unmeasured); real use is the uncoached sweep on the **degraded tier** (phones without metric depth), held out by case and session; device spikes live under `helpers/`, the Blender/Kubric lab in asset-foundry; "dv mode" is dropped as a term; the unit of the programme is the **discrete, bounded, identified book** (INV-25). Written by the capture sub-conductor as a proposal: **S9 rewritten** (fate of T-1..T-9; G-SURF dissolved; cards NS-1..NS-9, NS-Z1, AF-1, with NS-10..NS-14 queued), `REQUIREMENTS.md` OC37–OC39 and INV-25, the INV-22 amendment, boundary rows; `docs/gates/G-SWEEP.md` (measures, targets to set, four owner rulings); `decisions/adr/draft-rich-session-retention.md`; glossary terms in `CONTEXT.md`. **Nothing is dispatched until the owner approves.** Checklist #16 now sets the sweep targets. The wayfinder map is in the plan folder, `decisions/wayfinder/natural-sweep-capture.md`.
+
 ## Changelog: no hand labelling, 2026-11-02 (OC36)
 
 The owner tried Label Studio on the synthetic shelf and stopped: hand labelling is a waste of their time and very painful. **OC36:** open-weight models label everything (H-0 chooses the stack: SAM 3, Florence-2, Qwen2.5-VL and others); a public labelled spine dataset is the yardstick (PROXY, local only); the catalog verifies identity; optional yes/no taps on a phone (V-6) give the only real-use accuracy number. O-3a, O-3b and V-1b are withdrawn; checklist #2 is withdrawn; F-0, F-2, F-3, the G-P note and both critical paths are amended. Cards 69/66 → 71/69.
