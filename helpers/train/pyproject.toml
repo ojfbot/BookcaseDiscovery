@@ -1,0 +1,15 @@
+[project]
+name = "bookcase-train"
+version = "0.1.0"
+description = "TS-2: LoRA spine reader distilled from F-0's strong labels (mlx-vlm, local, private weights)."
+license = "AGPL-3.0-only"
+requires-python = ">=3.12,<3.13"
+dependencies = [
+  "mlx-vlm==0.7.11",
+  "numpy>=2",
+  "opencv-python-headless==4.10.0.84",
+  "pillow>=11",
+]
+
+[tool.uv]
+package = false
