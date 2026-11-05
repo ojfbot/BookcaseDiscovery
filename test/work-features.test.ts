@@ -9,7 +9,8 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { buildCatalog } from "../src/catalog/build.ts";
 import { openCatalog } from "../src/catalog/cli.ts";
 import { loadShelfBooks, measure, stage, WorkFacts } from "../src/catalog/ol-dump.ts";
-import { classify, extractOlSubjects, foldTerm, hasWorkFeatures, LEXICON, notABookFact, workFeatures, workGenres } from "../src/catalog/work-features.ts";
+import { classify, extractOlSubjects, foldTerm, hasWorkFeatures, LEXICON, notABookFact, pickForm, SECTION_FAMILIES, SECTION_GENRES, sectionFits, workFeatures, workGenres, workKnowledge, type SectionFamily, type WorkFeature } from "../src/catalog/work-features.ts";
+import { LEXICON as SC1_LEXICON, type Family } from "../src/eval/sc1.ts";
 import { crosswalkFeatures, loadVocabulary } from "../src/recommend/vocabulary.ts";
 import { makeMiniStaging } from "./helpers/mini-staging.ts";
 import { writeMiniOlDump, writeMiniShelf } from "./helpers/mini-ol-dump.ts";
@@ -159,6 +160,9 @@ describe("work features in the catalog build (synthetic staging and dumps)", () 
     expect(ol[0]).toMatchObject({ recordId: "OL1W", fetched: "2026-10-31", count: 1 });
     expect(workFeatures(v2, "ol:OL4W").map((x) => [x.term, x.kind])).toEqual([["biography", "form"], ["memory", "subject"]]);
     expect(workGenres(workFeatures(v2, "isfdb:201"))).toEqual({ "isfdb-tag": ["cyberpunk", "science-fiction"], "openlibrary-subject": ["science-fiction"] });
+    const k = workKnowledge(v2, "isfdb:201");
+    expect([k.genres.length, k.subjects.map((f) => f.term), k.form?.canon, k.form?.recordId]).toEqual([3, ["hackers, fiction"], "fiction", "OL1W"]);
+    expect(workKnowledge(v2, "isfdb:205")).toEqual({ workId: "isfdb:205", genres: [], subjects: [], form: null, forms: [] });
   });
 
   it("crosswalk only: a v1 build gets the same Open Library subjects on ISFDB works and stays ISFDB-only", () => {
@@ -181,6 +185,40 @@ describe("work features in the catalog build (synthetic staging and dumps)", () 
     expect(y.dropped.map((d) => [d.from.source, d.from.term, d.reason])).toEqual([["isfdb-tag", "science fiction", "generic"], ["openlibrary-subject", "fiction", "generic"], ["openlibrary-subject", "science fiction", "generic"]]);
     expect(y.terms.map((t) => [t.id, t.weight])).toEqual([["form:cyberpunk-fiction", 1]]);
     expect(y.unmapped.map((u) => u.term)).toEqual(["hackers, fiction"]);
+  });
+});
+
+const row = (over: Partial<WorkFeature>): WorkFeature => ({ workId: "w", kind: "form", term: "t", canon: null, family: "form", count: 1, source: "openlibrary-subject", recordId: "OL1W", fetched: "2026-10-31", ...over });
+
+describe("KN-2's readers: one form, and store sections in work_features terms", () => {
+  it("picks a specific form over bare fiction, then the most carried, then ISFDB", () => {
+    expect(pickForm([])).toBeNull();
+    expect(pickForm([row({ term: "fiction", canon: "fiction", count: 5 }), row({ term: "novels", canon: "novel" })])?.canon).toBe("novel");
+    expect(pickForm([row({ term: "novels", canon: "novel" }), row({ term: "short stories", canon: "short-stories", count: 2 })])?.canon).toBe("short-stories");
+    expect(pickForm([row({ term: "novel", canon: "novel" }), row({ term: "novel", canon: "novel", source: "isfdb-tag", recordId: "isfdb-tag:9" })])?.source).toBe("isfdb-tag");
+  });
+
+  it("covers exactly SC-1's section families, with terms the lexicon has", () => {
+    const sc1 = new Set(SC1_LEXICON.sections.map(([f]) => f));
+    expect(new Set(SECTION_FAMILIES)).toEqual(sc1);
+    const typed: Record<Family, unknown> = SECTION_GENRES satisfies Record<SectionFamily, unknown>;
+    expect(Object.keys(typed).sort()).toEqual([...sc1].sort());
+    const families = new Set(LEXICON.map((e) => e.family));
+    const canons = new Set(LEXICON.map((e) => e.canon));
+    for (const [s, m] of Object.entries(SECTION_GENRES)) {
+      for (const f of m.families) expect(families.has(f), `${s}: ${f}`).toBe(true);
+      for (const c of m.canons) expect(canons.has(c), `${s}: ${c}`).toBe(true);
+    }
+  });
+
+  it("a section fits, misses or is unknown; a missing term is never evidence", () => {
+    const sf = row({ kind: "genre", term: "space opera", canon: "space-opera", family: "sf" });
+    expect(sectionFits("sf-fantasy", [sf])).toBe(true);
+    expect(sectionFits("mystery", [sf])).toBe(false);
+    expect(sectionFits("mystery", [])).toBeNull();
+    expect(sectionFits("mystery", [row({ kind: "subject", term: "murder", family: null })])).toBeNull();
+    expect(sectionFits("classics", [sf])).toBeNull();
+    expect(sectionFits("poetry-drama", [row({ term: "poems", canon: "poetry" })])).toBe(true);
   });
 });
 
