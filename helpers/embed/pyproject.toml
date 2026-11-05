@@ -1,0 +1,17 @@
+[project]
+name = "bookcase-embed"
+version = "0.1.0"
+description = "MM-1: upright spine strips and two embeddings per box (DINOv2 base, SigLIP 2 base NaFlex) on MPS, cached under the data root's private/mm/. Nothing in the pipeline reads them yet."
+license = "AGPL-3.0-only"
+requires-python = ">=3.12,<3.13"
+dependencies = [
+  "torch>=2.8",
+  "torchvision>=0.23",
+  "transformers>=4.57",
+  "pillow>=11",
+  "numpy>=2",
+  "opencv-python==4.10.0.84",
+]
+
+[tool.uv]
+package = false
