@@ -1,0 +1,345 @@
+{
+ "runId": "MM2",
+ "card": "MM-2",
+ "note": "Aggregates only. Shadow rows, ranked lists and text vectors are private (data root, private/mm2/). pilot-000 is machine agreement on F-1's val split groups, never accuracy (INV-17); the yardstick is PROXY and evaluation only. Never pooled (OC35). Shadow mode: no decision changes. Promotion to candidate is the owner's ruling; one shop so far, so no cross-shop claim.",
+ "appearance": "shadow (MM-2's runner only; the default stays off)",
+ "ledger": "v-4e0ec70a69de",
+ "model": "siglip2",
+ "bootstrap": {
+  "reps": 2000,
+  "seed": 20261105,
+  "cluster": "query photo; gallery fixed"
+ },
+ "calibration": {
+  "gallery": {
+   "entries": 667,
+   "works": 424,
+   "groups": 4,
+   "photos": 23
+  },
+  "visual": {
+   "siglip2": {
+    "tau": 0.6416385991412726,
+    "acrossGroups": null,
+    "withinPhoto": 0.6416385991412726,
+    "pairs": {
+     "acrossGroups": 0,
+     "withinPhoto": 187
+    },
+    "used": "withinPhoto",
+    "median": 0.8096637952111805
+   },
+   "dinov2": {
+    "tau": 0.4261993944597699,
+    "acrossGroups": null,
+    "withinPhoto": 0.4261993944597699,
+    "pairs": {
+     "acrossGroups": 0,
+     "withinPhoto": 187
+    },
+    "used": "withinPhoto",
+    "median": 0.6979417981075915
+   }
+  },
+  "text": {
+   "tau": 0.8,
+   "calibrated": false,
+   "lookalikes": 8000,
+   "max": 1,
+   "atOrAbove": {
+    "0.5": 135,
+    "0.6": 34,
+    "0.7": 17,
+    "0.8": 13
+   }
+  },
+  "margin": {
+   "delta": 0.08,
+   "calibrated": false,
+   "agreement": 0.9166666666666666,
+   "proposals": 12,
+   "rows": 582,
+   "byDelta": {
+    "0": {
+     "proposals": 582,
+     "agreement": 0.5223
+    },
+    "0.01": {
+     "proposals": 300,
+     "agreement": 0.7333
+    },
+    "0.02": {
+     "proposals": 227,
+     "agreement": 0.8106
+    },
+    "0.03": {
+     "proposals": 168,
+     "agreement": 0.881
+    },
+    "0.05": {
+     "proposals": 77,
+     "agreement": 0.8961
+    },
+    "0.08": {
+     "proposals": 12,
+     "agreement": 0.9167
+    }
+   }
+  },
+  "nearDuplicateFlags": 0
+ },
+ "textTower": {
+  "device": "cpu",
+  "texts": 58777,
+  "embedded": 58596,
+  "wallSeconds": 377,
+  "gpuSeconds": 0
+ },
+ "sets": {
+  "pilot-000": {
+   "scope": "real use, F-1 val split groups: machine agreement, never accuracy (INV-17)",
+   "photos": 7,
+   "queries": 1249,
+   "validStrips": 1246,
+   "withText": 1079,
+   "byOutcome": {
+    "accepted": 144,
+    "no-text": 168,
+    "no-catalog-match": 793,
+    "single-reader": 132,
+    "readers-disagree": 12
+   },
+   "f0Accepts": 144,
+   "inGallery": 0,
+   "passingKinds": {
+    "namesake": 0,
+    "same-author": 0,
+    "unrelated": 4,
+    "unknown": 0
+   },
+   "poolMedian": 14,
+   "gallery": {
+    "coverage": [0.008,0.0009,0.0142],
+    "coverageBy": {
+     "accepted": [0.0278,0,0.0296],
+     "no-text": [0,0,0],
+     "no-catalog-match": [0.0051,0,0.0123],
+     "single-reader": [0.0153,0,0.0168],
+     "readers-disagree": [0,0,0]
+    },
+    "agreement": [0,0,0],
+    "proposals": 10,
+    "takers": 0,
+    "newAccepts": [0,0,0],
+    "newAcceptsN": 0,
+    "nearOnly": [0.7544,0.6977,0.7935]
+   },
+   "free": {
+    "coverage": [0.0072,0.0008,0.0122],
+    "coverageBy": {
+     "accepted": [0.0208,0,0.0404],
+     "no-text": [0,0,0],
+     "no-catalog-match": [0.0025,0,0.0058],
+     "single-reader": [0.0305,0,0.0484],
+     "readers-disagree": [0,0,0]
+    },
+    "agreement": [1,1,1],
+    "proposals": 9,
+    "takers": 0,
+    "newAccepts": [0,0,0],
+    "newAcceptsN": 0,
+    "secondaryAgreement": [0.963,0.8889,1]
+   },
+   "stress": {
+    "siglip2": {
+     "tau": {
+      "threshold": 0.6416,
+      "pairs": 3459,
+      "queries": 89,
+      "passText": 4,
+      "passTextShare": [0.0012,0,0.0015],
+      "proposed": 4
+     },
+     "acrossGroups": null,
+     "withinPhoto": {
+      "threshold": 0.6416,
+      "pairs": 3459,
+      "queries": 89,
+      "passText": 4,
+      "passTextShare": [0.0012,0,0.0015],
+      "proposed": 4
+     },
+     "median": {
+      "threshold": 0.8097,
+      "pairs": 9,
+      "queries": 4,
+      "passText": 0,
+      "passTextShare": [0,0,0],
+      "proposed": 0
+     }
+    },
+    "dinov2": {
+     "tau": {
+      "threshold": 0.4262,
+      "pairs": 60453,
+      "queries": 144,
+      "passText": 9,
+      "passTextShare": [0.0001,0,0.0002],
+      "proposed": null
+     },
+     "acrossGroups": null,
+     "withinPhoto": {
+      "threshold": 0.4262,
+      "pairs": 60453,
+      "queries": 144,
+      "passText": 9,
+      "passTextShare": [0.0001,0,0.0002],
+      "proposed": null
+     },
+     "median": {
+      "threshold": 0.6979,
+      "pairs": 5733,
+      "queries": 127,
+      "passText": 1,
+      "passTextShare": [0.0002,0,0.0003],
+      "proposed": null
+     }
+    }
+   }
+  },
+  "yardstick": {
+   "scope": "PROXY (library shelves), evaluation only; truth = the image's annotated works (OC35)",
+   "photos": 40,
+   "queries": 1038,
+   "validStrips": 1028,
+   "withText": 776,
+   "byOutcome": {
+    "accepted": 266,
+    "no-text": 258,
+    "no-catalog-match": 366,
+    "single-reader": 147,
+    "readers-disagree": 1
+   },
+   "f0WrongAccepts": 22,
+   "f0Accepts": 266,
+   "inGallery": 33,
+   "passingKinds": {
+    "namesake": 0,
+    "same-author": 0,
+    "unrelated": 6,
+    "unknown": 9
+   },
+   "poolMedian": 13,
+   "gallery": {
+    "coverage": [0.0097,0.0032,0.0182],
+    "coverageBy": {
+     "accepted": [0.0113,0,0.0302],
+     "no-text": [0,0,0],
+     "no-catalog-match": [0.0138,0.0033,0.0261],
+     "single-reader": [0.0137,0,0.034],
+     "readers-disagree": [0,0,0]
+    },
+    "agreement": [0,0,0],
+    "agreementRight": [0.3333,0,1],
+    "proposals": 10,
+    "takers": 0,
+    "newAccepts": [0,0,0],
+    "newAcceptsN": 0,
+    "newWrong": 0,
+    "newRight": 0,
+    "newWrongCi": [0,0,0],
+    "nearOnly": [0.8745,0.8427,0.9017]
+   },
+   "free": {
+    "coverage": [0.0068,0.0012,0.0139],
+    "coverageBy": {
+     "accepted": [0.0113,0,0.0288],
+     "no-text": [0,0,0],
+     "no-catalog-match": [0.0028,0,0.0081],
+     "single-reader": [0.0205,0,0.0451],
+     "readers-disagree": [0,0,0]
+    },
+    "agreement": [1,1,1],
+    "agreementRight": [1,1,1],
+    "proposals": 7,
+    "takers": 0,
+    "newAccepts": [0,0,0],
+    "newAcceptsN": 0,
+    "newWrong": 0,
+    "newRight": 0,
+    "newWrongCi": [0,0,0],
+    "secondaryAgreement": [1,1,1]
+   },
+   "stress": {
+    "siglip2": {
+     "tau": {
+      "threshold": 0.6416,
+      "pairs": 30920,
+      "queries": 648,
+      "passText": 15,
+      "passTextShare": [0.0005,0.0001,0.001],
+      "proposed": 10
+     },
+     "acrossGroups": null,
+     "withinPhoto": {
+      "threshold": 0.6416,
+      "pairs": 30920,
+      "queries": 648,
+      "passText": 15,
+      "passTextShare": [0.0005,0.0001,0.001],
+      "proposed": 10
+     },
+     "median": {
+      "threshold": 0.8097,
+      "pairs": 320,
+      "queries": 82,
+      "passText": 0,
+      "passTextShare": [0,0,0],
+      "proposed": 0
+     }
+    },
+    "dinov2": {
+     "tau": {
+      "threshold": 0.4262,
+      "pairs": 247054,
+      "queries": 773,
+      "passText": 29,
+      "passTextShare": [0.0001,0,0.0002],
+      "proposed": null
+     },
+     "acrossGroups": null,
+     "withinPhoto": {
+      "threshold": 0.4262,
+      "pairs": 247054,
+      "queries": 773,
+      "passText": 29,
+      "passTextShare": [0.0001,0,0.0002],
+      "proposed": null
+     },
+     "median": {
+      "threshold": 0.6979,
+      "pairs": 25824,
+      "queries": 557,
+      "passText": 3,
+      "passTextShare": [0.0001,0,0.0003],
+      "proposed": null
+     }
+    }
+   }
+  }
+ },
+ "keep": {
+  "gallery": {
+   "K1": false,
+   "K2": true,
+   "K3": false,
+   "passes": false
+  },
+  "free": {
+   "K1": null,
+   "K2": true,
+   "K3": false,
+   "passes": false
+  }
+ }
+}
