@@ -9,6 +9,9 @@ dependencies = [
   "numpy>=2",
   "opencv-python-headless==4.10.0.84",
   "pillow>=11",
+  # The Qwen3-VL processor loads its video sub-processor even for images; it needs both. Same pins as helpers/label.
+  "torch==2.15.0",
+  "torchvision==0.29.2",
 ]
 
 [tool.uv]
