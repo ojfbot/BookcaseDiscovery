@@ -5,7 +5,8 @@
 //   bookcase catalog coverage --plan [--all]         no network: how many live calls the run would make (C-10)
 //   options: --session <name> (default pilot-000), --offline (cache only: a rerun makes no calls), --db <file>,
 //            --budget <n> (live requests this run may make, default LOOKUP.defaultBudget), --no-local (skip the
-//            local catalog tier), --all (with --plan: every box with text, not only the sample)
+//            local catalog tier), --all (with --plan: every box with text, not only the sample),
+//            --cache <dir> (the lookup cache root, default the data root's catalog/coverage/)
 //
 // When Q-2's private teacher table exists (`private/q2/table/<session>.jsonl`), the sampled
 // `no-catalog-match` rows are also split by its rung (post hoc, not part of the pre-registered design).
@@ -49,7 +50,7 @@ import { copyKey, KnownIndex, LOOKUP } from "./lookup.ts";
 import { localTier } from "./lookup-local.ts";
 import { outcomeOf, planC4, planSummary, type Outcome } from "./lookup-plan.ts";
 
-const usage = `usage: bookcase catalog coverage [--tune] [--plan [--all]] [--session <name>] [--offline] [--budget <n>] [--no-local] [--db <file>] [--run-id <id>]`;
+const usage = `usage: bookcase catalog coverage [--tune] [--plan [--all]] [--session <name>] [--offline] [--budget <n>] [--no-local] [--cache <dir>] [--db <file>] [--run-id <id>]`;
 
 function gitCommit(): string | null {
   try {
@@ -110,6 +111,7 @@ export async function coverageCommand(argv: string[], env: NodeJS.ProcessEnv = p
       offline: { type: "boolean" },
       budget: { type: "string" },
       "no-local": { type: "boolean" },
+      cache: { type: "string" },
       db: { type: "string" },
       "run-id": { type: "string" },
       help: { type: "boolean", short: "h" },
@@ -134,7 +136,7 @@ export async function coverageCommand(argv: string[], env: NodeJS.ProcessEnv = p
     ? decisions.flatMap((d) => (stratumOf(d) ? [{ id: d.id, stratum: stratumOf(d)!, role: "sample" as const }] : []))
     : boxes.filter((b) => b.role === role);
   const f0Work = new Map(decisions.map((d) => [d.id, d.accepted?.workId ?? null]));
-  const coverageDir = join(root, "catalog", "coverage");
+  const coverageDir = values.cache ?? join(root, "catalog", "coverage");
   const cache = openLookup(coverageDir, { offline: values.offline, budget, plan: values.plan });
   const log = (s: string) => process.stderr.write(`coverage: ${s}\n`);
   if (cache.migration) log(`migrated C-4's cache to schema ${LOOKUP.schema}: ${JSON.stringify(cache.migration)}`);
