@@ -1,0 +1,446 @@
+{
+  "runId": "C10",
+  "card": "C-10",
+  "date": "2026-11-05",
+  "design": {
+    "lookup": {
+      "schema": 2,
+      "ttlMs": {
+        "no-match": 2592000000,
+        "failed": 604800000
+      },
+      "defaultBudget": 100,
+      "localTopK": 10,
+      "attribution": {
+        "minRecall": 0.99,
+        "maxCross": 0.01
+      }
+    }
+  },
+  "migration": {
+    "files": {
+      "openlibrary": 1137,
+      "loc": 313
+    },
+    "keys": {
+      "openlibrary": 1127,
+      "loc": 312
+    },
+    "collisions": {
+      "openlibrary": 8,
+      "loc": 1
+    },
+    "collisionsDiffering": {
+      "openlibrary": 0,
+      "loc": 0
+    }
+  },
+  "g1": {
+    "g1a": {
+      "local": "isfdb+openlibrary",
+      "liveCalls": 0,
+      "skippedKeys": 0,
+      "differingFigures": 0,
+      "differing": [],
+      "addedZero": true,
+      "boxesDifferingFromC4Table": {
+        "sample": 0,
+        "tuning": 0
+      },
+      "outcomes": {
+        "unresolved": 163,
+        "cache": 72
+      },
+      "cacheHits": {
+        "openlibrary": 1024,
+        "loc": 291
+      },
+      "c4CacheHits": {
+        "openlibrary": 1024,
+        "loc": 291
+      },
+      "pass": true
+    },
+    "g1b": {
+      "local": "off",
+      "liveCalls": 0,
+      "skippedKeys": 0,
+      "differingFigures": 0,
+      "differing": [],
+      "addedZero": true,
+      "boxesDifferingFromC4Table": {
+        "sample": 0,
+        "tuning": 0
+      },
+      "outcomes": {
+        "unresolved": 163,
+        "cache": 72
+      },
+      "cacheHits": {
+        "openlibrary": 1024,
+        "loc": 291
+      },
+      "c4CacheHits": {
+        "openlibrary": 1024,
+        "loc": 291
+      },
+      "pass": true
+    }
+  },
+  "k1": {
+    "before": {
+      "c4Run": {
+        "sampledBoxes": 235,
+        "photos": 31,
+        "calls": {
+          "openlibrary": 1030,
+          "loc": 287
+        }
+      },
+      "v1Cache": {
+        "boxCount": 235,
+        "photos": 29,
+        "openlibrary": {
+          "queries": 1024,
+          "distinctUrls": 1013,
+          "distinctKeys": 1006,
+          "withinRunHitRate": 0.0107
+        },
+        "loc": {
+          "queries": 291,
+          "distinctUrls": 287,
+          "distinctKeys": 286,
+          "withinRunHitRate": 0.0137
+        }
+      }
+    },
+    "yardstickB2": {
+      "session": "yardstick-library-b2",
+      "boxCount": "every box with text",
+      "photos": 40,
+      "local": "isfdb+openlibrary",
+      "c10": {
+        "boxCount": 842,
+        "outcomes": {
+          "cache": 0,
+          "stale": 0,
+          "known": 3,
+          "local-isfdb": 20,
+          "local-openlibrary": 176,
+          "live": 0,
+          "known-skip": 0,
+          "would-go-live": 626,
+          "budget-skip": 0,
+          "unresolved": 17
+        },
+        "live": {
+          "lower": {
+            "openlibrary": 600,
+            "loc": 1
+          },
+          "upper": {
+            "openlibrary": 3881,
+            "loc": 1165
+          },
+          "cleanChecksUpTo": 626
+        },
+        "keys": {
+          "fresh": 17,
+          "asked": 5063,
+          "cacheHitRate": 0.0034
+        },
+        "local": {
+          "answered": 196,
+          "reached": 822,
+          "localHitRate": 0.2384
+        }
+      },
+      "c4": {
+        "boxCount": 842,
+        "needCalls": 825,
+        "lower": {
+          "openlibrary": 790,
+          "loc": 1
+        },
+        "upper": {
+          "openlibrary": 5332,
+          "loc": 1537
+        },
+        "cleanChecksUpTo": 825
+      }
+    },
+    "pilot000All": {
+      "session": "pilot-000",
+      "boxCount": "every box with text",
+      "photos": 31,
+      "local": "isfdb+openlibrary",
+      "c10": {
+        "boxCount": 5156,
+        "outcomes": {
+          "cache": 232,
+          "stale": 0,
+          "known": 99,
+          "local-isfdb": 862,
+          "local-openlibrary": 516,
+          "live": 0,
+          "known-skip": 40,
+          "would-go-live": 2980,
+          "budget-skip": 0,
+          "unresolved": 427
+        },
+        "live": {
+          "lower": {
+            "openlibrary": 2801,
+            "loc": 4
+          },
+          "upper": {
+            "openlibrary": 15985,
+            "loc": 5187
+          },
+          "cleanChecksUpTo": 2978
+        },
+        "keys": {
+          "fresh": 1375,
+          "asked": 22547,
+          "cacheHitRate": 0.061
+        },
+        "local": {
+          "answered": 1378,
+          "reached": 4398,
+          "localHitRate": 0.3133
+        }
+      },
+      "c4": {
+        "boxCount": 5156,
+        "needCalls": 4607,
+        "lower": {
+          "openlibrary": 4214,
+          "loc": 4
+        },
+        "upper": {
+          "openlibrary": 25320,
+          "loc": 7614
+        },
+        "cleanChecksUpTo": 4495
+      }
+    }
+  },
+  "postHocReplayC4": {
+    "note": "post hoc, not pre-registered: zero network, live answers replayed from the warm store",
+    "allTiers": {
+      "boxCount": 235,
+      "calls": {
+        "openlibrary": 697,
+        "loc": 238
+      },
+      "outcomes": {
+        "cache": 2,
+        "stale": 0,
+        "known": 0,
+        "local-isfdb": 64,
+        "local-openlibrary": 24,
+        "live": 6,
+        "known-skip": 1,
+        "would-go-live": 0,
+        "budget-skip": 0,
+        "unresolved": 138
+      },
+      "keys": {
+        "fresh": 18,
+        "asked": 953,
+        "cacheHitRate": 0.0189
+      },
+      "local": {
+        "answered": 88,
+        "reached": 222,
+        "localHitRate": 0.3964
+      },
+      "classes": {
+        "inIsfdb": 65,
+        "notInIsfdb": 31,
+        "unresolved": 139
+      }
+    },
+    "noLocal": {
+      "boxCount": 235,
+      "calls": {
+        "openlibrary": 991,
+        "loc": 285
+      },
+      "outcomes": {
+        "cache": 5,
+        "stale": 0,
+        "known": 0,
+        "local-isfdb": 0,
+        "local-openlibrary": 0,
+        "live": 67,
+        "known-skip": 1,
+        "would-go-live": 0,
+        "budget-skip": 0,
+        "unresolved": 162
+      },
+      "keys": {
+        "fresh": 28,
+        "asked": 1302,
+        "cacheHitRate": 0.0215
+      },
+      "local": {
+        "answered": 0,
+        "reached": 219,
+        "localHitRate": 0
+      },
+      "classes": {
+        "inIsfdb": 50,
+        "notInIsfdb": 22,
+        "unresolved": 163
+      }
+    },
+    "missingFromWarmStore": {
+      "openlibrary": 0,
+      "loc": 0
+    }
+  },
+  "budgetSmoke": {
+    "session": "yardstick-library-b2",
+    "network": {
+      "calls": {
+        "openlibrary": 41,
+        "loc": 9
+      },
+      "cacheHits": {
+        "openlibrary": 9,
+        "loc": 1
+      },
+      "failedQueries": {
+        "openlibrary": 0,
+        "loc": 0
+      },
+      "seconds": 635
+    },
+    "lookup": {
+      "schema": 2,
+      "local": "isfdb+openlibrary",
+      "outcomes": {
+        "unresolved": 12,
+        "budget-skip": 154,
+        "local-openlibrary": 50,
+        "local-isfdb": 5
+      },
+      "keys": {
+        "cache": {
+          "openlibrary": 6,
+          "loc": 1
+        },
+        "stale": {
+          "openlibrary": 0,
+          "loc": 0
+        },
+        "live": {
+          "openlibrary": 39,
+          "loc": 9
+        },
+        "planned": {
+          "openlibrary": 0,
+          "loc": 0
+        },
+        "skipped": {
+          "openlibrary": 1042,
+          "loc": 293
+        }
+      },
+      "budget": {
+        "limit": 50,
+        "used": 50,
+        "incompleteBoxes": 154
+      },
+      "knownSkipped": 0,
+      "complete": false,
+      "migration": null
+    },
+    "resolvedBy": {
+      "openlibrary": 50,
+      "loc": 0,
+      "isfdb": 5
+    }
+  },
+  "batching": {
+    "attribution": {
+      "openlibrary": {
+        "and": {
+          "queries": 452,
+          "records": 3973,
+          "attributed": 2739,
+          "cross": 225,
+          "recall": 0.6894,
+          "crossRate": 0.0566,
+          "passes": false
+        },
+        "fielded": {
+          "queries": 30,
+          "records": 114,
+          "attributed": 113,
+          "cross": 1,
+          "recall": 0.9912,
+          "crossRate": 0.0088,
+          "passes": true
+        }
+      },
+      "loc": {
+        "and": {
+          "queries": 129,
+          "records": 1161,
+          "attributed": 888,
+          "cross": 9,
+          "recall": 0.7649,
+          "crossRate": 0.0078,
+          "passes": false
+        },
+        "fielded": {
+          "queries": 4,
+          "records": 18,
+          "attributed": 12,
+          "cross": 0,
+          "recall": 0.6667,
+          "crossRate": 0,
+          "passes": false
+        }
+      }
+    },
+    "liveCheck": {
+      "cell": "openlibrary fielded",
+      "calls": 9,
+      "bySize": {
+        "5": {
+          "calls": 6,
+          "subqueries": 30,
+          "reproduced": 18,
+          "recordRecall": 0.7807
+        },
+        "10": {
+          "calls": 3,
+          "subqueries": 30,
+          "reproduced": 20,
+          "recordRecall": 0.8246
+        }
+      },
+      "httpErrors": 0,
+      "switchOn": false
+    }
+  },
+  "liveCallsThisCard": {
+    "batchCheck": {
+      "openlibrary": 9,
+      "loc": 0
+    },
+    "budgetSmoke": {
+      "openlibrary": 41,
+      "loc": 9
+    },
+    "g1": 0,
+    "k1Plans": 0,
+    "replay": 0,
+    "total": 59,
+    "allowance": 200
+  },
+  "spendUsd": 0
+}

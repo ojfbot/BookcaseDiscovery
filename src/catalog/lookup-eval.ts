@@ -4,6 +4,7 @@
 //   node src/catalog/lookup-eval.ts g1              compare private/c10/g1{a,b}.*.json and tables with C-4
 //   node src/catalog/lookup-eval.ts attribution     cached-data attribution per source and shape
 //   node src/catalog/lookup-eval.ts batch-check     live check of batched Open Library fielded queries (≤ 40 calls)
+//   node src/catalog/lookup-eval.ts before          C-4's call log (its private table): queries, distinct URLs, distinct keys
 //   node src/catalog/lookup-eval.ts replay          C-4's sample from a cold cache, "live" answers replayed from the warm store
 //   node src/catalog/lookup-eval.ts publish         evals/C10/metrics.json from private/c10/*.json (counts only)
 //
@@ -15,7 +16,7 @@ import { DatabaseSync } from "node:sqlite";
 import { dataRoot } from "../ledger/images.ts";
 import { loadReadings, readJsonl, stageDir, type SpineDecision } from "../eval/f0.ts";
 import { catalogPaths, openCatalog } from "./cli.ts";
-import { drawSample, openLookup, parseOpenLibrary, resolveBox, type BoxResult, type FetchLike, type OutsideRecord } from "./coverage.ts";
+import { drawSample, openLookup, parseOpenLibrary, queryKey, resolveBox, type BoxResult, type FetchLike, type OutsideRecord } from "./coverage.ts";
 import { copyKey, KnownIndex, LOOKUP, SPACING_MS, USER_AGENT, type CacheEntry, type Source } from "./lookup.ts";
 import { localTier } from "./lookup-local.ts";
 import { attributable, attribution, cachedEntries, planSummary } from "./lookup-plan.ts";
@@ -134,6 +135,19 @@ async function batchCheck(maxCalls = 40) {
   console.log(JSON.stringify(out, null, 2));
 }
 
+/** K1's "before": what C-4's sample run asked for, from its private per-box table (counts only). */
+function before() {
+  const rows = readJsonl<BoxResult>(join(ROOT, "private", "c4", "pilot-000.sample.jsonl"));
+  const out: Record<string, unknown> = { boxes: rows.length, photos: new Set(rows.map((r) => r.id.slice(0, r.id.lastIndexOf(":")))).size };
+  for (const source of ["openlibrary", "loc"] as Source[]) {
+    const qs = rows.flatMap((r) => r.queries.filter((q) => q.source === source));
+    const urls = new Set(qs.map((q) => q.url)).size;
+    out[source] = { queries: qs.length, distinctUrls: urls, distinctKeys: new Set(qs.map((q) => queryKey(source, q.url))).size, withinRunHitRate: Math.round((1 - urls / qs.length) * 10000) / 10000 };
+  }
+  save("k1.before.json", out);
+  console.log(JSON.stringify(out, null, 2));
+}
+
 /**
  * Post hoc (not pre-registered): C-4's sample and tuning boxes through C-10's tiers from an empty cache, every
  * "live" call answered from the warm version-2 store instead of the network (a failed entry answers HTTP 500,
@@ -200,11 +214,15 @@ function publish() {
       pilot000All: plan("k1.pilot.plan.json"),
     },
     postHocReplayC4: plan("replay.json"),
+    budgetSmoke: (() => { const sm = plan("smoke.json"); return sm && { session: sm.session, network: sm.network, lookup: sm.lookup, resolvedBy: sm.resolvedBy }; })(),
     batching: { attribution: plan("attribution.json"), liveCheck: plan("batch-check.json") },
     liveCallsThisCard: plan("live-calls.json"),
     spendUsd: 0,
   };
-  writeFileSync(join("evals", "C10", "metrics.json"), `${JSON.stringify(metrics, null, 2)}\n`);
+  // The privacy guard reserves per-spine field names in evals/ (`boxes`); counts are published as `boxCount`.
+  const counts = (v: unknown): unknown =>
+    Array.isArray(v) ? v.map(counts) : v !== null && typeof v === "object" ? Object.fromEntries(Object.entries(v).map(([k, x]) => [k === "boxes" ? "boxCount" : k, counts(x)])) : v;
+  writeFileSync(join("evals", "C10", "metrics.json"), `${JSON.stringify(counts(metrics), null, 2)}\n`);
   console.log("wrote evals/C10/metrics.json");
 }
 
@@ -213,6 +231,7 @@ if (cmd === "g1") g1();
 else if (cmd === "attribution") attributionCmd();
 else if (cmd === "batch-check") await batchCheck();
 else if (cmd === "replay") await replay();
+else if (cmd === "before") before();
 else if (cmd === "publish") publish();
 else {
   console.error("usage: node src/catalog/lookup-eval.ts g1 | attribution | batch-check | publish");
