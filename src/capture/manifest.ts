@@ -63,7 +63,56 @@ export function writePublicManifest(manifest: PublicManifest, path: string): voi
   writeFileSync(path, stringifyManifest(manifest));
 }
 
-export type LensClass = "ultra-wide" | "main" | "telephoto" | "unknown";
+export const LENS_CLASSES = ["main", "ultra-wide", "telephoto", "unknown"] as const;
+export type LensClass = (typeof LENS_CLASSES)[number];
+
+// --- capture provenance (NS-4) -------------------------------------------------------------------------------
+//
+// The capture-provenance vocabulary every label row and manifest row carries (docs/dataset.md, CONTEXT.md *capture
+// provenance*): which device tier and lens produced a frame or still, and how it was taken. The values come from the
+// private fixture manifest (device and lens are read from EXIF at ingest) and, for a shoot that has one, from the
+// capture sidecar (docs/capture-protocol.md §9), which a later ingest card writes into `provenance` below.
+
+/** The device tier (CONTEXT.md *device tier*): what rear depth the phone has. `metric-depth` is the development and teacher side only. */
+export const DEVICE_CLASSES = ["metric-depth", "relative-stereo", "none"] as const;
+export type DeviceClass = (typeof DEVICE_CLASSES)[number];
+
+/** How a frame or still was taken (CONTEXT.md *capture mode*). The two sweep modes need a case id on every row. */
+export const CAPTURE_MODES = ["shopper-still", "protocol-still", "natural-sweep", "rich-session"] as const;
+export type CaptureMode = (typeof CAPTURE_MODES)[number];
+export const SWEEP_MODES: readonly CaptureMode[] = ["natural-sweep", "rich-session"];
+
+/** The controlled photo settings (OC6); any other named setting is a protocol too. `real-use` (OC35) is the shopper's. */
+export const PROTOCOL_SETTINGS = ["whole-12", "whole-48", "shelf-48", "overview"] as const;
+
+/**
+ * The capture mode a photo setting implies, until the capture sidecar says: `real-use` is a `shopper-still` (a handheld
+ * shot the way a shopper would take it, OC35) and every controlled or otherwise named setting is a `protocol-still`.
+ * A sweep is never a still, so neither sweep mode comes from a setting.
+ */
+export function captureModeOf(setting: string): CaptureMode {
+  return setting === "real-use" ? "shopper-still" : "protocol-still";
+}
+
+/**
+ * The device tier of an EXIF device string ("Apple iPhone 17 Pro"), or null when the table does not know the model:
+ * the build then refuses, rather than guess, until the sidecar or this table says. The table is a heuristic over
+ * Apple's model names: a numbered Pro iPhone from the 12 Pro on carries LiDAR (`metric-depth`); a numbered non-Pro
+ * iPhone from the 11 on, a Plus before it and the X, XS and XS Max have two rear cameras (`relative-stereo`); the SE,
+ * XR, the `e` models and the plain numbered iPhones before the 11 have one (`none`). iPads are not classed here:
+ * only the 2020 and later iPad Pro has LiDAR, and the model string does not say the year.
+ */
+export function deviceClassOf(device: string): DeviceClass | null {
+  const m = /\biPhone\s+(?:(\d{1,2})(e)?|(SE|XR|XS|X))(?:\s+(Pro|Plus|mini|Max))?(?:\s+Max)?\b/i.exec(device);
+  if (!m) return null;
+  const [, number, eModel, letters, suffix] = m;
+  if (letters) return letters.toUpperCase() === "X" || letters.toUpperCase() === "XS" ? "relative-stereo" : "none";
+  const n = Number(number);
+  if (eModel) return "none";
+  if (suffix?.toLowerCase() === "pro") return n >= 12 ? "metric-depth" : "relative-stereo";
+  if (n >= 11) return "relative-stereo";
+  return suffix?.toLowerCase() === "plus" ? "relative-stereo" : "none";
+}
 
 /**
  * Lens class from the EXIF focal length (OC35): the 35 mm equivalent when recorded (up to 18 mm ultra-wide,
@@ -103,6 +152,12 @@ export interface PrivateManifest {
     derivativeSignals: string[];
     /** The stored pixels are on the camera's native grid. Off it, the file was resampled even if `edited` is false (K-2: EXIF rewritten to match). */
     nativeSize: boolean;
+    /**
+     * NS-4, add-only: what the capture sidecar (docs/capture-protocol.md §9) says about this file, written by the ingest
+     * card that reads sidecars. Absent on every manifest written before it; the dataset build then derives the device
+     * class from `device` (`deviceClassOf`) and the capture mode from `setting` (`captureModeOf`), with no case id.
+     */
+    provenance?: { deviceClass: DeviceClass; captureMode: CaptureMode; bookcaseId?: string };
   }[];
   rejected: { fileName: string; hash?: string; reasons: string[] }[];
 }

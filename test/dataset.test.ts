@@ -31,6 +31,9 @@ const photo = (i: number, over: Partial<DatasetPhotoInput> = {}): DatasetPhotoIn
   setting: "real-use",
   capturedAt: at(i * 600),
   dhash: null,
+  deviceClass: "metric-depth",
+  lens: "main",
+  captureMode: "shopper-still",
   ...over,
 });
 

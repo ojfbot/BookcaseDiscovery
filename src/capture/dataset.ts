@@ -8,9 +8,11 @@
 // the dHash itself is computed in `phash.ts`, the files are read by the `dataset` CLI. The repo holds only this schema
 // and aggregate counts.
 import { z } from "zod";
+import { CAPTURE_MODES, DEVICE_CLASSES, LENS_CLASSES, SWEEP_MODES, type CaptureMode, type DeviceClass, type LensClass } from "./manifest.ts";
 
 export const DATASET = {
-  schemaVersion: 1,
+  /** 2 since NS-4: every photo row carries its capture provenance (`deviceClass`, `lens`, `captureMode`, `dupClusterId`). */
+  schemaVersion: 2,
   /** A run of one session's photos with no gap over this many seconds is one capture group (one case, one stand). */
   captureGapSeconds: 120,
   /** Two photos whose 64-bit dHashes differ in at most this many bits are near-duplicates. */
@@ -45,7 +47,21 @@ export interface DatasetPhotoInput {
   capturedAt: string | null;
   /** 64-bit dHash as 16 hex digits, or null when the photo could not be hashed. */
   dhash: string | null;
+  /** NS-4, capture provenance: the phone's device tier, the lens class and how the photo was taken (src/capture/manifest.ts). */
+  deviceClass: DeviceClass;
+  lens: LensClass;
+  captureMode: CaptureMode;
 }
+
+/**
+ * What a manifest or label row written before NS-4 (schema 1) is read as: every such row is a `pilot-000` still, shot
+ * the way a shopper would on the owner's Pro phone, so the capture mode is known. The device tier is the one field a
+ * row cannot know about itself; `metric-depth` is the conservative side (a row of unknown tier is never counted as
+ * one the deployment phones could have produced, NS-5), and happens to be true of every row written so far. A stamped
+ * reader refuses a schema-1 dataset until it is rebuilt (DL-3), so these defaults only reach a reader that allowed a
+ * stale file.
+ */
+export const LEGACY_PROVENANCE = { deviceClass: "metric-depth", lens: "unknown", captureMode: "shopper-still", dupClusterId: null } as const satisfies Pick<ManifestPhoto, "deviceClass" | "lens" | "captureMode" | "dupClusterId">;
 
 const Hex64 = z.string().regex(/^[0-9a-f]{64}$/);
 export const ManifestPhoto = z.strictObject({
@@ -65,6 +81,15 @@ export const ManifestPhoto = z.strictObject({
   /** Working-copy hashes of this photo's near-duplicates, and whether one of them is in another capture group. */
   nearDuplicates: z.array(Hex64),
   crossGroupNearDuplicate: z.boolean(),
+  /** NS-4: capture provenance. A sweep photo must name its case (`bookcaseId`), the unit of hold-out. */
+  deviceClass: z.enum(DEVICE_CLASSES),
+  lens: z.enum(LENS_CLASSES),
+  captureMode: z.enum(CAPTURE_MODES),
+  /** The near-duplicate cluster this photo is in (the transitive closure of its near-duplicate pairs), or null when it has none. */
+  dupClusterId: z.string().min(1).nullable(),
+}).superRefine((p, ctx) => {
+  if (SWEEP_MODES.includes(p.captureMode) && p.bookcaseId === null) ctx.addIssue({ code: "custom", message: `a ${p.captureMode} photo must name its case (bookcaseId)`, path: ["bookcaseId"] });
+  if ((p.nearDuplicates.length > 0) !== (p.dupClusterId !== null)) ctx.addIssue({ code: "custom", message: "dupClusterId is set exactly when the photo has near-duplicates", path: ["dupClusterId"] });
 });
 export type ManifestPhoto = z.infer<typeof ManifestPhoto>;
 
@@ -82,6 +107,18 @@ export const DatasetManifest = z.strictObject({
   photos: z.array(ManifestPhoto),
 });
 export type DatasetManifest = z.infer<typeof DatasetManifest>;
+
+/**
+ * Parse a manifest of this schema or an earlier one (add-only: a schema-1 manifest, written before NS-4, is read with
+ * `LEGACY_PROVENANCE` on every photo). Anything else fails the schema.
+ */
+export function readDatasetManifest(raw: unknown): DatasetManifest {
+  const m = raw as { schemaVersion?: unknown; photos?: unknown[] };
+  if (m && m.schemaVersion === 1 && Array.isArray(m.photos)) {
+    return DatasetManifest.parse({ ...m, schemaVersion: DATASET.schemaVersion, photos: m.photos.map((p) => ({ ...LEGACY_PROVENANCE, ...(p as object) })) });
+  }
+  return DatasetManifest.parse(raw);
+}
 
 /** Frozen assignments: once a photo has a split it keeps it in every later version (F-1's frozen held-out groups). */
 export interface FrozenSplits {
@@ -174,6 +211,13 @@ export function splitGroups(photos: Pick<DatasetPhotoInput, "bookcaseId" | "stor
   return renumber(photos.map((_, i) => uf.find(i)));
 }
 
+/** Near-duplicate clusters: the connected components of the near-duplicate pairs (NS-4's `dupClusterId`). */
+export function dupClusters(n: number, nearPairs: [number, number][]): number[] {
+  const uf = new UnionFind(n);
+  for (const [a, b] of nearPairs) uf.union(a, b);
+  return renumber(Array.from({ length: n }, (_, i) => uf.find(i)));
+}
+
 function renumber(roots: number[]): number[] {
   const ids = new Map<number, number>();
   return roots.map((r) => {
@@ -259,6 +303,8 @@ export function buildManifestPhotos(
   const captureIdx = idxOf(capture), groupIdx = idxOf(groups);
   const partners = photos.map(() => [] as number[]);
   for (const [a, b] of near) partners[a]!.push(b), partners[b]!.push(a);
+  const clusters = dupClusters(photos.length, near);
+  const clusterIdx = idxOf(clusters);
   const rows = photos.map((p, i) => {
     const { capturedAt: _private, ...rest } = p;
     return ManifestPhoto.parse({
@@ -268,6 +314,7 @@ export function buildManifestPhotos(
       split: splits[i]!,
       nearDuplicates: partners[i]!.map((j) => photos[j]!.sha256).sort(),
       crossGroupNearDuplicate: partners[i]!.some((j) => capture[j] !== capture[i]),
+      dupClusterId: partners[i]!.length ? groupName("dc", clusterIdx.get(clusters[i]!)!, photos) : null,
     });
   });
   rows.sort((a, b) => a.sha256.localeCompare(b.sha256));
@@ -302,6 +349,7 @@ export function manifestCounts(photos: ManifestPhoto[]) {
   const pairs = photos.reduce((s, p) => s + p.nearDuplicates.length, 0) / 2;
   const capOf = new Map(photos.map((p) => [p.sha256, p.captureGroup]));
   const cross = photos.reduce((s, p) => s + p.nearDuplicates.filter((q) => capOf.get(q) !== p.captureGroup).length, 0) / 2;
+  const keyed = <K extends string>(keys: readonly K[], f: (p: ManifestPhoto) => K) => ({ ...Object.fromEntries(keys.map((k) => [k, 0])), ...per(f) }) as Record<K, number>;
   return {
     photos: photos.length,
     bySplit: Object.fromEntries(SPLITS.map((s) => [s, photos.filter((p) => p.split === s).length])),
@@ -312,5 +360,11 @@ export function manifestCounts(photos: ManifestPhoto[]) {
     nearDuplicatePairs: { all: pairs, acrossCaptureGroups: cross },
     unhashed: photos.filter((p) => p.dhash === null).length,
     straddling: straddlingGroups(photos).length,
+    // NS-4: capture provenance, counts only.
+    byDeviceClass: keyed(DEVICE_CLASSES, (p) => p.deviceClass),
+    byLens: keyed(LENS_CLASSES, (p) => p.lens),
+    byCaptureMode: keyed(CAPTURE_MODES, (p) => p.captureMode),
+    withCase: photos.filter((p) => p.bookcaseId !== null).length,
+    dupClusters: new Set(photos.flatMap((p) => (p.dupClusterId ? [p.dupClusterId] : []))).size,
   };
 }

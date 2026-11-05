@@ -34,6 +34,9 @@ const photoInput = (over: Partial<DatasetPhotoInput> = {}): DatasetPhotoInput =>
   setting: "real-use",
   capturedAt: null,
   dhash: null,
+  deviceClass: "metric-depth",
+  lens: "ultra-wide",
+  captureMode: "shopper-still",
   ...over,
 });
 const manifestOf = (photos: DatasetPhotoInput[]) => ({ version: "v-000000000000", photos: buildManifestPhotos(photos, null).photos });
@@ -65,6 +68,8 @@ const ctx = (over: Partial<RowContext> = {}): RowContext => ({
   rarity: "distinctive",
   backing: null,
   photo: PHOTO,
+  labelSource: "single-view",
+  rgbRecoverable: "yes",
   ...over,
 });
 const rowOf = (e: BoxEvidence, c: Partial<RowContext> = {}) => {

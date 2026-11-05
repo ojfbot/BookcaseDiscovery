@@ -12,12 +12,15 @@ commands:
 
 options:
   --set <name>       build: a set to export (repeatable; default pilot-000). Yardstick and audit sets are refused.
+                     A session the registry declares held-out (src/eval/set-roles.ts) whose fixture ledger is at the
+                     data root is manifested with its split frozen and never exported (NS-4).
   --version <v>      report: a version other than the latest
   --allow-stale      read a cache or version whose lineage stamp is missing or names other weights or catalog (DL-3)
 
 Run build again after any box-set or model change: a new version is written beside the old ones. Every file of a
-version carries a lineage stamp (<file>.lineage.json, docs/lineage.md); a version whose stamp names other weights
-or another catalog than the current ones is refused by report.`;
+version carries a lineage stamp (<file>.lineage.json, docs/lineage.md); a version whose stamp names other weights,
+another catalog or an older dataset schema than the current ones is refused by report. Every row carries its capture
+provenance (deviceClass, lens, captureMode, caseId, dupClusterId, labelSource, rgbRecoverable; docs/dataset.md).`;
 
 export async function datasetCommand(argv: string[]): Promise<number> {
   let parsed;
