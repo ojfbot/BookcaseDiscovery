@@ -1,0 +1,247 @@
+{
+ "runId": "MM1",
+ "card": "MM-1",
+ "note": "Aggregates only. Records, strips and vectors are private (data root, private/mm/). pilot-000 is machine agreement, never accuracy (INV-17); the yardstick is PROXY and evaluation only. Never pooled (OC35). No keep rule: nothing changes a decision.",
+ "appearance": "off",
+ "models": {
+  "dinov2": {
+   "repo": "facebook/dinov2-base",
+   "revision": "f9e44c814b77203eaa57a6bdbbd535f21ede1415",
+   "input": {
+    "canvas": [112,448],
+    "pad": "imagenet-mean",
+    "feature": "pooler-cls"
+   },
+   "licence": "Apache-2.0"
+  },
+  "siglip2": {
+   "repo": "google/siglip2-base-patch16-naflex",
+   "revision": "b53b807d3a2d5e2b3911292f2d69e5341cdc064c",
+   "input": {
+    "maxPatches": 256,
+    "feature": "image-pooled"
+   },
+   "licence": "Apache-2.0"
+  }
+ },
+ "strip": {
+  "method": "upright-warp",
+  "cutFrom": "detection rectangle",
+  "longSide": 512
+ },
+ "bootstrap": {
+  "reps": 2000,
+  "seed": 20261105,
+  "cluster": "photo"
+ },
+ "gpuSeconds": 227,
+ "timing": {
+  "pilot-000": {
+   "runs": 1,
+   "embedded": 5757,
+   "wallSeconds": 185,
+   "msPerStrip": {
+    "strip": 3.8843,
+    "dinov2": 13.2878,
+    "siglip2": 14.053
+   }
+  },
+  "yardstick": {
+   "runs": 1,
+   "embedded": 1038,
+   "wallSeconds": 42,
+   "msPerStrip": {
+    "strip": 7.0376,
+    "dinov2": 12.9721,
+    "siglip2": 15.2582
+   }
+  }
+ },
+ "sets": {
+  "pilot-000": {
+   "scope": "real use (OC35): machine labels, never accuracy (INV-17)",
+   "evaluationOnly": false,
+   "photos": 31,
+   "records": 5757,
+   "validStrips": 5712,
+   "confirmed": 824,
+   "works": 556,
+   "conflicts": 0,
+   "withLedgerLabel": 824,
+   "byBasis": {
+    "confirmed-by-context": 89,
+    "confirmed-by-copy": 9,
+    "none": 4933,
+    "readers-agree": 726
+   },
+   "byRung": {
+    "confirmed": 726,
+    "matched": 875,
+    "spine-found": 1235,
+    "text-present": 1620,
+    "text-read": 1301
+   },
+   "byBasisRung": {
+    "confirmed-by-context|matched": 67,
+    "confirmed-by-context|text-present": 7,
+    "confirmed-by-context|text-read": 15,
+    "confirmed-by-copy|matched": 7,
+    "confirmed-by-copy|text-read": 2,
+    "none|matched": 801,
+    "none|spine-found": 1235,
+    "none|text-present": 1613,
+    "none|text-read": 1284,
+    "readers-agree|confirmed": 726
+   },
+   "stripLongSide": {
+    "p10": 512,
+    "median": 512,
+    "p90": 512
+   },
+   "models": {
+    "dinov2": {
+     "dims": 768,
+     "pairs": {
+      "copy": 9,
+      "samePhoto": 650181,
+      "sameWorkText": 313,
+      "sameWork": 446,
+      "differentWork": 338630
+     },
+     "sameWorkWithinPhoto": 209,
+     "m1Copy": {
+      "auc": [0.9227,0.8365,0.9692],
+      "meanCopy": [0.7355,0.6385,0.7916],
+      "meanSamePhoto": [0.4614,0.4507,0.4722]
+     },
+     "m2TextSameWork": {
+      "auc": [0.8133,0.7335,0.8629],
+      "meanSameWork": [0.6667,0.6126,0.7108],
+      "meanDifferentWork": [0.4712,0.4593,0.4792]
+     },
+     "m3Lookalike": {
+      "medianSameWork": [0.6998,0.6358,0.7487],
+      "rate": [0.0646,0.0329,0.1419],
+      "rateWithinPhoto": [0.0592,0.0291,0.2029]
+     }
+    },
+    "siglip2": {
+     "dims": 768,
+     "pairs": {
+      "copy": 9,
+      "samePhoto": 650181,
+      "sameWorkText": 313,
+      "sameWork": 446,
+      "differentWork": 338630
+     },
+     "sameWorkWithinPhoto": 209,
+     "m1Copy": {
+      "auc": [0.9767,0.928,0.9994],
+      "meanCopy": [0.8997,0.8255,0.9441],
+      "meanSamePhoto": [0.6021,0.5723,0.6393]
+     },
+     "m2TextSameWork": {
+      "auc": [0.9773,0.9586,0.9913],
+      "meanSameWork": [0.7948,0.7749,0.8177],
+      "meanDifferentWork": [0.496,0.4852,0.5145]
+     },
+     "m3Lookalike": {
+      "medianSameWork": [0.8106,0.7792,0.8419],
+      "rate": [0.0004,0.0001,0.0023],
+      "rateWithinPhoto": [0.0017,0.0006,0.0045]
+     }
+    }
+   }
+  },
+  "yardstick": {
+   "scope": "PROXY (library shelves), evaluation only (OC35)",
+   "evaluationOnly": true,
+   "photos": 40,
+   "records": 1038,
+   "validStrips": 1028,
+   "confirmed": 278,
+   "works": 270,
+   "conflicts": 0,
+   "withLedgerLabel": 0,
+   "byBasis": {
+    "confirmed-by-context": 12,
+    "none": 760,
+    "readers-agree": 266
+   },
+   "byRung": {
+    "confirmed": 266,
+    "matched": 148,
+    "spine-found": 258,
+    "text-present": 94,
+    "text-read": 272
+   },
+   "byBasisRung": {
+    "confirmed-by-context|matched": 12,
+    "none|matched": 136,
+    "none|spine-found": 258,
+    "none|text-present": 94,
+    "none|text-read": 272,
+    "readers-agree|confirmed": 266
+   },
+   "stripLongSide": {
+    "p10": 512,
+    "median": 512,
+    "p90": 512
+   },
+   "models": {
+    "dinov2": {
+     "dims": 768,
+     "pairs": {
+      "copy": 0,
+      "samePhoto": 17280,
+      "sameWorkText": 7,
+      "sameWork": 8,
+      "differentWork": 38218
+     },
+     "sameWorkWithinPhoto": 8,
+     "m1Copy": {
+      "auc": null,
+      "meanCopy": null,
+      "meanSamePhoto": [0.4425,0.4145,0.477]
+     },
+     "m2TextSameWork": {
+      "auc": [0.7427,0.5542,0.9922],
+      "meanSameWork": [0.6659,0.5231,0.8503],
+      "meanDifferentWork": [0.5122,0.4914,0.532]
+     },
+     "m3Lookalike": {
+      "medianSameWork": [0.5717,0.3466,0.8503],
+      "rate": [0.3556,0.0047,0.833],
+      "rateWithinPhoto": [0.5107,0.0227,0.9007]
+     }
+    },
+    "siglip2": {
+     "dims": 768,
+     "pairs": {
+      "copy": 0,
+      "samePhoto": 17280,
+      "sameWorkText": 7,
+      "sameWork": 8,
+      "differentWork": 38218
+     },
+     "sameWorkWithinPhoto": 8,
+     "m1Copy": {
+      "auc": null,
+      "meanCopy": null,
+      "meanSamePhoto": [0.6507,0.6354,0.6674]
+     },
+     "m2TextSameWork": {
+      "auc": [0.9442,0.7798,0.9983],
+      "meanSameWork": [0.7769,0.6694,0.8245],
+      "meanDifferentWork": [0.6085,0.5905,0.6258]
+     },
+     "m3Lookalike": {
+      "medianSameWork": [0.7529,0.5948,0.8225],
+      "rate": [0.0363,0.0008,0.5375],
+      "rateWithinPhoto": [0.0863,0.0079,0.6244]
+     }
+    }
+   }
+  }
+ }
+}

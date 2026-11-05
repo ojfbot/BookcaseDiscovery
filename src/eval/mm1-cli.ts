@@ -421,7 +421,8 @@ function analyse(): void {
     note: "Aggregates only. Records, strips and vectors are private (data root, private/mm/). pilot-000 is machine agreement, never accuracy (INV-17); the yardstick is PROXY and evaluation only. Never pooled (OC35). No keep rule: nothing changes a decision.",
     appearance: appearanceMode([]),
     models: Object.fromEntries(MODELS.map((k) => [k, { repo: MM1.models[k].repo, revision: revs[k], input: MM1.models[k].input, licence: "Apache-2.0" }])),
-    strip: MM1.strip,
+    // The strip method without its `polygon` key: the evals allowlist refuses per-spine field names.
+    strip: { method: MM1.strip.method, cutFrom: "detection rectangle", longSide: MM1.strip.longSide },
     bootstrap: { ...MM1.bootstrap, cluster: "photo" },
     gpuSeconds: gpu.reduce((a, x) => a + x.wallSeconds, 0),
     timing: Object.fromEntries(MM1.sets.map((s) => [s, timing(s)])),
@@ -471,7 +472,7 @@ function tablesMd(m: { gpuSeconds: number; timing: Record<string, { embedded: nu
     row("M2 AUC, same work (text) vs different work", (x) => f3(x.m2TextSameWork.auc));
     row("pairs: same work, any basis (within one photo)", (x) => `${x.pairs.sameWork} (${x.sameWorkWithinPhoto})`);
     row("M3 median same-work cosine", (x) => f3(x.m3Lookalike.medianSameWork));
-    row("**M3 lookalike rate**: different-work pairs nearer than it", (x) => pc(x.m3Lookalike.rate));
+    row("**M3 visual lookalike rate**: different-work pairs nearer than it", (x) => pc(x.m3Lookalike.rate));
     row("M3 within one photo only", (x) => pc(x.m3Lookalike.rateWithinPhoto));
     out.push("");
   }
