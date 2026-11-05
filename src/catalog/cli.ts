@@ -9,7 +9,7 @@ import { DatabaseSync } from "node:sqlite";
 import { dataRoot } from "../ledger/images.ts";
 import { buildCatalog, catalogFileSize, READABLE_SCHEMA_VERSIONS } from "./build.ts";
 import { loadGolden, runGolden } from "./golden.ts";
-import { buildStats, statsPathFor } from "./rarity.ts";
+import { buildStats, restampStats, statsPathFor } from "./rarity.ts";
 import type { GoldenRun } from "./golden.ts";
 import { retrieve, WEIGHTS } from "./retrieve.ts";
 import type { Candidate } from "./retrieve.ts";
@@ -24,6 +24,8 @@ const usage = `usage: bookcase catalog <command>
                                                  subjects, linked by the merge or, without --ol-staging, by --ol-crosswalk alone
   stats  [--db <file>]                           build the statistics sidecar beside a catalog (C-7: <catalog>.stats.sqlite;
                                                  the catalog file itself is not written)
+  restamp [--db <file>]                          one-time DL-1 re-stamp of a statistics sidecar built before content stamps
+                                                 (hashes a pre-DL-1 catalog once into <catalog>.stamp.json; no rebuild)
   query  <text>... [-k N] [--json] [--db <file>] retrieve candidates; each <text> is one reading (variant) of the spine
   eval   [--golden <file>] [--db <file>] [--run-id <id>] [--k N]
                                                  score retrieve on the golden fragments; --run-id writes evals/<id>/{metrics.json,report.md}
@@ -169,6 +171,12 @@ export function catalogCommand(argv: string[], env: NodeJS.ProcessEnv = process.
       const c = buildStats(catalog, statsPathFor(catalog), t);
       console.log(`built ${statsPathFor(catalog)} in ${c.seconds} s`);
       for (const [k, v] of Object.entries(c)) if (k !== "seconds") console.log(`  ${k.padEnd(12)} ${fmt(v).padStart(10)}`);
+      return 0;
+    }
+    if (cmd === "restamp") {
+      const { values } = parseArgs({ args: rest, options: { db: { type: "string" } } });
+      const r = restampStats(values.db ?? paths.catalog);
+      console.log(`${r.outcome} ${r.stats.split("/").at(-1)}: catalog ${r.catalog.slice(0, 19)}`);
       return 0;
     }
     if (cmd === "query") {

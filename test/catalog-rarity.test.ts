@@ -120,10 +120,18 @@ describe("statistics sidecar", () => {
     expect(stats.authorWorks("odile varnek")).toBe(2);
   });
 
-  it("refuses a sidecar built from another state of the catalog", () => {
+  it("refuses a sidecar built from another state of the catalog, but not from a touched one (DL-1)", () => {
     const later = new Date(Date.now() + 60_000);
     utimesSync(catalog, later, later);
+    expect(() => openStats(statsPathFor(catalog), catalog).close()).not.toThrow();
+    const db = new DatabaseSync(catalog);
+    const was = (db.prepare("SELECT value FROM meta WHERE key = 'content_sha256'").get() as { value: string }).value;
+    db.prepare("UPDATE meta SET value = ? WHERE key = 'content_sha256'").run("0".repeat(64));
+    db.close();
     expect(() => openStats(statsPathFor(catalog), catalog)).toThrow(/another state/);
+    const back = new DatabaseSync(catalog);
+    back.prepare("UPDATE meta SET value = ? WHERE key = 'content_sha256'").run(was);
+    back.close();
   });
 
   it("decide with the basis withdraws a shared bare title and keeps a rare one; the cached path agrees", () => {

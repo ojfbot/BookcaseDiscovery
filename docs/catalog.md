@@ -382,8 +382,33 @@ from the catalog's own statistics, with no labels (record linkage's term-frequen
 
 **Statistics sidecar.** `bookcase catalog stats [--db <catalog>]` reads a catalog and writes `<catalog>.stats.sqlite`
 beside it (`catalog.stats.sqlite`: 5 s, 34 MB; `catalog-v2.stats.sqlite`: 87 s, 404 MB). The catalog file is never
-written. The sidecar records the catalog's size and modification time, and `openStats` refuses it against any other
+written. The sidecar records the catalog's content stamp (below), and `openStats` refuses it against any other
 state, so rebuild it after every catalog build.
+
+**Content stamp (DL-1).** `catalogStamp(path)` in `rarity.ts` names a catalog by content, `sha256:<hex>`, so a
+byte-identical copy, a same-input rebuild or a touched file is the same catalog. It feeds the sidecar check above and
+TS-0's model-revision hash. It never hashes the catalog on every open:
+
+- `buildCatalog` and `buildStats` record the hash in the file's own `meta` table (`content_sha256`): the SHA-256 of
+  the file as closed, before that row and the build time (`built_at`, `built`) are written. A rebuild from the same
+  inputs records the same hash. A catalog is never edited after its build, so the recorded hash stays true.
+- A catalog built before DL-1 has no such row. Its hash is computed once (3.1 s for the 6.2 GB `catalog-v2.sqlite`
+  on the M4) and recorded in `<catalog>.stamp.json` beside it (`schemaVersion`, absolute path, size, mtime,
+  `sha256`). Later opens read the record. A different path, size or mtime computes it again. The catalog itself is
+  never written.
+
+A sidecar built before DL-1 recorded `size:mtime` and is refused until it is re-stamped once. The re-stamp checks
+that the old stamp still matches the catalog, then records the content stamp, with no rebuild. Any other sidecar is
+refused (rebuild it):
+
+```bash
+node bin/bookcase catalog restamp                                    # the catalog BOOKCASE_CATALOG selects (default catalog.sqlite)
+node bin/bookcase catalog restamp --db "$BOOKCASE_DATA/catalog/catalog-v2.sqlite"
+node bin/bookcase catalog restamp --db "$BOOKCASE_DATA/proxy/library-dataset/f0-inventory-catalog.sqlite"
+```
+
+Until a sidecar is re-stamped, `openStats` refuses it, and `catalogDf` (C-8's rare-first order) warns and falls back
+to ordering tokens by length.
 
 | table | key | value |
 |---|---|---|
@@ -625,3 +650,40 @@ against `catalog-kn1.sqlite`, and the yardstick on its inventory against `f0-inv
 | Readers | `workFeatures`, `workKnowledge`, `pickForm`, `workGenres`, `hasWorkFeatures`, `SECTION_GENRES` and `sectionFits` in `src/catalog/work-features.ts`; `crosswalkFeatures(vocabulary, features)` in `src/recommend/vocabulary.ts` |
 | Evaluation | `node src/catalog/kn1-eval.ts gate --set <pilot-000\|yardstick>`, then `analyse` |
 | Tests | `test/work-features.test.ts` (classification, drop list, provenance, extract, crosswalk-only build, recommend crosswalk, the wall); `test/catalog-openlibrary.test.ts` (schema 4) |
+
+
+# The yardstick's inventory catalog ids (DL-1: measured, not migrated)
+
+The yardstick's closed-set catalog (`inventoryCatalog` in `src/eval/f0-cli.ts`) is staged in the ISFDB staging shape
+and built by `buildCatalog`, which mints `isfdb:<row>` work ids. Those collide with real ISFDB title ids: inventory
+row 7 and ISFDB title 7 are both `isfdb:7`. Its staging `meta` also holds a literal `content_hash`
+(`library-dataset-inventory`) and `dump_date` (`2024-01-01`).
+
+**Blast radius** (data root, 2026-11-05):
+
+- **JSON and JSONL files.** 77 files under yardstick paths hold these ids, about 48 MB and some 559,000
+  occurrences. They are spread over 25 cards' private caches: F-0, F-0b to F-0d, F-0f to F-0k, F-0m, H-2, C-5 to C-9, KN-1, KN-2,
+  MM-1, MM-2, SC-1, TS-1 and FR-2. 36 of them are decision files.
+- **SQLite files.** The inventory catalog and its KN-1 variant hold the ids. KN-1's two inventory Open Library
+  staging files were not checked row by row. The statistics sidecar holds title forms, not ids.
+- **Label rows.** None. TS-0 refuses the yardstick (OC35), and the label ledger holds 0 yardstick rows.
+- **Code.** The prefix is minted inside `buildCatalog` (work ids and `sources`) and `fillWorkFeatures`
+  (`work_features` keys), not in the inventory build. Nine runners open the file by name and match on the ids:
+  `f0-cli`, `f0b-cli`, `f0c-cli`, `q1-cli`, `ts1-cli`, `ts2-cli`, `c5-eval`, `kn1-eval` and KN-2's
+  `section-prior-cli`.
+
+The migration reaches well beyond the inventory catalog's own build and readers, so DL-1 stops at this measurement
+(`implementation-notes.md`). The plan for a later card:
+
+1. **`buildCatalog({ idPrefix })`.** The prefix defaults to `isfdb`, so the ISFDB catalogs are byte-identical. It
+   reaches the work ids, `sources[].source` and the `work_features` keys.
+2. **The inventory build.** It uses prefix `inv`. `content_hash` becomes the SHA-256 of `library_books.csv`, and
+   `dump_date` the dataset's release date, or empty.
+3. **New files.** Build to new file names (`f0-inventory-catalog-v2.sqlite`, its KN-1 variant and its sidecar)
+   beside the old ones. Nothing is deleted.
+4. **Caches.** Re-derive the yardstick's decisions and ranked caches from the cached readings on the new catalog,
+   rather than rewriting ids in place. They are derived data, CPU only. Re-run each card's yardstick arm through its
+   CLI's catalog switch.
+5. **Readers.** Point the nine runners at the new file. Replace `f0-cli`'s prefix strip (`replace(/^isfdb:/, "")`)
+   with the inventory prefix. A guard can then refuse an `inv:` id in any pilot-set file, and an `isfdb:` id in any
+   yardstick file.

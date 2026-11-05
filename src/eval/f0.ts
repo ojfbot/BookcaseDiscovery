@@ -4,7 +4,7 @@
 // Lines under $BOOKCASE_DATA/f0/<session>/ (private: they hold recognised text). Only aggregates leave
 // through `metrics`, which the CLI writes to evals/<run-id>/. Spec: docs/machine-labelling.md.
 import { spawn } from "node:child_process";
-import { appendFileSync, existsSync, mkdirSync, readFileSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { createInterface } from "node:readline";
 import { fileURLToPath } from "node:url";
@@ -12,6 +12,7 @@ import type { DatabaseSync } from "node:sqlite";
 import { guardCheck, LOOKALIKE, type GuardArm, type LookalikeGuard } from "../catalog/lookalike.ts";
 import { counterCheck, type CounterKind, type RarityBasis } from "../catalog/rarity.ts";
 import { retrieve, type Candidate } from "../catalog/retrieve.ts";
+import { openAppender, shownPath } from "../ledger/durable.ts";
 import { cropFor, cropName, F0_CROP, type CropMethod } from "../perceive/crop.ts";
 import { OcrHelperError, runOcr, type OcrRequest, type OcrResponse } from "../perceive/ocr.ts";
 import { assignShelves, type LabelSet, type Photo, type Polygon4 } from "./labels.ts";
@@ -126,12 +127,26 @@ export interface SpineDecision {
 
 // --- stage plumbing ---------------------------------------------------------------------------
 
+/**
+ * Rows of a JSONL file ([] when absent). A torn last line (a writer killed mid-line, or a power cut) is skipped and
+ * reported on stderr, and left in the file; a bad line anywhere else throws. `openAppender` sets a torn tail aside
+ * before the next append, so it never ends up mid-file.
+ */
 export function readJsonl<T>(path: string): T[] {
   if (!existsSync(path)) return [];
-  return readFileSync(path, "utf8")
+  const lines = readFileSync(path, "utf8")
     .split("\n")
-    .filter((l) => l.trim() !== "")
-    .map((l) => JSON.parse(l) as T);
+    .filter((l) => l.trim() !== "");
+  const rows: T[] = [];
+  for (let i = 0; i < lines.length; i++) {
+    try {
+      rows.push(JSON.parse(lines[i]!) as T);
+    } catch (e) {
+      if (i < lines.length - 1) throw new Error(`${shownPath(path)}: line ${i + 1} of ${lines.length} is not JSON (${(e as Error).message})`);
+      process.stderr.write(`readJsonl: ${shownPath(path)}: skipped 1 torn last line (${lines[i]!.length} chars) after ${rows.length} rows\n`);
+    }
+  }
+  return rows;
 }
 
 /** Spawn a helper, feed it request lines, append each answer line to `out`. Resolves when it exits. */
@@ -142,9 +157,10 @@ function runHelper(script: string, args: string[], requests: object[], out: stri
       stdio: ["pipe", "pipe", "pipe"],
       env: { ...process.env, ...env },
     });
+    const app = openAppender(out);
     const lines = createInterface({ input: child.stdout, crlfDelay: Infinity });
     lines.on("line", (line) => {
-      if (line.trim()) appendFileSync(out, `${line}\n`);
+      if (line.trim()) app.write(`${line}\n`);
     });
     let tail = "";
     child.stderr.setEncoding("utf8");
@@ -154,10 +170,11 @@ function runHelper(script: string, args: string[], requests: object[], out: stri
     });
     child.stdin.on("error", () => {});
     child.stdin.end(requests.map((r) => `${JSON.stringify(r)}\n`).join(""));
-    child.once("error", reject);
-    child.once("close", (code) =>
-      code === 0 ? resolve() : reject(new Error(`${script} exited ${code}: ${tail.split("\n").slice(-4).join(" | ")}`)),
-    );
+    child.once("error", (e) => (app.close(), reject(e)));
+    child.once("close", (code) => {
+      app.close();
+      code === 0 ? resolve() : reject(new Error(`${script} exited ${code}: ${tail.split("\n").slice(-4).join(" | ")}`));
+    });
   });
 }
 
@@ -330,13 +347,15 @@ export async function visionStage(
     const res = [];
     for (let i = 0; i < reqs.length; i += 100) res.push(...(await visionBatch(reqs.slice(i, i + 100), log)));
     const per = (Date.now() - t0) / 1000 / reqs.length;
+    const app = openAppender(out);
     for (const r of res) {
       const line: Reading =
         "error" in r
           ? { id: r.id, reader: "vision", crop, variants: [], seconds: per, error: r.error.code }
           : { id: r.id, reader: "vision", crop, variants: r.variants.map((v) => ({ rotation: v.rotation, text: v.text, confidence: v.confidence })), seconds: per };
-      appendFileSync(out, `${JSON.stringify(line)}\n`);
+      app.write(`${JSON.stringify(line)}\n`);
     }
+    app.close();
     log(`vision: ${img.id.slice(0, 12)} ${reqs.length} spines ${((Date.now() - t0) / 1000).toFixed(1)} s`);
   }
 }

@@ -54,6 +54,43 @@ The version is `v-` plus 12 hex digits of a hash of two hashes (`versionKey` in 
 A box-set or model change gives a new version beside the old ones, so a training run can name exactly what it read.
 The same inputs give the same version and byte-identical files. Re-run `build` after every such change.
 
+**DL-1: one new version.** Before DL-1 the catalog's and sidecar's stamps were `size:mtime`, so a copy or a touch
+of the catalog gave a new version. They are now content stamps (`docs/catalog.md`, "Content stamp"). The first build
+after DL-1 therefore gives one new version, with the same rows. Re-stamp the sidecar first (`openStats` refuses a
+pre-DL-1 one), then build:
+
+```bash
+node bin/bookcase catalog restamp
+node bin/bookcase dataset build
+```
+
+## Crash safety (DL-1)
+
+Nothing is backed up until a NAS exists, so the files nothing can rebuild are written by `writeFileDurable`
+(`src/ledger/durable.ts`). It writes a temporary file beside the target, fsyncs it, renames it over the target and
+fsyncs the folder. A killed process or a power cut leaves the old file or the new one, never half of either.
+
+- `splits.json` is frozen history, and `latest.json` must not name a version whose files are not all down.
+  `commitVersion` in `ts0-cli.ts` writes the version's files first, then `splits.json`, then `latest.json`, each
+  this way. `datasets/cache/dhash.json` is written the same way, so a torn cache never blocks a build.
+- Other writers of facts and frozen records written this way:
+  - the private manifest (`writePrivateManifest`);
+  - originals and working copies in the image store (`ImageStore.put`);
+  - hand labels and their rolling backup (`labels:import`);
+  - the profile seeds (`writeSeeds`);
+  - the weights registry record (`ts2-cli.ts register`).
+- The ledger is SQLite in WAL mode with the default `synchronous`, which is already durable, so it is unchanged.
+
+Stage caches are JSONL files appended line by line by `openAppender`. It keeps one descriptor open and fsyncs at most
+once a second and on close. On 200,000 synthetic 340-byte lines (68 MB, M4) the old one-`appendFileSync`-per-line
+path took 4.3 s and the appender takes 0.5 s. An fsync per line costs about 4 ms a line, some 800 s for the same file.
+A crash loses at most the last second of lines, and those are recomputed on the next run.
+
+`readJsonl` (`src/eval/f0.ts`) skips a **torn last line**, one that does not parse. It reports the file (relative to
+the data root) and the row count on stderr and leaves the line in the file. A bad line anywhere else still throws.
+Before its next append, `openAppender` moves a torn tail to `<file>.torn`, so new lines never land behind it. The
+fragment is kept, never deleted. A last line that parses but lacks its newline gets one.
+
 ## Manifest rows (F-1)
 
 One row per photo:

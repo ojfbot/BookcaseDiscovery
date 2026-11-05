@@ -9,8 +9,11 @@
 //   statsPathFor("…/catalog-v2.sqlite") -> "…/catalog-v2.stats.sqlite"   (the catalog file itself is never written)
 //   buildStats(catalogPath)                                            one pass over works and editions
 //   rarityBasis(db, openStats(path)) -> counterCheck(basis, candidate, ranked, variants)
-import { existsSync, renameSync, rmSync, statSync } from "node:fs";
+import { createHash } from "node:crypto";
+import { closeSync, existsSync, openSync, readFileSync, readSync, renameSync, rmSync, statSync } from "node:fs";
+import { resolve } from "node:path";
 import { DatabaseSync } from "node:sqlite";
+import { writeFileDurable } from "../ledger/durable.ts";
 import { LOOKALIKE, lookalikeGuard, sameBook, type TitleForms } from "./lookalike.ts";
 import { normalize, STOPWORDS, tokenize } from "./normalize.ts";
 import type { Candidate, FieldEvidence } from "./retrieve.ts";
@@ -68,8 +71,95 @@ export function statsPathFor(catalogPath: string): string {
   return `${catalogPath.replace(/\.sqlite$/, "")}.stats.sqlite`;
 }
 
-/** Size and modification time of the catalog file: the sidecar is refused when they no longer match. */
+// ---------------------------------------------------------------------------------------------
+// Content stamp (DL-1)
+// ---------------------------------------------------------------------------------------------
+
+/** The `meta` key under which a catalog or statistics sidecar built by this code records its content hash. */
+export const CONTENT_HASH_KEY = "content_sha256";
+/** Bump when the `<file>.stamp.json` record changes. */
+export const STAMP_RECORD_VERSION = 1;
+
+/** SHA-256 of a file's bytes, read in 8 MB chunks (3.1 s for the 6.2 GB v2 catalog on the M4). */
+export function sha256OfFile(path: string): string {
+  const h = createHash("sha256");
+  const fd = openSync(path, "r");
+  try {
+    const buf = Buffer.alloc(8 * 1024 * 1024);
+    for (let n; (n = readSync(fd, buf, 0, buf.length, null)) > 0; ) h.update(buf.subarray(0, n));
+  } finally {
+    closeSync(fd);
+  }
+  return h.digest("hex");
+}
+
+/**
+ * Record a just-built SQLite file's content hash in its own `meta` table: the SHA-256 of the file as closed, before
+ * this row and the `late` rows (a build time) are written, so a rebuild from the same inputs gets the same hash.
+ */
+export function sealContentHash(path: string, late: Record<string, string> = {}): string {
+  const sha = sha256OfFile(path);
+  const db = new DatabaseSync(path);
+  try {
+    const ins = db.prepare("INSERT OR REPLACE INTO meta (key, value) VALUES (?, ?)");
+    db.exec("BEGIN");
+    ins.run(CONTENT_HASH_KEY, sha);
+    for (const [k, v] of Object.entries(late)) ins.run(k, v);
+    db.exec("COMMIT");
+  } finally {
+    db.close();
+  }
+  return sha;
+}
+
+/** The content hash a SQLite file records in its `meta` table, or null (not SQLite, no `meta`, or built before DL-1). */
+function recordedHash(path: string): string | null {
+  try {
+    const db = new DatabaseSync(path, { readOnly: true });
+    try {
+      const r = db.prepare("SELECT value FROM meta WHERE key = ?").get(CONTENT_HASH_KEY) as { value: string } | undefined;
+      return r?.value || null;
+    } finally {
+      db.close();
+    }
+  } catch {
+    return null;
+  }
+}
+
+/** `catalog.sqlite` -> `catalog.sqlite.stamp.json`: the computed hash of a file built before DL-1. */
+export const stampRecordPath = (path: string): string => `${path}.stamp.json`;
+
+/**
+ * A catalog's identity by content, `sha256:<hex>`, so a copy or a same-input rebuild is the same catalog and a
+ * touched file is not a new one. A file built by this code records the hash in its `meta` table (read in
+ * milliseconds). For one built before, the hash is computed once (a full read: about 3 s for the 6 GB catalog) and
+ * recorded in `<file>.stamp.json`, keyed by absolute path, size and mtime; later opens cost a stat. A changed key
+ * means the file changed (or moved) and the hash is computed again. The catalog itself is never written.
+ */
 export function catalogStamp(path: string): string {
+  const recorded = recordedHash(path);
+  if (recorded) return `sha256:${recorded}`;
+  const st = statSync(path);
+  const key = { path: resolve(path), size: st.size, mtimeMs: Math.round(st.mtimeMs) };
+  const side = stampRecordPath(path);
+  try {
+    const r = JSON.parse(readFileSync(side, "utf8")) as typeof key & { schemaVersion: number; sha256: string };
+    if (r.schemaVersion === STAMP_RECORD_VERSION && r.path === key.path && r.size === key.size && r.mtimeMs === key.mtimeMs && r.sha256) return `sha256:${r.sha256}`;
+  } catch {
+    // No record yet, or an unreadable one: compute below.
+  }
+  const sha = sha256OfFile(path);
+  try {
+    writeFileDurable(side, `${JSON.stringify({ schemaVersion: STAMP_RECORD_VERSION, ...key, sha256: sha })}\n`);
+  } catch {
+    // A read-only folder: the hash is still right, it is just computed again next time.
+  }
+  return `sha256:${sha}`;
+}
+
+/** The pre-DL-1 stamp, `size:mtime`: read only to re-stamp a statistics sidecar built before DL-1. */
+export function legacyStamp(path: string): string {
   const st = statSync(path);
   return `${st.size}:${Math.round(st.mtimeMs)}`;
 }
@@ -163,13 +253,38 @@ export function buildStats(catalogPath: string, out = statsPathFor(catalogPath),
   const count = (table: string) => (db.prepare(`SELECT count(*) AS n FROM ${table}`).get() as { n: number }).n;
   const counts: StatsCounts = { works, books, titleForms: count("title_totals"), titleBooks: count("title_books"), words: count("words"), authorForms: count("author_works"), seconds: 0 };
   const meta = db.prepare("INSERT INTO meta VALUES (?, ?)");
-  for (const [k, v] of Object.entries({ schema_version: STATS_SCHEMA_VERSION, catalog_stamp: catalogStamp(catalogPath), works, books, built: new Date().toISOString() })) meta.run(k, String(v));
+  for (const [k, v] of Object.entries({ schema_version: STATS_SCHEMA_VERSION, catalog_stamp: catalogStamp(catalogPath), works, books })) meta.run(k, String(v));
   db.exec(`PRAGMA user_version = ${STATS_SCHEMA_VERSION}; VACUUM;`);
   db.close();
+  sealContentHash(partial, { built: new Date().toISOString() });
   renameSync(partial, out);
   counts.seconds = Math.round((performance.now() - t0) / 100) / 10;
   log(`stats: ${out} in ${counts.seconds} s`);
   return counts;
+}
+
+export interface Restamp {
+  stats: string;
+  /** `restamped`: the sidecar's pre-DL-1 stamp matched the catalog and was replaced; `current`: nothing to do. */
+  outcome: "restamped" | "current";
+  catalog: string;
+}
+
+/**
+ * One-time DL-1 re-stamp of a statistics sidecar built before content stamps: when its recorded `size:mtime` stamp
+ * still matches the catalog file, the stamp is replaced by the content stamp and the sidecar records its own
+ * content hash. A sidecar from another state of the catalog is refused (rebuild it with `bookcase catalog stats`).
+ */
+export function restampStats(catalogPath: string, path = statsPathFor(catalogPath)): Restamp {
+  if (!existsSync(path)) throw new Error(`${path} does not exist; run \`bookcase catalog stats\` first`);
+  const catalog = catalogStamp(catalogPath);
+  const db = new DatabaseSync(path, { readOnly: true });
+  const recorded = (db.prepare("SELECT value FROM meta WHERE key = 'catalog_stamp'").get() as { value: string } | undefined)?.value;
+  db.close();
+  if (recorded === catalog) return { stats: path, outcome: "current", catalog };
+  if (recorded !== legacyStamp(catalogPath)) throw new Error(`${path} was built from another state of ${catalogPath}; rebuild it`);
+  sealContentHash(path, { catalog_stamp: catalog, restamped: new Date().toISOString() });
+  return { stats: path, outcome: "restamped", catalog };
 }
 
 /** Memoised lookups on one sidecar. */
@@ -192,7 +307,7 @@ export function openStats(path: string, catalogPath?: string): CatalogStats {
   const db = new DatabaseSync(path, { readOnly: true });
   const meta = Object.fromEntries((db.prepare("SELECT key, value FROM meta").all() as Array<{ key: string; value: string }>).map((r) => [r.key, r.value]));
   if (Number(meta.schema_version) !== STATS_SCHEMA_VERSION) throw new Error(`${path} has stats schema ${meta.schema_version}, this code reads ${STATS_SCHEMA_VERSION}`);
-  if (catalogPath && meta.catalog_stamp !== catalogStamp(catalogPath)) throw new Error(`${path} was built from another state of ${catalogPath}; rebuild it`);
+  if (catalogPath && meta.catalog_stamp !== catalogStamp(catalogPath)) throw new Error(`${path} was built from another state of ${catalogPath}; rebuild it (a sidecar from before DL-1: \`bookcase catalog restamp\`)`);
   const memo = <K, V>(f: (k: K) => V) => {
     const m = new Map<K, V>();
     return (k: K) => {
