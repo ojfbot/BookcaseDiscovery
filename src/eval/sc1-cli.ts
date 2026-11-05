@@ -435,6 +435,14 @@ function measures(set: SetName, photos: Photo[], arm: ArmOut, facets: Facets, ba
     },
   );
 
+  // Exploratory, in no rule: genre agreement by where the genre's cue was read (strip-like regions against the rest).
+  const genreByRegion = Object.fromEntries(
+    (["lip", "not-a-book", "gap", "free"] as const).map((g) => {
+      const xs = genrePairs(mrows.filter((r) => r.context?.genreRegion === g));
+      return [g, { n: xs.length, rows: mrows.filter((r) => r.context?.genreRegion === g && r.context.family).length, agree: share(xs.filter((x) => x.agree).length, xs.length) }];
+    }),
+  );
+
   // Order: in-order share of consecutive confirmed pairs in rows SC-1 marks ordered; the control permutes the mark among rows with a pair.
   const paired = mrows.filter((r) => orderCounts([r]).pairs > 0);
   const marked = paired.filter((r) => r.context?.ordering);
@@ -472,7 +480,7 @@ function measures(set: SetName, photos: Photo[], arm: ArmOut, facets: Facets, ba
     units: {
       lines: lines.length,
       linesPerPhoto: share(lines.length, photos.length),
-      boxes: arm.units.filter((u) => u.kind === "box").length,
+      boxUnits: arm.units.filter((u) => u.kind === "box").length,
       byRegion: count(arm.units.map((u) => `${u.kind}:${u.region}`)),
       byClass: count(arm.units.map((u) => u.cue.cls)),
       dropped: count(arm.units.map((u) => u.cue.dropped ?? "kept")),
@@ -485,7 +493,7 @@ function measures(set: SetName, photos: Photo[], arm: ArmOut, facets: Facets, ba
       promotionOrPriceInRecords: arm.units.filter((u) => (u.cue.cls === "promotion" || u.cue.cls === "price") && !u.cue.dropped).length,
     },
     letters: { ...letters, byKind: count(lp.map((x) => `${x.kind}:${x.agree ? "agree" : "disagree"}`)), realCI: ci(lp, (x) => x.agree) },
-    genre: { ...genre, realCI: ci(gp, (x) => x.agree), booksWithKnownFacets: gp.length },
+    genre: { ...genre, realCI: ci(gp, (x) => x.agree), booksWithKnownFacets: gp.length, exploratoryByCueRegion: genreByRegion },
     order: { ...order, rowsMarked: marked.length, rowsMarkedOrderedByF0h: orderedRowsMarked, unmarkedInOrderShare: unmarked.pairs ? r4(unmarked.inOrder / unmarked.pairs) : null, unmarkedPairs: unmarked.pairs },
   };
 }
@@ -614,10 +622,11 @@ function tables(m: any): string {
     row("**letter agreement** (book surname vs range or divider side)", "–", (a) => ctl(a.letters));
     row("letter pairs by kind", "–", (a) => kv(a.letters.byKind));
     row("**genre agreement** (book facets vs row section)", "–", (a) => ctl(a.genre));
+    row("genre agreement by cue region (exploratory, no rule)", "–", (a) => Object.entries(a.genre.exploratoryByCueRegion).map(([k, v]) => `${k} ${v.agree === null ? "–" : pc(v.agree)} (rows ${v.rows}, n ${v.n})`).join("; "));
     row("**order agreement** (in-order consecutive pairs, rows with an ordering rule)", "–", (a) => ctl(a.order));
     row("rows with an ordering rule / of them ordered by F-0h's rule", "–", (a) => `${a.order.rowsMarked} / ${a.order.rowsMarkedOrderedByF0h}`);
     row("in-order share, rows without an ordering rule", "–", (a) => `${pc(a.order.unmarkedInOrderShare)} (n ${a.order.unmarkedPairs})`);
-    row("text units: lines (per photo) / not-a-book boxes with text", "–", (a) => `${a.units.lines} (${a.units.linesPerPhoto?.toFixed(1)}) / ${a.units.boxes}`);
+    row("text units: lines (per photo) / not-a-book boxes with text", "–", (a) => `${a.units.lines} (${a.units.linesPerPhoto?.toFixed(1)}) / ${a.units.boxUnits}`);
     row("units by region", "–", (a) => kv(a.units.byRegion));
     row("units by class", "–", (a) => kv(a.units.byClass));
     row("units kept / dropped (why)", "–", (a) => kv(a.units.dropped));

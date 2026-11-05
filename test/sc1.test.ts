@@ -139,7 +139,7 @@ const sc = (c: ReturnType<typeof combine>, level: ScopedCue["level"], x?: number
 describe("rowContext", () => {
   it("row-level cues beat case-level, and promotions never reach the record", () => {
     const ctx = rowContext([sc(unit(["Horror", "Horror"]), "case"), sc(unit(["Fantasy", "Fantasy"]), "row"), sc(unit(["Staff picks", "Staff picks"]), "row")])!;
-    expect(ctx).toMatchObject({ genre: "fantasy", family: "fantasy", ordering: null, levels: { genre: "row" } });
+    expect(ctx).toMatchObject({ genre: "fantasy", family: "fantasy", ordering: null, levels: { genre: "row" }, genreRegion: "lip" });
     expect(ctx.source).toBe("sc1:lip:row");
     expect(asRowContext(ctx)).toEqual({ ordering: null, genre: "fantasy", letterRange: null, source: "sc1:lip:row" });
   });

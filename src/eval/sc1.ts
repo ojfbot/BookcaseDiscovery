@@ -320,6 +320,8 @@ export interface ShelfContext extends RowContext {
   family: Family | null;
   /** Scope level of each field's cue. */
   levels: { genre: ScopeLevel | null; ordering: ScopeLevel | null; letterRange: ScopeLevel | null };
+  /** Where the genre's cue was read. */
+  genreRegion: Region | null;
   cues: number;
 }
 
@@ -352,6 +354,7 @@ export function rowContext(cues: readonly ScopedCue[]): ShelfContext | null {
     dividers,
     family: genre?.cue.family ?? null,
     levels: { genre: genre?.level ?? null, ordering: ordering?.level ?? null, letterRange: range?.level ?? null },
+    genreRegion: genre?.region ?? null,
     cues: used.length,
   };
 }
