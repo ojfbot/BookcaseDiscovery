@@ -1,0 +1,567 @@
+{
+ "runId": "C9",
+ "card": "C-9",
+ "date": "2026-11-04",
+ "scope": {
+  "pilot-000": "real use (OC35): machine agreement only, never accuracy (INV-17)",
+  "yardstick-library-b2": "PROXY (OC35): wrong accepts against the annotated books of each image (C-5's judge)"
+ },
+ "preregistered": "evals/C9/prereg.md",
+ "bootstrap": {
+  "unit": "photo (cluster), paired where before and after are the same boxes",
+  "reps": 2000,
+  "seed": 1,
+  "interval": "95 % percentile",
+  "p1": {
+   "reps": 2000,
+   "precisionSeed": 200,
+   "shuffleSeed": 20261112,
+   "shuffles": 200
+  }
+ },
+ "imp1": {
+  "margin": 0.01,
+  "depth": 50,
+  "enabledByDefault": false
+ },
+ "catalogs": {
+  "v1": "catalog-c9.sqlite",
+  "v2": "catalog-v2-c9.sqlite"
+ },
+ "wikidata": {
+  "fetched": "2026-11-05",
+  "statements": 455,
+  "isfdbPublishers": 307,
+  "datedStatements": 125,
+  "links": 393,
+  "houses": 282,
+  "datedLinks": 116,
+  "sha256": "4dff58454e7f7c8b606c46ab5d144e30943b3690661b55a2789d8d158581c070"
+ },
+ "dataFix": {
+  "gate": {
+   "n": 38,
+   "k": 15,
+   "p1": {
+    "value": 39.5,
+    "lo": 20.7,
+    "hi": 54.4
+   },
+   "chance": 7.8,
+   "f0d": {
+    "k": 15,
+    "n": 38,
+    "p1": 39.5,
+    "chance": 7.8
+   },
+   "reproduced": true
+  },
+  "cells": {
+   "v1": {
+    "sample": 36,
+    "photos": 13,
+    "outsideBoxSet": 2,
+    "byData": {
+     "today": {
+      "n": 36,
+      "k": 14,
+      "p1": {
+       "value": 38.9,
+       "lo": 20,
+       "hi": 54.8
+      },
+      "chance": 8.2
+     },
+     "+publishers": {
+      "n": 36,
+      "k": 14,
+      "p1": {
+       "value": 38.9,
+       "lo": 20,
+       "hi": 54.8
+      },
+      "chance": 8.2
+     },
+     "+series": {
+      "n": 36,
+      "k": 14,
+      "p1": {
+       "value": 38.9,
+       "lo": 20,
+       "hi": 54.8
+      },
+      "chance": 8.2
+     },
+     "c9": {
+      "n": 36,
+      "k": 15,
+      "p1": {
+       "value": 41.7,
+       "lo": 20.7,
+       "hi": 61.1
+      },
+      "chance": 10
+     }
+    },
+    "deltaP1": {
+     "value": 2.8,
+     "lo": 0,
+     "hi": 9.3
+    },
+    "deltaChance": 1.8,
+    "knownAfterOnly": 0
+   },
+   "v2": {
+    "sample": 36,
+    "photos": 13,
+    "outsideBoxSet": 2,
+    "byData": {
+     "today": {
+      "n": 36,
+      "k": 14,
+      "p1": {
+       "value": 38.9,
+       "lo": 20,
+       "hi": 54.8
+      },
+      "chance": 8.4
+     },
+     "+publishers": {
+      "n": 36,
+      "k": 14,
+      "p1": {
+       "value": 38.9,
+       "lo": 20,
+       "hi": 54.8
+      },
+      "chance": 8.4
+     },
+     "+series": {
+      "n": 36,
+      "k": 14,
+      "p1": {
+       "value": 38.9,
+       "lo": 20,
+       "hi": 54.8
+      },
+      "chance": 8.4
+     },
+     "c9": {
+      "n": 36,
+      "k": 15,
+      "p1": {
+       "value": 41.7,
+       "lo": 20.7,
+       "hi": 61.1
+      },
+      "chance": 10.4
+     }
+    },
+    "deltaP1": {
+     "value": 2.8,
+     "lo": 0,
+     "hi": 9.3
+    },
+    "deltaChance": 2,
+    "knownAfterOnly": 0
+   }
+  },
+  "verdict": {
+   "keep": false,
+   "p1RiseVsTen": 2.8,
+   "chanceRiseVsTwo": 2
+  }
+ },
+ "shelfMarkFilter": {
+  "pilot-000": {
+   "reads": 139,
+   "dropped": 6,
+   "byRule": {
+    "digit": 5,
+    "cutter": 1
+   }
+  },
+  "yardstick-library-b2": {
+   "reads": 109,
+   "dropped": 51,
+   "byRule": {
+    "digit": 37,
+    "cutter": 14
+   },
+   "stickers": 44,
+   "stickersDropped": 38,
+   "nonStickers": 65,
+   "nonStickersDropped": 13
+  }
+ },
+ "imp1Cells": {
+  "pilot-000": {
+   "v1.today.filtered": {
+    "accepts": 187,
+    "eligible": 33,
+    "eligiblePhotos": 12,
+    "withCloseRunnerUp": 1,
+    "withheld": 0,
+    "withheldShare": {
+     "value": 0,
+     "lo": 0,
+     "hi": 0
+    }
+   },
+   "v1.today.unfiltered": {
+    "accepts": 187,
+    "eligible": 33,
+    "eligiblePhotos": 12,
+    "withCloseRunnerUp": 1,
+    "withheld": 0,
+    "withheldShare": {
+     "value": 0,
+     "lo": 0,
+     "hi": 0
+    }
+   },
+   "v1.c9.filtered": {
+    "accepts": 187,
+    "eligible": 33,
+    "eligiblePhotos": 12,
+    "withCloseRunnerUp": 1,
+    "withheld": 0,
+    "withheldShare": {
+     "value": 0,
+     "lo": 0,
+     "hi": 0
+    }
+   },
+   "v1.c9.unfiltered": {
+    "accepts": 187,
+    "eligible": 33,
+    "eligiblePhotos": 12,
+    "withCloseRunnerUp": 1,
+    "withheld": 0,
+    "withheldShare": {
+     "value": 0,
+     "lo": 0,
+     "hi": 0
+    }
+   },
+   "v2.today.filtered": {
+    "accepts": 197,
+    "eligible": 36,
+    "eligiblePhotos": 14,
+    "withCloseRunnerUp": 2,
+    "withheld": 0,
+    "withheldShare": {
+     "value": 0,
+     "lo": 0,
+     "hi": 0
+    }
+   },
+   "v2.today.unfiltered": {
+    "accepts": 197,
+    "eligible": 36,
+    "eligiblePhotos": 14,
+    "withCloseRunnerUp": 2,
+    "withheld": 0,
+    "withheldShare": {
+     "value": 0,
+     "lo": 0,
+     "hi": 0
+    }
+   },
+   "v2.c9.filtered": {
+    "accepts": 197,
+    "eligible": 36,
+    "eligiblePhotos": 14,
+    "withCloseRunnerUp": 2,
+    "withheld": 0,
+    "withheldShare": {
+     "value": 0,
+     "lo": 0,
+     "hi": 0
+    }
+   },
+   "v2.c9.unfiltered": {
+    "accepts": 197,
+    "eligible": 36,
+    "eligiblePhotos": 14,
+    "withCloseRunnerUp": 2,
+    "withheld": 0,
+    "withheldShare": {
+     "value": 0,
+     "lo": 0,
+     "hi": 0
+    }
+   }
+  },
+  "yardstick-library-b2": {
+   "v1.today.filtered": {
+    "accepts": 4,
+    "eligible": 0,
+    "eligiblePhotos": 0,
+    "withCloseRunnerUp": 0,
+    "withheld": 0,
+    "withheldShare": null,
+    "wrongBefore": 0,
+    "wrongAfter": 0,
+    "withheldWrong": 0,
+    "withheldCorrect": 0,
+    "withheldRivalAnnotated": 0,
+    "wrongShareBefore": null,
+    "wrongShareAfter": null,
+    "deltaWrongShare": null
+   },
+   "v1.today.unfiltered": {
+    "accepts": 4,
+    "eligible": 1,
+    "eligiblePhotos": 1,
+    "withCloseRunnerUp": 0,
+    "withheld": 0,
+    "withheldShare": {
+     "value": 0,
+     "lo": 0,
+     "hi": 0
+    },
+    "wrongBefore": 0,
+    "wrongAfter": 0,
+    "withheldWrong": 0,
+    "withheldCorrect": 0,
+    "withheldRivalAnnotated": 0,
+    "wrongShareBefore": {
+     "value": 0,
+     "lo": 0,
+     "hi": 0
+    },
+    "wrongShareAfter": {
+     "value": 0,
+     "lo": 0,
+     "hi": 0
+    },
+    "deltaWrongShare": {
+     "value": 0,
+     "lo": 0,
+     "hi": 0
+    }
+   },
+   "v1.c9.filtered": {
+    "accepts": 4,
+    "eligible": 0,
+    "eligiblePhotos": 0,
+    "withCloseRunnerUp": 0,
+    "withheld": 0,
+    "withheldShare": null,
+    "wrongBefore": 0,
+    "wrongAfter": 0,
+    "withheldWrong": 0,
+    "withheldCorrect": 0,
+    "withheldRivalAnnotated": 0,
+    "wrongShareBefore": null,
+    "wrongShareAfter": null,
+    "deltaWrongShare": null
+   },
+   "v1.c9.unfiltered": {
+    "accepts": 4,
+    "eligible": 1,
+    "eligiblePhotos": 1,
+    "withCloseRunnerUp": 0,
+    "withheld": 0,
+    "withheldShare": {
+     "value": 0,
+     "lo": 0,
+     "hi": 0
+    },
+    "wrongBefore": 0,
+    "wrongAfter": 0,
+    "withheldWrong": 0,
+    "withheldCorrect": 0,
+    "withheldRivalAnnotated": 0,
+    "wrongShareBefore": {
+     "value": 0,
+     "lo": 0,
+     "hi": 0
+    },
+    "wrongShareAfter": {
+     "value": 0,
+     "lo": 0,
+     "hi": 0
+    },
+    "deltaWrongShare": {
+     "value": 0,
+     "lo": 0,
+     "hi": 0
+    }
+   },
+   "v2.today.filtered": {
+    "accepts": 21,
+    "eligible": 1,
+    "eligiblePhotos": 1,
+    "withCloseRunnerUp": 0,
+    "withheld": 0,
+    "withheldShare": {
+     "value": 0,
+     "lo": 0,
+     "hi": 0
+    },
+    "wrongBefore": 0,
+    "wrongAfter": 0,
+    "withheldWrong": 0,
+    "withheldCorrect": 0,
+    "withheldRivalAnnotated": 0,
+    "wrongShareBefore": {
+     "value": 0,
+     "lo": 0,
+     "hi": 0
+    },
+    "wrongShareAfter": {
+     "value": 0,
+     "lo": 0,
+     "hi": 0
+    },
+    "deltaWrongShare": {
+     "value": 0,
+     "lo": 0,
+     "hi": 0
+    }
+   },
+   "v2.today.unfiltered": {
+    "accepts": 21,
+    "eligible": 5,
+    "eligiblePhotos": 4,
+    "withCloseRunnerUp": 0,
+    "withheld": 0,
+    "withheldShare": {
+     "value": 0,
+     "lo": 0,
+     "hi": 0
+    },
+    "wrongBefore": 0,
+    "wrongAfter": 0,
+    "withheldWrong": 0,
+    "withheldCorrect": 0,
+    "withheldRivalAnnotated": 0,
+    "wrongShareBefore": {
+     "value": 0,
+     "lo": 0,
+     "hi": 0
+    },
+    "wrongShareAfter": {
+     "value": 0,
+     "lo": 0,
+     "hi": 0
+    },
+    "deltaWrongShare": {
+     "value": 0,
+     "lo": 0,
+     "hi": 0
+    }
+   },
+   "v2.c9.filtered": {
+    "accepts": 21,
+    "eligible": 1,
+    "eligiblePhotos": 1,
+    "withCloseRunnerUp": 0,
+    "withheld": 0,
+    "withheldShare": {
+     "value": 0,
+     "lo": 0,
+     "hi": 0
+    },
+    "wrongBefore": 0,
+    "wrongAfter": 0,
+    "withheldWrong": 0,
+    "withheldCorrect": 0,
+    "withheldRivalAnnotated": 0,
+    "wrongShareBefore": {
+     "value": 0,
+     "lo": 0,
+     "hi": 0
+    },
+    "wrongShareAfter": {
+     "value": 0,
+     "lo": 0,
+     "hi": 0
+    },
+    "deltaWrongShare": {
+     "value": 0,
+     "lo": 0,
+     "hi": 0
+    }
+   },
+   "v2.c9.unfiltered": {
+    "accepts": 21,
+    "eligible": 5,
+    "eligiblePhotos": 4,
+    "withCloseRunnerUp": 0,
+    "withheld": 0,
+    "withheldShare": {
+     "value": 0,
+     "lo": 0,
+     "hi": 0
+    },
+    "wrongBefore": 0,
+    "wrongAfter": 0,
+    "withheldWrong": 0,
+    "withheldCorrect": 0,
+    "withheldRivalAnnotated": 0,
+    "wrongShareBefore": {
+     "value": 0,
+     "lo": 0,
+     "hi": 0
+    },
+    "wrongShareAfter": {
+     "value": 0,
+     "lo": 0,
+     "hi": 0
+    },
+    "deltaWrongShare": {
+     "value": 0,
+     "lo": 0,
+     "hi": 0
+    }
+   }
+  }
+ },
+ "reach": {
+  "pilot-000": {
+   "v1": {
+    "accepts": 687,
+    "acceptsRead": 187,
+    "acceptsWithImprint": 37
+   },
+   "v2": {
+    "accepts": 950,
+    "acceptsRead": 197,
+    "acceptsWithImprint": 40
+   }
+  },
+  "yardstick-library-b2": {
+   "v1": {
+    "accepts": 12,
+    "acceptsRead": 4,
+    "acceptsWithImprint": 1,
+    "wrongAccepts": 5,
+    "wrongRead": 1,
+    "wrongWithImprint": 0
+   },
+   "v2": {
+    "accepts": 41,
+    "acceptsRead": 21,
+    "acceptsWithImprint": 5,
+    "wrongAccepts": 14,
+    "wrongRead": 4,
+    "wrongWithImprint": 0
+   }
+  }
+ },
+ "verdict": {
+  "dataFix": "off",
+  "imp1": "uninformative (off)",
+  "detail": {
+   "primaryCell": "v2.today.filtered",
+   "yardstickWrongFalls": false,
+   "pilotWithheldShare": 0,
+   "pilotWithinFive": true,
+   "uninformative": true,
+   "keep": false
+  }
+ }
+}

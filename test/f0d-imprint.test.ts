@@ -4,11 +4,11 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { buildCatalog } from "../src/catalog/build.ts";
-import { buildImprintTable, editionKeys, imprintKey, imprintMatches, publisherKeys } from "../src/catalog/imprint.ts";
+import { buildImprintTable, editionImprintKeys, editionKeys, imprintKey, imprintMatches, publisherKeys, shelfMark, usableImprint, wikidataParents } from "../src/catalog/imprint.ts";
 import type { Candidate } from "../src/catalog/retrieve.ts";
 import type { SpineDecision } from "../src/eval/f0.ts";
 import { boxImprint } from "../src/eval/f0d-cli.ts";
-import { carries, reorderable, tieBreak, workImprints } from "../src/eval/f0d.ts";
+import { applyImprintContrast, carries, IMP1, imprintContrast, reorderable, tieBreak, workImprintKeys, workImprints, type ContrastInput } from "../src/eval/f0d.ts";
 import { makeMiniStaging } from "./helpers/mini-staging.ts";
 
 describe("imprint keys (publisher normalisation)", () => {
@@ -139,5 +139,101 @@ describe("work imprints from the catalog", () => {
     expect(keysOf("isfdb:201").sort()).toEqual(["ace", "penguin"]);
     expect(carries(keysOf, "ace")("isfdb:201")).toBe(true);
     expect(carries(keysOf, "tor")("isfdb:201")).toBe(false);
+  });
+
+  it("adds the publisher series to a work's strict keys (C-9)", () => {
+    const table = buildImprintTable([]);
+    const keysOf = workImprintKeys(db, table);
+    expect(keysOf("isfdb:201").strict.sort()).toEqual(["ace", "ace science fiction specials", "penguin"]);
+    expect(workImprintKeys(db, table, undefined, { series: false })("isfdb:201").strict.sort()).toEqual(["ace", "penguin"]);
+  });
+});
+
+describe("C-9 imprint data", () => {
+  const table = buildImprintTable([["Del Rey / Ballantine", 40], ["Del Rey", 100]]);
+  const links = wikidataParents(
+    [
+      { isfdb: "1", parentIsfdb: "2", parentLabel: "Random House", start: "1998-01-01T00:00:00Z" },
+      { isfdb: "3", itemLabel: "Gollancz", parentLabel: "Orion Publishing Group" },
+      { isfdb: "3", itemLabel: "Gollancz", parentLabel: "Orion Publishing Group" }, // the same statement twice
+      { isfdb: "4", itemLabel: "Q123", parentLabel: "Q456" }, // no labels
+      { isfdb: "5", itemLabel: "SFBC", parentLabel: "Bookspan" }, // a club is never a child
+    ],
+    (id) => ({ "1": "Ballantine Books", "2": "Random House" })[id],
+  );
+
+  it("joins Wikidata links to ISFDB names, keeps dates, drops clubs, Q-ids and repeats", () => {
+    expect([...links.keys()].sort()).toEqual(["ballantine", "gollancz"]);
+    expect(links.get("ballantine")).toEqual([{ child: "ballantine", parent: "random house", start: 1998, end: null }]);
+    expect(links.get("gollancz")).toHaveLength(1);
+  });
+
+  it("keeps every publisher string; dated parents are strict only inside their dates", () => {
+    const ed = (year: number | null) => editionImprintKeys(table, { publisher: "Del Rey", publishers: '["Del Rey","Ballantine Books"]', pubSeries: "Del Rey Impact", year }, links);
+    expect([...ed(2001).strict].sort()).toEqual(["ballantine", "del rey", "del rey impact", "random house"]);
+    expect([...ed(1990).strict]).not.toContain("random house");
+    expect([...ed(1990).any]).not.toContain("random house"); // a dated link outside its dates is no link
+    expect([...ed(null).strict]).not.toContain("random house");
+    expect([...ed(null).any]).toContain("random house"); // no year: the dated link counts as undated
+  });
+
+  it("counts ISFDB-derived and undated parents for `any` only", () => {
+    const k = editionImprintKeys(table, { publisher: "Del Rey", year: 2001 }, links);
+    expect([...k.strict]).toEqual(["del rey"]);
+    expect([...k.any].sort()).toEqual(["ballantine", "del rey"]);
+    const g = editionImprintKeys(table, { publisher: "Gollancz", year: 2001 }, links);
+    expect([...g.strict]).toEqual(["gollancz"]);
+    expect([...g.any]).toContain("orion");
+  });
+
+  it("finds shelf marks without labels: digits, or Cutter letters of a candidate's surname", () => {
+    expect(shelfMark("821.134 GAR", [])).toBe("digit");
+    expect(shelfMark("001 Bel", [])).toBe("digit");
+    expect(shelfMark("N BEL", ["Saul Bellow"])).toBe("cutter");
+    expect(shelfMark("BEL", ["Juan García"])).toBeNull();
+    expect(shelfMark("DAW", ["Ursula K. Le Guin"])).toBeNull();
+    expect(shelfMark("Tol", ["J. R. R. Tolkien"])).toBe("cutter");
+    expect(shelfMark("Penguin", ["Pen Name"])).toBeNull();
+    expect(usableImprint("tor", "Tor", [])).toBe(true);
+    expect(usableImprint("tor", "Tor", ["Ana Torres"])).toBe(false); // the cost: a real house that begins a surname
+    expect(usableImprint("sfbc", "SFBC", [])).toBe(false);
+    expect(usableImprint("ab", "AB", [])).toBe(false);
+  });
+});
+
+describe("IMP-1: the imprint contrast (never a confirmer)", () => {
+  const a = cand("a", 0.9), rival = cand("r", 0.895), far = cand("f", 0.85), weak = cand("w", 0.895, 0.5);
+  const base = decision({ vision: "a", ppocr: "a" }, a);
+  const input = (over: Partial<ContrastInput> = {}): ContrastInput => ({
+    accepted: a, agreeing: ["vision", "ppocr"], lists: { vision: [a, rival, far], ppocr: [a, weak] }, imprint: "tor",
+    carriesStrict: (w) => w === "r", carriesAny: (w) => w === "r", same: () => false, ...over,
+  });
+
+  it("is off by default", () => {
+    expect(IMP1.enabled).toBe(false);
+    const c = imprintContrast(input());
+    expect(c).toMatchObject({ withhold: true, close: true });
+    expect(applyImprintContrast(base, c)).toBe(base);
+  });
+
+  it("withholds, never switches, when only a close passing runner-up carries the house", () => {
+    const d = applyImprintContrast(base, imprintContrast(input()), true);
+    expect(d.accepted).toBeNull();
+    expect(d.imprintContrast).toEqual({ accepted: "a", rival: "r" });
+  });
+
+  it("does nothing when the accepted work carries the house, even through an undated parent", () => {
+    expect(imprintContrast(input({ carriesAny: () => true })).withhold).toBe(false);
+  });
+
+  it("needs the runner-up to carry it strictly, pass the bar, sit within the margin and be another book", () => {
+    expect(imprintContrast(input({ carriesStrict: () => false })).withhold).toBe(false);
+    expect(imprintContrast(input({ carriesStrict: (w) => w === "f", carriesAny: (w) => w === "f" })).withhold).toBe(false);
+    expect(imprintContrast(input({ carriesStrict: (w) => w === "w", carriesAny: (w) => w === "w" })).withhold).toBe(false);
+    expect(imprintContrast(input({ same: () => true }))).toEqual({ withhold: false, rival: null, close: false });
+  });
+
+  it("no usable read, no withhold", () => {
+    expect(imprintContrast(input({ imprint: null }))).toMatchObject({ withhold: false, close: true });
   });
 });

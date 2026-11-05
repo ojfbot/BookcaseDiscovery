@@ -18,8 +18,12 @@ import { toIsbn13 } from "./isbn.ts";
 import { normalize, splitSubtitle } from "./normalize.ts";
 import { surnameOf } from "./coverage.ts";
 
-/** Bump when a table or column of the Open Library staging file changes. */
-export const OL_STAGING_SCHEMA_VERSION = 1;
+/**
+ * Bump when a table or column of the Open Library staging file changes.
+ * 2 (C-9): `ol_editions.publishers`. Version 1 files have no other difference, so the merge reads both.
+ */
+export const OL_STAGING_SCHEMA_VERSION = 2;
+export const READABLE_OL_STAGING_VERSIONS: readonly number[] = [1, 2];
 
 /** The breadth layer (C-4's proposal): English-language works first published in 1960 or later, with 2+ editions. */
 export const BREADTH = { language: "/languages/eng", minYear: 1960, minEditions: 2 } as const;
@@ -107,6 +111,11 @@ export function yearOf(date: unknown): number | null {
 
 const str = (v: unknown): string | null => (typeof v === "string" && v.trim() !== "" ? v.trim() : null);
 const strList = (v: unknown): string[] => (Array.isArray(v) ? v.map(str).filter((s): s is string => s !== null) : []);
+
+/** Every distinct publisher string of an edition, in order (Open Library's `publishers` is a free-text array). */
+export function editionPublishers(rec: Record<string, unknown>): string[] {
+  return [...new Set(strList(rec.publishers))];
+}
 
 /** Valid ISBN-13s of an edition, ISBN-13 fields first, then converted ISBN-10s; distinct, in order. */
 export function editionIsbns(rec: Record<string, unknown>): string[] {
@@ -429,7 +438,8 @@ CREATE TABLE ol_editions (
   isbn13    TEXT,                    -- first valid ISBN-13 (ISBN-13 fields first, then converted ISBN-10s)
   isbns     TEXT NOT NULL,           -- JSON array of every valid ISBN-13
   isbn      TEXT,                    -- the first ISBN as the record has it
-  publisher TEXT,
+  publisher TEXT,                    -- the first publisher string
+  publishers TEXT,                   -- JSON array of every distinct publisher string, in order, when there are 2+ (C-9)
   year      INTEGER,
   title     TEXT,
   format    TEXT                     -- physical_format as recorded
@@ -456,7 +466,7 @@ export async function stage(files: DumpFiles, facts: WorkFacts, out: string, met
     db.exec("BEGIN");
 
     // editions of kept works
-    const insEd = db.prepare("INSERT OR IGNORE INTO ol_editions (id, work_id, isbn13, isbns, isbn, publisher, year, title, format) VALUES (?,?,?,?,?,?,?,?,?)");
+    const insEd = db.prepare("INSERT OR IGNORE INTO ol_editions (id, work_id, isbn13, isbns, isbn, publisher, publishers, year, title, format) VALUES (?,?,?,?,?,?,?,?,?,?)");
     let editions = 0;
     for await (const { key, rec } of dumpRecords(files.editions, undefined, (type) => type === "/type/edition")) {
       const w = editionWork(rec);
@@ -466,9 +476,10 @@ export async function stage(files: DumpFiles, facts: WorkFacts, out: string, met
       const isbns = editionIsbns(rec);
       const title = str(rec.title);
       const sub = str(rec.subtitle);
+      const pubs = editionPublishers(rec);
       insEd.run(
         id, w, isbns[0] ?? null, JSON.stringify(isbns), [...strList(rec.isbn_13), ...strList(rec.isbn_10)][0] ?? null,
-        strList(rec.publishers)[0] ?? null, yearOf(rec.publish_date), title ? (sub ? `${title}: ${sub}` : title) : null, str(rec.physical_format),
+        pubs[0] ?? null, pubs.length > 1 ? JSON.stringify(pubs) : null, yearOf(rec.publish_date), title ? (sub ? `${title}: ${sub}` : title) : null, str(rec.physical_format),
       );
       editions++;
       if (editions % 2_000_000 === 0) log(`staged editions: ${editions.toLocaleString("en-US")}`);

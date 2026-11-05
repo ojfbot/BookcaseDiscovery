@@ -11,9 +11,10 @@ import { attachOpenLibrary, mergeOpenLibrary, type MergeCounts } from "./ol-merg
 /**
  * Bump when a table or column of catalog.sqlite changes. `PRAGMA user_version` and `meta.schema_version` hold it.
  * 2 (C-5): `editions.source`. Version 1 files have no other difference, so readers accept both (`READABLE_SCHEMA_VERSIONS`).
+ * 3 (C-9): `editions.publishers` and `editions.pub_series`. Readers that do not read them open every version.
  */
-export const CATALOG_SCHEMA_VERSION = 2;
-export const READABLE_SCHEMA_VERSIONS: readonly number[] = [1, 2];
+export const CATALOG_SCHEMA_VERSION = 3;
+export const READABLE_SCHEMA_VERSIONS: readonly number[] = [1, 2, 3];
 
 /**
  * ISFDB `title_ttype` values that count as a *work* on a shelf: whole books. Short fiction, essays, poems,
@@ -57,7 +58,9 @@ CREATE TABLE editions (
   work_id     TEXT NOT NULL,
   isbn13      TEXT,
   isbn        TEXT,                 -- as ISFDB has it
-  publisher   TEXT,
+  publisher   TEXT,                 -- the (first) publisher string
+  publishers  TEXT,                 -- JSON array of every publisher string, in order, when there are 2+ (Open Library; C-9)
+  pub_series  TEXT,                 -- the ISFDB publisher series the edition belongs to (C-9)
   year        INTEGER,
   title       TEXT,                 -- the title printed on this edition
   format      TEXT,                 -- ISFDB pub_ptype: pb, tp, hc, ...; Open Library physical_format as recorded
@@ -145,11 +148,12 @@ export function buildCatalog(opts: { staging: string; out: string; openLibrary?:
     // 2. editions
     log("editions");
     db.exec(`
-      INSERT INTO editions (edition_id, work_id, isbn13, isbn, publisher, year, title, format)
-      SELECT 'isfdb-pub:' || p.pub_id, 'isfdb:' || rp.root_id, p.isbn13, NULLIF(p.pub_isbn, ''), pb.publisher_name,
+      INSERT INTO editions (edition_id, work_id, isbn13, isbn, publisher, pub_series, year, title, format)
+      SELECT 'isfdb-pub:' || p.pub_id, 'isfdb:' || rp.root_id, p.isbn13, NULLIF(p.pub_isbn, ''), pb.publisher_name, NULLIF(ps.pub_series_name, ''),
              CASE WHEN CAST(substr(p.pub_year, 1, 4) AS INTEGER) BETWEEN 1 AND 7999 THEN CAST(substr(p.pub_year, 1, 4) AS INTEGER) END,
              p.pub_title, NULLIF(p.pub_ptype, '')
-        FROM root_pub rp JOIN st.pubs p ON p.pub_id = rp.pub_id LEFT JOIN st.publishers pb ON pb.publisher_id = p.publisher_id;
+        FROM root_pub rp JOIN st.pubs p ON p.pub_id = rp.pub_id LEFT JOIN st.publishers pb ON pb.publisher_id = p.publisher_id
+        LEFT JOIN st.pub_series ps ON ps.pub_series_id = p.pub_series_id;
     `);
 
     // 3. series (all of them; works point at a chain)

@@ -32,7 +32,7 @@ export const MINI_OL = {
     edition(202, 2, { ...eng, title: "Red Mars", publish_date: "1993" }),
     edition(301, 3, { ...eng, title: "The Joy of Cooking", publish_date: "1975" }),
     edition(302, 3, { ...eng, title: "The Joy of Cooking", publish_date: "1997" }),
-    edition(401, 4, { ...eng, title: "Moonwalking with Einstein", subtitle: "The Art and Science of Remembering Everything", publish_date: "2011", isbn_13: ["9781594202292"], publishers: ["Penguin Press"] }),
+    edition(401, 4, { ...eng, title: "Moonwalking with Einstein", subtitle: "The Art and Science of Remembering Everything", publish_date: "2011", isbn_13: ["9781594202292"], publishers: ["Penguin Press", "Penguin Group", "Penguin Press"] }),
     edition(402, 4, { ...eng, publish_date: "c2012", isbn_13: ["978-0-14-312053-7"] }),
     edition(501, 5, { languages: [{ key: "/languages/fre" }], publish_date: "1990" }),
     edition(502, 5, { languages: [{ key: "/languages/fre" }], publish_date: "1991" }),
