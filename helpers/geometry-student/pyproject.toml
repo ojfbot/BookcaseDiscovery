@@ -1,0 +1,17 @@
+[project]
+name = "bookcase-geometry-student"
+version = "0.1.0"
+description = "NS-11: a small RGB-only student distilled from MoGe-2's face shares and mean normals per detected box (MPS training, Core ML export). Private weights."
+license = "AGPL-3.0-only"
+requires-python = ">=3.12,<3.13"
+dependencies = [
+  "numpy>=2",
+  "opencv-python-headless==4.10.0.84",
+  "pillow>=11",
+  # The same torch pin as helpers/train and helpers/depth, so uv reuses its cache.
+  "torch==2.15.0",
+  "coremltools",
+]
+
+[tool.uv]
+package = false

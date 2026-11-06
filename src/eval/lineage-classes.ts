@@ -22,6 +22,14 @@ export const PARTITION_SCHEMA: LineageSchema = { name: "f0i/partition", version:
 export const FUSION_MODELS = ["map-anything-apache"] as const;
 export const FUSION_CANDIDATES_SCHEMA: LineageSchema = { name: "ns10/fusion-candidates", version: 1 };
 
+/**
+ * NS-11's teacher table (class `mono-geometry-targets`, `labelSource: mono-geometry`): `private/ns11/targets-<set>.jsonl`,
+ * one row per admitted box with MoGe-2's face shares and mean normal. Stamped when written by `src/eval/ns11-cli.ts
+ * targets`; not part of the re-stamp pass (no restamp class): a stale file is built again.
+ */
+export const MONO_GEOMETRY_MODELS = ["moge-2-vitl-normal"] as const;
+export const MONO_GEOMETRY_TARGETS_SCHEMA: LineageSchema = { name: "ns11/mono-geometry-targets", version: 1 };
+
 /** TS-0's label ledger: `datasets/label-ledger/<version>/{manifest.json,labels.jsonl,build.json}`. */
 export const DATASET_SCHEMA: LineageSchema = { name: "ts0/label-ledger", version: TS0.schemaVersion };
 export const DATASET_FILES = ["manifest.json", "labels.jsonl", "build.json"] as const;
