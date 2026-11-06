@@ -1,50 +1,25 @@
 // DL-4 · module layering. The allowed import direction, enforced here so it cannot invert again:
 //
 //   src/eval/, src/run/  ──may import──▶  anything
-//   src/identify/, src/perceive/, src/recommend/, src/capture/, src/ledger/, src/catalog/  ──never──▶  src/eval/, src/run/
+//   src/identify/, src/perceive/, src/recommend/, src/capture/, src/ledger/, src/catalog/, src/shared/  ──never──▶  src/eval/, src/run/
+//   src/catalog/  ──never──▶  src/identify/   (catalog sits below identify; what both need lives in src/shared/)
 //
 // The pipeline's modules are what production runs; `src/eval/` (the harnesses) and `src/run/` (the CLI) sit on top of
-// them. Static, type-only, re-export, side-effect and dynamic imports all count. `KNOWN` lists the imports that were
-// already there when DL-4 landed, in files DL-4 could not edit (`src/catalog/`) or that are runners rather than
-// modules; it may only shrink: a listed import that is gone fails until its line is removed.
+// them. Static, type-only, re-export, side-effect and dynamic imports all count. `KNOWN` lists imports that may stay
+// for a stated reason; DL-4b emptied it (26 crossings that predated DL-4: the catalog and identify evaluation runners
+// moved to src/eval/, and coverage.ts's types and helpers moved to src/shared/). It may only shrink: a listed import
+// that is gone fails until its line is removed.
 import { readdirSync, readFileSync } from "node:fs";
 import { dirname, join, relative, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 
 const REPO = fileURLToPath(new URL("../", import.meta.url));
-const GUARDED = ["identify", "perceive", "recommend", "capture", "ledger", "catalog"];
+const GUARDED = ["identify", "perceive", "recommend", "capture", "ledger", "catalog", "shared"];
 const TOP = ["eval", "run"];
 
 /** `<importing file> -> <imported file>`, repo-relative. */
-const KNOWN = new Set([
-  "src/catalog/c5-eval.ts -> src/eval/f0.ts",
-  "src/catalog/c5-eval.ts -> src/eval/q1.ts",
-  "src/catalog/c6-eval.ts -> src/eval/f0.ts",
-  "src/catalog/c6-eval.ts -> src/eval/q1.ts",
-  "src/catalog/c7-eval.ts -> src/eval/f0.ts",
-  "src/catalog/c7-eval.ts -> src/eval/q1.ts",
-  "src/catalog/c8-eval.ts -> src/eval/f0.ts",
-  "src/catalog/c8-eval.ts -> src/eval/q1.ts",
-  "src/catalog/c9-eval.ts -> src/eval/f0.ts",
-  "src/catalog/c9-eval.ts -> src/eval/f0d-cli.ts",
-  "src/catalog/c9-eval.ts -> src/eval/f0d.ts",
-  "src/catalog/c9-eval.ts -> src/eval/q1-cli.ts",
-  "src/catalog/c9-eval.ts -> src/eval/q1.ts",
-  "src/catalog/c9-eval.ts -> src/eval/rb1.ts",
-  "src/catalog/coverage-cli.ts -> src/eval/f0.ts",
-  "src/catalog/coverage.ts -> src/eval/f0.ts",
-  "src/catalog/coverage.ts -> src/eval/q1.ts",
-  "src/catalog/kn1-eval.ts -> src/eval/f0.ts",
-  "src/catalog/kn1-eval.ts -> src/eval/q1-cli.ts",
-  "src/catalog/kn1-eval.ts -> src/eval/rb1.ts",
-  "src/catalog/lookup-eval.ts -> src/eval/f0.ts",
-  "src/identify/section-prior-cli.ts -> src/eval/f0.ts",
-  "src/identify/section-prior-cli.ts -> src/eval/f0c-cli.ts",
-  "src/identify/section-prior-cli.ts -> src/eval/f0g-cli.ts",
-  "src/identify/section-prior-cli.ts -> src/eval/f0h.ts",
-  "src/identify/section-prior-cli.ts -> src/eval/q1.ts",
-]);
+const KNOWN = new Set<string>([]);
 
 /** Every module specifier a TypeScript source names: `import`/`export ... from`, `import "x"` and `import("x")`. */
 export function specifiers(src: string): string[] {
@@ -103,6 +78,16 @@ describe("module layering (DL-4): the pipeline never imports the harnesses or th
   it("the known imports only shrink: each is still there, or its line goes", () => {
     const now = new Set(violations());
     expect([...KNOWN].filter((v) => !now.has(v))).toEqual([]);
+  });
+
+  it("catalog never imports identify (identify imports catalog; the shared types live in src/shared/)", () => {
+    const up: string[] = [];
+    for (const file of tsFiles(join(REPO, "src", "catalog"))) {
+      for (const spec of specifiers(readFileSync(file, "utf8"))) {
+        if (spec.startsWith(".") && layerOf(resolve(dirname(file), spec)) === "identify") up.push(`${rel(file)} -> ${spec}`);
+      }
+    }
+    expect(up).toEqual([]);
   });
 
   it("identify's decision core imports nothing from src/eval/", () => {

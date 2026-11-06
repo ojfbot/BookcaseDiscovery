@@ -1,4 +1,4 @@
-// `bookcase catalog build | query | eval` (card C-3) and `coverage` (card C-4, in coverage-cli.ts).
+// `bookcase catalog build | query | eval` (card C-3) and `coverage` (card C-4: src/eval/coverage-cli.ts, routed by src/run/index.ts).
 import { createHash } from "node:crypto";
 import { execFileSync } from "node:child_process";
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
@@ -140,14 +140,6 @@ export function reportMarkdown(run: GoldenRun, runId: string, metrics: Record<st
 export function catalogCommand(argv: string[], env: NodeJS.ProcessEnv = process.env): number | Promise<number> {
   const [cmd, ...rest] = argv;
   const paths = catalogPaths(env);
-  if (cmd === "coverage") {
-    return import("./coverage-cli.ts")
-      .then((m) => m.coverageCommand(rest, env))
-      .catch((e: unknown) => {
-        console.error(`bookcase catalog coverage: ${(e as Error).message}`);
-        return 1;
-      });
-  }
   try {
     if (cmd === "build") {
       const { values } = parseArgs({ args: rest, options: { staging: { type: "string" }, out: { type: "string" }, "ol-staging": { type: "string" }, "ol-subjects": { type: "string" }, "ol-crosswalk": { type: "string" } } });

@@ -4,11 +4,11 @@
 // offline on v1 (`catalog.sqlite`) and v2 (`catalog-v2.sqlite`). No detection, no reading, no GPU, no network.
 // Pre-registration and keep rule: evals/C8/report.md.
 //
-//   node src/catalog/c8-eval.ts readings --set <pilot-000|yardstick-library-b2> --catalog <v1|v2> --arm <base|c8|c8u> [--shard k/n]
+//   node src/eval/c8-eval.ts readings --set <pilot-000|yardstick-library-b2> --catalog <v1|v2> --arm <base|c8|c8u> [--shard k/n]
 //                                        one retrieve per reading: its top work, F-0's bar, its ranked works
-//   node src/catalog/c8-eval.ts golden   golden fragments on both catalogs, both generations: rates, losses, latency
-//   node src/catalog/c8-eval.ts decide   --set <name>   F-0's vote per arm on both catalogs, candidate recall
-//   node src/catalog/c8-eval.ts publish  the keep rule, and the parts joined into evals/C8/metrics.json
+//   node src/eval/c8-eval.ts golden   golden fragments on both catalogs, both generations: rates, losses, latency
+//   node src/eval/c8-eval.ts decide   --set <name>   F-0's vote per arm on both catalogs, candidate recall
+//   node src/eval/c8-eval.ts publish  the keep rule, and the parts joined into evals/C8/metrics.json
 //
 // Per-reading and per-spine files (they hold reader text and work ids) stay in the data root's private folder
 // (private/c8/); only aggregates are written to evals/C8/.
@@ -19,15 +19,15 @@ import { join } from "node:path";
 import { parseArgs } from "node:util";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { dataRoot } from "../ledger/images.ts";
-import { ACCEPT, confirms, loadReadings, READERS, readJsonl, stageDir, variantsOf, vote, type ReaderName, type ReaderVotes, type SpineDecision } from "../eval/f0.ts";
-import { clusterBootstrap } from "../eval/q1.ts";
+import { ACCEPT, confirms, loadReadings, READERS, readJsonl, stageDir, variantsOf, vote, type ReaderName, type ReaderVotes, type SpineDecision } from "./f0.ts";
+import { clusterBootstrap } from "./q1.ts";
 import { c5Cache } from "./c6-eval.ts";
 import { isAnnotated, yardstickBooks } from "./c5-eval.ts";
-import { catalogPaths, openCatalog } from "./cli.ts";
-import { loadGolden, runGolden, targetWorks, type RetrieveFn } from "./golden.ts";
-import { LOOKALIKE } from "./lookalike.ts";
-import { statsPathFor } from "./rarity.ts";
-import { catalogDf, GENERATION, retrieve } from "./retrieve.ts";
+import { catalogPaths, openCatalog } from "../catalog/cli.ts";
+import { loadGolden, runGolden, targetWorks, type RetrieveFn } from "../catalog/golden.ts";
+import { LOOKALIKE } from "../catalog/lookalike.ts";
+import { statsPathFor } from "../catalog/rarity.ts";
+import { catalogDf, GENERATION, retrieve } from "../catalog/retrieve.ts";
 
 const REPO = fileURLToPath(new URL("../../", import.meta.url));
 const log = (s: string) => console.error(`[c8] ${new Date().toISOString().slice(11, 19)} ${s}`);
@@ -451,7 +451,7 @@ async function main(argv: string[]): Promise<number> {
   else if (cmd === "golden") await goldenStage(paths);
   else if (cmd === "publish") publish();
   else {
-    console.error("usage: node src/catalog/c8-eval.ts <readings|golden|decide|publish> [--set <name>] [--catalog v1|v2] [--arm base|c8|c8u] [--shard k/n]");
+    console.error("usage: node src/eval/c8-eval.ts <readings|golden|decide|publish> [--set <name>] [--catalog v1|v2] [--arm base|c8|c8u] [--shard k/n]");
     return 1;
   }
   return 0;

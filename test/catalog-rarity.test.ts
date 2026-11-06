@@ -6,7 +6,7 @@ import { join } from "node:path";
 import { DatabaseSync } from "node:sqlite";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { buildCatalog } from "../src/catalog/build.ts";
-import { blocks, C7_ARMS, decideFromC7Facts, leaveOneReaderOut, type C7Facts } from "../src/catalog/c7-eval.ts";
+import { blocks, C7_ARMS, decideFromC7Facts, leaveOneReaderOut, type C7Facts } from "../src/eval/c7-eval.ts";
 import { createSchema } from "../src/catalog/isfdb-staging.ts";
 import { lookalikeGuard, LOOKALIKE } from "../src/catalog/lookalike.ts";
 import {

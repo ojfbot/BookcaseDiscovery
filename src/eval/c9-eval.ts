@@ -2,11 +2,11 @@
 // rule IMP-1 (src/eval/f0d.ts `imprintContrast`), on F-0d's cached imprint reads and F-0's cached readings, re-decided
 // offline on C-9's rebuilt catalogs. No detection, no reading, no GPU. Pre-registration: evals/C9/prereg.md.
 //
-//   node src/catalog/c9-eval.ts wikidata                    the parent export, once (one SPARQL query; private/c9/wikidata/)
-//   node src/catalog/c9-eval.ts lists --set <name> --catalog <v1|v2>
+//   node src/eval/c9-eval.ts wikidata                    the parent export, once (one SPARQL query; private/c9/wikidata/)
+//   node src/eval/c9-eval.ts lists --set <name> --catalog <v1|v2>
 //                                                           ranked candidates per reader on every box F-0d read, and the
 //                                                           reproduction gate against C-6's unguarded decisions
-//   node src/catalog/c9-eval.ts analyse                     p1 before and after the data fix, IMP-1 per cell, the keep rules:
+//   node src/eval/c9-eval.ts analyse                     p1 before and after the data fix, IMP-1 per cell, the keep rules:
 //                                                           evals/C9/{metrics.json,report.md}
 //
 // Per-box files (reader text, work ids, imprint reads) stay in the data root's private/c9/; only aggregates reach evals/C9/.
@@ -17,17 +17,17 @@ import { parseArgs } from "node:util";
 import { fileURLToPath } from "node:url";
 import { DatabaseSync } from "node:sqlite";
 import { dataRoot } from "../ledger/images.ts";
-import { confirms, loadReadings, READERS, readJsonl, stageDir, variantsOf, vote, type ReaderName, type ReaderVotes, type SpineDecision } from "../eval/f0.ts";
-import { boxImprint, type ImprintReading } from "../eval/f0d-cli.ts";
-import { IMP1, imprintContrast, workImprintKeys } from "../eval/f0d.ts";
-import { clusterBootstrap } from "../eval/q1.ts";
-import { compactJson, parseCsv } from "../eval/q1-cli.ts";
-import { loadBoxSet } from "../eval/rb1.ts";
+import { confirms, loadReadings, READERS, readJsonl, stageDir, variantsOf, vote, type ReaderName, type ReaderVotes, type SpineDecision } from "./f0.ts";
+import { boxImprint, type ImprintReading } from "./f0d-cli.ts";
+import { IMP1, imprintContrast, workImprintKeys } from "./f0d.ts";
+import { clusterBootstrap } from "./q1.ts";
+import { compactJson, parseCsv } from "./q1-cli.ts";
+import { loadBoxSet } from "./rb1.ts";
 import { isAnnotated, yardstickBooks } from "./c5-eval.ts";
-import { catalogPaths, openCatalog } from "./cli.ts";
-import { imprintKey, imprintMatches, shelfMark, usableImprint, wikidataParents, type ImprintTable, type ParentLinks, type WikidataRow } from "./imprint.ts";
-import { LOOKALIKE, lookalikeGuard, sameBook } from "./lookalike.ts";
-import { retrieve, type Candidate } from "./retrieve.ts";
+import { catalogPaths, openCatalog } from "../catalog/cli.ts";
+import { imprintKey, imprintMatches, shelfMark, usableImprint, wikidataParents, type ImprintTable, type ParentLinks, type WikidataRow } from "../catalog/imprint.ts";
+import { LOOKALIKE, lookalikeGuard, sameBook } from "../catalog/lookalike.ts";
+import { retrieve, type Candidate } from "../catalog/retrieve.ts";
 
 const REPO = fileURLToPath(new URL("../../", import.meta.url));
 const log = (s: string) => console.error(`[c9] ${new Date().toISOString().slice(11, 19)} ${s}`);

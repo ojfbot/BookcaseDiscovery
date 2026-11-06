@@ -2,6 +2,11 @@
 // helpers/coverage, outcomes from F-0's decisions); the runner is q1-cli.ts. Every interval is a cluster
 // bootstrap over photos, because spines in one photo share its light, focus and distance.
 
+import { quantile, rng } from "../shared/stats.ts";
+
+// Moved to src/shared/ so the pipeline can use them without importing the harness (DL-4b); old callers keep this path.
+export { quantile, rng };
+
 export const OUTCOMES = [
   "confirmed",
   "unknown:no-text",
@@ -18,26 +23,6 @@ export interface Row {
   outcome: Outcome;
   /** Numeric features; null when not measurable (e.g. a polygon wholly outside the image). */
   f: Record<string, number | null>;
-}
-
-/** Deterministic PRNG (mulberry32), so every interval in metrics.json reproduces. */
-export function rng(seed: number): () => number {
-  let a = seed >>> 0;
-  return () => {
-    a = (a + 0x6d2b79f5) >>> 0;
-    let t = a;
-    t = Math.imul(t ^ (t >>> 15), t | 1);
-    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
-    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-  };
-}
-
-export function quantile(sorted: number[], q: number): number {
-  if (sorted.length === 0) return NaN;
-  const pos = (sorted.length - 1) * q;
-  const lo = Math.floor(pos);
-  const hi = Math.ceil(pos);
-  return sorted[lo]! + (sorted[hi]! - sorted[lo]!) * (pos - lo);
 }
 
 /** Bin edges at quantiles of the values (ties collapse), so each bin holds roughly the same count. */

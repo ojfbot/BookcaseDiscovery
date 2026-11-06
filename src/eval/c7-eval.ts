@@ -3,11 +3,11 @@
 // C-6's harness (`factsOf`, its reading keys and its reproduction gate) is reused. No detection, no reading, no GPU,
 // no network. Pre-registration and keep rule: evals/C7/report.md.
 //
-//   node src/catalog/c7-eval.ts readings --set <pilot-000|yardstick-library-b2> --catalog <v1|v2> [--shard k/n]
+//   node src/eval/c7-eval.ts readings --set <pilot-000|yardstick-library-b2> --catalog <v1|v2> [--shard k/n]
 //                                        one retrieve per distinct reading: C-6's facts and C-7's evidence on its top candidate
-//   node src/catalog/c7-eval.ts decide   --set <name>     every arm on both catalogs, from the readings above
-//   node src/catalog/c7-eval.ts golden                    golden fragments on both catalogs: refusals, latency
-//   node src/catalog/c7-eval.ts publish                   the keep rule, and the parts joined into evals/C7/metrics.json
+//   node src/eval/c7-eval.ts decide   --set <name>     every arm on both catalogs, from the readings above
+//   node src/eval/c7-eval.ts golden                    golden fragments on both catalogs: refusals, latency
+//   node src/eval/c7-eval.ts publish                   the keep rule, and the parts joined into evals/C7/metrics.json
 //
 // Per-reading and per-spine files (they hold reader text and work ids) stay in the data root's private folder
 // (private/c7/); only aggregates are written to evals/C7/.
@@ -18,15 +18,15 @@ import { join } from "node:path";
 import { parseArgs } from "node:util";
 import { fileURLToPath } from "node:url";
 import { dataRoot } from "../ledger/images.ts";
-import { ACCEPT, confirms, loadReadings, READERS, readJsonl, stageDir, variantsOf, vote, type ReaderName, type ReaderVotes, type SpineDecision } from "../eval/f0.ts";
-import { clusterBootstrap } from "../eval/q1.ts";
+import { ACCEPT, confirms, loadReadings, READERS, readJsonl, stageDir, variantsOf, vote, type ReaderName, type ReaderVotes, type SpineDecision } from "./f0.ts";
+import { clusterBootstrap } from "./q1.ts";
 import { c5Cache, factsOf, type ReadingFacts } from "./c6-eval.ts";
 import { isAnnotated, yardstickBooks } from "./c5-eval.ts";
-import { catalogPaths, openCatalog } from "./cli.ts";
-import { loadGolden, runGolden, targetWorks } from "./golden.ts";
-import { LOOKALIKE, lookalikeGuard, type GuardArm } from "./lookalike.ts";
-import { COUNTER_KINDS, counterEvidence, openStats, RARITY, rarityBasis, rarityEvidence, statsPathFor, type CounterKind, type RarityEvidence } from "./rarity.ts";
-import { retrieve } from "./retrieve.ts";
+import { catalogPaths, openCatalog } from "../catalog/cli.ts";
+import { loadGolden, runGolden, targetWorks } from "../catalog/golden.ts";
+import { LOOKALIKE, lookalikeGuard, type GuardArm } from "../catalog/lookalike.ts";
+import { COUNTER_KINDS, counterEvidence, openStats, RARITY, rarityBasis, rarityEvidence, statsPathFor, type CounterKind, type RarityEvidence } from "../catalog/rarity.ts";
+import { retrieve } from "../catalog/retrieve.ts";
 
 const REPO = fileURLToPath(new URL("../../", import.meta.url));
 const log = (s: string) => console.error(`[c7] ${new Date().toISOString().slice(11, 19)} ${s}`);
@@ -480,7 +480,7 @@ async function main(argv: string[]): Promise<number> {
   else if (cmd === "golden") goldenStage(paths);
   else if (cmd === "publish") publish();
   else {
-    console.error("usage: node src/catalog/c7-eval.ts <readings|decide|golden|publish> [--set <name>] [--catalog v1|v2] [--shard k/n]");
+    console.error("usage: node src/eval/c7-eval.ts <readings|decide|golden|publish> [--set <name>] [--catalog v1|v2] [--shard k/n]");
     return 1;
   }
   return 0;

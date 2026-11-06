@@ -29,7 +29,7 @@ import { confirms, decide, loadReadings, pyReaderStage, rankedFor, readJsonl, RE
 import { SETS as F0B_SETS, cost, delta, geometry, type Geo, type Pair } from "./f0b-cli.ts";
 import { authorIndex, fieldMatches, fieldVote, isAuthorText, lineId, linesText, lineVariants, loroSummary, withLines, wonWith, type FieldVote, type Fields, type LoroOutcome, type PageRecord, type ZoneRecord } from "./f0j.ts";
 import { compactJson, outcomeOf, parseCsv, yardstickTruth } from "./q1-cli.ts";
-import { isAnnotated, yardstickBooks } from "../catalog/c5-eval.ts";
+import { isAnnotated, yardstickBooks } from "./c5-eval.ts";
 import { clusterBootstrap, rng, type Outcome } from "./q1.ts";
 
 const REPO = fileURLToPath(new URL("../../", import.meta.url));

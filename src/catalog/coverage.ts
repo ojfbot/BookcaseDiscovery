@@ -13,12 +13,12 @@
 // so a rerun makes no calls. Everything per box (reader text, queries, records) is private; only the
 // aggregates from `estimateCoverage` leave through the CLI. Method and results: evals/C4/report.md.
 import type { DatabaseSync } from "node:sqlite";
-import type { ReaderName, Reading, SpineDecision } from "../eval/f0.ts";
-import { quantile, rng } from "../eval/q1.ts";
+import type { ReaderName, Reading, UnknownReason } from "../shared/readings.ts";
+import { quantile, rng } from "../shared/stats.ts";
 import { toIsbn13 } from "./isbn.ts";
 import { confusableReadings, editDistance, normalize, skeleton, splitSubtitle, STOPWORDS, surnameFirstToGivenFirst, tokenize, tokensWithInitials } from "./normalize.ts";
 import { LookupCache, type Answer, type From, type KnownIndex, type LookupOptions, type Source } from "./lookup.ts";
-import { retrieve } from "./retrieve.ts";
+import { retrieve, type Candidate } from "./retrieve.ts";
 
 export { SPACING_MS, USER_AGENT, type FetchLike, type Source } from "./lookup.ts";
 
@@ -78,7 +78,14 @@ export const SF_SUBJECT =
 // Sample
 // ---------------------------------------------------------------------------------------------
 
-export function stratumOf(d: Pick<SpineDecision, "accepted" | "reason">): Stratum | null {
+/** What the sample needs of F-0's decision for a box (a `SpineDecision` satisfies it; catalog never imports identify). */
+export interface DecidedSpine {
+  id: string;
+  accepted: Candidate | null;
+  reason: UnknownReason | null;
+}
+
+export function stratumOf(d: Pick<DecidedSpine, "accepted" | "reason">): Stratum | null {
   if (d.accepted) return "confirmed";
   if (d.reason === null || d.reason === "no-text") return null;
   return d.reason;
@@ -95,7 +102,7 @@ export interface SampledBox {
  * the seed and the set of boxes only, never on file order.
  */
 export function drawSample(
-  decisions: Pick<SpineDecision, "id" | "accepted" | "reason">[],
+  decisions: DecidedSpine[],
   seed = SEED,
   sizes: Record<Stratum, number> = SAMPLE,
   tuning = TUNING_CONFIRMED,

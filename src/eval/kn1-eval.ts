@@ -2,9 +2,9 @@
 // book knowledge on the works F-0 confirms. No detection, no reading, no GPU: F-0's cached readings, re-decided on
 // the CPU. Nothing here changes a decision, so there is no keep rule and no pre-registration.
 //
-//   node src/catalog/kn1-eval.ts gate --set <pilot-000|yardstick>   re-decide every box on today's catalog and on
+//   node src/eval/kn1-eval.ts gate --set <pilot-000|yardstick>   re-decide every box on today's catalog and on
 //                                                                    catalog-kn1.sqlite; fails unless accepts agree at 1.000
-//   node src/catalog/kn1-eval.ts analyse                             evals/KN1/{metrics.json,report.md}
+//   node src/eval/kn1-eval.ts analyse                             evals/KN1/{metrics.json,report.md}
 //
 // The confirmed work ids per set stay in the data root's private/kn1/; only aggregates reach evals/KN1/.
 import { existsSync, mkdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
@@ -13,12 +13,12 @@ import { parseArgs } from "node:util";
 import { fileURLToPath } from "node:url";
 import type { DatabaseSync } from "node:sqlite";
 import { dataRoot } from "../ledger/images.ts";
-import { decide, loadReadings, readJsonl, stageDir, type SpineDecision } from "../eval/f0.ts";
-import { loadBoxSet, type RB1Set } from "../eval/rb1.ts";
-import { compactJson } from "../eval/q1-cli.ts";
-import { openCatalog } from "./cli.ts";
-import type { Candidate } from "./retrieve.ts";
-import { FEATURE_SOURCES, hasWorkFeatures, type FeatureKind, type FeatureSource } from "./work-features.ts";
+import { decide, loadReadings, readJsonl, stageDir, type SpineDecision } from "./f0.ts";
+import { loadBoxSet, type RB1Set } from "./rb1.ts";
+import { compactJson } from "./q1-cli.ts";
+import { openCatalog } from "../catalog/cli.ts";
+import type { Candidate } from "../catalog/retrieve.ts";
+import { FEATURE_SOURCES, hasWorkFeatures, type FeatureKind, type FeatureSource } from "../catalog/work-features.ts";
 
 const REPO = fileURLToPath(new URL("../../", import.meta.url));
 const log = (s: string) => console.error(`[kn1] ${new Date().toISOString().slice(11, 19)} ${s}`);
@@ -117,7 +117,7 @@ function c6Unguarded(set: RB1Set): Map<string, string | null> {
 
 function loadGate(set: RB1Set): GateFile {
   const p = join(privateDir(), `${set}.gate.json`);
-  if (!existsSync(p)) throw new Error(`no gate for ${set}: run \`node src/catalog/kn1-eval.ts gate --set ${set}\``);
+  if (!existsSync(p)) throw new Error(`no gate for ${set}: run \`node src/eval/kn1-eval.ts gate --set ${set}\``);
   const g = JSON.parse(readFileSync(p, "utf8")) as GateFile;
   if (g.catalogs.kn1 !== stamp(catalogFile(set, "kn1"))) throw new Error(`the ${set} gate ran on ${g.catalogs.kn1}, not ${stamp(catalogFile(set, "kn1"))}`);
   return g;
@@ -291,7 +291,7 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   if (cmd === "gate" && (values.set === "pilot-000" || values.set === "yardstick")) gate(values.set);
   else if (cmd === "analyse") analyse();
   else {
-    console.error("usage: node src/catalog/kn1-eval.ts gate --set <pilot-000|yardstick> | analyse");
+    console.error("usage: node src/eval/kn1-eval.ts gate --set <pilot-000|yardstick> | analyse");
     process.exitCode = 1;
   }
 }

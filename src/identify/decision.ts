@@ -6,7 +6,9 @@
 import type { GuardArm } from "../catalog/lookalike.ts";
 import type { CounterKind } from "../catalog/rarity.ts";
 import type { Candidate } from "../catalog/retrieve.ts";
-import type { ReaderName } from "./readers.ts";
+import type { ReaderName, UnknownReason } from "../shared/readings.ts";
+
+export type { UnknownReason };
 
 /** Acceptance thresholds (OC36 yardstick 2). Conservative; see docs/machine-labelling.md. */
 export const ACCEPT = {
@@ -22,8 +24,6 @@ export const ACCEPT = {
   /** Readers that must name the same work. */
   minReaders: 2,
 } as const;
-
-export type UnknownReason = "no-text" | "no-catalog-match" | "single-reader" | "readers-disagree";
 
 export interface SpineDecision {
   id: string;

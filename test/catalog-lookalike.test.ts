@@ -5,7 +5,7 @@ import { join } from "node:path";
 import { DatabaseSync } from "node:sqlite";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { buildCatalog } from "../src/catalog/build.ts";
-import { decideFromFacts, factsOf, keepRule } from "../src/catalog/c6-eval.ts";
+import { decideFromFacts, factsOf, keepRule } from "../src/eval/c6-eval.ts";
 import { guardCheck, LOOKALIKE, lookalikeGuard, lookalikeWhy, marginOf, runnerUp, sameBook, sameWork, titleHolders, titleWords, wholeAndMainForms, type GuardArm } from "../src/catalog/lookalike.ts";
 import { retrieve, type Candidate, type FieldEvidence } from "../src/catalog/retrieve.ts";
 import { decide, vote, type Reading } from "../src/eval/f0.ts";
