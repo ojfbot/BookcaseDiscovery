@@ -1,0 +1,1405 @@
+{
+ "runId": "NS11",
+ "card": "NS-11",
+ "date": "2026-11-06",
+ "prereg": "evals/NS11/prereg.md",
+ "scope": "agreement with MoGe-2 (a machine output), never accuracy on real use (OC36); development run",
+ "teacher": {
+  "model": "Ruicheng/moge-2-vitl-normal",
+  "revision": "cb0e8bbd6b1e243589717c78e750b1ba4c093acf",
+  "weightsSha256": "280741fd09bc3f403ccff9967784c2a391b52d2c0742ae3efdb21d9f90cc1a01",
+  "mogeCommit": "b942f00bdc2a2a23ebb474fbe034d487e6dcceec",
+  "facesSha256": "fec353c222d34a52ca88907de986779912a9615722e7a2b75237e35ddef78ed4",
+  "geometrySha256": "40c3d2a655bc5b7e5be5c988263844672ce44d568550d1a163e32c736e2dc40d",
+  "licence": "MIT"
+ },
+ "labelSource": "mono-geometry",
+ "rgbRecoverable": "yes",
+ "ledgerVersion": "v-f495741be2c5",
+ "population": {
+  "pilot": {
+   "photos": 31,
+   "keptBoxes": 5757,
+   "admitted": 5592,
+   "excluded": {
+    "no-face-row": 0,
+    "no-normal": 0,
+    "low-mass": 165
+   },
+   "labelSourceByRecoverable": {
+    "mono-geometry x yes": 5592
+   },
+   "groups": [
+    {
+     "split": "train",
+     "photos": 13,
+     "boxCount": 2683
+    },
+    {
+     "split": "train",
+     "photos": 6,
+     "boxCount": 455
+    },
+    {
+     "split": "val",
+     "photos": 5,
+     "boxCount": 669
+    },
+    {
+     "split": "train",
+     "photos": 3,
+     "boxCount": 711
+    },
+    {
+     "split": "val",
+     "photos": 2,
+     "boxCount": 563
+    },
+    {
+     "split": "train",
+     "photos": 2,
+     "boxCount": 511
+    }
+   ]
+  },
+  "yardstick": {
+   "photos": 40,
+   "keptBoxes": 1038,
+   "admitted": 906,
+   "excluded": {
+    "no-face-row": 0,
+    "no-normal": 0,
+    "low-mass": 132
+   },
+   "labelSourceByRecoverable": {
+    "mono-geometry x yes": 906
+   }
+  },
+  "teacherClasses": {
+   "pilot": {
+    "spineFace": 5431,
+    "topFace": 141,
+    "coverFace": 20
+   },
+   "yardstick": {
+    "spineFace": 888,
+    "topFace": 11,
+    "coverFace": 7
+   }
+  }
+ },
+ "bootstrap": {
+  "reps": 2000,
+  "seed": 20261105,
+  "interval": "95 % percentile",
+  "unit": "split group on pilot-000, photo on the yardstick"
+ },
+ "logo": {
+  "groups": 6,
+  "boxCount": 5592,
+  "arms": {
+   "student": {
+    "shareError": {
+     "boxCount": 5592,
+     "mean": {
+      "value": 0.0519,
+      "lo": 0.0442,
+      "hi": 0.0615
+     },
+     "quantiles": {
+      "p10": 0.0041,
+      "p25": 0.0122,
+      "p50": 0.0318,
+      "p75": 0.07,
+      "p90": 0.125,
+      "p99": 0.2733
+     },
+     "median": {
+      "value": 0.0318,
+      "lo": 0.0257,
+      "hi": 0.0373
+     }
+    },
+    "angleDeg": {
+     "boxCount": 5592,
+     "mean": {
+      "value": 13.0918,
+      "lo": 10.1162,
+      "hi": 14.742
+     },
+     "quantiles": {
+      "p10": 2.5893,
+      "p25": 4.8878,
+      "p50": 9.5363,
+      "p75": 17.8433,
+      "p90": 27.7429,
+      "p99": 54.2415
+     },
+     "median": {
+      "value": 9.5363,
+      "lo": 7.2317,
+      "hi": 11.6582
+     }
+    },
+    "top1": {
+     "value": 0.9759,
+     "lo": 0.9537,
+     "hi": 0.9872
+    },
+    "recall": {
+     "spineFace": {
+      "boxCount": 5431,
+      "agree": 5388
+     },
+     "topFace": {
+      "boxCount": 141,
+      "agree": 69
+     },
+     "coverFace": {
+      "boxCount": 20,
+      "agree": 0
+     }
+    }
+   },
+   "oracle": {
+    "shareError": {
+     "boxCount": 5592,
+     "mean": {
+      "value": 0.1102,
+      "lo": 0.0968,
+      "hi": 0.1331
+     },
+     "quantiles": {
+      "p10": 0.0455,
+      "p25": 0.0752,
+      "p50": 0.1009,
+      "p75": 0.1282,
+      "p90": 0.1758,
+      "p99": 0.3673
+     },
+     "median": {
+      "value": 0.1009,
+      "lo": 0.0829,
+      "hi": 0.1263
+     }
+    },
+    "angleDeg": {
+     "boxCount": 5592,
+     "mean": {
+      "value": 25.6345,
+      "lo": 21.7635,
+      "hi": 27.6458
+     },
+     "quantiles": {
+      "p10": 7.5729,
+      "p25": 12.1251,
+      "p50": 19.5892,
+      "p75": 34.417,
+      "p90": 53.8295,
+      "p99": 81.9045
+     },
+     "median": {
+      "value": 19.5892,
+      "lo": 16.165,
+      "hi": 22.8888
+     }
+    },
+    "top1": {
+     "value": 0.9712,
+     "lo": 0.9348,
+     "hi": 0.9867
+    },
+    "recall": {
+     "spineFace": {
+      "boxCount": 5431,
+      "agree": 5431
+     },
+     "topFace": {
+      "boxCount": 141,
+      "agree": 0
+     },
+     "coverFace": {
+      "boxCount": 20,
+      "agree": 0
+     }
+    }
+   },
+   "trainMean": {
+    "shareError": {
+     "boxCount": 5592,
+     "mean": {
+      "value": 0.112,
+      "lo": 0.1028,
+      "hi": 0.131
+     },
+     "quantiles": {
+      "p10": 0.0461,
+      "p25": 0.0732,
+      "p50": 0.1086,
+      "p75": 0.1196,
+      "p90": 0.1831,
+      "p99": 0.3879
+     },
+     "median": {
+      "value": 0.1086,
+      "lo": 0.1046,
+      "hi": 0.1127
+     }
+    },
+    "angleDeg": {
+     "boxCount": 5592,
+     "mean": {
+      "value": 25.845,
+      "lo": 21.495,
+      "hi": 28.0617
+     },
+     "quantiles": {
+      "p10": 7.9565,
+      "p25": 11.8318,
+      "p50": 19.5013,
+      "p75": 35.2718,
+      "p90": 53.1438,
+      "p99": 81.9487
+     },
+     "median": {
+      "value": 19.5013,
+      "lo": 14.8959,
+      "hi": 23.3694
+     }
+    },
+    "top1": {
+     "value": 0.9712,
+     "lo": 0.9348,
+     "hi": 0.9867
+    },
+    "recall": {
+     "spineFace": {
+      "boxCount": 5431,
+      "agree": 5431
+     },
+     "topFace": {
+      "boxCount": 141,
+      "agree": 0
+     },
+     "coverFace": {
+      "boxCount": 20,
+      "agree": 0
+     }
+    }
+   }
+  },
+  "vsOracle": {
+   "shareErrorReduction": {
+    "value": 0.5285,
+    "lo": 0.503,
+    "hi": 0.5729
+   },
+   "medianAngleGain": {
+    "value": 10.0529,
+    "lo": 8.5511,
+    "hi": 11.5742
+   }
+  },
+  "vsTrainMean": {
+   "shareErrorReduction": {
+    "value": 0.5362,
+    "lo": 0.5097,
+    "hi": 0.5877
+   },
+   "medianAngleGain": {
+    "value": 9.965,
+    "lo": 7.0149,
+    "hi": 11.959
+   }
+  },
+  "perGroup": [
+   {
+    "cluster": "g1",
+    "boxCount": 455,
+    "student": {
+     "shareError": 0.0828,
+     "medianAngle": 10.0541,
+     "top1": 0.9253
+    },
+    "oracle": {
+     "shareError": 0.1605,
+     "medianAngle": 21.713,
+     "top1": 0.8813
+    }
+   },
+   {
+    "cluster": "g2",
+    "boxCount": 2683,
+    "student": {
+     "shareError": 0.0508,
+     "medianAngle": 12.9308,
+     "top1": 0.9836
+    },
+    "oracle": {
+     "shareError": 0.1013,
+     "medianAngle": 24.1907,
+     "top1": 0.9836
+    }
+   },
+   {
+    "cluster": "g3",
+    "boxCount": 669,
+    "student": {
+     "shareError": 0.0568,
+     "medianAngle": 8.9116,
+     "top1": 0.9492
+    },
+    "oracle": {
+     "shareError": 0.1372,
+     "medianAngle": 16.4243,
+     "top1": 0.9402
+    }
+   },
+   {
+    "cluster": "g4",
+    "boxCount": 511,
+    "student": {
+     "shareError": 0.0365,
+     "medianAngle": 8.1791,
+     "top1": 0.9941
+    },
+    "oracle": {
+     "shareError": 0.0815,
+     "medianAngle": 21.12,
+     "top1": 0.9941
+    }
+   },
+   {
+    "cluster": "g5",
+    "boxCount": 711,
+    "student": {
+     "shareError": 0.054,
+     "medianAngle": 7.0676,
+     "top1": 0.9733
+    },
+    "oracle": {
+     "shareError": 0.1248,
+     "medianAngle": 16.2447,
+     "top1": 0.9747
+    }
+   },
+   {
+    "cluster": "g6",
+    "boxCount": 563,
+    "student": {
+     "shareError": 0.0383,
+     "medianAngle": 6.5028,
+     "top1": 0.9982
+    },
+    "oracle": {
+     "shareError": 0.0874,
+     "medianAngle": 14.3263,
+     "top1": 0.9964
+    }
+   }
+  ]
+ },
+ "keepRule": {
+  "k1": {
+   "passes": true,
+   "reduction": {
+    "value": 0.5285,
+    "lo": 0.503,
+    "hi": 0.5729
+   },
+   "margin": 0.1
+  },
+  "k2": {
+   "passes": true,
+   "gain": {
+    "value": 10.0529,
+    "lo": 8.5511,
+    "hi": 11.5742
+   },
+   "marginDegrees": 2
+  },
+  "kept": true
+ },
+ "missingRuns": [],
+ "frozen": {
+  "valGroups": 2,
+  "note": "two validation groups: point values only, no interval (a bootstrap over two groups has three distinct resamples)",
+  "student": {
+   "student": {
+    "boxCount": 1232,
+    "shareError": {
+     "mean": 0.0489,
+     "p50": 0.0289,
+     "p90": 0.1209
+    },
+    "angleDeg": {
+     "mean": 10.5749,
+     "p50": 7.5311,
+     "p90": 22.3243
+    },
+    "top1": 0.9756
+   },
+   "oracle": {
+    "boxCount": 1232,
+    "shareError": {
+     "mean": 0.1144,
+     "p50": 0.097,
+     "p90": 0.1904
+    },
+    "angleDeg": {
+     "mean": 23.3748,
+     "p50": 15.4422,
+     "p90": 61.4198
+    },
+    "top1": 0.9659
+   },
+   "trainMean": {
+    "boxCount": 1232,
+    "shareError": {
+     "mean": 0.1165,
+     "p50": 0.113,
+     "p90": 0.1927
+    },
+    "angleDeg": {
+     "mean": 23.1393,
+     "p50": 13.8538,
+     "p90": 63.3479
+    },
+    "top1": 0.9659
+   }
+  },
+  "perGroup": [
+   {
+    "cluster": "g1",
+    "boxCount": 669,
+    "student": {
+     "shareError": 0.057,
+     "medianAngle": 8.346,
+     "top1": 0.9567
+    },
+    "oracle": {
+     "shareError": 0.1372,
+     "medianAngle": 16.4243,
+     "top1": 0.9402
+    }
+   },
+   {
+    "cluster": "g2",
+    "boxCount": 563,
+    "student": {
+     "shareError": 0.0392,
+     "medianAngle": 6.5284,
+     "top1": 0.9982
+    },
+    "oracle": {
+     "shareError": 0.0874,
+     "medianAngle": 14.3263,
+     "top1": 0.9964
+    }
+   }
+  ],
+  "seeds": [
+   {
+    "seed": 20261105,
+    "val": {
+     "boxCount": 1232,
+     "shareError": 0.0489,
+     "medianAngle": 7.5311,
+     "top1": 0.9756,
+     "oracleShareError": 0.1144,
+     "oracleMedianAngle": 15.4422
+    },
+    "yardstick": {
+     "boxCount": 906,
+     "shareError": 0.1327,
+     "medianAngle": 15.8008,
+     "top1": 0.8841,
+     "oracleShareError": 0.0749,
+     "oracleMedianAngle": 9.4058
+    }
+   },
+   {
+    "seed": 20261106,
+    "val": {
+     "boxCount": 1232,
+     "shareError": 0.0473,
+     "medianAngle": 7.0866,
+     "top1": 0.9683,
+     "oracleShareError": 0.1144,
+     "oracleMedianAngle": 15.4422
+    },
+    "yardstick": {
+     "boxCount": 906,
+     "shareError": 0.1171,
+     "medianAngle": 15.7325,
+     "top1": 0.9128,
+     "oracleShareError": 0.0749,
+     "oracleMedianAngle": 9.4058
+    }
+   },
+   {
+    "seed": 20261107,
+    "val": {
+     "boxCount": 1232,
+     "shareError": 0.0468,
+     "medianAngle": 7.2603,
+     "top1": 0.9732,
+     "oracleShareError": 0.1144,
+     "oracleMedianAngle": 15.4422
+    },
+    "yardstick": {
+     "boxCount": 906,
+     "shareError": 0.132,
+     "medianAngle": 16.5583,
+     "top1": 0.894,
+     "oracleShareError": 0.0749,
+     "oracleMedianAngle": 9.4058
+    }
+   }
+  ],
+  "seedSpread": {
+   "shareError": {
+    "min": 0.0468,
+    "max": 0.0489
+   },
+   "medianAngle": {
+    "min": 7.0866,
+    "max": 7.5311
+   },
+   "top1": {
+    "min": 0.9683,
+    "max": 0.9756
+   }
+  }
+ },
+ "yardstick": {
+  "role": "yardstick (PROXY)",
+  "unit": "photo",
+  "photos": 40,
+  "boxCount": 906,
+  "arms": {
+   "student": {
+    "shareError": {
+     "boxCount": 906,
+     "mean": {
+      "value": 0.1327,
+      "lo": 0.1192,
+      "hi": 0.1483
+     },
+     "quantiles": {
+      "p10": 0.027,
+      "p25": 0.0587,
+      "p50": 0.1135,
+      "p75": 0.1847,
+      "p90": 0.2647,
+      "p99": 0.4204
+     },
+     "median": {
+      "value": 0.1135,
+      "lo": 0.0972,
+      "hi": 0.1307
+     }
+    },
+    "angleDeg": {
+     "boxCount": 906,
+     "mean": {
+      "value": 18.9933,
+      "lo": 17.6137,
+      "hi": 20.5878
+     },
+     "quantiles": {
+      "p10": 5.8011,
+      "p25": 9.4093,
+      "p50": 15.8008,
+      "p75": 24.7501,
+      "p90": 35.3722,
+      "p99": 68.2834
+     },
+     "median": {
+      "value": 15.8008,
+      "lo": 14.1837,
+      "hi": 17.6433
+     }
+    },
+    "top1": {
+     "value": 0.8841,
+     "lo": 0.8497,
+     "hi": 0.9124
+    },
+    "recall": {
+     "spineFace": {
+      "boxCount": 888,
+      "agree": 796
+     },
+     "topFace": {
+      "boxCount": 11,
+      "agree": 3
+     },
+     "coverFace": {
+      "boxCount": 7,
+      "agree": 2
+     }
+    }
+   },
+   "oracle": {
+    "shareError": {
+     "boxCount": 906,
+     "mean": {
+      "value": 0.0749,
+      "lo": 0.0633,
+      "hi": 0.089
+     },
+     "quantiles": {
+      "p10": 0.0162,
+      "p25": 0.034,
+      "p50": 0.0566,
+      "p75": 0.0926,
+      "p90": 0.1518,
+      "p99": 0.336
+     },
+     "median": {
+      "value": 0.0566,
+      "lo": 0.0505,
+      "hi": 0.0658
+     }
+    },
+    "angleDeg": {
+     "boxCount": 906,
+     "mean": {
+      "value": 14.0038,
+      "lo": 12.2924,
+      "hi": 15.7286
+     },
+     "quantiles": {
+      "p10": 2.1317,
+      "p25": 4.5651,
+      "p50": 9.4058,
+      "p75": 16.4725,
+      "p90": 29.0307,
+      "p99": 81.3062
+     },
+     "median": {
+      "value": 9.4058,
+      "lo": 8.0191,
+      "hi": 10.8827
+     }
+    },
+    "top1": {
+     "value": 0.9801,
+     "lo": 0.9626,
+     "hi": 0.993
+    },
+    "recall": {
+     "spineFace": {
+      "boxCount": 888,
+      "agree": 888
+     },
+     "topFace": {
+      "boxCount": 11,
+      "agree": 0
+     },
+     "coverFace": {
+      "boxCount": 7,
+      "agree": 0
+     }
+    }
+   },
+   "trainMean": {
+    "shareError": {
+     "boxCount": 906,
+     "mean": {
+      "value": 0.1017,
+      "lo": 0.0931,
+      "hi": 0.1116
+     },
+     "quantiles": {
+      "p10": 0.0422,
+      "p25": 0.0744,
+      "p50": 0.089,
+      "p75": 0.1153,
+      "p90": 0.1528,
+      "p99": 0.4114
+     },
+     "median": {
+      "value": 0.089,
+      "lo": 0.0803,
+      "hi": 0.0973
+     }
+    },
+    "angleDeg": {
+     "boxCount": 906,
+     "mean": {
+      "value": 15.2951,
+      "lo": 13.6243,
+      "hi": 17.0195
+     },
+     "quantiles": {
+      "p10": 3.5173,
+      "p25": 5.9848,
+      "p50": 10.6253,
+      "p75": 17.6857,
+      "p90": 30.7648,
+      "p99": 79.7128
+     },
+     "median": {
+      "value": 10.6253,
+      "lo": 9.3375,
+      "hi": 11.6874
+     }
+    },
+    "top1": {
+     "value": 0.9801,
+     "lo": 0.9626,
+     "hi": 0.993
+    },
+    "recall": {
+     "spineFace": {
+      "boxCount": 888,
+      "agree": 888
+     },
+     "topFace": {
+      "boxCount": 11,
+      "agree": 0
+     },
+     "coverFace": {
+      "boxCount": 7,
+      "agree": 0
+     }
+    }
+   }
+  },
+  "vsOracle": {
+   "shareErrorReduction": {
+    "value": -0.7713,
+    "lo": -1.1778,
+    "hi": -0.4679
+   },
+   "medianAngleGain": {
+    "value": -6.395,
+    "lo": -8.5736,
+    "hi": -4.4435
+   }
+  },
+  "vsTrainMean": {
+   "shareErrorReduction": {
+    "value": -0.3053,
+    "lo": -0.4874,
+    "hi": -0.1556
+   },
+   "medianAngleGain": {
+    "value": -5.1755,
+    "lo": -7.09,
+    "hi": -3.3485
+   }
+  }
+ },
+ "exploratory": {
+  "geomonly": {
+   "logo": {
+    "arm": {
+     "shareError": {
+      "boxCount": 5592,
+      "mean": {
+       "value": 0.0672,
+       "lo": 0.0584,
+       "hi": 0.0735
+      },
+      "quantiles": {
+       "p10": 0.0149,
+       "p25": 0.0259,
+       "p50": 0.0501,
+       "p75": 0.0886,
+       "p90": 0.1438,
+       "p99": 0.274
+      },
+      "median": {
+       "value": 0.0501,
+       "lo": 0.0407,
+       "hi": 0.0551
+      }
+     },
+     "angleDeg": {
+      "boxCount": 5592,
+      "mean": {
+       "value": 15.9628,
+       "lo": 14.107,
+       "hi": 17.0632
+      },
+      "quantiles": {
+       "p10": 3.4848,
+       "p25": 6.578,
+       "p50": 12.8163,
+       "p75": 22.0791,
+       "p90": 33.3696,
+       "p99": 55.7532
+      },
+      "median": {
+       "value": 12.8163,
+       "lo": 10.6262,
+       "hi": 13.917
+      }
+     },
+     "top1": {
+      "value": 0.9696,
+      "lo": 0.9371,
+      "hi": 0.9847
+     },
+     "recall": {
+      "spineFace": {
+       "boxCount": 5431,
+       "agree": 5392
+      },
+      "topFace": {
+       "boxCount": 141,
+       "agree": 30
+      },
+      "coverFace": {
+       "boxCount": 20,
+       "agree": 0
+      }
+     }
+    },
+    "vsOracle": {
+     "shareErrorReduction": {
+      "value": 0.3897,
+      "lo": 0.3392,
+      "hi": 0.4675
+     },
+     "medianAngleGain": {
+      "value": 6.7729,
+      "lo": 5.1299,
+      "hi": 8.9756
+     }
+    },
+    "vsFullStudent": {
+     "shareErrorReduction": {
+      "value": -0.2944,
+      "lo": -0.3716,
+      "hi": -0.1622
+     },
+     "medianAngleGain": {
+      "value": -3.28,
+      "lo": -4.4991,
+      "hi": -1.9496
+     }
+    }
+   },
+   "yardstick": {
+    "arm": {
+     "shareError": {
+      "boxCount": 906,
+      "mean": {
+       "value": 0.1281,
+       "lo": 0.1189,
+       "hi": 0.1392
+      },
+      "quantiles": {
+       "p10": 0.0468,
+       "p25": 0.0813,
+       "p50": 0.1228,
+       "p75": 0.1623,
+       "p90": 0.2096,
+       "p99": 0.3648
+      },
+      "median": {
+       "value": 0.1228,
+       "lo": 0.11,
+       "hi": 0.1339
+      }
+     },
+     "angleDeg": {
+      "boxCount": 906,
+      "mean": {
+       "value": 14.7509,
+       "lo": 13.0582,
+       "hi": 16.5539
+      },
+      "quantiles": {
+       "p10": 3.584,
+       "p25": 6.3113,
+       "p50": 10.8446,
+       "p75": 18.5068,
+       "p90": 29.6921,
+       "p99": 65.6591
+      },
+      "median": {
+       "value": 10.8446,
+       "lo": 9.6663,
+       "hi": 12.5162
+      }
+     },
+     "top1": {
+      "value": 0.9746,
+      "lo": 0.9592,
+      "hi": 0.9884
+     },
+     "recall": {
+      "spineFace": {
+       "boxCount": 888,
+       "agree": 877
+      },
+      "topFace": {
+       "boxCount": 11,
+       "agree": 6
+      },
+      "coverFace": {
+       "boxCount": 7,
+       "agree": 0
+      }
+     }
+    },
+    "vsOracle": {
+     "shareErrorReduction": {
+      "value": -0.7099,
+      "lo": -1.0512,
+      "hi": -0.4708
+     },
+     "medianAngleGain": {
+      "value": -1.4387,
+      "lo": -3.4798,
+      "hi": 0.1373
+     }
+    },
+    "vsTrainMean": {
+     "shareErrorReduction": {
+      "value": -0.2601,
+      "lo": -0.3768,
+      "hi": -0.169
+     },
+     "medianAngleGain": {
+      "value": -0.2192,
+      "lo": -2.3311,
+      "hi": 1.3263
+     }
+    }
+   },
+   "trainSeconds": 17.9
+  },
+  "croponly": {
+   "logo": {
+    "arm": {
+     "shareError": {
+      "boxCount": 5592,
+      "mean": {
+       "value": 0.0562,
+       "lo": 0.0494,
+       "hi": 0.0674
+      },
+      "quantiles": {
+       "p10": 0.0056,
+       "p25": 0.0148,
+       "p50": 0.0354,
+       "p75": 0.0762,
+       "p90": 0.1311,
+       "p99": 0.282
+      },
+      "median": {
+       "value": 0.0354,
+       "lo": 0.0303,
+       "hi": 0.0428
+      }
+     },
+     "angleDeg": {
+      "boxCount": 5592,
+      "mean": {
+       "value": 16.2604,
+       "lo": 12.9457,
+       "hi": 18.1531
+      },
+      "quantiles": {
+       "p10": 3.0312,
+       "p25": 5.5982,
+       "p50": 11.612,
+       "p75": 21.8692,
+       "p90": 33.8039,
+       "p99": 79.0387
+      },
+      "median": {
+       "value": 11.612,
+       "lo": 8.6533,
+       "hi": 14.3535
+      }
+     },
+     "top1": {
+      "value": 0.9773,
+      "lo": 0.9575,
+      "hi": 0.9873
+     },
+     "recall": {
+      "spineFace": {
+       "boxCount": 5431,
+       "agree": 5391
+      },
+      "topFace": {
+       "boxCount": 141,
+       "agree": 74
+      },
+      "coverFace": {
+       "boxCount": 20,
+       "agree": 0
+      }
+     }
+    },
+    "vsOracle": {
+     "shareErrorReduction": {
+      "value": 0.4898,
+      "lo": 0.4683,
+      "hi": 0.5318
+     },
+     "medianAngleGain": {
+      "value": 7.9772,
+      "lo": 7.3558,
+      "hi": 9.0759
+     }
+    },
+    "vsFullStudent": {
+     "shareErrorReduction": {
+      "value": -0.082,
+      "lo": -0.1351,
+      "hi": -0.0589
+     },
+     "medianAngleGain": {
+      "value": -2.0758,
+      "lo": -2.7011,
+      "hi": -0.991
+     }
+    }
+   },
+   "yardstick": {
+    "arm": {
+     "shareError": {
+      "boxCount": 906,
+      "mean": {
+       "value": 0.0783,
+       "lo": 0.0699,
+       "hi": 0.0877
+      },
+      "quantiles": {
+       "p10": 0.0125,
+       "p25": 0.0268,
+       "p50": 0.0554,
+       "p75": 0.0982,
+       "p90": 0.1766,
+       "p99": 0.3774
+      },
+      "median": {
+       "value": 0.0554,
+       "lo": 0.0495,
+       "hi": 0.0607
+      }
+     },
+     "angleDeg": {
+      "boxCount": 906,
+      "mean": {
+       "value": 18.2523,
+       "lo": 16.2325,
+       "hi": 20.6744
+      },
+      "quantiles": {
+       "p10": 5.4526,
+       "p25": 8.684,
+       "p50": 12.8903,
+       "p75": 22.2016,
+       "p90": 36.3276,
+       "p99": 80.9716
+      },
+      "median": {
+       "value": 12.8903,
+       "lo": 11.6358,
+       "hi": 14.1687
+      }
+     },
+     "top1": {
+      "value": 0.9779,
+      "lo": 0.9634,
+      "hi": 0.9893
+     },
+     "recall": {
+      "spineFace": {
+       "boxCount": 888,
+       "agree": 883
+      },
+      "topFace": {
+       "boxCount": 11,
+       "agree": 3
+      },
+      "coverFace": {
+       "boxCount": 7,
+       "agree": 0
+      }
+     }
+    },
+    "vsOracle": {
+     "shareErrorReduction": {
+      "value": -0.0446,
+      "lo": -0.187,
+      "hi": 0.0717
+     },
+     "medianAngleGain": {
+      "value": -3.4844,
+      "lo": -4.9552,
+      "hi": -2.0705
+     }
+    },
+    "vsTrainMean": {
+     "shareErrorReduction": {
+      "value": 0.2302,
+      "lo": 0.1563,
+      "hi": 0.2976
+     },
+     "medianAngleGain": {
+      "value": -2.2649,
+      "lo": -3.8294,
+      "hi": -0.8651
+     }
+    }
+   },
+   "trainSeconds": 1167.6
+  }
+ },
+ "training": {
+  "runs": [
+   {
+    "name": "logo-1",
+    "seed": 20261105,
+    "kind": "logo",
+    "params": 1604318,
+    "epochs": 40,
+    "trainRows": 5137,
+    "evalRows": 455,
+    "trainGroups": 5,
+    "evalGroups": 1,
+    "trainSeconds": 206.2,
+    "wallSeconds": 206.4,
+    "finalLoss": 0.02319,
+    "firstLoss": 0.41832
+   },
+   {
+    "name": "logo-2",
+    "seed": 20261105,
+    "kind": "logo",
+    "params": 1604318,
+    "epochs": 40,
+    "trainRows": 2909,
+    "evalRows": 2683,
+    "trainGroups": 5,
+    "evalGroups": 1,
+    "trainSeconds": 119.3,
+    "wallSeconds": 120,
+    "finalLoss": 0.02952,
+    "firstLoss": 0.4789
+   },
+   {
+    "name": "logo-3",
+    "seed": 20261105,
+    "kind": "logo",
+    "params": 1604318,
+    "epochs": 40,
+    "trainRows": 4923,
+    "evalRows": 669,
+    "trainGroups": 5,
+    "evalGroups": 1,
+    "trainSeconds": 205.4,
+    "wallSeconds": 205.6,
+    "finalLoss": 0.02429,
+    "firstLoss": 0.43345
+   },
+   {
+    "name": "logo-4",
+    "seed": 20261105,
+    "kind": "logo",
+    "params": 1604318,
+    "epochs": 40,
+    "trainRows": 5081,
+    "evalRows": 511,
+    "trainGroups": 5,
+    "evalGroups": 1,
+    "trainSeconds": 205.1,
+    "wallSeconds": 205.3,
+    "finalLoss": 0.02543,
+    "firstLoss": 0.41541
+   },
+   {
+    "name": "logo-5",
+    "seed": 20261105,
+    "kind": "logo",
+    "params": 1604318,
+    "epochs": 40,
+    "trainRows": 4881,
+    "evalRows": 711,
+    "trainGroups": 5,
+    "evalGroups": 1,
+    "trainSeconds": 193.7,
+    "wallSeconds": 193.9,
+    "finalLoss": 0.02502,
+    "firstLoss": 0.43975
+   },
+   {
+    "name": "logo-6",
+    "seed": 20261105,
+    "kind": "logo",
+    "params": 1604318,
+    "epochs": 40,
+    "trainRows": 5029,
+    "evalRows": 563,
+    "trainGroups": 5,
+    "evalGroups": 1,
+    "trainSeconds": 200.4,
+    "wallSeconds": 200.7,
+    "finalLoss": 0.02309,
+    "firstLoss": 0.41672
+   },
+   {
+    "name": "frozen-20261105",
+    "seed": 20261105,
+    "kind": "frozen",
+    "params": 1604318,
+    "epochs": 40,
+    "trainRows": 4360,
+    "evalRows": 1232,
+    "trainGroups": 4,
+    "evalGroups": 2,
+    "trainSeconds": 177.7,
+    "wallSeconds": 179.9,
+    "finalLoss": 0.0277,
+    "firstLoss": 0.44479
+   },
+   {
+    "name": "frozen-20261106",
+    "seed": 20261106,
+    "kind": "frozen",
+    "params": 1604318,
+    "epochs": 40,
+    "trainRows": 4360,
+    "evalRows": 1232,
+    "trainGroups": 4,
+    "evalGroups": 2,
+    "trainSeconds": 177.7,
+    "wallSeconds": 178.3,
+    "finalLoss": 0.02847,
+    "firstLoss": 0.47495
+   },
+   {
+    "name": "frozen-20261107",
+    "seed": 20261107,
+    "kind": "frozen",
+    "params": 1604318,
+    "epochs": 40,
+    "trainRows": 4360,
+    "evalRows": 1232,
+    "trainGroups": 4,
+    "evalGroups": 2,
+    "trainSeconds": 183.2,
+    "wallSeconds": 183.8,
+    "finalLoss": 0.03343,
+    "firstLoss": 0.69171
+   }
+  ],
+  "registeredWallSeconds": 1673.9,
+  "ablationWallSeconds": 1185.5,
+  "totalWallSeconds": 2859.4,
+  "capSeconds": 7200,
+  "peakRssBytes": 1720303616,
+  "peakMpsAllocatedBytes": 1291878400,
+  "device": "mps"
+ },
+ "coreml": {
+  "coremltools": "9.0",
+  "torch": "2.15.0",
+  "exported": true,
+  "params": 1604318,
+  "packageBytes": 3244445,
+  "precision": "float16",
+  "format": "mlprogram",
+  "minimumDeployment": "iOS17",
+  "latencyMs": {
+   "CPU_ONLY": {
+    "median": 0.586,
+    "p90": 0.611,
+    "loadSeconds": 0.05,
+    "timedCalls": 300
+   },
+   "CPU_AND_GPU": {
+    "median": 0.67,
+    "p90": 0.788,
+    "loadSeconds": 0.09,
+    "timedCalls": 300
+   },
+   "CPU_AND_NE": {
+    "median": 0.22,
+    "p90": 0.255,
+    "loadSeconds": 0.17,
+    "timedCalls": 300
+   },
+   "ALL": {
+    "median": 0.217,
+    "p90": 0.257,
+    "loadSeconds": 0.18,
+    "timedCalls": 300
+   }
+  },
+  "agreement": {
+   "CPU_ONLY": {
+    "boxCount": 128,
+    "maxAbsShareDiff": 0.00167,
+    "maxNormalDiffDeg": 0.2487,
+    "top1Same": 1
+   },
+   "CPU_AND_GPU": {
+    "boxCount": 128,
+    "maxAbsShareDiff": 0.00075,
+    "maxNormalDiffDeg": 0.0907,
+    "top1Same": 1
+   },
+   "CPU_AND_NE": {
+    "boxCount": 128,
+    "maxAbsShareDiff": 0.001,
+    "maxNormalDiffDeg": 0.0885,
+    "top1Same": 1
+   },
+   "ALL": {
+    "boxCount": 128,
+    "maxAbsShareDiff": 0.001,
+    "maxNormalDiffDeg": 0.0885,
+    "top1Same": 1
+   }
+  },
+  "mpsBatch64": {
+   "secondsPerBatch": 0.01484,
+   "boxesPerSecond": 4313.8
+  }
+ },
+ "cost": {
+  "teacher": {
+   "source": "evals/H2/metrics.json, pilot-000, 31 cold photos on MPS",
+   "inferenceP50Seconds": 0.99,
+   "wholeStageP50Seconds": 3.225,
+   "modelLoadSeconds": 7.63
+  },
+  "student": {
+   "admittedBoxesPerPhoto": 180.3871,
+   "mpsBatch64BoxesPerSecond": 4313.8,
+   "mpsSecondsPerPhoto": 0.0418,
+   "coreMlSecondsPerPhotoOneByOne": {
+    "CPU_ONLY": 0.1057,
+    "CPU_AND_GPU": 0.1209,
+    "CPU_AND_NE": 0.0397,
+    "ALL": 0.0391
+   },
+   "note": "the student's time covers its forward passes only: cutting the crops from the photo is not measured"
+  }
+ },
+ "ns5": {
+  "realColumnCases": 0,
+  "minimumCases": 14,
+  "confidenceOneSided": 0.9375,
+  "marginPoints": 2.5,
+  "downWeight": 0.3,
+  "verdict": "insufficient data",
+  "reason": "No degraded-tier session exists; every pilot-000 still is metric-depth, shopper-still, caseId null."
+ },
+ "verdicts": {
+  "developmentKeepRule": "kept",
+  "ns5": "insufficient data"
+ }
+}
