@@ -1,10 +1,10 @@
 // C-5 evaluation: the Open Library breadth catalog (catalog-v2) against the ISFDB-only catalog (v1), offline.
 //
-//   node src/catalog/c5-eval.ts golden    [--v1 <file>] [--v2 <file>]   C-3's golden fragments on both catalogs
-//   node src/catalog/c5-eval.ts coverage  [--v1 <file>] [--v2 <file>]   C-4's sample re-checked against both (no calls)
-//   node src/catalog/c5-eval.ts lookalike --set <pilot-000|yardstick-library-b2> [--v1 <file>] [--v2 <file>]
+//   node src/eval/c5-eval.ts golden    [--v1 <file>] [--v2 <file>]   C-3's golden fragments on both catalogs
+//   node src/eval/c5-eval.ts coverage  [--v1 <file>] [--v2 <file>]   C-4's sample re-checked against both (no calls)
+//   node src/eval/c5-eval.ts lookalike --set <pilot-000|yardstick-library-b2> [--v1 <file>] [--v2 <file>]
 //                                                                         F-0's cached readings re-decided, F-0's bar unchanged
-//   node src/catalog/c5-eval.ts publish                                   join the parts into evals/C5/metrics.json
+//   node src/eval/c5-eval.ts publish                                   join the parts into evals/C5/metrics.json
 //
 // Every part writes aggregates only to $BOOKCASE_DATA/catalog/c5/<part>.json; the per-box and per-spine detail
 // never leaves this process. Nothing here makes a network call.
@@ -16,14 +16,14 @@ import { parseArgs } from "node:util";
 import { fileURLToPath } from "node:url";
 import type { DatabaseSync } from "node:sqlite";
 import { dataRoot } from "../ledger/images.ts";
-import { ACCEPT, confirms, CROP, decide, loadReadings, readJsonl, stageDir, variantsOf, type ReaderName, type Reading, type SpineDecision } from "../eval/f0.ts";
-import { clusterBootstrap } from "../eval/q1.ts";
-import { catalogPaths, openCatalog } from "./cli.ts";
-import { BOOTSTRAP_REPS, drawSample, estimateCoverage, isfdbHolds, LIMITS, SEED, surnameOf, type BoxResult, type OutsideRecord } from "./coverage.ts";
-import { loadGolden, runGolden } from "./golden.ts";
-import { toIsbn13 } from "./isbn.ts";
-import { normalize, splitSubtitle, tokenize } from "./normalize.ts";
-import { retrieve, type Candidate } from "./retrieve.ts";
+import { ACCEPT, confirms, CROP, decide, loadReadings, readJsonl, stageDir, variantsOf, type ReaderName, type Reading, type SpineDecision } from "./f0.ts";
+import { clusterBootstrap } from "./q1.ts";
+import { catalogPaths, openCatalog } from "../catalog/cli.ts";
+import { BOOTSTRAP_REPS, drawSample, estimateCoverage, isfdbHolds, LIMITS, SEED, surnameOf, type BoxResult, type OutsideRecord } from "../catalog/coverage.ts";
+import { loadGolden, runGolden } from "../catalog/golden.ts";
+import { toIsbn13 } from "../catalog/isbn.ts";
+import { normalize, splitSubtitle, tokenize } from "../catalog/normalize.ts";
+import { retrieve, type Candidate } from "../catalog/retrieve.ts";
 
 const REPO = fileURLToPath(new URL("../../", import.meta.url));
 const log = (s: string) => console.error(`[c5] ${new Date().toISOString().slice(11, 19)} ${s}`);
@@ -377,7 +377,7 @@ async function main(argv: string[]): Promise<number> {
   else if (cmd === "lookalike") lookalike(paths, values.set ?? "pilot-000", values.only);
   else if (cmd === "publish") publish();
   else {
-    console.error("usage: node src/catalog/c5-eval.ts <golden|coverage|lookalike|publish> [--v1 <file>] [--v2 <file>] [--set <name>]");
+    console.error("usage: node src/eval/c5-eval.ts <golden|coverage|lookalike|publish> [--v1 <file>] [--v2 <file>] [--set <name>]");
     return 1;
   }
   return 0;

@@ -100,7 +100,7 @@ describe("section terms", () => {
   });
 
   it("gives the mix the same sign terms KN-2's adapter does", async () => {
-    const { signTerms } = await import("../src/identify/section-prior-cli.ts");
+    const { signTerms } = await import("../src/eval/section-prior-cli.ts");
     for (const f of SECTION_FAMILIES) {
       const s = signTermsOf({ family: f, confidence: 1 });
       expect(s?.genre ?? [], f).toEqual(signTerms(f));

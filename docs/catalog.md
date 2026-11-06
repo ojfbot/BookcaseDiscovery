@@ -224,7 +224,7 @@ C-4 measures what share of a session's readable spines ISFDB holds, using F-0's 
 
 | | |
 |---|---|
-| Code | `src/catalog/coverage.ts` (sample, queries, MODS / Open Library parsing, resolution rule, ISFDB check, estimates), `src/catalog/coverage-cli.ts`; C-10's `src/catalog/lookup.ts` (cache, key, expiry, budget, migration), `lookup-local.ts` (local tier), `lookup-plan.ts` (plan, batching attribution), `lookup-eval.ts` |
+| Code | `src/catalog/coverage.ts` (sample, queries, MODS / Open Library parsing, resolution rule, ISFDB check, estimates), `src/eval/coverage-cli.ts`; C-10's `src/catalog/lookup.ts` (cache, key, expiry, budget, migration), `lookup-local.ts` (local tier), `lookup-plan.ts` (plan, batching attribution), `lookup-eval.ts` |
 | Commands | `bookcase catalog coverage --tune` (the confirmed tuning rows), `bookcase catalog coverage [--run-id C4] [--offline] [--budget <n>] [--no-local] [--session <name>]`, `bookcase catalog coverage --plan [--all]` (C-10: the live calls a run would make, per source, no network) |
 | Inputs | F-0's stage cache `f0/<session>/{decisions,vision,ppocr,qwen}.jsonl` and `catalog/catalog.sqlite`, under `$BOOKCASE_DATA` |
 | Live sources | Open Library search (≤ 1 request/s), then LoC SRU `lx2.loc.gov:210/LCDB` over HTTP (≤ 10 requests/min), keyless, app User-Agent with no email address |
@@ -253,7 +253,7 @@ the two layers C-4 proposed, crosswalked to ISFDB, as a **new file**: `$BOOKCASE
 | Measurement | `$BOOKCASE_DATA/catalog/ol-measure/2026-10-31/` (per-work facts as raw arrays, `counts.json`) |
 | Staging file | `$BOOKCASE_DATA/catalog/ol-staging.sqlite` (kept works, their editions, their authors) |
 | Catalog | `$BOOKCASE_DATA/catalog/catalog-v2.sqlite`, schema version 2 |
-| Code | `src/catalog/ol-dump.ts` (streaming reader, measuring pass, layers, staging), `src/catalog/ol-merge.ts` (crosswalk and merge), `src/catalog/ol-import.ts` (CLI), `src/catalog/c5-eval.ts` (evaluation) |
+| Code | `src/catalog/ol-dump.ts` (streaming reader, measuring pass, layers, staging), `src/catalog/ol-merge.ts` (crosswalk and merge), `src/catalog/ol-import.ts` (CLI), `src/eval/c5-eval.ts` (evaluation) |
 | Commands | `pnpm catalog:ol measure`, `pnpm catalog:ol stage`, `bookcase catalog build --ol-staging $BOOKCASE_DATA/catalog/ol-staging.sqlite` (writes `catalog-v2.sqlite` unless `--out` says otherwise) |
 | Tests | `test/catalog-openlibrary.test.ts`, synthetic dump in `test/helpers/mini-ol-dump.ts` (invented ids, public example books) |
 
@@ -357,10 +357,10 @@ titles are one book and never each other's lookalike.
 Commands (offline; per-reading and per-spine files stay in the data root's private folder (`private/c6/`)):
 
 ```
-node src/catalog/c6-eval.ts readings --set pilot-000 --catalog v2 [--shard 1/4]
-node src/catalog/c6-eval.ts decide --set pilot-000
-node src/catalog/c6-eval.ts golden
-node src/catalog/c6-eval.ts publish            # evals/C6/metrics.json
+node src/eval/c6-eval.ts readings --set pilot-000 --catalog v2 [--shard 1/4]
+node src/eval/c6-eval.ts decide --set pilot-000
+node src/eval/c6-eval.ts golden
+node src/eval/c6-eval.ts publish            # evals/C6/metrics.json
 ```
 
 **Result (2026-11-03): the default stays `catalog.sqlite`.** No arm passed the pre-registered keep rule:
@@ -441,10 +441,10 @@ Commands (offline; per-reading and per-spine files stay in the data root's priva
 
 ```
 bookcase catalog stats --db "$BOOKCASE_DATA/catalog/catalog-v2.sqlite"
-node src/catalog/c7-eval.ts readings --set pilot-000 --catalog v2 [--shard 1/4]
-node src/catalog/c7-eval.ts decide --set pilot-000
-node src/catalog/c7-eval.ts golden
-node src/catalog/c7-eval.ts publish            # evals/C7/metrics.json
+node src/eval/c7-eval.ts readings --set pilot-000 --catalog v2 [--shard 1/4]
+node src/eval/c7-eval.ts decide --set pilot-000
+node src/eval/c7-eval.ts golden
+node src/eval/c7-eval.ts publish            # evals/C7/metrics.json
 ```
 
 **Result (2026-11-03): the default stays `catalog.sqlite`.** Neither eligible arm (the full basis, or the basis with
@@ -533,7 +533,7 @@ ISFDB editions carry a publisher series; the Wikidata export gives 393 parent li
 data fix moved p1 by one box (+2.8 points, under the pre-registered 10) and IMP-1's yardstick arm was uninformative,
 so both stay off and the default catalogs are unchanged (`evals/C9/report.md`).
 
-**Wikidata parents** (`wikidataParents`): one SPARQL query (`WIKIDATA_QUERY` in `src/catalog/c9-eval.ts`) for
+**Wikidata parents** (`wikidataParents`): one SPARQL query (`WIKIDATA_QUERY` in `src/eval/c9-eval.ts`) for
 every item with an ISFDB publisher ID (P1239) and a parent organisation (P749) or owner (P127), with the
 statement's start and end (P580/P582). Each side is named by ISFDB's publisher name when it has a P1239 id, else by
 its English label. Wikidata is CC0. The export stays private (the data root's `private/c9/wikidata/<date>.json`,
@@ -546,7 +546,7 @@ dropped before IMP-1. Label-free; its cost is a real house name that begins a ca
 
 | Builds (C-9) | `bookcase catalog build --out $BOOKCASE_DATA/catalog/catalog-c9.sqlite`; `pnpm catalog:ol stage --out $BOOKCASE_DATA/catalog/ol-staging-c9.sqlite`, then `bookcase catalog build --ol-staging …/ol-staging-c9.sqlite --out $BOOKCASE_DATA/catalog/catalog-v2-c9.sqlite`. Today's `catalog.sqlite`, `catalog-v2.sqlite` and `ol-staging.sqlite` are not touched. |
 |---|---|
-| Evaluation | `node src/catalog/c9-eval.ts wikidata`, `lists --set <name> --catalog <v1\|v2>`, `analyse` |
+| Evaluation | `node src/eval/c9-eval.ts wikidata`, `lists --set <name> --catalog <v1\|v2>`, `analyse` |
 | Tests | `test/f0d-imprint.test.ts` (keys, parents, shelf marks, IMP-1), `test/catalog-openlibrary.test.ts` (columns, staging v1) |
 
 
@@ -642,14 +642,14 @@ staging file into `proxy/library-dataset/f0-inventory-catalog-kn1.sqlite`.
   section.
 
 **Reproduction.** Each KN-1 file holds the same rows as the file it rebuilds in every version-1 table. Every F-0 accept
-re-decides to the same work on both (`node src/catalog/kn1-eval.ts gate`, 1.000): `pilot-000` on `catalog.sqlite`
+re-decides to the same work on both (`node src/eval/kn1-eval.ts gate`, 1.000): `pilot-000` on `catalog.sqlite`
 against `catalog-kn1.sqlite`, and the yardstick on its inventory against `f0-inventory-catalog-kn1.sqlite`.
 
 | Builds (KN-1) | `pnpm catalog:ol subjects --staging $BOOKCASE_DATA/catalog/ol-staging-c9.sqlite` (about 1 min), then `bookcase catalog build --out $BOOKCASE_DATA/catalog/catalog-kn1.sqlite --ol-subjects …/ol-subjects-2026-10-31.sqlite --ol-crosswalk …/ol-staging-c9.sqlite` (about 90 s). A v2 build takes `--ol-staging` in place of `--ol-crosswalk`. Today's `catalog.sqlite`, `catalog-v2.sqlite` and C-9's files are not touched. |
 |---|---|
 | Builds (yardstick) | `pnpm catalog:ol isbn-stage --catalog $BOOKCASE_DATA/proxy/library-dataset/f0-inventory-catalog.sqlite --out …/ol-staging-inventory-kn1.sqlite`; `pnpm catalog:ol subjects --staging …/ol-staging-inventory-kn1.sqlite --out …/ol-subjects-inventory-kn1.sqlite`; `bookcase catalog build --staging …/f0-inventory-catalog.sqlite.staging.sqlite --out …/f0-inventory-catalog-kn1.sqlite --ol-subjects …/ol-subjects-inventory-kn1.sqlite --ol-crosswalk …/ol-staging-inventory-kn1.sqlite` |
 | Readers | `workFeatures`, `workKnowledge`, `pickForm`, `workGenres`, `hasWorkFeatures`, `SECTION_GENRES` and `sectionFits` in `src/catalog/work-features.ts`; `crosswalkFeatures(vocabulary, features)` in `src/recommend/vocabulary.ts` |
-| Evaluation | `node src/catalog/kn1-eval.ts gate --set <pilot-000\|yardstick>`, then `analyse` |
+| Evaluation | `node src/eval/kn1-eval.ts gate --set <pilot-000\|yardstick>`, then `analyse` |
 | Tests | `test/work-features.test.ts` (classification, drop list, provenance, extract, crosswalk-only build, recommend crosswalk, the wall); `test/catalog-openlibrary.test.ts` (schema 4) |
 
 

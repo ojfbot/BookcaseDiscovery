@@ -23,8 +23,8 @@ import { join } from "node:path";
 import { DatabaseSync } from "node:sqlite";
 import { parseArgs } from "node:util";
 import { dataRoot } from "../ledger/images.ts";
-import { loadReadings, readJsonl, stageDir, type SpineDecision } from "../eval/f0.ts";
-import { catalogPaths, openCatalog } from "./cli.ts";
+import { loadReadings, readJsonl, stageDir, type SpineDecision } from "./f0.ts";
+import { catalogPaths, openCatalog } from "../catalog/cli.ts";
 import {
   BOOTSTRAP_REPS,
   drawSample,
@@ -45,10 +45,10 @@ import {
   type BoxResult,
   type OutsideRecord,
   type SampledBox,
-} from "./coverage.ts";
-import { copyKey, KnownIndex, LOOKUP } from "./lookup.ts";
-import { localTier } from "./lookup-local.ts";
-import { outcomeOf, planC4, planSummary, type Outcome } from "./lookup-plan.ts";
+} from "../catalog/coverage.ts";
+import { copyKey, KnownIndex, LOOKUP } from "../catalog/lookup.ts";
+import { localTier } from "../catalog/lookup-local.ts";
+import { outcomeOf, planC4, planSummary, type Outcome } from "../catalog/lookup-plan.ts";
 
 const usage = `usage: bookcase catalog coverage [--tune] [--plan [--all]] [--session <name>] [--offline] [--budget <n>] [--no-local] [--cache <dir>] [--db <file>] [--run-id <id>]`;
 

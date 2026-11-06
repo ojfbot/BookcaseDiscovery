@@ -1,8 +1,8 @@
 // KN-2 runner: the section prior in shadow mode on each set's cached boxes and readings, re-decided today.
 //
-//   node src/identify/section-prior-cli.ts ranked <pilot-000|yardstick>   # each book box's readers' ranked candidates and
+//   node src/eval/section-prior-cli.ts ranked <pilot-000|yardstick>   # each book box's readers' ranked candidates and
 //                                                                        # F-0's decision on them (private cache)
-//   node src/identify/section-prior-cli.ts analyse                       # both sets: evals/KN2/metrics.json (aggregates only),
+//   node src/eval/section-prior-cli.ts analyse                       # both sets: evals/KN2/metrics.json (aggregates only),
 //                                                                        # the shadow log under the data root's private/kn2/<set>/
 //
 // Shadow mode: every decision is logged beside what the prior would change; no decision, cache or default changes.
@@ -17,17 +17,17 @@ import { existsSync, mkdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import type { DatabaseSync } from "node:sqlite";
-import { isAnnotated, yardstickBooks } from "../catalog/c5-eval.ts";
+import { isAnnotated, yardstickBooks } from "./c5-eval.ts";
 import { openCatalog } from "../catalog/cli.ts";
-import { KN1_CATALOGS } from "../catalog/kn1-eval.ts";
+import { KN1_CATALOGS } from "./kn1-eval.ts";
 import { retrieve, type Candidate } from "../catalog/retrieve.ts";
 import { hasWorkFeatures, SECTION_GENRES, workKnowledge, type SectionFamily, type WorkKnowledge } from "../catalog/work-features.ts";
 import { dataRoot } from "../ledger/images.ts";
-import { confirms, decide, loadReadings, readJsonl, READERS, variantsOf, vote, type Detection, type ReaderName, type ReaderVotes } from "../eval/f0.ts";
-import { meanCI, SETS, type SetName, type Slim } from "../eval/f0c-cli.ts";
-import { loadBooks, loadDets } from "../eval/f0g-cli.ts";
-import { buildRows } from "../eval/f0h.ts";
-import { rng, quantile } from "../eval/q1.ts";
+import { confirms, decide, loadReadings, readJsonl, READERS, variantsOf, vote, type Detection, type ReaderName, type ReaderVotes } from "./f0.ts";
+import { meanCI, SETS, type SetName, type Slim } from "./f0c-cli.ts";
+import { loadBooks, loadDets } from "./f0g-cli.ts";
+import { buildRows } from "./f0h.ts";
+import { rng, quantile } from "./q1.ts";
 import {
   buildMix,
   majorityForm,
@@ -42,7 +42,7 @@ import {
   type SectionSign,
   type ShadowRecord,
   type WorkFeatureTerms,
-} from "./section-prior.ts";
+} from "../identify/section-prior.ts";
 
 const REPO = fileURLToPath(new URL("../../", import.meta.url));
 const ROOT = dataRoot();
@@ -202,7 +202,7 @@ function ranked(set: SetName): void {
 
 const loadRanked = (set: SetName): Map<string, RankedLine> => {
   const path = join(stage(set), "ranked.jsonl");
-  if (!existsSync(path)) throw new Error(`run node src/identify/section-prior-cli.ts ranked ${set} first`);
+  if (!existsSync(path)) throw new Error(`run node src/eval/section-prior-cli.ts ranked ${set} first`);
   return new Map(readJsonl<RankedLine>(path).map((r) => [r.id, r]));
 };
 
@@ -452,7 +452,7 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   if (cmd === "ranked" && set && SET_NAMES.includes(set)) ranked(set);
   else if (cmd === "analyse") analyse();
   else {
-    console.error("usage: node src/identify/section-prior-cli.ts ranked <pilot-000|yardstick> | analyse");
+    console.error("usage: node src/eval/section-prior-cli.ts ranked <pilot-000|yardstick> | analyse");
     process.exit(2);
   }
 }

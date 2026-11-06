@@ -21,6 +21,11 @@ import { cropFor, cropName, F0_CROP, type CropMethod } from "../perceive/crop.ts
 import { OcrHelperError, runOcr, type OcrRequest, type OcrResponse } from "../perceive/ocr.ts";
 import { assignShelves, type LabelSet, type Photo, type Polygon4 } from "./labels.ts";
 
+import type { Reading } from "../shared/readings.ts";
+
+// The reading record lives in src/shared/ (the catalog's coverage lookup uses it too); F-0 re-exports it.
+export type { Reading };
+
 // The decision core and the reader registry live in identify (DL-4: identify never imports eval); F-0 re-exports them.
 export { ACCEPT, confirms, vote, type ReaderVotes, type SpineDecision, type UnknownReason } from "../identify/decision.ts";
 export { READER_MODELS, READERS, type ReaderName } from "../identify/readers.ts";
@@ -75,22 +80,6 @@ export interface Detection {
   device?: string;
   peakRssMb?: number;
   mpsPeakMb?: number;
-  error?: string;
-}
-
-interface ReadVariant {
-  rotation: number;
-  text: string;
-  confidence: number;
-}
-
-export interface Reading {
-  id: string;
-  reader: ReaderName;
-  /** Crop method provenance (`cropName`); absent on F-0's original records. */
-  crop?: string;
-  variants: ReadVariant[];
-  seconds: number;
   error?: string;
 }
 

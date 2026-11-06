@@ -1,12 +1,12 @@
 // C-10 evaluation (evals/C10/prereg.md): G1 (C-4 reproduces with zero live calls), K1 (live calls per new photo),
 // the batching attribution gate and its live check, and the published metrics.
 //
-//   node src/catalog/lookup-eval.ts g1              compare private/c10/g1{a,b}.*.json and tables with C-4
-//   node src/catalog/lookup-eval.ts attribution     cached-data attribution per source and shape
-//   node src/catalog/lookup-eval.ts batch-check     live check of batched Open Library fielded queries (≤ 40 calls)
-//   node src/catalog/lookup-eval.ts before          C-4's call log (its private table): queries, distinct URLs, distinct keys
-//   node src/catalog/lookup-eval.ts replay          C-4's sample from a cold cache, "live" answers replayed from the warm store
-//   node src/catalog/lookup-eval.ts publish         evals/C10/metrics.json from private/c10/*.json (counts only)
+//   node src/eval/lookup-eval.ts g1              compare private/c10/g1{a,b}.*.json and tables with C-4
+//   node src/eval/lookup-eval.ts attribution     cached-data attribution per source and shape
+//   node src/eval/lookup-eval.ts batch-check     live check of batched Open Library fielded queries (≤ 40 calls)
+//   node src/eval/lookup-eval.ts before          C-4's call log (its private table): queries, distinct URLs, distinct keys
+//   node src/eval/lookup-eval.ts replay          C-4's sample from a cold cache, "live" answers replayed from the warm store
+//   node src/eval/lookup-eval.ts publish         evals/C10/metrics.json from private/c10/*.json (counts only)
 //
 // The coverage command writes the G1 and K1 inputs: `bookcase catalog coverage [--tune] --budget 0 [--no-local]`
 // and `--plan --all [--session <name>]`, their stdout saved under the data root's `private/c10/`.
@@ -14,12 +14,12 @@ import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "no
 import { join } from "node:path";
 import { DatabaseSync } from "node:sqlite";
 import { dataRoot } from "../ledger/images.ts";
-import { loadReadings, readJsonl, stageDir, type SpineDecision } from "../eval/f0.ts";
-import { catalogPaths, openCatalog } from "./cli.ts";
-import { drawSample, openLookup, parseOpenLibrary, queryKey, resolveBox, type BoxResult, type FetchLike, type OutsideRecord } from "./coverage.ts";
-import { copyKey, KnownIndex, LOOKUP, SPACING_MS, USER_AGENT, type CacheEntry, type Source } from "./lookup.ts";
-import { localTier } from "./lookup-local.ts";
-import { attributable, attribution, cachedEntries, planSummary } from "./lookup-plan.ts";
+import { loadReadings, readJsonl, stageDir, type SpineDecision } from "./f0.ts";
+import { catalogPaths, openCatalog } from "../catalog/cli.ts";
+import { drawSample, openLookup, parseOpenLibrary, queryKey, resolveBox, type BoxResult, type FetchLike, type OutsideRecord } from "../catalog/coverage.ts";
+import { copyKey, KnownIndex, LOOKUP, SPACING_MS, USER_AGENT, type CacheEntry, type Source } from "../catalog/lookup.ts";
+import { localTier } from "../catalog/lookup-local.ts";
+import { attributable, attribution, cachedEntries, planSummary } from "../catalog/lookup-plan.ts";
 
 const ROOT = dataRoot();
 const PRIV = join(ROOT, "private", "c10");
@@ -234,6 +234,6 @@ else if (cmd === "replay") await replay();
 else if (cmd === "before") before();
 else if (cmd === "publish") publish();
 else {
-  console.error("usage: node src/catalog/lookup-eval.ts g1 | attribution | batch-check | publish");
+  console.error("usage: node src/eval/lookup-eval.ts g1 | attribution | batch-check | publish");
   process.exitCode = 1;
 }

@@ -28,6 +28,15 @@ export function main(argv: string[]): number | Promise<number> {
     return 0;
   }
   if (cmd === "ingest") return ingestCommand(argv.slice(1));
+  if (cmd === "catalog" && argv[1] === "coverage") {
+    // C-4's evaluation runner lives in src/eval/ (DL-4b); the catalog module never imports it.
+    return import("../eval/coverage-cli.ts")
+      .then((m) => m.coverageCommand(argv.slice(2), process.env))
+      .catch((e: unknown) => {
+        console.error(`bookcase catalog coverage: ${(e as Error).message}`);
+        return 1;
+      });
+  }
   if (cmd === "catalog") return catalogCommand(argv.slice(1));
   if (cmd === "profile") return profileCommand(argv.slice(1));
   if (cmd === "replay") return replayCommand(argv.slice(1));

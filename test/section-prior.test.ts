@@ -191,7 +191,7 @@ describe("majorityForm", () => {
 });
 
 describe("the wall and popularity (structural)", () => {
-  const files = ["src/identify/section-prior.ts", "src/identify/section-prior-cli.ts"];
+  const files = ["src/identify/section-prior.ts", "src/eval/section-prior-cli.ts"];
 
   /** Every repo module a file reaches through relative imports. */
   function reach(start: string): Set<string> {
@@ -219,7 +219,7 @@ describe("the wall and popularity (structural)", () => {
 });
 
 describe("KN-1 adapter (termsOf, signTerms)", async () => {
-  const { termsOf, signTerms } = await import("../src/identify/section-prior-cli.ts");
+  const { termsOf, signTerms } = await import("../src/eval/section-prior-cli.ts");
   const { pickForm } = await import("../src/catalog/work-features.ts");
   const feat = (kind: "genre" | "form" | "subject", term: string, canon: string | null, family: string | null) => ({ workId: "w", kind, term, canon, family, count: 1, source: "isfdb-tag" as const, recordId: "r", fetched: "2026-10-31" });
   const g = (family: string) => feat("genre", family, `${family}-canon`, family);
