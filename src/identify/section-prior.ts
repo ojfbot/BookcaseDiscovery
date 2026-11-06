@@ -8,7 +8,8 @@
 // The reader's taste and the lenses never reach it (INV-13): this is what stands on this shelf, not what the reader likes.
 // The switch defaults to `off`; this card runs it in `shadow` (log what would change, change nothing). Constants are
 // pre-registered in evals/KN2/prereg.md and never tuned. Pure functions; the runner is section-prior-cli.ts.
-import { vote, type ReaderName, type ReaderVotes, type SpineDecision } from "../eval/f0.ts";
+import { vote, type ReaderVotes, type SpineDecision } from "./decision.ts";
+import type { ReaderName } from "./readers.ts";
 
 // --- the switch ----------------------------------------------------------------------------------------------
 
