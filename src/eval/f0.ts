@@ -12,12 +12,18 @@ import type { DatabaseSync } from "node:sqlite";
 import { guardCheck, LOOKALIKE, type GuardArm, type LookalikeGuard } from "../catalog/lookalike.ts";
 import { counterCheck, type CounterKind, type RarityBasis } from "../catalog/rarity.ts";
 import { retrieve, type Candidate } from "../catalog/retrieve.ts";
+import { confirms, vote, type ReaderVotes, type SpineDecision } from "../identify/decision.ts";
+import { READER_MODELS, READERS, type ReaderName } from "../identify/readers.ts";
 import { openAppender, shownPath } from "../ledger/durable.ts";
 import { checkLineage, makeStamp, writeLineage, type LineageExpect, type LineageSchema, type LineageStamp } from "../ledger/lineage.ts";
 import { modelHashes } from "../ledger/models.ts";
 import { cropFor, cropName, F0_CROP, type CropMethod } from "../perceive/crop.ts";
 import { OcrHelperError, runOcr, type OcrRequest, type OcrResponse } from "../perceive/ocr.ts";
 import { assignShelves, type LabelSet, type Photo, type Polygon4 } from "./labels.ts";
+
+// The decision core and the reader registry live in identify (DL-4: identify never imports eval); F-0 re-exports them.
+export { ACCEPT, confirms, vote, type ReaderVotes, type SpineDecision, type UnknownReason } from "../identify/decision.ts";
+export { READER_MODELS, READERS, type ReaderName } from "../identify/readers.ts";
 
 const REPO_ROOT = fileURLToPath(new URL("../../", import.meta.url));
 const HELPER = join(REPO_ROOT, "helpers", "label");
@@ -27,24 +33,6 @@ const HELPER = join(REPO_ROOT, "helpers", "label");
  * record names it (`crop`); records without one were read with F-0's original method (`F0_CROP`).
  */
 export const CROP: CropMethod = { ...F0_CROP, clip: true };
-
-/** Acceptance thresholds (OC36 yardstick 2). Conservative; see docs/machine-labelling.md. */
-export const ACCEPT = {
-  /**
-   * Retrieval evidence score of the agreed work, for each agreeing reader. Set from C-3's golden run, never from
-   * the yardstick: no-match top scores reached 0.721, correct top-1 scores went down to 0.71.
-   */
-  minScore: 0.72,
-  /** The title field must be explained, not just the author. */
-  minTitleEvidence: 0.8,
-  /** Share of the reading's tokens the work explains. */
-  minCoverage: 0.5,
-  /** Readers that must name the same work. */
-  minReaders: 2,
-} as const;
-
-export type ReaderName = "vision" | "ppocr" | "qwen";
-export const READERS: ReaderName[] = ["vision", "ppocr", "qwen"];
 
 export interface InputImage {
   /** Working-copy hash (or a yardstick file name): the stage key. */
@@ -104,27 +92,6 @@ export interface Reading {
   variants: ReadVariant[];
   seconds: number;
   error?: string;
-}
-
-export type UnknownReason = "no-text" | "no-catalog-match" | "single-reader" | "readers-disagree";
-
-export interface SpineDecision {
-  id: string;
-  imageId: string;
-  boxScore: number;
-  /** Top confirmed work per reader (null: the reader's best candidate failed the bar, or it read nothing). */
-  confirmed: Partial<Record<ReaderName, string | null>>;
-  /** Top candidate per reader, confirmed or not. */
-  top: Partial<Record<ReaderName, string | null>>;
-  readText: Partial<Record<ReaderName, boolean>>;
-  accepted: Candidate | null;
-  agreeing: ReaderName[];
-  reason: UnknownReason | null;
-  hard: boolean;
-  /** C-6: readers whose confirmation the lookalike guard withdrew, and the arm that did (absent without a guard). */
-  lookalike?: Partial<Record<ReaderName, GuardArm>>;
-  /** C-7: readers whose confirmation counter-evidence withdrew, and which kind (absent without the rarity basis). */
-  counter?: Partial<Record<ReaderName, CounterKind>>;
 }
 
 // --- stage plumbing ---------------------------------------------------------------------------
@@ -200,9 +167,6 @@ export const ARM_MODELS: Record<Arm, readonly string[]> = {
   b3: ["owlv2-base-patch16-ensemble", "sam2.1-hiera-base-plus"],
   b4: ["mm-grounding-dino-large-all", "sam2.1-hiera-base-plus"],
 };
-
-/** The model folders each reader loads. Apple Vision is the OS's framework, not a folder, so `vision` names none. */
-export const READER_MODELS: Record<ReaderName, readonly string[]> = { vision: [], ppocr: ["pp-ocrv5"], qwen: ["qwen3-vl-4b-8bit"] };
 
 /** The F-0 stage caches' file classes and format versions (DL-3): `<class>.jsonl` beside each other in a stage folder. */
 export const STAGE_SCHEMAS = {
@@ -465,13 +429,6 @@ export function variantsOf(r: Reading | undefined): string[] {
   return [...new Set(texts)];
 }
 
-/** Does the catalog confirm this candidate as the book (OC36 yardstick 2)? */
-export function confirms(c: Candidate | undefined): boolean {
-  if (!c) return false;
-  const title = c.evidence.find((e) => e.field === "title")?.score ?? 0;
-  return c.score >= ACCEPT.minScore && title >= ACCEPT.minTitleEvidence && c.queryCoverage >= ACCEPT.minCoverage;
-}
-
 export function topFor(db: DatabaseSync, r: Reading | undefined, cache: Map<string, Candidate | undefined>): Candidate | undefined {
   const variants = variantsOf(r);
   if (variants.length === 0) return undefined;
@@ -495,37 +452,6 @@ export function rankedFor(db: DatabaseSync, r: Reading | undefined, cache: Map<s
   const key = variants.join("\u0000");
   if (!cache.has(key)) cache.set(key, retrieve(db, variants, LOOKALIKE.depth));
   return cache.get(key)!;
-}
-
-/** What each reader said about one spine: read any text, its top candidate, and the work it confirms (if any). */
-export interface ReaderVotes {
-  readText: SpineDecision["readText"];
-  top: SpineDecision["top"];
-  confirmed: SpineDecision["confirmed"];
-}
-
-/** F-0's vote: two readers confirming one work, uniquely, accept it; otherwise the reason it stays unknown. */
-export function vote(v: ReaderVotes): Pick<SpineDecision, "agreeing" | "reason" | "hard"> & { acceptedId: string | null } {
-  const votes = new Map<string, ReaderName[]>();
-  for (const [reader, w] of Object.entries(v.confirmed) as [ReaderName, string | null][]) {
-    if (w) votes.set(w, [...(votes.get(w) ?? []), reader]);
-  }
-  const ranked = [...votes.entries()].sort((a, b) => b[1].length - a[1].length);
-  const best = ranked[0];
-  const unique = best && (ranked.length === 1 || ranked[1]![1].length < best[1].length);
-  let acceptedId: string | null = null;
-  let agreeing: ReaderName[] = [];
-  let reason: UnknownReason | null = null;
-  if (best && best[1].length >= ACCEPT.minReaders && unique) {
-    acceptedId = best[0];
-    agreeing = best[1];
-  } else if (!Object.values(v.readText).some(Boolean)) reason = "no-text";
-  else if (votes.size === 0) reason = "no-catalog-match";
-  else if (votes.size > 1) reason = "readers-disagree";
-  else reason = "single-reader";
-  // Hard crop (OC10 rule, served by the local VLM): the two OCR readers have not settled it.
-  const hard = !(v.confirmed.vision && v.confirmed.vision === v.confirmed.ppocr);
-  return { acceptedId, agreeing, reason, hard };
 }
 
 /**

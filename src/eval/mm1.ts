@@ -6,6 +6,7 @@
 // `evals/MM1/prereg.md`.
 
 import { z } from "zod";
+import { APPEARANCE_DEFAULT, APPEARANCE_MODES, type AppearanceMode } from "../identify/appearance.ts";
 import { READERS, type ReaderName } from "./f0.ts";
 import { rng } from "./q1.ts";
 import { RUNGS } from "./q2.ts";
@@ -14,14 +15,8 @@ import { BASES, contentHash, sha256, type Basis } from "./ts0.ts";
 
 // --- the appearance switch -------------------------------------------------------------------------------
 
-/**
- * How identify may use appearance: `off` (the default) records nothing and reads nothing; `shadow` (MM-2) logs what
- * appearance would say beside the text decision; `candidate` lets it propose works for the readers to test;
- * `vote` lets it add evidence to a text decision. In no mode do pixels confirm alone. Nothing reads it in MM-1.
- */
-export const APPEARANCE_MODES = ["off", "shadow", "candidate", "vote"] as const;
-export type AppearanceMode = (typeof APPEARANCE_MODES)[number];
-export const APPEARANCE_DEFAULT: AppearanceMode = "off";
+// The switch itself lives in identify, which reads it (DL-4: identify never imports eval); MM-1 re-exports it.
+export { APPEARANCE_DEFAULT, APPEARANCE_MODES, type AppearanceMode } from "../identify/appearance.ts";
 
 /** `--appearance <mode>`; the default when absent. An unknown mode is an error, never a silent default. */
 export function appearanceMode(argv: readonly string[] = process.argv): AppearanceMode {

@@ -10,8 +10,19 @@
 // may test with F-0's full bar; each reader model still casts at most one vote (INV-6) and appearance casts none.
 // Nothing here reads taste or the owner's reading context (INV-13). The runner is `src/eval/mm2-cli.ts`.
 
-import { READERS, vote, type ReaderName, type ReaderVotes, type UnknownReason } from "../eval/f0.ts";
-import type { AppearanceMode } from "../eval/mm1.ts";
+import { vote, type ReaderVotes, type UnknownReason } from "./decision.ts";
+import { READERS, type ReaderName } from "./readers.ts";
+
+// --- the appearance switch -------------------------------------------------------------------------------
+
+/**
+ * How identify may use appearance: `off` (the default) records nothing and reads nothing; `shadow` (MM-2) logs what
+ * appearance would say beside the text decision; `candidate` lets it propose works for the readers to test;
+ * `vote` lets it add evidence to a text decision. In no mode do pixels confirm alone. MM-1 re-exports it; MM-2 runs in `shadow`.
+ */
+export const APPEARANCE_MODES = ["off", "shadow", "candidate", "vote"] as const;
+export type AppearanceMode = (typeof APPEARANCE_MODES)[number];
+export const APPEARANCE_DEFAULT: AppearanceMode = "off";
 
 export const APPEARANCE = {
   /** The visual model of both arms (MM-1: SigLIP 2's same-work AUC 0.977 against DINOv2's 0.813). */
