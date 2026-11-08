@@ -246,6 +246,17 @@ describe("verify and restore", () => {
     await expect(restoreSnapshot(target, m, dest, () => true)).rejects.toThrow(/exists already/);
   });
 
+  it("refuses a manifest on the shared target that names a path outside the data root or a malformed hash", async () => {
+    const m = (await backupRun(root, target, { now })).manifest;
+    const file = join(target, TENANT_DIR, "snapshots", m.snapshot, "backup-manifest.json");
+    for (const tamper of [{ path: join("..", "..", "escape") }, { path: "/etc/x" }, { sha256: "../../../x" }]) {
+      chmodSync(file, 0o600);
+      writeFileSync(file, JSON.stringify({ ...m, files: [{ ...m.files[0]!, ...tamper }] }));
+      expect(() => readManifest(target, m.snapshot)).toThrow(/refused/);
+      await expect(verifySnapshot(target)).rejects.toThrow(/refused/);
+    }
+  });
+
   it("reports a missing target without naming it, and does not create it", async () => {
     const gone = join(base, `not-mounted-${n}`);
     await expect(backupRun(root, gone, { now })).rejects.toBeInstanceOf(BackupTargetError);

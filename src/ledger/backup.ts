@@ -18,10 +18,10 @@
 //
 // Never logged: the target's path, the data root's path, or any file name. The credentials file is never opened.
 import { createHash, randomUUID } from "node:crypto";
-import { lstatSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, readlinkSync, renameSync, rmSync, statSync, symlinkSync, utimesSync, writeFileSync, chmodSync } from "node:fs";
+import { lstatSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, readlinkSync, realpathSync, renameSync, rmSync, statSync, symlinkSync, utimesSync, writeFileSync, chmodSync } from "node:fs";
 import { open, stat } from "node:fs/promises";
 import { tmpdir } from "node:os";
-import { dirname, join, sep } from "node:path";
+import { dirname, isAbsolute, join, sep } from "node:path";
 import { DatabaseSync } from "node:sqlite";
 import { writeFileDurable } from "./durable.ts";
 
@@ -148,7 +148,8 @@ export function openTarget(target: string, opts: { write: boolean }): void {
   if (!st.isDirectory()) throw new BackupTargetError("the target is not a folder");
   if (!opts.write) return;
   try {
-    mkdirSync(incomingDir(target), { recursive: true });
+    mkdirSync(tenant(target), { recursive: true, mode: 0o700 });
+    mkdirSync(incomingDir(target), { recursive: true, mode: 0o700 });
     const probe = join(incomingDir(target), `probe-${randomUUID()}`);
     writeFileSync(probe, "");
     rmSync(probe);
@@ -186,8 +187,20 @@ export function listSnapshots(target: string): string[] {
   }).sort();
 }
 
+const SHA256 = /^[0-9a-f]{64}$/;
+/** A relative path with no `..`, empty or absolute part: what a manifest may name, so a restore stays in its folder. */
+const safeRel = (p: unknown): boolean => typeof p === "string" && p.length > 0 && !isAbsolute(p) && !p.split(/[/\\]/).some((x) => x === ".." || x === "" || x === ".");
+
+/**
+ * Read and check a snapshot's manifest. The share is shared with other tenants, so a manifest is not trusted: every
+ * hash must be a sha256 and every path relative and inside the data root, or the whole manifest is refused.
+ */
 export function readManifest(target: string, snapshot: string): BackupManifest {
-  return JSON.parse(readFileSync(join(snapshotsDir(target), snapshot, BACKUP_MANIFEST), "utf8")) as BackupManifest;
+  if (!safeRel(snapshot) || snapshot.includes("/")) throw new Error("not a snapshot id");
+  const m = JSON.parse(readFileSync(join(snapshotsDir(target), snapshot, BACKUP_MANIFEST), "utf8")) as BackupManifest;
+  const bad = !Array.isArray(m.files) || !Array.isArray(m.symlinks) || m.files.some((e) => !safeRel(e.path) || typeof e.sha256 !== "string" || !SHA256.test(e.sha256) || !Number.isInteger(e.size) || !CLASS_ORDER.includes(e.class)) || m.symlinks.some((x) => !safeRel(x.path) || typeof x.symlink !== "string");
+  if (bad) throw new Error("a snapshot's manifest names a path outside the data root or a malformed hash: refused");
+  return m;
 }
 
 /** The newest snapshot of `kind`, or null when the target has none. */
@@ -264,7 +277,7 @@ async function storeBody(target: string, src: string): Promise<{ sha256: string;
   const h = createHash("sha256");
   let size = 0;
   const rd = await open(src, "r");
-  const wr = await open(tmp, "w");
+  const wr = await open(tmp, "wx", 0o600);
   try {
     const buf = Buffer.allocUnsafe(CHUNK);
     for (;;) {
@@ -357,8 +370,8 @@ export async function backupLedgers(root: string, target: string, counts: Record
 
 function writeManifest(target: string, m: BackupManifest): void {
   const dir = join(snapshotsDir(target), m.snapshot);
-  mkdirSync(dir, { recursive: true });
-  writeFileDurable(join(dir, BACKUP_MANIFEST), JSON.stringify(m) + "\n");
+  mkdirSync(dir, { recursive: true, mode: 0o700 });
+  writeFileDurable(join(dir, BACKUP_MANIFEST), JSON.stringify(m) + "\n", { mode: 0o600 });
 }
 
 /** `backup snapshot`: the fact databases alone, as a `ledgers` snapshot. Cheap enough to run after every session. */
@@ -574,7 +587,7 @@ export async function restoreSnapshot(target: string, m: BackupManifest, dest: s
       await wr.close();
     }
     if (h.digest("hex") !== e.sha256) throw new Error(`a ${e.class} file's copy on the target does not match its hash: run \`bookcase backup verify\``);
-    chmodSync(out, e.mode);
+    chmodSync(out, e.mode & 0o777);
     utimesSync(out, e.mtimeMs / 1000, e.mtimeMs / 1000);
     counts.files++;
     counts.bytes += e.size;
@@ -582,7 +595,9 @@ export async function restoreSnapshot(target: string, m: BackupManifest, dest: s
     counts.byClass[e.class].bytes += e.size;
   });
   for (const s of m.symlinks.filter((x) => want(x.path, x.class))) {
+    // Links come after every file and are never written through: a link's folder must resolve inside the restore.
     mkdirSync(dirname(join(dest, s.path)), { recursive: true });
+    if (!(realpathSync(dirname(join(dest, s.path))) + sep).startsWith(realpathSync(dest) + sep)) throw new Error("a snapshot's symlink would land outside the restore folder: refused");
     symlinkSync(s.symlink, join(dest, s.path));
     counts.symlinks++;
   }
