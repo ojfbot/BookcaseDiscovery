@@ -19,7 +19,7 @@ jobs:
           fetch-depth: 0 # the history scan needs every commit
       - uses: actions/setup-node@v4
         with:
-          node-version: 24
+          node-version: 24.22.2
       # The guard has no dependencies, so it runs before (and without) `pnpm install`.
       - name: Scan the tree
         run: node scripts/privacy-guard.mjs
@@ -34,9 +34,9 @@ jobs:
       - uses: pnpm/action-setup@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: 24
+          node-version: 24.22.2
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - run: pnpm typecheck
       - run: pnpm exec node scripts/check-fleet-vendor.mjs
-      - run: pnpm exec vitest run test/fleet.test.ts test/fleet-service.test.ts test/fleet-runtime.test.ts test/jobs.test.ts test/read-qwen.test.ts test/read-qwen-cli.test.ts
+      - run: pnpm exec vitest run test/fleet-inputs.test.ts test/fleet.test.ts test/fleet-service.test.ts test/fleet-runtime.test.ts test/jobs.test.ts test/read-qwen.test.ts test/read-qwen-cli.test.ts
