@@ -210,7 +210,7 @@ export async function fleetCommand(argv: string[], env: NodeJS.ProcessEnv = proc
           // Aggregate process state only. Never serialize a job, error, or environment.
           writeFileSync(statusTemp, state + "\n", { mode: 0o600 });
           renameSync(statusTemp, statusFile);
-          writeFileSync(join(fleetDir, "resident-diagnostic.json"), JSON.stringify({ state, ...(nas ? { eligibility: eligibility.reason } : {}), ...(code ? { code } : {}) }), { mode: 0o600 });
+          writeFileSync(join(fleetDir, "resident-diagnostic.json"), JSON.stringify({ state, pid: process.pid, observedAt: Date.now(), ...(nas ? { eligibility: eligibility.reason } : {}), ...(code ? { code } : {}) }), { mode: 0o600 });
           previousState = identity;
         };
         try {

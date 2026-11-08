@@ -13,16 +13,17 @@ const dir = join(dataRoot(env), "fleet");
 const steps: { phase: string; at: number; passed: boolean }[] = [];
 const record = (phase: string) => { steps.push({ phase, at: Date.now(), passed: true }); console.log(JSON.stringify({ phase, passed: true })); };
 const call = async (...args: string[]) => assert.equal(await fleetCommand(["nas", ...args], env), 0);
-const reason = () => JSON.parse(readFileSync(join(dir, "resident-diagnostic.json"), "utf8")).eligibility;
-const waitReason = async (expected: string) => {
-  for (let i = 0; i < 40; i++) { try { if (reason() === expected) return; } catch { /* Wait for supervised process snapshot. */ } await delay(500); }
+const diagnostic = () => JSON.parse(readFileSync(join(dir, "resident-diagnostic.json"), "utf8")) as { eligibility: string; pid: number };
+const waitReason = async (expected: string, previousPid?: number) => {
+  for (let i = 0; i < 90; i++) { try { const info = diagnostic(); if (info.eligibility === expected && typeof info.pid === "number" && info.pid !== previousPid) return; } catch { /* Wait for supervised process snapshot. */ } await delay(500); }
   throw Error("eligibility-readback-failed");
 };
 try {
   await call("pause"); await call("reserve"); await call("service", "start");
   await waitReason("paused"); record("paused"); await delay(12_000);
+  const previousPid = diagnostic().pid;
   await call("service", "stop"); await call("service", "start");
-  await waitReason("paused"); record("rejoined-paused"); await delay(12_000);
+  await waitReason("paused", previousPid); record("rejoined-paused"); await delay(12_000);
   let duplicateDenied = false;
   const original = console.error;
   try { console.error = (message: unknown) => { if (message === "fleet command failed (EADDRINUSE)") duplicateDenied = true; };

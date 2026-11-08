@@ -4,6 +4,7 @@ Card sessions and the conductor log deviations here (docs/plan/OPERATING-MODEL.m
 The count is a discovery rate, not a defect rate.
 
 ## Deviations
+- **2026-11-08 (G4 native rejoin).** The first native qualifier accepted a stale paused file while launchd delayed its replacement process, so the duplicate probe arrived before the resident held its slot. Retain the failed run uncounted; require a different live diagnostic PID before the rejoin phase and allow the documented launchd throttle. The offered job stayed unclaimed.
 - **2026-11-08 (NAS client CI).** The old handler stack carried the pre-registration-unaware privacy guard, so full-history CI rejected already-public mainline preregistrations. Reuse the current main guard, documentation and tests (including stronger dataset exclusions); do not suppress history scanning. The vendor checker now includes the two new runtime modules and the auth type needed by pinned queue declarations.
 - **2026-11-08 (NAS inputs).** Core remains a private workspace package in an unmerged stack; retain the approved pinned source client vendor fallback at `4e4cd6dc1c4a3fa8ef24f77c06a71e98ba9799a8` rather than add a Git dependency that builds the whole core workspace. Runtime imports alone change from .js to .ts for Node type stripping.
 - **2026-11-08 (NAS proof scope).** Keep the original pilot service untouched with a separate NAS profile. Advertise only read-vision here; Qwen/training/resource qualification and full G4 acceptance remain open.
