@@ -4,16 +4,18 @@ import { join } from "node:path";
 import { beforeEach, expect, it, vi } from "vitest";
 import { fleetCommand } from "../src/run/fleet-cli.ts";
 
-const { client, report, runWorker, workOnce, mayClaim } = vi.hoisted(() => ({
+const { client, report, runWorker, workOnce, mayClaim, acquireSlot } = vi.hoisted(() => ({
+  acquireSlot: vi.fn(),
   client: vi.fn(),
   report: vi.fn(),
   runWorker: vi.fn(),
   workOnce: vi.fn(),
   mayClaim: vi.fn(),
 }));
-vi.mock("../src/run/vendor/fleet-runner/client.ts", () => ({ fleetClient: client }));
+vi.mock("../src/run/vendor/fleet-runner/client.ts", async (original) => ({ ...await original<typeof import("../src/run/vendor/fleet-runner/client.ts")>(), fleetClient: client }));
 vi.mock("../src/run/vendor/fleet-runner/worker.ts", () => ({ runWorker, workOnce }));
 vi.mock("../src/run/fleet-worker-policy.ts", () => ({ mayClaim }));
+vi.mock("../src/run/fleet-eligibility.ts", async (original) => ({ ...await original<typeof import("../src/run/fleet-eligibility.ts")>(), acquireNasSlot: acquireSlot }));
 vi.mock("../src/run/job-kinds.ts", async (importOriginal) => ({
   ...await importOriginal<typeof import("../src/run/job-kinds.ts")>(),
   detectCapabilities: () => ["apple-vision"],
@@ -87,4 +89,20 @@ it("reports both workers' aggregate state using owner authentication", async () 
   } finally {
     output.mockRestore();
   }
+});
+
+it("uses the host resource slot for NAS one-shot as well as resident execution", async () => {
+  const data = mkdtempSync(join(tmpdir(), "nas-slot-runtime-"));
+  const originalPlatform = Object.getOwnPropertyDescriptor(process, "platform")!;
+  acquireSlot.mockRejectedValue(Object.assign(new Error("synthetic occupied slot"), { code: "EADDRINUSE" }));
+  const errors = vi.spyOn(console, "error").mockImplementation(() => {});
+  try {
+    Object.defineProperty(process, "platform", { value: "darwin", configurable: true });
+    for (const command of ["work", "serve-worker"]) {
+      const result = await fleetCommand(["nas", command, "yojimbo"], { ...env, BOOKCASE_DATA: data, BOOKCASE_OCR_VISION: process.execPath });
+      expect(result).toBe(1);
+    }
+    expect(acquireSlot).toHaveBeenCalledTimes(2);expect(workOnce).not.toHaveBeenCalled();expect(runWorker).not.toHaveBeenCalled();
+    expect(errors).toHaveBeenCalledWith("fleet command failed (EADDRINUSE)");
+  } finally { Object.defineProperty(process, "platform", originalPlatform);errors.mockRestore();rmSync(data, { recursive: true, force: true }); }
 });

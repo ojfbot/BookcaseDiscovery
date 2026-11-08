@@ -42,3 +42,26 @@ it("never invokes a handler after a corrupt or interrupted transfer; repairs a c
   await expect(withFleetInputs({ downloadInput: async () => bytes }, fresh, run)(claim, { ...context(root), signal: abort.signal })).rejects.toMatchObject({ code: "interrupted" });
   expect(fresh.has(stored.hash)).toBe(false);
 });
+
+it("rejects a real mid-stream disconnect without committing cache bytes, then retries verified content", async () => {
+  const { createServer } = await import("node:http");
+  const { generateToken } = await import("../src/run/vendor/fleet-runner/auth.ts");
+  const { fleetClient } = await import("../src/run/vendor/fleet-runner/client.ts");
+  const key = join(root, "synthetic-credential"); generateToken(key);
+  let interrupt = true;
+  const server = createServer((_request, response) => {
+    response.writeHead(200, { "content-length": bytes.length, connection: "close" });
+    if (interrupt) { response.write(bytes.subarray(0, 3)); setImmediate(() => response.destroy()); }
+    else response.end(bytes);
+  });
+  await new Promise<void>(resolve => server.listen(0, "127.0.0.1", resolve));
+  const client = fleetClient(`http://127.0.0.1:${(server.address() as { port: number }).port}`, "synthetic", key);
+  const images = new ImageStore(root);const handler = vi.fn(async () => ({ file: "synthetic", sha256: "synthetic" }));
+  const wrapped = withFleetInputs(client, images, handler);
+  try {
+    await expect(wrapped(claim, context(root))).rejects.toThrow();
+    expect(images.has(claim.inputs[0]!)).toBe(false);expect(handler).not.toHaveBeenCalled();
+    interrupt = false; await wrapped(claim, context(root));
+    expect(images.verify(claim.inputs[0]!)).toBe(true);expect(handler).toHaveBeenCalledOnce();
+  } finally { await new Promise<void>(resolve => server.close(() => resolve())); }
+});

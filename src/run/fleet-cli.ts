@@ -1,11 +1,11 @@
 import { execFileSync } from "node:child_process";
 import { existsSync, mkdirSync, readFileSync, renameSync, rmSync, writeFileSync } from "node:fs";
-import { createServer } from "node:net";
 import { basename, extname, join, resolve } from "node:path";
 import { dataRoot, ImageStore } from "../ledger/images.ts";
 import { defaultOcrBinary, ocrBinaryAvailable } from "../perceive/ocr.ts";
 import { isServiceWorker, workerService } from "./fleet-service.ts";
-import { mayClaim, nasMayClaim } from "./fleet-worker-policy.ts";
+import { mayClaim } from "./fleet-worker-policy.ts";
+import { acquireNasSlot, nasEligibility } from "./fleet-eligibility.ts";
 import { errorCode } from "./vendor/fleet-runner/diagnostics.ts";
 import { withFleetInputs } from "./fleet-inputs.ts";
 import { detectCapabilities, ocrHelperId, readVisionHandler, readVisionJob } from "./job-kinds.ts";
@@ -24,7 +24,7 @@ import type { JobSpec, JobHandler } from "./vendor/fleet-runner/jobs.js";
 import { runWorker, workOnce } from "./vendor/fleet-runner/worker.ts";
 
 const usage =
-  "usage: bookcase fleet [nas] <pause | resume | keygen | stage PHOTO | enqueue PHOTO | pins | admit JOB | check JOB OUTPUT [CACHED] | work WORKER | serve-worker WORKER | service | report | verify WORKER>";
+  "usage: bookcase fleet [nas] <pause | resume | reserve | unreserve | eligibility WORKER | keygen | stage PHOTO | enqueue PHOTO | pins | admit JOB | check JOB OUTPUT [CACHED] | work WORKER | serve-worker WORKER | service | report | verify WORKER>";
 
 function dimensions(photo: string): [number, number] {
   const result = execFileSync("/usr/bin/sips", ["-g", "pixelWidth", "-g", "pixelHeight", photo], {
@@ -46,12 +46,13 @@ export async function fleetCommand(argv: string[], env: NodeJS.ProcessEnv = proc
   const root = dataRoot(env);
   const fleetDir = join(root, "fleet");
   const images = new ImageStore(root);
-  if (command === "pause" || command === "resume") {
+  if (["pause", "resume", "reserve", "unreserve"].includes(command ?? "")) {
     if (argv.length !== 1 || env.FLEET_SERVICE_PROFILE !== "nas") return 1;
     mkdirSync(fleetDir, { recursive: true });
-    if (command === "pause") writeFileSync(join(fleetDir, "paused"), "paused\n", { mode: 0o600 });
-    else rmSync(join(fleetDir, "paused"), { force: true });
-    console.log(`fleet worker ${command === "pause" ? "paused; current attempt drains" : "resumed"}`);
+    const marker = command === "pause" || command === "resume" ? "paused" : "resource-busy";
+    if (command === "pause" || command === "reserve") writeFileSync(join(fleetDir, marker), "held\n", { mode: 0o600 });
+    else rmSync(join(fleetDir, marker), { force: true });
+    console.log(`fleet worker ${command === "pause" ? "paused; current attempt drains" : command === "resume" ? "resumed" : command === "reserve" ? "resource reserved; current attempt drains" : "resource released"}`);
     return 0;
   }
   const token = env.FLEET_TOKEN_FILE;
@@ -61,7 +62,7 @@ export async function fleetCommand(argv: string[], env: NodeJS.ProcessEnv = proc
     return 0;
   }
   const arity = command === "keygen" || command === "report" || command === "pins" ? [1] : command === "check" ? [3, 4] : [2];
-  if (!["keygen", "stage", "enqueue", "pins", "admit", "check", "work", "serve-worker", "report", "verify"].includes(command ?? "") || !arity.includes(argv.length)) {
+  if (!["keygen", "stage", "enqueue", "pins", "admit", "check", "work", "serve-worker", "report", "verify", "eligibility"].includes(command ?? "") || !arity.includes(argv.length)) {
     console.error(usage);
     return 1;
   }
@@ -103,6 +104,13 @@ export async function fleetCommand(argv: string[], env: NodeJS.ProcessEnv = proc
       const cached = compareWithCached(job, output, readFileSync(resolve(argv[3]), "utf8"));
       console.log(`cached readings equal: ${cached.equal} of ${result.requests} (${cached.differ} differ, ${cached.missing} not cached)`);
       return cached.equal === result.requests ? 0 : 1;
+    }
+    if (command === "eligibility" && env.FLEET_SERVICE_PROFILE === "nas") {
+      const binary = defaultOcrBinary(env);
+      let expected = "";
+      try { expected = ocrHelperId(binary); } catch { /* The eligibility result reports missing helper. */ }
+      console.log(JSON.stringify(nasEligibility(arg!, fleetDir, binary, expected)));
+      return 0;
     }
     if (!token || !endpoint) throw new Error("missing fleet configuration");
     if (command === "report") {
@@ -157,7 +165,14 @@ export async function fleetCommand(argv: string[], env: NodeJS.ProcessEnv = proc
         return 1;
       }
       const nas = env.FLEET_SERVICE_PROFILE === "nas";
-      const policy = () => nas ? nasMayClaim(arg!, join(fleetDir, "daytime-exception.json")) : mayClaim(arg!);
+      if (nas && !isServiceWorker(arg)) throw new Error("invalid-worker");
+      const expectedHelper = nas ? ocrHelperId(binary) : "";
+      let eligibility = { eligible: true, reason: "eligible" } as ReturnType<typeof nasEligibility>;
+      const policy = () => {
+        if (!nas) return mayClaim(arg!);
+        eligibility = nasEligibility(arg!, fleetDir, binary, expectedHelper);
+        return eligibility.eligible;
+      };
       const caps = nas ? ["apple-vision"] : detectCapabilities(env);
       if (nas && (!ocrBinaryAvailable(binary) || process.platform !== "darwin")) throw new Error("helper-unavailable");
       if (nas) caps.push(`host-${arg}`);
@@ -179,10 +194,9 @@ export async function fleetCommand(argv: string[], env: NodeJS.ProcessEnv = proc
         handlers,
         outDir: join(fleetDir, "attempts"),
       };
+      const releaseSlot = nas ? await acquireNasSlot() : undefined;
+      try {
       if (command === "serve-worker") {
-        // Host-wide NAS profile mutex: the OS releases the socket when the process dies.
-        const slot = nas ? createServer(socket => socket.destroy()) : undefined;
-        if (slot) await new Promise<void>((resolve, reject) => { slot.once("error", reject); slot.listen(48788, "127.0.0.1", resolve); });
         const stop = new AbortController();
         const drain = () => stop.abort();
         process.on("SIGTERM", drain);
@@ -191,12 +205,12 @@ export async function fleetCommand(argv: string[], env: NodeJS.ProcessEnv = proc
         const statusTemp = `${statusFile}.${process.pid}.tmp`;
         let previousState: string | undefined;
         const recordStatus = (state: string, code?: string) => {
-          const identity = `${state}:${code ?? ""}`;
+          const identity = `${state}:${code ?? ""}:${nas ? eligibility.reason : ""}`;
           if (identity === previousState) return;
           // Aggregate process state only. Never serialize a job, error, or environment.
           writeFileSync(statusTemp, state + "\n", { mode: 0o600 });
           renameSync(statusTemp, statusFile);
-          writeFileSync(join(fleetDir, "resident-diagnostic.json"), JSON.stringify({ state, ...(code ? { code } : {}) }), { mode: 0o600 });
+          writeFileSync(join(fleetDir, "resident-diagnostic.json"), JSON.stringify({ state, ...(nas ? { eligibility: eligibility.reason } : {}), ...(code ? { code } : {}) }), { mode: 0o600 });
           previousState = identity;
         };
         try {
@@ -205,13 +219,12 @@ export async function fleetCommand(argv: string[], env: NodeJS.ProcessEnv = proc
           await runWorker(client, {
             ...worker,
             signal: stop.signal,
-            canClaim: () => !existsSync(join(fleetDir, "paused")) && !existsSync(join(fleetDir, "resource-busy")) && policy(),
+            canClaim: () => policy(),
             onEvent: (event) => recordStatus(event.type, event.type === "request-error" ? event.code : undefined),
           });
         } finally {
           process.off("SIGTERM", drain);
           process.off("SIGINT", drain);
-          slot?.close();
         }
         return 0;
       }
@@ -219,6 +232,7 @@ export async function fleetCommand(argv: string[], env: NodeJS.ProcessEnv = proc
       const result = await workOnce(client, worker);
       console.log(`fleet worker ${result}`);
       return result === "completed" ? 0 : 1;
+      } finally { await releaseSlot?.(); }
     }
 
     const report = await fleetClient(endpoint, "owner", token).verify(readFileSync(keyFile, "utf8"));

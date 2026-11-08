@@ -325,3 +325,41 @@ response contract/order checks passed, with one claim per host and zero failed
 or stale attempts. Synthetic CI passes; these aggregate receipts contain no
 photo, reader text, input ID, private path or credential. This proves the bounded
 Mac/input milestone, not the full G4 policy/resource matrix or a live cutover.
+
+## G4 policy/resource qualification
+
+The NAS resident and one-shot clients now acquire the same host-wide slot.
+Before each claim, the worker rechecks pause/reservation, its original full
+helper pin, and the Chicago/AC policy. A changed or missing helper stops new
+claims instead of burning a job against stale advertised capabilities. Only
+read-vision is advertised in this release profile; Qwen/training stay unavailable.
+
+```sh
+pnpm exec ./bin/bookcase fleet nas eligibility "$WORKER"
+pnpm exec ./bin/bookcase fleet nas reserve    # external model owner reserves host slot
+pnpm exec ./bin/bookcase fleet nas unreserve  # releases that reservation
+```
+
+Eligibility reports only a fixed reason: eligible, daytime-exception, paused,
+resource-busy, outside-window, battery, power-unknown, helper-unavailable,
+helper-changed, or unsupported-worker. Pause/reserve allow an already-running
+attempt to drain. Missing/unknown power and malformed/expired exceptions deny
+new Yuri claims. A reservation is an explicit operator/application contract;
+it does not infer arbitrary GPU occupancy from process names.
+
+The synthetic matrix covers Chicago start/end and both DST transitions,
+battery/unknown/failed power probes, same-day/expired/future exceptions,
+pause/reservation/helper drift and duplicate slot acquisition. Mid-stream
+input disconnects publish no cache bytes and never invoke a handler; a later
+verified retry succeeds. Existing job/read-qwen tests retain capability/kind
+and helper/model mismatch cases.
+
+On each Mac, after updating to the exact reviewed candidate and reinstalling
+only the NAS profile: pause and start it, reserve the resource, and confirm
+eligibility reports the appropriate gate. The conductor offers one host-scoped
+read-vision job; it must remain unclaimed through pause, service rejoin and
+reservation. The one-shot command must reject the occupied slot. Resume while
+still reserved must not claim; unreserve then permits the resident to complete.
+Report only phase/count/eligibility booleans through HelpDesk. The conductor
+checks accepted output hashes and contract; no photo, text, key or path goes
+into public evidence. Leave both profiles running under their normal policy.

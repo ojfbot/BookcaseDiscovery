@@ -245,3 +245,4 @@ the LAN pilot, and the read-vision implementation stays here.
   `973dcfdfc43129353b0ec37fc1a27fcbe97a2f85`. The unattended claim policy
   belongs to this client. The user LaunchAgent pins the selected Node
   runtime and leaves the host's power settings under the owner's control.
+- **2026-11-08 (G4 policy/resources).** The first NAS profile locked only the resident entrypoint and reduced all denied eligibility to paused. Apply one host slot and the same gate to resident and one-shot clients, recheck helper drift, and report fixed eligibility reasons. External model owners reserve explicitly; no unapproved automatic activity/GPU heuristic is introduced. The qualified NAS allowlist remains read-vision only.
