@@ -90,3 +90,25 @@ it("installs disabled, starts, reports a sanitized status, then disables and dra
     output.mockRestore();
   }
 });
+
+it("isolates the NAS service label and pins TLS trust and automatic inputs", () => {
+  const nas = { ...env, FLEET_SERVICE_PROFILE: "nas", FLEET_ENDPOINT: "https://fleet.test:8788", NODE_EXTRA_CA_CERTS: join(home, "ca.crt") };
+  const plist = workerPlist(process.execPath, "yuri", nas);
+  expect(plist).toContain("org.bookcasediscovery.fleet-worker.nas");
+  expect(plist).toContain("<key>FLEET_AUTO_INPUTS</key><string>1</string>");
+  expect(plist).toContain("<key>NODE_EXTRA_CA_CERTS</key>");
+  expect(() => workerPlist(process.execPath, "yuri", { ...nas, FLEET_ENDPOINT: "http://fleet.test:8788" })).toThrow();
+  expect(() => workerPlist(process.execPath, "yuri", { ...nas, NODE_EXTRA_CA_CERTS: "relative" })).toThrow();
+});
+
+it("expires the NAS daytime exception at Chicago midnight and still rejects battery/unknown power", async () => {
+  const { daytimeMayClaim } = await import("../src/run/fleet-worker-policy.ts");
+  const file = join(home, "daytime.json");
+  writeFileSync(file, JSON.stringify({ until: "2026-11-09T06:00:00Z" }));
+  expect(daytimeMayClaim(file, new Date("2026-11-08T21:00:00Z"), ac)).toBe(true);
+  expect(daytimeMayClaim(file, new Date("2026-11-09T06:00:00Z"), ac)).toBe(false);
+  expect(daytimeMayClaim(file, new Date("2026-11-08T21:00:00Z"), () => "Now drawing from 'Battery Power'\n")).toBe(false);
+  expect(daytimeMayClaim(file, new Date("2026-11-08T21:00:00Z"), () => "unknown")).toBe(false);
+  writeFileSync(file, JSON.stringify({ until: "2026-11-10T06:00:00Z" }));
+  expect(daytimeMayClaim(file, new Date("2026-11-08T21:00:00Z"), ac)).toBe(false);
+});

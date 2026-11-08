@@ -1,10 +1,13 @@
 import { execFileSync } from "node:child_process";
-import { mkdirSync, readFileSync, renameSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, renameSync, rmSync, writeFileSync } from "node:fs";
+import { createServer } from "node:net";
 import { basename, extname, join, resolve } from "node:path";
 import { dataRoot, ImageStore } from "../ledger/images.ts";
-import { defaultOcrBinary } from "../perceive/ocr.ts";
+import { defaultOcrBinary, ocrBinaryAvailable } from "../perceive/ocr.ts";
 import { isServiceWorker, workerService } from "./fleet-service.ts";
-import { mayClaim } from "./fleet-worker-policy.ts";
+import { mayClaim, nasMayClaim } from "./fleet-worker-policy.ts";
+import { errorCode } from "./vendor/fleet-runner/diagnostics.ts";
+import { withFleetInputs } from "./fleet-inputs.ts";
 import { detectCapabilities, ocrHelperId, readVisionHandler, readVisionJob } from "./job-kinds.ts";
 import { canonicalJson } from "./jobs.ts";
 import {
@@ -17,11 +20,11 @@ import {
 } from "./read-qwen.ts";
 import { generateToken } from "./vendor/fleet-runner/auth.ts";
 import { fleetClient } from "./vendor/fleet-runner/client.ts";
-import type { JobSpec } from "./vendor/fleet-runner/jobs.js";
+import type { JobSpec, JobHandler } from "./vendor/fleet-runner/jobs.js";
 import { runWorker, workOnce } from "./vendor/fleet-runner/worker.ts";
 
 const usage =
-  "usage: bookcase fleet <keygen | stage PHOTO | enqueue PHOTO | pins | admit JOB | check JOB OUTPUT [CACHED] | work WORKER | serve-worker WORKER | service | report | verify WORKER>";
+  "usage: bookcase fleet [nas] <pause | resume | keygen | stage PHOTO | enqueue PHOTO | pins | admit JOB | check JOB OUTPUT [CACHED] | work WORKER | serve-worker WORKER | service | report | verify WORKER>";
 
 function dimensions(photo: string): [number, number] {
   const result = execFileSync("/usr/bin/sips", ["-g", "pixelWidth", "-g", "pixelHeight", photo], {
@@ -37,11 +40,20 @@ function dimensions(photo: string): [number, number] {
 }
 
 export async function fleetCommand(argv: string[], env: NodeJS.ProcessEnv = process.env): Promise<number> {
+  if (argv[0] === "nas") return fleetCommand(argv.slice(1), { ...env, FLEET_SERVICE_PROFILE: "nas", FLEET_AUTO_INPUTS: "1" });
   const [command, arg] = argv;
   if (command === "service") return workerService(argv.slice(1), env);
   const root = dataRoot(env);
   const fleetDir = join(root, "fleet");
   const images = new ImageStore(root);
+  if (command === "pause" || command === "resume") {
+    if (argv.length !== 1 || env.FLEET_SERVICE_PROFILE !== "nas") return 1;
+    mkdirSync(fleetDir, { recursive: true });
+    if (command === "pause") writeFileSync(join(fleetDir, "paused"), "paused\n", { mode: 0o600 });
+    else rmSync(join(fleetDir, "paused"), { force: true });
+    console.log(`fleet worker ${command === "pause" ? "paused; current attempt drains" : "resumed"}`);
+    return 0;
+  }
   const token = env.FLEET_TOKEN_FILE;
   const endpoint = env.FLEET_ENDPOINT;
   if (command === "--help" || command === "-h") {
@@ -122,10 +134,17 @@ export async function fleetCommand(argv: string[], env: NodeJS.ProcessEnv = proc
           photo,
           [{ id: "pilot", polygon: [[0, 0], [w - 1, 0], [w - 1, h - 1], [0, h - 1]], rotations: [0] }],
           ocrHelperId(binary),
-          { payload: null },
+          { payload: null, ...(env.FLEET_SERVICE_PROFILE === "nas" ? { requires: ["apple-vision", `vision-${ocrHelperId(binary).split(":").at(-1)!.slice(0, 48)}`] } : {}) },
         );
       }
-      const result = await fleetClient(endpoint, "owner", token).enqueue(spec);
+      const client = fleetClient(endpoint, "owner", token);
+      if (env.FLEET_AUTO_INPUTS === "1") {
+        for (const hash of spec.inputs) {
+          const image = command === "enqueue" ? resolve(arg!) : images.find(hash);
+          if (!image || await client.uploadInput(readFileSync(image)) !== hash) throw new Error("input-mismatch");
+        }
+      }
+      const result = await client.enqueue(spec);
       if (!/^[a-f0-9]{64}$/.test(result.key)) throw new Error("invalid admitted key");
       mkdirSync(fleetDir, { recursive: true });
       writeFileSync(keyFile, result.key, { mode: 0o600 });
@@ -137,24 +156,33 @@ export async function fleetCommand(argv: string[], env: NodeJS.ProcessEnv = proc
         console.error("fleet work needs a worker identity");
         return 1;
       }
-      const caps = detectCapabilities(env);
+      const nas = env.FLEET_SERVICE_PROFILE === "nas";
+      const policy = () => nas ? nasMayClaim(arg!, join(fleetDir, "daytime-exception.json")) : mayClaim(arg!);
+      const caps = nas ? ["apple-vision"] : detectCapabilities(env);
+      if (nas && (!ocrBinaryAvailable(binary) || process.platform !== "darwin")) throw new Error("helper-unavailable");
+      if (nas) caps.push(`host-${arg}`);
+      if (nas) caps.push(`vision-${ocrHelperId(binary).split(":").at(-1)!.slice(0, 48)}`);
       if (!caps.includes("apple-vision")) {
         console.error("fleet work needs the executable OCR helper");
         return 1;
       }
       const client = fleetClient(endpoint, arg!, token);
+      let handlers: Record<string, JobHandler> = {
+        "read-vision": readVisionHandler({ binary, resolveImage: (hash) => images.find(hash) }),
+        ...(caps.some((c) => c.startsWith("read-qwen-"))
+          ? { "read-qwen": readQwenHandler({ modelDir: qwenModels, resolveImage: (hash) => images.find(hash) }) }
+          : {}),
+      };
+      if (env.FLEET_AUTO_INPUTS === "1") handlers = Object.fromEntries(Object.entries(handlers).map(([kind, handler]) => [kind, withFleetInputs(client, images, handler)]));
       const worker = {
         caps,
-        handlers: {
-          "read-vision": readVisionHandler({ binary, resolveImage: (hash) => images.find(hash) }),
-          // Registered only where the pins were detected; the handler re-checks them on every attempt.
-          ...(caps.some((c) => c.startsWith("read-qwen-"))
-            ? { "read-qwen": readQwenHandler({ modelDir: qwenModels, resolveImage: (hash) => images.find(hash) }) }
-            : {}),
-        },
+        handlers,
         outDir: join(fleetDir, "attempts"),
       };
       if (command === "serve-worker") {
+        // Host-wide NAS profile mutex: the OS releases the socket when the process dies.
+        const slot = nas ? createServer(socket => socket.destroy()) : undefined;
+        if (slot) await new Promise<void>((resolve, reject) => { slot.once("error", reject); slot.listen(48788, "127.0.0.1", resolve); });
         const stop = new AbortController();
         const drain = () => stop.abort();
         process.on("SIGTERM", drain);
@@ -175,15 +203,17 @@ export async function fleetCommand(argv: string[], env: NodeJS.ProcessEnv = proc
           await runWorker(client, {
             ...worker,
             signal: stop.signal,
-            canClaim: () => mayClaim(arg!),
+            canClaim: () => !existsSync(join(fleetDir, "paused")) && !existsSync(join(fleetDir, "resource-busy")) && policy(),
             onEvent: ({ type }) => recordStatus(type),
           });
         } finally {
           process.off("SIGTERM", drain);
           process.off("SIGINT", drain);
+          slot?.close();
         }
         return 0;
       }
+      if (nas && !policy()) { console.log("fleet worker paused"); return 1; }
       const result = await workOnce(client, worker);
       console.log(`fleet worker ${result}`);
       return result === "completed" ? 0 : 1;
@@ -196,8 +226,8 @@ export async function fleetCommand(argv: string[], env: NodeJS.ProcessEnv = proc
     console.log(`worker ${worker}: ${completed} completed`);
     console.log(`accepted output SHA-256: ${report.verified ? "matches" : "unverified"}`);
     return completed === 1 && report.verified ? 0 : 1;
-  } catch {
-    console.error("fleet command failed");
+  } catch (error) {
+    console.error(`fleet command failed (${errorCode(error)})`);
     return 1;
   } finally {
     process.umask(previousUmask);

@@ -27,16 +27,24 @@ export function workerPlist(node: string, worker: string, env: NodeJS.ProcessEnv
     BOOKCASE_OCR_VISION: env.BOOKCASE_OCR_VISION,
     FLEET_TOKEN_FILE: env.FLEET_TOKEN_FILE,
     FLEET_ENDPOINT: env.FLEET_ENDPOINT,
+    ...(env.FLEET_SERVICE_PROFILE === "nas" ? {
+      FLEET_SERVICE_PROFILE: "nas",
+      FLEET_AUTO_INPUTS: "1",
+      FLEET_KINDS: "read-vision",
+      NODE_EXTRA_CA_CERTS: env.NODE_EXTRA_CA_CERTS,
+    } : {}),
   };
   for (const path of [node, values.BOOKCASE_DATA, values.BOOKCASE_OCR_VISION, values.FLEET_TOKEN_FILE]) {
     if (!path || !isAbsolute(path)) throw new Error("service paths must be absolute");
   }
   if (!isServiceWorker(worker) || !values.FLEET_ENDPOINT) throw new Error("invalid service configuration");
   const endpoint = new URL(values.FLEET_ENDPOINT);
-  if (endpoint.protocol !== "http:" || endpoint.username || endpoint.password ||
+  if (!["http:", "https:"].includes(endpoint.protocol) || endpoint.username || endpoint.password ||
       endpoint.pathname !== "/" || endpoint.search || endpoint.hash) {
     throw new Error("invalid service endpoint");
   }
+  if (env.FLEET_SERVICE_PROFILE === "nas" && (endpoint.protocol !== "https:" || !values.NODE_EXTRA_CA_CERTS || !isAbsolute(values.NODE_EXTRA_CA_CERTS)))
+    throw new Error("NAS service requires trusted TLS");
   const args = [node, entry, "fleet", "serve-worker", worker].map(plistString).join("\n");
   const environment = Object.entries(values)
     .map(([name, value]) => `<key>${name}</key>${plistString(value!)}`)
@@ -44,7 +52,7 @@ export function workerPlist(node: string, worker: string, env: NodeJS.ProcessEnv
   return `<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0"><dict>
-<key>Label</key><string>${label}</string>
+<key>Label</key><string>${label}${env.FLEET_SERVICE_PROFILE === "nas" ? ".nas" : ""}</string>
 <key>ProgramArguments</key><array>
 ${args}
 </array>
@@ -92,10 +100,12 @@ export function workerService(
     return 1;
   }
   try {
+    if (env.FLEET_SERVICE_PROFILE && env.FLEET_SERVICE_PROFILE !== "nas") throw new Error("invalid service profile");
+    const serviceLabel = label + (env.FLEET_SERVICE_PROFILE === "nas" ? ".nas" : "");
     if (local.platform !== "darwin" || !local.uid) throw new Error("requires macOS user session");
     const domain = `gui/${local.uid}`;
-    const target = `${domain}/${label}`;
-    const file = join(local.home, "Library", "LaunchAgents", `${label}.plist`);
+    const target = `${domain}/${serviceLabel}`;
+    const file = join(local.home, "Library", "LaunchAgents", `${serviceLabel}.plist`);
     const launch: Launch = local.launch;
     if (launch(["print", domain]) === undefined) throw new Error("GUI domain unavailable");
     const status = launch(["print", target]);

@@ -242,3 +242,73 @@ the same then is unrecorded (*hypothesis*).
 
 Every command above prints counts, pins and codes only, never reader text,
 paths or ids.
+
+## Isolated NAS profile: automatic read-vision inputs
+
+This additive profile uses `fleet nas ...` commands and the separate
+`org.bookcasediscovery.fleet-worker.nas` LaunchAgent. The original pilot service
+is unchanged. Use a new private `BOOKCASE_DATA` root and a credential generated
+on this host. Keep the helper at its existing byte-identical local build; no
+model/helper build or download occurs as part of installation.
+
+Select the supported Node runtime through the host's runtime manager, check out
+the exact application PR commit in a dedicated persistent checkout, and run
+`pnpm install --frozen-lockfile`. Do not install Node or packages globally.
+Configure local values without pasting private configuration into a public log:
+
+```sh
+export BOOKCASE_DATA="$NAS_WORKER_DATA"
+export BOOKCASE_OCR_VISION="$LOCAL_PINNED_HELPER"
+export FLEET_TOKEN_FILE="$NAS_WORKER_KEY"
+export FLEET_ENDPOINT="$ISOLATED_NAS_HTTPS_ENDPOINT"
+export NODE_EXTRA_CA_CERTS="$LOCAL_NAS_PUBLIC_CERT"
+# Generate locally; register only the .pub sibling with the isolated server.
+pnpm exec ./bin/bookcase fleet nas keygen
+pnpm exec ./bin/bookcase fleet nas service install "$WORKER"
+pnpm exec ./bin/bookcase fleet nas service start
+pnpm exec ./bin/bookcase fleet nas service status
+```
+
+The certificate is public and obtained through the existing trusted NAS SSH
+route. TLS validation stays on. The Node executable and checkout are pinned in
+the service file. Installation creates a disabled service; start enables it.
+It survives closing agent GUIs within the logged-in user session. It is not a
+system daemon and does not promise operation before login.
+
+The NAS profile advertises **read-vision only**, plus its actual helper pin and
+host capability. A handler still verifies the full helper hash on every attempt.
+It pulls each missing input over the signed API, verifies its hash, and publishes
+it into this host's content store before running the unchanged application
+handler. A verified cached input avoids another transfer. No photo is manually
+copied to the worker and no server filesystem path is used. Models remain local;
+Qwen/training participation and full G4 resource qualification remain open.
+
+On the admission host, use the owner credential and the same NAS endpoint/trust.
+`fleet nas enqueue "$PHOTO"` uploads the bytes before admission. Application
+jobs prepared through other means must also upload their inputs before enqueue;
+the NAS rejects missing or corrupt input references.
+
+```sh
+pnpm exec ./bin/bookcase fleet nas pause   # stop claims; current attempt drains
+pnpm exec ./bin/bookcase fleet nas resume
+pnpm exec ./bin/bookcase fleet nas service stop  # drain with bounded shutdown
+```
+
+A host-wide loopback mutex prevents duplicate NAS profile processes. Each worker
+runs one sequential attempt. A local `fleet/resource-busy` marker blocks claims;
+this is an explicit reservation gate, not automatic detection of every external
+GPU consumer. The original pilot does not share this mutex: the isolated proof
+must not overlap application work there. Automatic cross-application resource
+arbitration remains unqualified.
+
+Yuri requires AC and 20:00–07:00 America/Chicago by default. Only an explicit owner
+exception may create `fleet/daytime-exception.json` in this profile's private data
+root, containing `{"until":"<ISO timestamp>"}`. It must expire within the current
+Chicago day and within 24 hours; malformed, expired, future-day and battery states
+fail closed. The November 8 proof exception expires at Chicago midnight; do not
+roll it forward. An active attempt may drain after eligibility changes.
+
+Operator-only setup remains the firewall rule and, on Yuri, any missing runtime
+installation, clone, helper binary copy or new photo transfer. This profile
+requires no worker-side photo transfer. Never send private credentials; public
+verifier registration is the only cross-host credential material.
