@@ -145,7 +145,16 @@ export function workerService(
       console.log("fleet worker service started");
     } else if (command === "stop") {
       requireLaunch(["disable", target]);
-      if (status !== undefined) requireLaunch(["bootout", target]);
+      if (status !== undefined) {
+        requireLaunch(["bootout", target]);
+        // bootout acknowledgement can precede removal. An immediate start must not mistake
+        // a retiring service for the replacement it is meant to bootstrap.
+        const deadline = Date.now() + 10_000;
+        while (launch(["print", target]) !== undefined) {
+          if (Date.now() >= deadline) throw new Error("service removal timed out");
+          Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, 50);
+        }
+      }
       console.log("fleet worker service stopped");
     } else {
       const state = status?.match(/^\s*state = (running|spawn scheduled|waiting|not running)\s*$/m)?.[1];

@@ -83,7 +83,8 @@ it("installs disabled, starts, reports a sanitized status, then disables and dra
     expect(workerService(["status"], {}, local)).toBe(0);
     expect(output).toHaveBeenLastCalledWith("fleet worker service running");
     expect(workerService(["stop"], {}, local)).toBe(0);
-    expect(launch.mock.calls.slice(-2)).toEqual([[["disable", target]], [["bootout", target]]]);
+    expect(launch).toHaveBeenCalledWith(["disable", target]);
+    expect(launch).toHaveBeenCalledWith(["bootout", target]);
     expect(workerService(["status"], {}, local)).toBe(0);
     expect(output).toHaveBeenLastCalledWith("fleet worker service not loaded");
   } finally {
@@ -111,4 +112,29 @@ it("expires the NAS daytime exception at Chicago midnight and still rejects batt
   expect(daytimeMayClaim(file, new Date("2026-11-08T21:00:00Z"), () => "unknown")).toBe(false);
   writeFileSync(file, JSON.stringify({ until: "2026-11-10T06:00:00Z" }));
   expect(daytimeMayClaim(file, new Date("2026-11-08T21:00:00Z"), ac)).toBe(false);
+});
+
+
+it("waits for delayed bootout removal so immediate restart bootstraps a replacement", () => {
+  let loaded = true, retiring = 0, bootstraps = 0;
+  const launch = vi.fn((args: readonly string[]) => {
+    if (args[0] === "print" && args[1]?.endsWith("fleet-worker")) {
+      if (retiring > 0 && --retiring === 0) loaded = false;
+      return loaded ? "state = waiting" : undefined;
+    }
+    if (args[0] === "bootout") retiring = 3;
+    if (args[0] === "bootstrap") { loaded = true; bootstraps++; }
+    return "";
+  });
+  const local = { launch, home, uid: 501, node: process.execPath, platform: "darwin" as const };
+  writeFileSync(join(home, "Library-placeholder"), "synthetic");
+  const output = vi.spyOn(console, "log").mockImplementation(() => {});
+  try {
+    expect(workerService(["stop"], env, local)).toBe(0);
+    expect(loaded).toBe(false);
+    // Install produces the service file while keeping it disabled.
+    expect(workerService(["install", "yojimbo"], env, local)).toBe(0);
+    expect(workerService(["start"], env, local)).toBe(0);
+    expect(bootstraps).toBe(1);
+  } finally { output.mockRestore(); }
 });
