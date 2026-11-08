@@ -1,4 +1,5 @@
 // `run` module: the CLI router behind `bin/bookcase`. Commands are stubs until their cards land.
+import { backupCommand } from "./backup-cli.ts";
 import { catalogCommand } from "../catalog/cli.ts";
 import { datasetCommand } from "./dataset-cli.ts";
 import { ingestCommand, manifestCommand } from "../capture/cli.ts";
@@ -11,7 +12,7 @@ import { replayCommand } from "./replay.ts";
 
 export const moduleName = "run";
 
-export const commands = ["ingest", "perceive", "identify", "recommend", "replay", "report", "manifest", "eval", "catalog", "profile", "jobs", "dataset", "models", "lineage"] as const;
+export const commands = ["ingest", "perceive", "identify", "recommend", "replay", "report", "manifest", "eval", "catalog", "profile", "jobs", "dataset", "models", "lineage", "backup"] as const;
 export type Command = (typeof commands)[number];
 
 const usage = `usage: bookcase <command> [args]
@@ -46,6 +47,7 @@ export function main(argv: string[]): number | Promise<number> {
   if (cmd === "dataset") return datasetCommand(argv.slice(1));
   if (cmd === "models") return modelsCommand(argv.slice(1));
   if (cmd === "lineage") return lineageCommand(argv.slice(1));
+  if (cmd === "backup") return backupCommand(argv.slice(1));
   if ((commands as readonly string[]).includes(cmd)) {
     console.error(`bookcase ${cmd}: not implemented yet`);
     return 2;
