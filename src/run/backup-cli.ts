@@ -218,7 +218,7 @@ export async function backupCommand(argv: string[]): Promise<number> {
       const c = d.restore.byClass[cls];
       if (c.files) console.log(`restored ${cls.padEnd(13)} files ${pad(c.files, 7)}  bytes ${pad(c.bytes, 14)} (${gb(c.bytes)})`);
     }
-    console.log(`restored ${d.restore.files} files and ${d.restore.symlinks} symlinks (${gb(d.restore.bytes)}) in ${d.restore.seconds.toFixed(1)} s`);
+    console.log(`restored ${d.restore.files} files and ${d.restore.symlinks} symlinks (${gb(d.restore.bytes)}) in ${d.restore.seconds.toFixed(1)} s${d.restore.skippedSymlinks ? `; ${d.restore.skippedSymlinks} symlinks pointing outside the restore not recreated` : ""}`);
     console.log(`replay: ${d.replays.identical} of ${d.replays.ledgers} ledgers identical (${d.replays.events} events) in ${d.replays.seconds.toFixed(1)} s`);
     console.log(`dataset build: ${d.build.version ?? "failed"} (${d.build.labels} labels on ${d.build.photos} photos) in ${d.build.seconds.toFixed(1)} s`);
     console.log(`live version ${d.live.version ?? "none"}: ${d.build.version === d.live.version ? "matches" : "DIFFERS"}${d.live.labelsMatch === null ? "" : d.live.labelsMatch ? ", labels identical" : ", labels DIFFER"}`);

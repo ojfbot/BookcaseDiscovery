@@ -1,7 +1,7 @@
 // DL-6: versioned backup of the data root to a mounted share, its verify and its restore, on a synthetic data root and
 // a synthetic target built here. The real run against the owner's share is reported in the PR, counts only.
 import { createHash } from "node:crypto";
-import { chmodSync, existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, statSync, writeFileSync } from "node:fs";
+import { chmodSync, existsSync, lstatSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, readlinkSync, rmSync, statSync, symlinkSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { DatabaseSync } from "node:sqlite";
@@ -255,6 +255,27 @@ describe("verify and restore", () => {
       expect(() => readManifest(target, m.snapshot)).toThrow(/refused/);
       await expect(verifySnapshot(target)).rejects.toThrow(/refused/);
     }
+  });
+
+  it("recreates a symlink that stays inside the restore and skips one that points outside it", async () => {
+    mkdirSync(join(root, "jobs"));
+    symlinkSync(join("..", "models"), join(root, "jobs", "models"));
+    symlinkSync(base, join(root, "jobs", "outside"));
+    const m = (await backupRun(root, target, { now })).manifest;
+    expect(m.symlinks).toHaveLength(2);
+    const dest = join(base, `restored-${n}`);
+    const c = await restoreSnapshot(target, m, dest, () => true);
+    expect(c.symlinks).toBe(1);
+    expect(c.skippedSymlinks).toBe(1);
+    expect(readlinkSync(join(dest, "jobs", "models"))).toBe(join("..", "models"));
+    expect(() => lstatSync(join(dest, "jobs", "outside"))).toThrow();
+  });
+
+  it("refuses a manifest that names another snapshot than its folder", async () => {
+    const m = (await backupRun(root, target, { now })).manifest;
+    const file = join(target, TENANT_DIR, "snapshots", m.snapshot, "backup-manifest.json");
+    writeFileSync(file, JSON.stringify({ ...m, snapshot: ".." }));
+    expect(() => readManifest(target, m.snapshot)).toThrow(/refused/);
   });
 
   it("reports a missing target without naming it, and does not create it", async () => {

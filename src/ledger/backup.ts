@@ -21,7 +21,7 @@ import { createHash, randomUUID } from "node:crypto";
 import { lstatSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, readlinkSync, realpathSync, renameSync, rmSync, statSync, symlinkSync, utimesSync, writeFileSync, chmodSync } from "node:fs";
 import { open, stat } from "node:fs/promises";
 import { tmpdir } from "node:os";
-import { dirname, isAbsolute, join, sep } from "node:path";
+import { dirname, isAbsolute, join, resolve, sep } from "node:path";
 import { DatabaseSync } from "node:sqlite";
 import { writeFileDurable } from "./durable.ts";
 
@@ -199,7 +199,7 @@ export function readManifest(target: string, snapshot: string): BackupManifest {
   if (!safeRel(snapshot) || snapshot.includes("/")) throw new Error("not a snapshot id");
   const m = JSON.parse(readFileSync(join(snapshotsDir(target), snapshot, BACKUP_MANIFEST), "utf8")) as BackupManifest;
   const bad = !Array.isArray(m.files) || !Array.isArray(m.symlinks) || m.files.some((e) => !safeRel(e.path) || typeof e.sha256 !== "string" || !SHA256.test(e.sha256) || !Number.isInteger(e.size) || !CLASS_ORDER.includes(e.class)) || m.symlinks.some((x) => !safeRel(x.path) || typeof x.symlink !== "string");
-  if (bad) throw new Error("a snapshot's manifest names a path outside the data root or a malformed hash: refused");
+  if (bad || m.snapshot !== snapshot || (m.kind !== "full" && m.kind !== "ledgers")) throw new Error("a snapshot's manifest names a path outside the data root, a malformed hash or another snapshot: refused");
   return m;
 }
 
@@ -472,7 +472,8 @@ export async function backupRun(root: string, target: string, opts: RunOptions =
  */
 export function prune(target: string, keep: number, kind: BackupManifest["kind"]): { snapshots: number; bodies: number; bytes: number } {
   if (!Number.isInteger(keep) || keep < 1) throw new Error("--keep must be a whole number of at least 1");
-  const all = listSnapshots(target).map((s) => readManifest(target, s));
+  // Deleted by the folder name listSnapshots gave, never by a field read from the manifest.
+  const all = listSnapshots(target).map((s) => ({ ...readManifest(target, s), snapshot: s }));
   const ofKind = all.filter((m) => m.kind === kind);
   const drop = ofKind.slice(0, Math.max(0, ofKind.length - keep));
   if (!drop.length) return { snapshots: 0, bodies: 0, bytes: 0 };
@@ -547,6 +548,8 @@ export interface RestoreCounts {
   files: number;
   bytes: number;
   symlinks: number;
+  /** Symlinks whose target lies outside the restore folder: recorded in the manifest, not recreated. */
+  skippedSymlinks: number;
   seconds: number;
   byClass: Record<BackupClass, { files: number; bytes: number }>;
 }
@@ -565,7 +568,7 @@ export async function restoreSnapshot(target: string, m: BackupManifest, dest: s
     if ((e as NodeJS.ErrnoException).code !== "ENOENT") throw e;
   }
   mkdirSync(dest, { recursive: true, mode: 0o700 });
-  const counts: RestoreCounts = { files: 0, bytes: 0, symlinks: 0, seconds: 0, byClass: Object.fromEntries(CLASS_ORDER.map((c) => [c, { files: 0, bytes: 0 }])) as RestoreCounts["byClass"] };
+  const counts: RestoreCounts = { files: 0, bytes: 0, symlinks: 0, skippedSymlinks: 0, seconds: 0, byClass: Object.fromEntries(CLASS_ORDER.map((c) => [c, { files: 0, bytes: 0 }])) as RestoreCounts["byClass"] };
   const chosen = m.files.filter((e) => want(e.path, e.class));
   await pool(chosen, opts.concurrency ?? 8, async (e) => {
     const out = join(dest, e.path);
@@ -594,15 +597,35 @@ export async function restoreSnapshot(target: string, m: BackupManifest, dest: s
     counts.byClass[e.class].files++;
     counts.byClass[e.class].bytes += e.size;
   });
+  // Links come after every file, and nothing is written after them. A link whose target would resolve outside the
+  // restore folder, or whose folder is reached through a link, is skipped and counted, never created.
+  const top = realpathSync(dest);
   for (const s of m.symlinks.filter((x) => want(x.path, x.class))) {
-    // Links come after every file and are never written through: a link's folder must resolve inside the restore.
-    mkdirSync(dirname(join(dest, s.path)), { recursive: true });
-    if (!(realpathSync(dirname(join(dest, s.path))) + sep).startsWith(realpathSync(dest) + sep)) throw new Error("a snapshot's symlink would land outside the restore folder: refused");
-    symlinkSync(s.symlink, join(dest, s.path));
+    const out = join(dest, s.path);
+    const inside = (p: string): boolean => (p + sep).startsWith(top + sep);
+    if (isAbsolute(s.symlink) || !inside(resolve(realpathSync(dest), dirname(s.path), s.symlink)) || !folderWithoutLinks(dest, dirname(s.path))) {
+      counts.skippedSymlinks++;
+      continue;
+    }
+    symlinkSync(s.symlink, out);
     counts.symlinks++;
   }
   counts.seconds = (Date.now() - t0) / 1000;
   return counts;
+}
+
+/** Make `rel` under `base` one folder at a time, refusing any part that exists as something other than a folder. */
+function folderWithoutLinks(base: string, rel: string): boolean {
+  let p = base;
+  for (const part of rel === "." ? [] : rel.split(sep)) {
+    p = join(p, part);
+    try {
+      if (!lstatSync(p).isDirectory()) return false;
+    } catch {
+      mkdirSync(p, { mode: 0o700 });
+    }
+  }
+  return true;
 }
 
 /** A fresh folder `<base>/<date>`, or `<date>-2`, `-3`… when that day already has one: a drill never reuses a root. */
