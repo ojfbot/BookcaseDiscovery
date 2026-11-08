@@ -27,6 +27,7 @@ inside a checkout.
 | Live camera frames | memory only (INV-22) | never stored | `image-type`, `video-type` |
 | Sweep clips and their keyframe labels | `$BOOKCASE_DATA/video/`, `labels/video/` | no, until G-PUB | `video-type` |
 | Detector weights | `$BOOKCASE_DATA/models/` | no, until G-W | `weight-type` |
+| Dataset versions: manifests, grouped splits, label rows, crop geometry and image paths (F-1, TS-0) | `$BOOKCASE_DATA/datasets/` | no, until G-PUB (and G-W for anything trained on them) | `datasets-dir`, `image-type`, `video-type`, `weight-type` |
 | Weights registry records (hashes and metrics only) | `models/registry/*.json` in the repo | yes | none needed |
 | Synthetic test images, drawn or generated, no real shelf | `test/fixtures/synthetic/` | yes | `exif-gps` still applies |
 
@@ -52,7 +53,8 @@ the path and a line number or commit.
    data directory and a user home directory. The rule list is in `PRIVATE_PATTERNS` in the script. In
    history mode, commit messages are scanned too.
 9. `[evals-allowlist]` any file under an `evals` path that is not one of: `evals/<run-id>/metrics.json`,
-   `evals/<run-id>/report.md`, `evals/README.md`, `evals/golden/fragments.jsonl` (the public catalog
+   `evals/<run-id>/report.md`, `evals/<run-id>/prereg.md` (a pre-registration), `evals/README.md`,
+   `evals/golden/fragments.jsonl` (the public catalog
    query set). The JSON files must parse and carry no per-spine or OCR keys at any depth (`spines`,
    `ocr_text`, `observations`, `bbox`, `crops` and similar; list in `EVAL_FORBIDDEN_KEYS`). Aggregate
    files are capped at 256 KiB. A card that needs another file adds it to the allowlist in its own PR.
@@ -60,6 +62,10 @@ the path and a line number or commit.
     store field (`capture_time`, `gps`, `latitude`, `store`, `store_name` and similar; list in
     `MANIFEST_FORBIDDEN_KEYS`).
 11. `[large-binary]` a binary file over 1 MiB outside `test/fixtures/synthetic/`.
+12. `[datasets-dir]` an image, video or weight file, or a dataset row file (`.jsonl`, `.csv`, `.parquet`,
+    `.npy` and similar; list in `DATASET_ROW_EXT`), under any `datasets` directory, **including** under
+    `test/fixtures/synthetic/` (F-1). Datasets live under `$BOOKCASE_DATA/datasets/`; the repo holds only
+    their schema (`src/capture/dataset.ts`, `src/eval/ts0.ts`) and aggregate counts in `evals/`.
 
 `test/fixtures/synthetic/` is exempt from rules 1, 2, 3 and 11 only. It has no size cap, so keep what
 goes there tiny and obviously synthetic.

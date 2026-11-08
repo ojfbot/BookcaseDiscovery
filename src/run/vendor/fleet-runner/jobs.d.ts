@@ -1,4 +1,5 @@
-export declare const JOBS_SCHEMA_VERSION = 2;
+import type { RequestNonce } from "./auth.js";
+export declare const JOBS_SCHEMA_VERSION = 3;
 export type JobStatus = "ready" | "claimed" | "done" | "failed";
 export type JobEventType = "enqueued" | "claimed" | "completed" | "rejected-stale" | "failed" | "retry" | "released" | "lease-expired" | "retired";
 /** What a client admits. The key is derived from everything that determines the output. */
@@ -60,6 +61,8 @@ export declare function jobKey(spec: Pick<JobSpec, "kind" | "inputs"> & Partial<
  * exists. So a worker that wakes after losing its lease cannot touch the accepted attempt's bytes.
  */
 export declare function writeOutput(dir: string, job: Pick<Claim, "key" | "fence">, data: string | Uint8Array, ext?: string): JobOutput;
+/** A retry may find an orphan from an interrupted completion; make it durable before commit. */
+export declare function syncOutput(dir: string, file: string): void;
 export interface JobStoreOptions {
     /** Clock in epoch ms; tests pass a fake one. */
     now?: () => number;
@@ -117,6 +120,8 @@ export declare class JobStore {
     #private;
     constructor(path: string, options?: JobStoreOptions);
     close(): void;
+    /** Atomically remember a verified request nonce across every process using this database. */
+    consumeNonce(candidate: RequestNonce): boolean;
     /**
      * Admit a job. Idempotent: an existing key (in any state) is left alone and reported as not created. A key
      * readmitted after retirement continues its fence from the event history, so tokens never repeat per key.
@@ -147,6 +152,8 @@ export declare class JobStore {
     /** Return expired leases to the queue (or fail them when out of attempts). Returns how many. */
     sweep(): number;
     get(key: string): JobRow | undefined;
+    /** Input access is scoped to the requesting worker's current, unexpired attempt. */
+    holdsInput(key: string, fence: number, worker: string, hash: string): boolean;
     events(after: number): JobEvent[];
     /** The morning report: aggregates only (kinds, workers, counts, error codes). */
     report(since?: number): JobReport;

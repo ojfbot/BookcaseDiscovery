@@ -159,6 +159,12 @@ export function workerService(
         }).trim();
         if (/^(starting|completed|idle|paused|policy-error|request-error|failed|lease-lost)$/.test(workerState))
           console.log(`fleet worker outcome ${workerState}`);
+        const diagnosticFile = join(env.BOOKCASE_DATA, "fleet", "resident-diagnostic.json");
+        if (existsSync(diagnosticFile)) {
+          const diagnostic = JSON.parse(readFileSync(diagnosticFile, "utf8")) as { code?: unknown };
+          if (typeof diagnostic.code === "string" && /^(?:[A-Z][A-Z0-9_]{1,63}|http-[1-5][0-9]{2}|timeout|unexpected-error)$/.test(diagnostic.code))
+            console.log(`fleet worker reason ${diagnostic.code}`);
+        }
       }
     }
     return 0;

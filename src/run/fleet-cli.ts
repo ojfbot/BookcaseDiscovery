@@ -190,12 +190,14 @@ export async function fleetCommand(argv: string[], env: NodeJS.ProcessEnv = proc
         const statusFile = join(fleetDir, "resident-status");
         const statusTemp = `${statusFile}.${process.pid}.tmp`;
         let previousState: string | undefined;
-        const recordStatus = (state: string) => {
-          if (state === previousState) return;
+        const recordStatus = (state: string, code?: string) => {
+          const identity = `${state}:${code ?? ""}`;
+          if (identity === previousState) return;
           // Aggregate process state only. Never serialize a job, error, or environment.
           writeFileSync(statusTemp, state + "\n", { mode: 0o600 });
           renameSync(statusTemp, statusFile);
-          previousState = state;
+          writeFileSync(join(fleetDir, "resident-diagnostic.json"), JSON.stringify({ state, ...(code ? { code } : {}) }), { mode: 0o600 });
+          previousState = identity;
         };
         try {
           mkdirSync(fleetDir, { recursive: true });
@@ -204,7 +206,7 @@ export async function fleetCommand(argv: string[], env: NodeJS.ProcessEnv = proc
             ...worker,
             signal: stop.signal,
             canClaim: () => !existsSync(join(fleetDir, "paused")) && !existsSync(join(fleetDir, "resource-busy")) && policy(),
-            onEvent: ({ type }) => recordStatus(type),
+            onEvent: (event) => recordStatus(event.type, event.type === "request-error" ? event.code : undefined),
           });
         } finally {
           process.off("SIGTERM", drain);
