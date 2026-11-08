@@ -78,9 +78,9 @@ reader ever needs a rewrite of an old file, only a rebuild.
 
 ## Crash safety (DL-1)
 
-Nothing is backed up until a NAS exists, so the files nothing can rebuild are written by `writeFileDurable`
-(`src/ledger/durable.ts`). It writes a temporary file beside the target, fsyncs it, renames it over the target and
-fsyncs the folder. A killed process or a power cut leaves the old file or the new one, never half of either.
+The files nothing can rebuild are written by `writeFileDurable` (`src/ledger/durable.ts`), and backed up to the
+NAS by `bookcase backup` since DL-6 ([`backup.md`](backup.md)). It writes a temporary file beside the target, fsyncs
+it, renames it over the target and fsyncs the folder. A killed process or a power cut leaves the old file or the new one, never half of either.
 
 - `splits.json` is frozen history, and `latest.json` must not name a version whose files are not all down.
   `commitVersion` in `ts0-cli.ts` writes the version's files first, then `splits.json`, then `latest.json`, each

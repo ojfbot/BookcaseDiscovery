@@ -1,4 +1,4 @@
-// Crash-safe file writes (DL-1). Nothing is backed up until a NAS exists (an accepted risk), so the files that
+// Crash-safe file writes (DL-1). Backups (DL-6, `bookcase backup`) cover a lost disk, not a torn write, so the files that
 // cannot be rebuilt — facts and frozen history — must survive a killed process or a power cut whole.
 //
 //   writeFileDurable(path, text)    temporary file beside it, fsync, rename over, fsync the folder:
