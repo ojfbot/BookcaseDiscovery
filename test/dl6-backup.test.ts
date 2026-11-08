@@ -257,18 +257,21 @@ describe("verify and restore", () => {
     }
   });
 
-  it("recreates a symlink that stays inside the restore and skips one that points outside it", async () => {
-    mkdirSync(join(root, "jobs"));
-    symlinkSync(join("..", "models"), join(root, "jobs", "models"));
+  it("recreates a symlink that points at or below its folder and skips any other, so no chain leaves the restore", async () => {
+    mkdirSync(join(root, "jobs", "run"), { recursive: true });
+    symlinkSync("run", join(root, "jobs", "latest"));
     symlinkSync(base, join(root, "jobs", "outside"));
+    // Each looks inside on its own; through each other they would climb out.
+    symlinkSync("up/..", join(root, "jobs", "a"));
+    symlinkSync("../..", join(root, "jobs", "up"));
     const m = (await backupRun(root, target, { now })).manifest;
-    expect(m.symlinks).toHaveLength(2);
+    expect(m.symlinks).toHaveLength(4);
     const dest = join(base, `restored-${n}`);
     const c = await restoreSnapshot(target, m, dest, () => true);
     expect(c.symlinks).toBe(1);
-    expect(c.skippedSymlinks).toBe(1);
-    expect(readlinkSync(join(dest, "jobs", "models"))).toBe(join("..", "models"));
-    expect(() => lstatSync(join(dest, "jobs", "outside"))).toThrow();
+    expect(c.skippedSymlinks).toBe(3);
+    expect(readlinkSync(join(dest, "jobs", "latest"))).toBe("run");
+    for (const l of ["outside", "a", "up"]) expect(() => lstatSync(join(dest, "jobs", l))).toThrow();
   });
 
   it("refuses a manifest that names another snapshot than its folder", async () => {

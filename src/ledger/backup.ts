@@ -21,7 +21,7 @@ import { createHash, randomUUID } from "node:crypto";
 import { lstatSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, readlinkSync, realpathSync, renameSync, rmSync, statSync, symlinkSync, utimesSync, writeFileSync, chmodSync } from "node:fs";
 import { open, stat } from "node:fs/promises";
 import { tmpdir } from "node:os";
-import { dirname, isAbsolute, join, resolve, sep } from "node:path";
+import { dirname, isAbsolute, join, sep } from "node:path";
 import { DatabaseSync } from "node:sqlite";
 import { writeFileDurable } from "./durable.ts";
 
@@ -548,7 +548,7 @@ export interface RestoreCounts {
   files: number;
   bytes: number;
   symlinks: number;
-  /** Symlinks whose target lies outside the restore folder: recorded in the manifest, not recreated. */
+  /** Symlinks with an absolute target or a `..` part: recorded in the manifest, not recreated. */
   skippedSymlinks: number;
   seconds: number;
   byClass: Record<BackupClass, { files: number; bytes: number }>;
@@ -597,13 +597,12 @@ export async function restoreSnapshot(target: string, m: BackupManifest, dest: s
     counts.byClass[e.class].files++;
     counts.byClass[e.class].bytes += e.size;
   });
-  // Links come after every file, and nothing is written after them. A link whose target would resolve outside the
-  // restore folder, or whose folder is reached through a link, is skipped and counted, never created.
-  const top = realpathSync(dest);
+  // Links come after every file, and nothing is written after them. Only a relative target with no `..` part is
+  // recreated: such a link points at or below its own folder, so no chain of them can leave the restore, however they
+  // resolve through each other. Any other link, or one whose folder is reached through a link, is counted, not created.
   for (const s of m.symlinks.filter((x) => want(x.path, x.class))) {
     const out = join(dest, s.path);
-    const inside = (p: string): boolean => (p + sep).startsWith(top + sep);
-    if (isAbsolute(s.symlink) || !inside(resolve(realpathSync(dest), dirname(s.path), s.symlink)) || !folderWithoutLinks(dest, dirname(s.path))) {
+    if (isAbsolute(s.symlink) || s.symlink.split(/[/\\]/).includes("..") || !folderWithoutLinks(dest, dirname(s.path))) {
       counts.skippedSymlinks++;
       continue;
     }
