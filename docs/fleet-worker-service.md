@@ -312,3 +312,16 @@ Operator-only setup remains the firewall rule and, on Yuri, any missing runtime
 installation, clone, helper binary copy or new photo transfer. This profile
 requires no worker-side photo transfer. Never send private credentials; public
 verifier registration is the only cross-host credential material.
+
+After registration, the coordinator checks the public verifier is readable by
+the actual NAS service UID. Copying a mode-0600 public file owned by another UID
+causes HTTP 401. Set ownership for the service or use 0644 for that public file
+inside the dedicated registry; private credentials remain unchanged.
+
+November 8 isolated proof: application runtime `9a7584c`, core client/server
+runtime `4e4cd6d`. Each actual Mac LaunchAgent completed one host-scoped
+read-vision job from a fresh input store. Both accepted NAS checksums and
+response contract/order checks passed, with one claim per host and zero failed
+or stale attempts. Synthetic CI passes; these aggregate receipts contain no
+photo, reader text, input ID, private path or credential. This proves the bounded
+Mac/input milestone, not the full G4 policy/resource matrix or a live cutover.
