@@ -106,3 +106,17 @@ it("uses the host resource slot for NAS one-shot as well as resident execution",
     expect(errors).toHaveBeenCalledWith("fleet command failed (EADDRINUSE)");
   } finally { Object.defineProperty(process, "platform", originalPlatform);errors.mockRestore();rmSync(data, { recursive: true, force: true }); }
 });
+
+it("publishes independent NAS presence and obeys the server pause without claiming", async () => {
+  const data=mkdtempSync(join(tmpdir(),"nas-presence-runtime-"));const originalPlatform=Object.getOwnPropertyDescriptor(process,"platform")!;
+  const presence=vi.fn(async(_observation:unknown)=>({received:true}));const workerControl=vi.fn(async()=>({paused:true,revision:1,intent:"pause"}));
+  client.mockReturnValue({presence,workerControl});acquireSlot.mockResolvedValue(async()=>{});
+  runWorker.mockImplementation(async(_client,options)=>{expect(await options.canClaim()).toBe(false);options.onEvent({type:"paused",delayMs:5000});process.emit("SIGTERM","SIGTERM");});
+  try {
+    Object.defineProperty(process,"platform",{value:"darwin",configurable:true});
+    expect(await fleetCommand(["nas","serve-worker","yojimbo"],{...env,BOOKCASE_DATA:data,BOOKCASE_OCR_VISION:process.execPath})).toBe(0);
+    expect(presence).toHaveBeenCalled();expect(workerControl).toHaveBeenCalledOnce();expect(workOnce).not.toHaveBeenCalled();
+    expect(presence.mock.calls[0]![0]).toMatchObject({schemaVersion:1,handlers:["read-vision"],busy:false});
+    expect(JSON.parse(readFileSync(join(data,"fleet/resident-diagnostic.json"),"utf8")).eligibility).toBe("operator-paused");
+  }finally{Object.defineProperty(process,"platform",originalPlatform);rmSync(data,{recursive:true,force:true});}
+});

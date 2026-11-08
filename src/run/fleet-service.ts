@@ -171,7 +171,7 @@ export function workerService(
         const diagnosticFile = join(env.BOOKCASE_DATA, "fleet", "resident-diagnostic.json");
         if (existsSync(diagnosticFile)) {
           const diagnostic = JSON.parse(readFileSync(diagnosticFile, "utf8")) as { code?: unknown; eligibility?: unknown };
-          if (typeof diagnostic.eligibility === "string" && /^(eligible|daytime-exception|paused|resource-busy|outside-window|battery|power-unknown|helper-unavailable|helper-changed|unsupported-worker)$/.test(diagnostic.eligibility))
+          if (typeof diagnostic.eligibility === "string" && /^(eligible|daytime-exception|paused|resource-busy|outside-window|battery|power-unknown|helper-unavailable|helper-changed|unsupported-worker|operator-paused)$/.test(diagnostic.eligibility))
             console.log(`fleet worker eligibility ${diagnostic.eligibility}`);
           if (typeof diagnostic.code === "string" && /^(?:[A-Z][A-Z0-9_]{1,63}|http-[1-5][0-9]{2}|timeout|unexpected-error)$/.test(diagnostic.code))
             console.log(`fleet worker reason ${diagnostic.code}`);

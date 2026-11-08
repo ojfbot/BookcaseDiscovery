@@ -24,11 +24,11 @@ function check(file, expected) {
     throw new Error(`vendored ${file} differs from the pinned core revision`);
 }
 
-const runtime = ["auth.ts", "client.ts", "worker.ts", "diagnostics.ts", "inputs.ts"];
+const runtime = ["auth.ts", "client.ts", "worker.ts", "diagnostics.ts", "inputs.ts", "status.ts", "presence.ts"];
 await Promise.all(runtime.map(async (file) => {
   const content = await source(file);
   // Node runs the vendored source directly. Keep only this import-extension adaptation.
-  check(file, content.replace(/(from "\.\/(?:auth|client|diagnostics|inputs))\.js"/g, '$1.ts"'));
+  check(file, content.replace(/(from "\.\/(?:auth|client|diagnostics|inputs|status|presence))\.js"/g, '$1.ts"'));
 }));
 
 const dir = mkdtempSync(join(tmpdir(), "fleet-vendor-"));
@@ -36,6 +36,7 @@ try {
   const jobs = join(dir, "jobs.ts");
   writeFileSync(jobs, await source("jobs.ts"));
   writeFileSync(join(dir, "auth.ts"), await source("auth.ts"));
+  writeFileSync(join(dir, "status.ts"), await source("status.ts"));
   const config = join(dir, "tsconfig.json");
   writeFileSync(config, JSON.stringify({
     compilerOptions: {

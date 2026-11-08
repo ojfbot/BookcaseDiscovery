@@ -35,6 +35,18 @@ export function errorCode(error: unknown): string {
       return error.code;
     if ("cause" in error && error.cause !== error) return errorCode(error.cause);
   }
+  if (
+    error instanceof Error &&
+    [
+      "missing-configuration",
+      "incompatible-status",
+      "invalid-arguments",
+      "invalid-cursor",
+      "invalid-control",
+      "invalid-status-roles",
+    ].includes(error.message)
+  )
+    return error.message;
   if (error instanceof Error && /^job table schema [0-9]+, expected [0-9]+$/.test(error.message))
     return "schema-incompatible";
   return "unexpected-error";

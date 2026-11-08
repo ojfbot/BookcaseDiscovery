@@ -363,3 +363,24 @@ still reserved must not claim; unreserve then permits the resident to complete.
 Report only phase/count/eligibility booleans through HelpDesk. The conductor
 checks accepted output hashes and contract; no photo, text, key or path goes
 into public evidence. Leave both profiles running under their normal policy.
+
+## G5 process presence and server controls
+
+The NAS profile sends a bounded signed process observation every ten seconds,
+including when idle, paused or resource-gated. It is separate from the existing
+job lease heartbeat: observations never renew a lease. The server marks a worker
+stale/unknown after thirty seconds. No input IDs, reader text, paths, key bytes or
+job payloads enter observations.
+
+Owner pause/drain/resume now live at the Fleet Runner API as well as the local
+profile gates. The worker checks its own remote control before claiming; the
+server enforces pause in the claim transaction and database trigger. Existing
+attempts may finish. A paused worker continues process observations, so the
+console distinguishes intentional policy gating from a dead worker.
+
+Use the Core observer CLI/console described in core's fleet-runner deployment
+runbook. The browser is a read-only literal-loopback observer client; credentials
+stay in its CLI process. This application adapter requires the matching G5
+server pin/schema and fails closed against an older endpoint. Install the exact
+pinned client only after the conductor confirms the isolated server is ready.
+The original pilot remains unchanged.

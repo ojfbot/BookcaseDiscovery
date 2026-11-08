@@ -7,6 +7,9 @@ import { isServiceWorker, workerService } from "./fleet-service.ts";
 import { mayClaim } from "./fleet-worker-policy.ts";
 import { acquireNasSlot, nasEligibility } from "./fleet-eligibility.ts";
 import { errorCode } from "./vendor/fleet-runner/diagnostics.ts";
+import { runPresence } from "./vendor/fleet-runner/presence.ts";
+import { safeStatusError } from "./vendor/fleet-runner/status.ts";
+import type { WorkerObservation } from "./vendor/fleet-runner/status.ts";
 import { withFleetInputs } from "./fleet-inputs.ts";
 import { detectCapabilities, ocrHelperId, readVisionHandler, readVisionJob } from "./job-kinds.ts";
 import { canonicalJson } from "./jobs.ts";
@@ -182,6 +185,15 @@ export async function fleetCommand(argv: string[], env: NodeJS.ProcessEnv = proc
         return 1;
       }
       const client = fleetClient(endpoint, arg!, token);
+      let remotePaused = false;
+      let busy = false;
+      let phase: WorkerObservation["phase"] = "starting";
+      let lastCode: string | undefined;
+      const canClaim = nas ? async () => {
+        if (!policy()) return false;
+        remotePaused = (await client.workerControl()).paused;
+        return !remotePaused;
+      } : policy;
       let handlers: Record<string, JobHandler> = {
         "read-vision": readVisionHandler({ binary, resolveImage: (hash) => images.find(hash) }),
         ...(caps.some((c) => c.startsWith("read-qwen-"))
@@ -189,6 +201,7 @@ export async function fleetCommand(argv: string[], env: NodeJS.ProcessEnv = proc
           : {}),
       };
       if (env.FLEET_AUTO_INPUTS === "1") handlers = Object.fromEntries(Object.entries(handlers).map(([kind, handler]) => [kind, withFleetInputs(client, images, handler)]));
+      if (nas) handlers = Object.fromEntries(Object.entries(handlers).map(([kind,handler]) => [kind, async (job,context) => {busy=true;phase="running";try{return await handler(job,context);}finally{phase="uploading";}}]));
       const worker = {
         caps,
         handlers,
@@ -198,7 +211,7 @@ export async function fleetCommand(argv: string[], env: NodeJS.ProcessEnv = proc
       try {
       if (command === "serve-worker") {
         const stop = new AbortController();
-        const drain = () => stop.abort();
+        const drain = () => { phase = busy ? "draining" : "paused";stop.abort(); };
         process.on("SIGTERM", drain);
         process.on("SIGINT", drain);
         const statusFile = join(fleetDir, "resident-status");
@@ -210,25 +223,35 @@ export async function fleetCommand(argv: string[], env: NodeJS.ProcessEnv = proc
           // Aggregate process state only. Never serialize a job, error, or environment.
           writeFileSync(statusTemp, state + "\n", { mode: 0o600 });
           renameSync(statusTemp, statusFile);
-          writeFileSync(join(fleetDir, "resident-diagnostic.json"), JSON.stringify({ state, pid: process.pid, observedAt: Date.now(), ...(nas ? { eligibility: eligibility.reason } : {}), ...(code ? { code } : {}) }), { mode: 0o600 });
+          writeFileSync(join(fleetDir, "resident-diagnostic.json"), JSON.stringify({ state, pid: process.pid, observedAt: Date.now(), ...(nas ? { eligibility: remotePaused ? "operator-paused" : eligibility.reason } : {}), ...(code ? { code } : {}) }), { mode: 0o600 });
           previousState = identity;
         };
+        const presenceStop = new AbortController();
+        let presence: Promise<void> | undefined;
         try {
           mkdirSync(fleetDir, { recursive: true });
           recordStatus("starting");
+          if (nas) presence = runPresence(client, () => {
+            const local = nasEligibility(arg!,fleetDir,binary,expectedHelper);
+            return {schemaVersion:1,phase:busy && !local.eligible ? "draining" : phase,eligibility:remotePaused?"operator-paused":local.reason,handlers:Object.keys(handlers) as WorkerObservation["handlers"],busy,...(lastCode?{errorCode:lastCode}:{})};
+          },presenceStop.signal);
           await runWorker(client, {
             ...worker,
             signal: stop.signal,
-            canClaim: () => policy(),
-            onEvent: (event) => recordStatus(event.type, event.type === "request-error" ? event.code : undefined),
+            canClaim,
+            onEvent: (event) => {
+              busy=false;phase=event.type==="completed"||event.type==="idle"?"idle":event.type==="paused"||event.type==="policy-error"?"paused":event.type==="request-error"?"request-error":"failed";
+              lastCode=event.type==="request-error"?(safeStatusError(event.code)?event.code:"unexpected-error"):undefined;recordStatus(event.type,lastCode);
+            },
           });
         } finally {
+          presenceStop.abort();await presence;
           process.off("SIGTERM", drain);
           process.off("SIGINT", drain);
         }
         return 0;
       }
-      if (nas && !policy()) { console.log("fleet worker paused"); return 1; }
+      if (nas && !await canClaim()) { console.log("fleet worker paused"); return 1; }
       const result = await workOnce(client, worker);
       console.log(`fleet worker ${result}`);
       return result === "completed" ? 0 : 1;

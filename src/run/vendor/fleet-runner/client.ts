@@ -1,4 +1,5 @@
 import { signer } from "./auth.ts";
+import type { PublicEvent, ServiceSnapshot, WorkerControl, WorkerObservation } from "./status.ts";
 import type { Claim, JobEvent, JobReport, JobSpec } from "./jobs.js";
 import { INPUT_HASH, MAX_INPUT_BYTES, inputHash } from "./inputs.ts";
 
@@ -50,7 +51,7 @@ export function fleetClient(endpoint: string, id: string, tokenFile: string) {
     return res;
   }
 
-  async function request<T>(target: string, data?: object): Promise<T> {
+  async function request<T>(target: string, data?: object, signal?: AbortSignal): Promise<T> {
     const method = data === undefined ? "GET" : "POST";
     const body = Buffer.from(data === undefined ? "" : JSON.stringify(data));
     const authorization = authorize(method, target, body);
@@ -59,7 +60,9 @@ export function fleetClient(endpoint: string, id: string, tokenFile: string) {
       ...(data === undefined ? {} : { body: new Uint8Array(body) }),
       headers: { authorization, "content-type": "application/json" },
       redirect: "error",
-      signal: AbortSignal.timeout(30_000),
+      signal: signal
+        ? AbortSignal.any([signal, AbortSignal.timeout(30_000)])
+        : AbortSignal.timeout(30_000),
     });
     if (!res.ok) {
       await res.body?.cancel();
@@ -69,6 +72,17 @@ export function fleetClient(endpoint: string, id: string, tokenFile: string) {
   }
 
   return {
+    status: (signal?: AbortSignal) => request<ServiceSnapshot>("/status", undefined, signal),
+    statusEvents: (after = 0) =>
+      request<{ schemaVersion: 1; cursor: number; events: PublicEvent[]; hasMore: boolean }>(
+        `/status/events?after=${after}`,
+      ),
+    workerControl: (signal?: AbortSignal) =>
+      request<WorkerControl>("/worker-control", undefined, signal),
+    control: (worker: string, action: "pause" | "drain" | "resume") =>
+      request<WorkerControl>("/control", { worker, action }),
+    presence: (observation: WorkerObservation, signal?: AbortSignal) =>
+      request<{ received: boolean }>("/worker-status", observation, signal),
     uploadInput: async (bytes: Uint8Array) => {
       if (bytes.length > MAX_INPUT_BYTES) throw new Error("input-too-large");
       const hash = inputHash(bytes);

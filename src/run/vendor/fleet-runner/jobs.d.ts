@@ -1,5 +1,6 @@
+import type { ServiceInstance, ServiceSnapshot, WorkerControl, WorkerObservation } from "./status.js";
 import type { RequestNonce } from "./auth.js";
-export declare const JOBS_SCHEMA_VERSION = 3;
+export declare const JOBS_SCHEMA_VERSION = 4;
 export type JobStatus = "ready" | "claimed" | "done" | "failed";
 export type JobEventType = "enqueued" | "claimed" | "completed" | "rejected-stale" | "failed" | "retry" | "released" | "lease-expired" | "retired";
 /** What a client admits. The key is derived from everything that determines the output. */
@@ -155,6 +156,18 @@ export declare class JobStore {
     /** Input access is scoped to the requesting worker's current, unexpired attempt. */
     holdsInput(key: string, fence: number, worker: string, hash: string): boolean;
     events(after: number): JobEvent[];
+    startStatusInstance(): ServiceInstance;
+    recordPresence(worker: string, observation: WorkerObservation): void;
+    workerControl(worker: string): WorkerControl;
+    controlWorker(worker: string, intent: WorkerControl["intent"]): WorkerControl;
+    /** One bounded operations projection; never serializes a job, input, path, output or error message. */
+    statusSnapshot(instance: ServiceInstance, workers: readonly string[], reasons: string[], build: string): ServiceSnapshot;
+    publicEvents(after: number, workers: readonly string[]): {
+        schemaVersion: number;
+        cursor: number;
+        events: ServiceSnapshot["events"];
+        hasMore: boolean;
+    };
     /** The morning report: aggregates only (kinds, workers, counts, error codes). */
     report(since?: number): JobReport;
 }
