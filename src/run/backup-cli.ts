@@ -18,6 +18,7 @@ import {
   freshDir,
   latestManifest,
   readManifest,
+  removeDrillScratch,
   restoreSnapshot,
   RESTORE_DRILL_DIR,
   strayEmptyFiles,
@@ -40,7 +41,8 @@ commands:
   verify          re-hash the latest snapshot's copies against its fact manifest (facts always; the rest by size
                   unless --all) and report counts
   restore-drill   restore the latest snapshot into a fresh scratch root under the data root's ${RESTORE_DRILL_DIR}/<date>/,
-                  replay its ledgers, rebuild TS-0's dataset there and compare the version with the live one
+                  replay its ledgers, rebuild TS-0's dataset there and compare the version with the live one;
+                  a clean pass deletes the scratch root, a failed one leaves it for inspection
 
 options:
   --target <mount>    the mounted share (or a folder on it); this repo writes only inside its ${"`bookcase-discovery/`"} folder
@@ -48,8 +50,10 @@ options:
   --snapshot <id>     verify, restore-drill: a snapshot other than the latest
   --all               verify: re-hash every class, not only the facts
   --concurrency <n>   files in flight at once (default 8)
+  --keep-scratch      restore-drill: leave the scratch root in place after a clean pass too
 
-The credentials file under labels/ is never opened or copied. Nothing under the data root is ever deleted.`;
+The credentials file under labels/ is never opened or copied. Nothing under the data root is ever deleted but a
+clean drill's own scratch root.`;
 
 const gb = (b: number): string => `${(b / 1e9).toFixed(2)} GB`;
 const pad = (s: string | number, n: number): string => String(s).padStart(n);
@@ -97,7 +101,7 @@ export interface DrillResult {
  * The restore drill: the latest snapshot's facts, derived and unclassified files, the models manifest and the catalog
  * TS-0 reads, restored into a fresh scratch root; then `bookcase replay` on each restored ledger and `bookcase dataset
  * build` with the scratch root as the data root. Dataset versions are not restored, so the build writes its version
- * anew. The scratch root is left in place.
+ * anew. The caller deletes the scratch root after a clean pass (`removeDrillScratch`).
  */
 export async function restoreDrill(target: string, opts: { root?: string; snapshot?: string; now?: Date; concurrency?: number; env?: NodeJS.ProcessEnv } = {}): Promise<DrillResult> {
   const root = opts.root ?? dataRoot();
@@ -172,6 +176,7 @@ export async function backupCommand(argv: string[]): Promise<number> {
         snapshot: { type: "string" },
         all: { type: "boolean" },
         concurrency: { type: "string" },
+        "keep-scratch": { type: "boolean" },
         help: { type: "boolean", short: "h" },
       },
     });
@@ -222,7 +227,13 @@ export async function backupCommand(argv: string[]): Promise<number> {
     console.log(`replay: ${d.replays.identical} of ${d.replays.ledgers} ledgers identical (${d.replays.events} events) in ${d.replays.seconds.toFixed(1)} s`);
     console.log(`dataset build: ${d.build.version ?? "failed"} (${d.build.labels} labels on ${d.build.photos} photos) in ${d.build.seconds.toFixed(1)} s`);
     console.log(`live version ${d.live.version ?? "none"}: ${d.build.version === d.live.version ? "matches" : "DIFFERS"}${d.live.labelsMatch === null ? "" : d.live.labelsMatch ? ", labels identical" : ", labels DIFFER"}`);
-    console.log(`scratch root left in place: the data root's ${relative(root, d.scratch)}/`);
+    const where = `the data root's ${relative(root, d.scratch)}/`;
+    if (d.ok && !values["keep-scratch"]) {
+      const freed = removeDrillScratch(root, d.scratch);
+      console.log(`scratch root ${where} deleted after the clean pass (${freed} bytes, ${gb(freed)} freed)`);
+    } else {
+      console.log(`scratch root left in place: ${where}${d.ok ? "" : " (for inspection)"}`);
+    }
     return d.ok ? 0 : 1;
   } catch (e) {
     console.error(`bookcase backup ${cmd}: ${e instanceof BackupTargetError ? e.message : e instanceof Error ? e.message.replaceAll(target, "<target>").replaceAll(root, "<data root>") : e}`);

@@ -94,7 +94,9 @@ Dataset versions and `latest.json` are not restored, so the build writes its ver
 it is read; a mismatch stops the drill. Then, with the scratch root as the data root, it runs `bookcase replay` on
 each restored ledger and `bookcase dataset build`, and compares the TS-0 version id (and the bytes of its
 `labels.jsonl`) with the live one. It exits 0 only when every replay is identical and the version matches. The
-scratch root is left in place for the owner to inspect; nothing under the data root is ever deleted.
+scratch root is deleted after a clean pass (the bytes freed are printed; `--keep-scratch` keeps it) and left in
+place after a failed one, for inspection. That is the one delete under the data root: only a dated folder directly
+inside the drill folder, never through a symlink, and the drill folder itself once it is empty.
 
 The drill restores derived data as well as facts, because TS-0's build reads the stage caches (F-0c's detections,
 F-0e's readings, H-2's base decisions, F-0g's copies, F-0h's context, Q-2b's rungs, F-0i's partition, NB-3's flags),

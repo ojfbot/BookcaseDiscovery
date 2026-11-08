@@ -16,6 +16,8 @@ import {
   latestManifest,
   listSnapshots,
   readManifest,
+  removeDrillScratch,
+  RESTORE_DRILL_DIR,
   restoreSnapshot,
   TENANT_DIR,
   verifySnapshot,
@@ -294,5 +296,34 @@ describe("verify and restore", () => {
     }
     expect(err.join("\n")).toMatch(/mounted and unlocked/);
     expect(err.join("\n")).not.toContain(gone);
+  });
+
+  it("deletes only a clean drill's own dated scratch root, never through a symlink", () => {
+    const drill = join(root, RESTORE_DRILL_DIR);
+    const keep = join(base, `keep-${n}`);
+    mkdirSync(keep, { recursive: true });
+    writeFileSync(join(keep, "precious"), "not the drill's");
+    const scratch = join(drill, "2026-11-08");
+    mkdirSync(join(scratch, "ledger"), { recursive: true });
+    writeFileSync(join(scratch, "ledger", "a.sqlite"), "12345");
+    symlinkSync(keep, join(scratch, "out"));
+    // Refused: a folder outside the drill folder, an undated name, and a symlinked scratch root.
+    expect(() => removeDrillScratch(root, join(root, "images"))).toThrow(/left in place/);
+    mkdirSync(join(drill, "notes"));
+    expect(() => removeDrillScratch(root, join(drill, "notes"))).toThrow(/left in place/);
+    symlinkSync(keep, join(drill, "2026-11-09"));
+    expect(() => removeDrillScratch(root, join(drill, "2026-11-09"))).toThrow(/left in place/);
+    expect(removeDrillScratch(root, scratch)).toBeGreaterThanOrEqual(5);
+    expect(existsSync(scratch)).toBe(false);
+    expect(readFileSync(join(keep, "precious"), "utf8")).toBe("not the drill's");
+    expect(existsSync(drill)).toBe(true); // other entries remain, so the drill folder stays
+    rmSync(join(drill, "notes"), { recursive: true });
+    rmSync(join(drill, "2026-11-09"));
+    const second = join(drill, "2026-11-10-2");
+    mkdirSync(second);
+    removeDrillScratch(root, second);
+    expect(existsSync(drill)).toBe(true); // the synthetic root's earlier drill is still there
+    removeDrillScratch(root, join(drill, "2026-11-01"));
+    expect(existsSync(drill)).toBe(false); // and the drill folder goes with the last scratch root
   });
 });

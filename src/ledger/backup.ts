@@ -8,6 +8,7 @@
 //                           dated snapshot folder holding `backup-manifest.json` (the fact manifest) per run
 //   verifySnapshot(...)     re-hash the copies on the target against a manifest: counts only
 //   restoreSnapshot(...)    write a snapshot's files into a fresh folder, checking every byte against its hash
+//   removeDrillScratch(...) delete a restore drill's scratch root after a clean pass: the one delete under the data root
 //
 // The share refuses hard links, so a dated folder of full copies would cost the whole data root on every run. Each
 // file body is stored once instead, named by its sha256 (`objects/sha256/<aa>/<hash>`, the image store's layout), and
@@ -18,10 +19,10 @@
 //
 // Never logged: the target's path, the data root's path, or any file name. The credentials file is never opened.
 import { createHash, randomUUID } from "node:crypto";
-import { lstatSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, readlinkSync, realpathSync, renameSync, rmSync, statSync, symlinkSync, utimesSync, writeFileSync, chmodSync } from "node:fs";
+import { lstatSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, readlinkSync, realpathSync, renameSync, rmdirSync, rmSync, statSync, symlinkSync, utimesSync, writeFileSync, chmodSync } from "node:fs";
 import { open, stat } from "node:fs/promises";
 import { tmpdir } from "node:os";
-import { dirname, isAbsolute, join, sep } from "node:path";
+import { basename, dirname, isAbsolute, join, sep } from "node:path";
 import { DatabaseSync } from "node:sqlite";
 import { writeFileDurable } from "./durable.ts";
 
@@ -637,6 +638,33 @@ export function freshDir(base: string, date: string): string {
       return p;
     }
   }
+}
+
+/**
+ * Delete one restore drill's scratch root, `<root>/private/restore-drill/<date>[-n]`, and the drill folder when that
+ * leaves it empty; returns the bytes freed. The one delete under the data root, and only of a folder the drill made:
+ * the path must be a real directory (not a symlink) directly inside the real drill folder, with a date name. Symlinks
+ * inside are removed as links, never followed.
+ */
+export function removeDrillScratch(root: string, scratch: string): number {
+  const base = join(root, RESTORE_DRILL_DIR);
+  const st = lstatSync(scratch);
+  if (!st.isDirectory() || st.isSymbolicLink()) throw new Error("the drill's scratch root is not a plain folder: left in place");
+  if (realpathSync(dirname(scratch)) !== realpathSync(base) || !/^\d{4}-\d{2}-\d{2}(-\d+)?$/.test(basename(scratch))) {
+    throw new Error("the drill's scratch root is not a dated folder inside the drill folder: left in place");
+  }
+  let bytes = 0;
+  const sum = (dir: string): void => {
+    for (const e of readdirSync(dir, { withFileTypes: true })) {
+      const p = join(dir, e.name);
+      if (e.isDirectory()) sum(p);
+      else bytes += lstatSync(p).size;
+    }
+  };
+  sum(scratch);
+  rmSync(scratch, { recursive: true });
+  if (readdirSync(base).length === 0) rmdirSync(base);
+  return bytes;
 }
 
 /** Empty regular files at the data root's top level: strays, reported and never removed. */
