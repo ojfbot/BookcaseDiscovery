@@ -30,7 +30,7 @@ export const BACKUP_MANIFEST_VERSION = 1;
 /** The folder this repo owns on the target: the share is shared with other tenants. */
 export const TENANT_DIR = "bookcase-discovery";
 /** Snapshots kept by `backup run` unless `--keep` says otherwise (sizing: docs/backup.md). */
-export const DEFAULT_KEEP = 12;
+export const DEFAULT_KEEP = 4;
 
 /** Label Studio's local login (`scripts/label-studio.sh`). Never opened, hashed, copied or named in output. */
 export const CREDENTIALS_FILE = join("labels", "ls-credentials.txt");
