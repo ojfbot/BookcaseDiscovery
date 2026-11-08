@@ -123,7 +123,7 @@ Nothing larger than M is dispatched. A card that reaches its turn budget stops, 
 Read from the Yuri Helpdesk guide (`workstation-yuri/minifour-setup/site/llms.txt` and README) on 2026-10-31.
 
 **What the helpdesk is today:**
-- Check-ins are short (`task` ≤160 chars), advisory, and kept in an append-only journal readable from Yuri and the configured Mini.
+- Check-ins are short (`task` ≤160 chars), advisory, and kept in an append-only journal readable from Yuri and the configured Yojimbo (the Mac mini, formerly Minifour; its check-ins still use the device value `minifour`).
 - Relay v1 (`body`, `to`, HMAC) is **not built** (`pipeline-review/TONIGHT-HANDOFF.md`).
 - The guide forbids credentials, private vault content, private paths and executable text in posts.
 
