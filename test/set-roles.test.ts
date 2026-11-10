@@ -15,9 +15,9 @@ describe("the registry", () => {
     for (const role of Object.values(SET_REGISTRY)) expect(SET_ROLES).toContain(role);
   });
 
-  it("declares pilot-000 as the only training source today", () => {
-    expect(Object.entries(SET_REGISTRY).filter(([, r]) => r === "training-source").map(([s]) => s)).toEqual(["pilot-000"]);
-    expect(setsByRole()["training-source"]).toBe(1);
+  it("declares pilot-000 and NS-K's sf-store-001 as the training sources today", () => {
+    expect(Object.entries(SET_REGISTRY).filter(([, r]) => r === "training-source").map(([s]) => s)).toEqual(["pilot-000", "sf-store-001"]);
+    expect(setsByRole()["training-source"]).toBe(2);
   });
 
   it("names no training source the way an evaluation set is named (the two checks agree)", () => {

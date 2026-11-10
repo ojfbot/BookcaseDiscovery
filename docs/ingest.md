@@ -98,3 +98,86 @@ bookcase ingest <folder> --session pilot-000 --settings <the private settings ma
 bookcase manifest pilot-000
 bookcase replay "$BOOKCASE_DATA/ledger/pilot-000.sqlite" --to "$BOOKCASE_DATA/ledger/pilot-000.replay.sqlite"
 ```
+
+## Video (2026-11-07 shoot) (NS-K, 2026-11-10)
+
+The owner's first bookstore shoot is video only: stock Camera, default session, iPhone 17 Pro, 1080 × 1920 portrait,
+about 30 fps, H.264, every clip with audio, none with a location tag. The owner ruled to build the video pipeline on
+these clips now and accept the lower quality. Two store visits, two sessions: `sf-store-001` (visit 1,
+`training-source`) and `sf-store-002` (visit 2, `held-out`, never trained on: OC35), both declared in
+`src/eval/set-roles.ts`.
+
+```sh
+bookcase clip ingest <visit folder> --session <session> --permission-note <the note>   # private manifest only
+bookcase clip frames <session> [--rate 1]
+bookcase manifest <session>
+bookcase clip report <session>                                                          # counts only
+```
+
+**Clip ingest.** Per clip: the original is hashed first (INV-12), its facts read with exiftool (`CreationDate`, the
+camera's local time with its offset, is the capture instant) and AVFoundation (the track list and the samples per
+track), and `helpers/video/strip-audio.swift` writes the audio-free copy: `AVAssetReader` passthrough into
+`AVAssetWriter`, no output settings, the source format as the hint, every track but the audio ones, nothing
+re-encoded. The copy is checked (no audio track, the same video sample count, the same duration to the millisecond, no
+location tag), made read-only, and stored as `<data root>/video/sha256/<aa>/<hash>.mov` under its own hash. A clip
+whose original hash is in the clip manifest is skipped, so a rerun adds only new clips. A clip that is not H.264 or
+HEVC, has no video track or has no capture instant is refused and listed. The originals with audio stay in the inbox
+untouched; the owner rules on them separately. `video/` is a fact folder in DL-6's backup; `inbox/` is unclassified.
+
+**Frames.** `helpers/video/frames.py` (run in the `helpers/coverage` environment: numpy and opencv-python 4.10.0.84)
+decodes the audio-free clip and scores every frame by the variance of the Laplacian of a grey copy whose long side is
+640 px. In each 1 s window the sharpest frame is written at native resolution as a JPEG (quality 95, no metadata); the
+last, partial window of a clip is kept like the others. The frames enter the image store through ingest's **frame
+mode**: no session minimum and no EXIF requirement (for frames only), the capture instant is the clip's plus the
+frame's timestamp, the device is the clip's, the frame is its own original and working copy (`imageHash` =
+`workingCopyHash`), and the setting is `real-use`. The ledger gets ordinary `ImageAssetIngested` events, so the public
+manifest passes its schema unchanged. The private fixture manifest marks a frame `nativeSize` when it is on its clip's
+grid and gives it its clip's capture provenance (`natural-sweep`, the clip's device class and assumed case). The frame
+lineage (frame hash → clip hash, frame index, timestamp, sharpness, the window's median and size, the extractor and its
+parameters) is in the private frame manifest, lineage-stamped (DL-3).
+
+**Faces.** No face check runs on frames, and none drops a frame. A face check comes only once the pipeline can tell a
+face printed on a book from a real person in the store, and it will blur, never drop. The owner avoided filming people.
+
+**Case map.** The owner gave no map from clips to cases, so each clip is assumed to show one case (`bookcaseId`
+`clip-<n>`, `caseIdSource: "assumed-per-clip"` in the clip manifest).
+
+### Counts
+
+| | `sf-store-001` | `sf-store-002` |
+|---|---|---|
+| clips ingested / refused | 15 / 0 | 5 / 0 |
+| duration | 609.78 s | 481.62 s |
+| codec, size | H.264, 1080 × 1920 (all 15) | H.264, 1080 × 1920 (all 5) |
+| nominal frame rate | 29.58 to 30.00 fps | 29.98 fps |
+| device class | `metric-depth` (all 15) | `metric-depth` (all 5) |
+| tracks before | per clip: 1 video (`avc1`), 2 audio (`aac `, `apac`), 6 timed metadata (`mebx`) | the same |
+| tracks after | per clip: 1 video, 6 timed metadata, 0 audio | the same |
+| audio-free copies / video sample counts equal | 15 / 15 | 5 / 5 |
+| decoder saw every video sample | 15 of 15 clips | 5 of 5 clips |
+| frames kept | 616 | 485 |
+| storage: originals (inbox) / audio-free clips / frames | 809.2 / 768.3 / 400.4 MiB | 639.4 / 607.1 / 293.4 MiB |
+| wall time: clip ingest / frames | 36 s for both sessions' 20 clips together with the rerun below | 118 s / 92 s |
+
+An exiftool pass over the stored copies (`-ee`, every track's handler) finds 0 audio tracks and 20 video tracks; the
+same pass over the inbox originals finds 40 audio tracks. A rerun of `clip ingest` on visit 1 skipped all 15 clips, and
+a rerun of `clip frames` on `sf-store-001` framed none.
+
+Sharpness of the kept frames (variance of the Laplacian, grey copy at 640 px on the long side; higher is sharper):
+
+| | p10 | p25 | median | p75 | p90 | min | max |
+|---|---|---|---|---|---|---|---|
+| `sf-store-001` | 1344.04 | 1690.69 | 2029.23 | 2328.80 | 2551.90 | 243.93 | 2988.84 |
+| `sf-store-002` | 1184.17 | 1463.06 | 1640.36 | 1825.06 | 1996.47 | 320.55 | 3089.35 |
+
+The kept frame over its window's median sharpness: median 1.24 (p10 1.06, p90 1.84) in `sf-store-001`, median 1.27
+(p10 1.06, p90 1.87) in `sf-store-002`. These are scores of the frame selector, not of reading: they say how much
+sharper the chosen frame is than its neighbours, nothing about how many spines can be read.
+
+**Decoder.** OpenCV 4.10.0 (the opencv-python 4.10.0.84 wheel) decoded H.264 through its bundled FFMPEG backend; the
+AVFoundation fallback was not needed. ffmpeg itself is not installed and was not used.
+
+### The video tier
+
+A 1080p frame is about 2 MP (1080 × 1920 = 2.07 MP); the still stages are tuned on 48 MP stills. Quality on frames is
+expected to be lower and is **unmeasured** until the F-0 card runs on them. The 4K reshoot with stills comes later.

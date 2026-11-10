@@ -41,7 +41,7 @@ export const RESTORE_DRILL_DIR = join("private", "restore-drill");
 /**
  * The classes decide the verify order and the restore drill, not what is copied: everything is copied.
  *
- *   fact          cannot be rebuilt: the event ledgers, originals, labels, the private fixture manifests (with the
+ *   fact          cannot be rebuilt: the event ledgers, originals, the audio-free clips, labels, the private fixture manifests (with the
  *                 permission log) and the frozen dataset history
  *   derived       stage caches, depth and fusion caches, `proxy/`: lineage-stamped and rebuildable, some at hours of GPU
  *   refetchable   `models/` (pinned by revision) and `catalog/` (dumps re-downloadable, catalogs rebuildable)
@@ -50,7 +50,8 @@ export const RESTORE_DRILL_DIR = join("private", "restore-drill");
 export type BackupClass = "fact" | "derived" | "refetchable" | "unclassified";
 export const CLASS_ORDER: readonly BackupClass[] = ["fact", "unclassified", "derived", "refetchable"];
 
-const FACT_DIRS = new Set(["ledger", "images", "raw", "labels", "datasets"]);
+// `video/` (NS-K): the audio-free clips. Their originals stay in `inbox/`, which is left unclassified.
+const FACT_DIRS = new Set(["ledger", "images", "raw", "labels", "datasets", "video"]);
 const REFETCHABLE_DIRS = new Set(["models", "catalog"]);
 
 export function classOfPath(rel: string): BackupClass {

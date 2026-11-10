@@ -8,6 +8,7 @@ import { ImageStore, PhotoSettingSchema, sha256Hex } from "../ledger/index.ts";
 import type { Ledger, PhotoSetting } from "../ledger/index.ts";
 import { exiftoolReader, hasExiftool, nativeReader } from "./metadata.ts";
 import type { MetadataReader, PhotoMeta } from "./metadata.ts";
+import type { CaptureMode, DeviceClass } from "./manifest.ts";
 import { makeWorkingCopy, pixelSize, WorkingCopyError } from "./working-copy.ts";
 import type { ImageFormat } from "./working-copy.ts";
 
@@ -32,6 +33,25 @@ export interface IngestOptions {
   useExiftool?: boolean;
   runId?: string;
   now?: () => Date;
+  /**
+   * Frame mode (NS-K): every file in the folder is a frame a video helper wrote from an audio-free clip, keyed here by
+   * file name. Only in this mode are the session minimum and the EXIF requirement lifted: the frame's capture instant
+   * and device come from its clip, not from EXIF (a frame JPEG has none). The frame is its own original and its own
+   * working copy (no GPS to strip), its setting is `real-use`, and the settings map is not read. Absent: the still path,
+   * unchanged.
+   */
+  frames?: Record<string, FrameFact>;
+}
+
+/** What a frame's clip says about it (NS-K frame mode); kept in the private manifest, never in the repo. */
+export interface FrameFact {
+  /** The clip's creation instant plus the frame's timestamp (ISO 8601 with the clip's offset). */
+  capturedAt: string;
+  /** The clip's device, "<Make> <Model>". */
+  device: string;
+  /** The frame is the clip's own pixel grid (not resampled). */
+  nativeSize: boolean;
+  provenance?: { deviceClass: DeviceClass; captureMode: CaptureMode; bookcaseId?: string };
 }
 
 const SettingEntrySchema = z.union([
@@ -73,6 +93,10 @@ export interface AcceptedDetails {
   lensModel?: string;
   focalLengthMm?: number;
   focalLength35mm?: number;
+  /** Frame mode only: whether the frame is on its clip's grid (the still path decides from the camera's grids). */
+  nativeSize?: boolean;
+  /** Frame mode only: the capture provenance its clip gives. */
+  provenance?: FrameFact["provenance"];
 }
 
 export interface IngestResult {
@@ -131,7 +155,9 @@ const IGNORED = (name: string): boolean => name.toLowerCase().endsWith(".aae") |
 
 export function ingest(options: IngestOptions): IngestResult {
   const { folder, session, ledger, dataDir } = options;
-  const minPixels = options.minPixels ?? DEFAULT_MIN_PIXELS;
+  const frameMode = options.frames !== undefined;
+  // Frame mode has no session minimum: a 1080p frame is about 2 MP (the video tier, docs/ingest.md). 1 is the contract's floor.
+  const minPixels = options.minPixels ?? (frameMode ? 1 : DEFAULT_MIN_PIXELS);
   const now = options.now ?? (() => new Date());
   const runId = options.runId ?? `ingest-${now().toISOString()}`;
   const reader = options.useExiftool === false || !hasExiftool() ? nativeReader() : exiftoolReader();
@@ -146,7 +172,7 @@ export function ingest(options: IngestOptions): IngestResult {
   const siblings = new Set(names.map((n) => n.toLowerCase()));
   const files = names.filter((n) => !IGNORED(n));
   const ignored = names.filter(IGNORED);
-  const settings = options.settings ?? {};
+  const settings = options.frames ? {} : (options.settings ?? {});
   const unmatchedSettings = Object.keys(settings).filter((k) => !names.includes(k));
 
   const emit = <T extends "ScanSessionOpened" | "ImageAssetIngested" | "ImageRejected">(type: T, payload: Extract<Parameters<Ledger["append"]>[0], { type: T }>["payload"]) =>
@@ -175,6 +201,14 @@ export function ingest(options: IngestOptions): IngestResult {
       const format = sniff(path);
       if (!format) {
         reject(["unsupported-format"]);
+        continue;
+      }
+      if (frameMode) {
+        if (format !== "jpeg") {
+          reject(["unsupported-format"]);
+          continue;
+        }
+        outcomes.push(ingestFrame(fileName, path));
         continue;
       }
       if (format === "heic" && reader.name === "native")
@@ -250,6 +284,52 @@ export function ingest(options: IngestOptions): IngestResult {
     }
   } finally {
     rmSync(tmpDir, { recursive: true, force: true });
+  }
+
+  /** A frame: stored once as its own original and working copy, with its clip's instant and device (frame mode). */
+  function ingestFrame(fileName: string, path: string): FileOutcome {
+    const fact = options.frames![fileName];
+    if (!fact) throw new Error(`ingest: frame mode names no clip facts for ${fileName}`);
+    const imageHash = sha256File(path);
+    const probe = reader.probe(path);
+    if (probe.hasGps) throw new Error(`ingest: frame ${fileName} carries a GPS tag; a frame written by the video helper has no metadata`);
+    if (probe.orientation !== 1) throw new Error(`ingest: frame ${fileName} has Orientation ${probe.orientation}, expected 1`);
+    const stored = pixelSize(path);
+    const original = store.putFile(path, EXTENSION.jpeg);
+    if (original.hash !== imageHash) throw new Error(`ingest: ${fileName} changed while it was being read`);
+    const setting: PhotoSetting = "real-use";
+    emit("ImageAssetIngested", {
+      sessionId: session,
+      imageHash,
+      workingCopyHash: imageHash,
+      format: "jpeg",
+      width: stored.width,
+      height: stored.height,
+      setting,
+      capturedAt: fact.capturedAt,
+    });
+    return {
+      fileName,
+      verdict: "accepted",
+      reasons: [],
+      derivativeSignals: [],
+      megapixels: (stored.width * stored.height) / 1e6,
+      setting,
+      imageHash,
+      workingCopyHash: imageHash,
+      details: {
+        format: "jpeg",
+        width: stored.width,
+        height: stored.height,
+        storedWidth: stored.width,
+        storedHeight: stored.height,
+        orientation: 1,
+        capturedAt: fact.capturedAt,
+        device: fact.device,
+        nativeSize: fact.nativeSize,
+        ...(fact.provenance ? { provenance: fact.provenance } : {}),
+      },
+    };
   }
 
   return { session, outcomes, unmatchedSettings, ignored, metadataReader: reader.name };

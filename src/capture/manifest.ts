@@ -190,7 +190,9 @@ export function privateManifest(result: IngestResult): PrivateManifest {
         },
         edited: o.derivativeSignals.length > 0,
         derivativeSignals: o.derivativeSignals,
-        nativeSize: isNativeSize(d.storedWidth, d.storedHeight),
+        // A frame (NS-K frame mode) is native when it is on its clip's grid; a still, when it is on the camera's.
+        nativeSize: d.nativeSize ?? isNativeSize(d.storedWidth, d.storedHeight),
+        ...(d.provenance ? { provenance: d.provenance } : {}),
       };
     });
   const rejected = result.outcomes

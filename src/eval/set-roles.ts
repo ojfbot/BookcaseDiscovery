@@ -49,7 +49,9 @@ export const SET_REGISTRY: SetRegistry = {
   // The public datasets the yardstick pair is drawn from (H-0): titles and boxes.
   "library-dataset": "proxy",
   "zhong-yang-661": "proxy",
-  // F-1: reserved as held-out from the start.
+  // NS-K: the first store visit of the 2026-11-07 shoot, video only, 1080p30 (frames are about 2 MP: the video tier).
+  "sf-store-001": "training-source",
+  // F-1: reserved as held-out from the start. NS-K: the second store visit of the 2026-11-07 shoot, video only, 1080p30.
   "sf-store-002": "held-out",
 };
 
