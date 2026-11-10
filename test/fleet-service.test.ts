@@ -59,6 +59,28 @@ it("renders escaped absolute paths and leaves unrelated environment out of launc
   expect(() => workerPlist("node", "yuri", env)).toThrow();
 });
 
+it("persists only a valid optional recovery generation in the child environment", () => {
+  const generation = "123e4567-e89b-42d3-a456-426614174000";
+  const legacy = workerPlist(process.execPath, "yuri", env);
+  expect(legacy).not.toContain("FLEET_GENERATION");
+
+  const normal = workerPlist(process.execPath, "yuri", { ...env, FLEET_GENERATION: generation });
+  expect(normal).toContain(`<key>FLEET_GENERATION</key><string>${generation}</string>`);
+
+  const nasEnv = {
+    ...env,
+    FLEET_SERVICE_PROFILE: "nas",
+    FLEET_ENDPOINT: "https://fleet.test:8788",
+    NODE_EXTRA_CA_CERTS: join(home, "ca.crt"),
+    FLEET_GENERATION: generation,
+  };
+  const nas = workerPlist(process.execPath, "yuri", nasEnv);
+  expect(nas).toContain(`<key>FLEET_GENERATION</key><string>${generation}</string>`);
+  expect(nas).toContain("<key>FLEET_KINDS</key><string>read-vision</string>");
+  expect(() => workerPlist(process.execPath, "yuri", { ...env, FLEET_GENERATION: "bad" })).toThrow("invalid fleet generation");
+  expect(() => workerPlist(process.execPath, "yuri", { ...env, FLEET_GENERATION: "" })).toThrow("invalid fleet generation");
+});
+
 it("installs disabled, starts, reports a sanitized status, then disables and drains", () => {
   const domain = "gui/501";
   const target = `${domain}/org.bookcasediscovery.fleet-worker`;

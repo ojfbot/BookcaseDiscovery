@@ -91,6 +91,44 @@ it("reports both workers' aggregate state using owner authentication", async () 
   }
 });
 
+it("uses a validated generation for owner clients and preserves the legacy call shape", async () => {
+  const summary = { now: {}, period: { byWorker: {} } };
+  report.mockResolvedValue(summary);
+  const output = vi.spyOn(console, "log").mockImplementation(() => {});
+  const generation = "123e4567-e89b-42d3-a456-426614174000";
+  try {
+    expect(await fleetCommand(["report"], { ...env, FLEET_GENERATION: generation })).toBe(0);
+    expect(client).toHaveBeenCalledWith(env.FLEET_ENDPOINT, "owner", env.FLEET_TOKEN_FILE, generation);
+    client.mockClear();
+    expect(await fleetCommand(["report"], env)).toBe(0);
+    expect(client).toHaveBeenCalledWith(env.FLEET_ENDPOINT, "owner", env.FLEET_TOKEN_FILE);
+  } finally {
+    output.mockRestore();
+  }
+  const error = vi.spyOn(console, "error").mockImplementation(() => {});
+  try {
+    client.mockClear();
+    expect(await fleetCommand(["report"], { ...env, FLEET_GENERATION: "invalid" })).toBe(1);
+    expect(client).not.toHaveBeenCalled();
+  } finally {
+    error.mockRestore();
+  }
+});
+
+it("keeps the NAS read-vision-only admission guard when recovery generation is set", async () => {
+  const errors = vi.spyOn(console, "error").mockImplementation(() => {});
+  try {
+    expect(await fleetCommand(["nas", "admit", "/does/not/need/to/exist"], {
+      ...env,
+      FLEET_GENERATION: "123e4567-e89b-42d3-a456-426614174000",
+    })).toBe(1);
+    expect(errors).toHaveBeenCalledWith("NAS profile admits read-vision jobs only");
+    expect(client).not.toHaveBeenCalled();
+  } finally {
+    errors.mockRestore();
+  }
+});
+
 it("uses the host resource slot for NAS one-shot as well as resident execution", async () => {
   const data = mkdtempSync(join(tmpdir(), "nas-slot-runtime-"));
   const originalPlatform = Object.getOwnPropertyDescriptor(process, "platform")!;
@@ -114,7 +152,9 @@ it("publishes independent NAS presence and obeys the server pause without claimi
   runWorker.mockImplementation(async(_client,options)=>{expect(await options.canClaim()).toBe(false);options.onEvent({type:"paused",delayMs:5000});process.emit("SIGTERM","SIGTERM");});
   try {
     Object.defineProperty(process,"platform",{value:"darwin",configurable:true});
-    expect(await fleetCommand(["nas","serve-worker","yojimbo"],{...env,BOOKCASE_DATA:data,BOOKCASE_OCR_VISION:process.execPath})).toBe(0);
+    const generation="123e4567-e89b-42d3-a456-426614174000";
+    expect(await fleetCommand(["nas","serve-worker","yojimbo"],{...env,BOOKCASE_DATA:data,BOOKCASE_OCR_VISION:process.execPath,FLEET_GENERATION:generation})).toBe(0);
+    expect(client).toHaveBeenCalledWith(env.FLEET_ENDPOINT,"yojimbo",env.FLEET_TOKEN_FILE,generation);
     expect(presence).toHaveBeenCalled();expect(workerControl).toHaveBeenCalledOnce();expect(workOnce).not.toHaveBeenCalled();
     expect(presence.mock.calls[0]![0]).toMatchObject({schemaVersion:1,handlers:["read-vision"],busy:false});
     expect(JSON.parse(readFileSync(join(data,"fleet/resident-diagnostic.json"),"utf8")).eligibility).toBe("operator-paused");
