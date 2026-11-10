@@ -1,0 +1,808 @@
+{
+  "runId": "C5",
+  "card": "C-5",
+  "date": "2026-11-03",
+  "code": "e3b0d7732382",
+  "recordLimits": {
+    "records": 10,
+    "olQueriesPerBox": 8,
+    "locQueriesPerBox": 2,
+    "keywordTokens": 10,
+    "recordAuthors": 3
+  },
+  "costs": {
+    "dumpDate": "2026-10-31",
+    "download": {
+      "bytes": {
+        "works": 4078855962,
+        "editions": 12630804778,
+        "authors": 784183875,
+        "total": 17493844615
+      },
+      "checksums": "MD5 from the archive.org item's _files.xml, all three match",
+      "wallClock": "about 3 h 20 min (14:32-17:55 local), 6 + 12 ranged connections at about 0.2 MB/s each"
+    },
+    "measure": {
+      "seconds": 436,
+      "peakRssBytes": 916570112
+    },
+    "stage": {
+      "seconds": 520,
+      "peakRssBytes": 1061519360,
+      "stagingBytes": 2791948288
+    },
+    "build": {
+      "seconds": 503,
+      "peakRssBytes": 1616609280,
+      "catalogBytes": 6178123776,
+      "projectedBytes": 5300835584,
+      "v1Bytes": 426409984
+    },
+    "host": "build Mac (M-series, 48 GB), shared with F-0d/F-0e GPU jobs; every step at nice 10",
+    "disk": {
+      "freeBeforeBytes": "about 278 GB",
+      "freeAfter": "about 250 GB"
+    },
+    "evaluation": {
+      "pilotV2RedecideSeconds": 5060,
+      "pilotV2PeakRssBytes": 449429504,
+      "note": "6,894 spines, every reader reading retrieved on v2 (v1 pass: about 14 min)"
+    }
+  },
+  "coverage": {
+    "session": "pilot-000",
+    "method": "C-4 sample rows (private/c4), each resolved record re-checked against the catalog with C-4's isfdbHolds; C-4's stratified bootstrap",
+    "bootstrapReps": 10000,
+    "seed": 20261103,
+    "sampled": 235,
+    "resolved": 72,
+    "classChangedV1toV2": 20,
+    "reproducesC4": {
+      "value": 0.5953,
+      "lo": 0.4857,
+      "hi": 0.7122
+    },
+    "v1": {
+      "unresolvedExcluded": {
+        "value": 0.5953,
+        "lo": 0.4857,
+        "hi": 0.7122
+      },
+      "unresolvedAsNotInCatalog": {
+        "value": 0.1617,
+        "lo": 0.1262,
+        "hi": 0.1991
+      },
+      "matchMissOfReadable": {
+        "value": 0.2876,
+        "lo": 0.1915,
+        "hi": 0.3874
+      },
+      "weighted": {
+        "readableInIsfdb": 833.5,
+        "matchMiss": 402.7,
+        "readableNotInIsfdb": 566.7,
+        "notInIsfdbInOpenLibrary": 509.5,
+        "unresolved": 3755.8
+      },
+      "sample": {
+        "no-catalog-match": {
+          "in-isfdb": 4,
+          "not-in-isfdb": 18,
+          "unresolved": 98
+        },
+        "single-reader": {
+          "in-isfdb": 17,
+          "not-in-isfdb": 3,
+          "unresolved": 40
+        },
+        "readers-disagree": {
+          "in-isfdb": 5,
+          "not-in-isfdb": 1,
+          "unresolved": 9
+        },
+        "confirmed": {
+          "in-isfdb": 24,
+          "not-in-isfdb": 0,
+          "unresolved": 16
+        }
+      }
+    },
+    "v2": {
+      "unresolvedExcluded": {
+        "value": 0.9591,
+        "lo": 0.897,
+        "hi": 1
+      },
+      "unresolvedAsNotInCatalog": {
+        "value": 0.2605,
+        "lo": 0.2074,
+        "hi": 0.3145
+      },
+      "matchMissOfReadable": {
+        "value": 0.6514,
+        "lo": 0.5528,
+        "hi": 0.7339
+      },
+      "weighted": {
+        "readableInIsfdb": 1343,
+        "matchMiss": 912.2,
+        "readableNotInIsfdb": 57.3,
+        "notInIsfdbInOpenLibrary": 28.6,
+        "unresolved": 3755.8
+      },
+      "sample": {
+        "no-catalog-match": {
+          "in-isfdb": 20,
+          "not-in-isfdb": 2,
+          "unresolved": 98
+        },
+        "single-reader": {
+          "in-isfdb": 20,
+          "not-in-isfdb": 0,
+          "unresolved": 40
+        },
+        "readers-disagree": {
+          "in-isfdb": 6,
+          "not-in-isfdb": 0,
+          "unresolved": 9
+        },
+        "confirmed": {
+          "in-isfdb": 24,
+          "not-in-isfdb": 0,
+          "unresolved": 16
+        }
+      }
+    },
+    "v2WithoutShelfLayer": {
+      "unresolvedExcluded": {
+        "value": 0.8421,
+        "lo": 0.7449,
+        "hi": 0.9339
+      },
+      "unresolvedAsNotInCatalog": {
+        "value": 0.2287,
+        "lo": 0.1798,
+        "hi": 0.2783
+      },
+      "matchMissOfReadable": {
+        "value": 0.5344,
+        "lo": 0.4247,
+        "hi": 0.6368
+      },
+      "weighted": {
+        "readableInIsfdb": 1179.1,
+        "matchMiss": 748.3,
+        "readableNotInIsfdb": 221.1,
+        "notInIsfdbInOpenLibrary": 192.5,
+        "unresolved": 3755.8
+      },
+      "sample": {
+        "no-catalog-match": {
+          "in-isfdb": 15,
+          "not-in-isfdb": 7,
+          "unresolved": 98
+        },
+        "single-reader": {
+          "in-isfdb": 19,
+          "not-in-isfdb": 1,
+          "unresolved": 40
+        },
+        "readers-disagree": {
+          "in-isfdb": 5,
+          "not-in-isfdb": 1,
+          "unresolved": 9
+        },
+        "confirmed": {
+          "in-isfdb": 24,
+          "not-in-isfdb": 0,
+          "unresolved": 16
+        }
+      }
+    }
+  },
+  "golden": {
+    "v1": {
+      "catalog": {
+        "file": "catalog.sqlite",
+        "bytes": 426409984,
+        "schemaVersion": 1,
+        "sources": "isfdb",
+        "works": 340829,
+        "editions": 943917,
+        "openLibraryDumpDate": null
+      },
+      "rates": {
+        "clean": {
+          "n": 87,
+          "top1": 0.989,
+          "top5": 1,
+          "top10": 1,
+          "mrr": 0.992
+        },
+        "noisy": {
+          "n": 68,
+          "top1": 0.956,
+          "top5": 1,
+          "top10": 1,
+          "mrr": 0.967
+        },
+        "clean.dev": {
+          "n": 44,
+          "top1": 1,
+          "top5": 1,
+          "top10": 1,
+          "mrr": 1
+        },
+        "clean.test": {
+          "n": 43,
+          "top1": 0.977,
+          "top5": 1,
+          "top10": 1,
+          "mrr": 0.984
+        },
+        "noisy.dev": {
+          "n": 34,
+          "top1": 0.971,
+          "top5": 1,
+          "top10": 1,
+          "mrr": 0.978
+        },
+        "noisy.test": {
+          "n": 34,
+          "top1": 0.941,
+          "top5": 1,
+          "top10": 1,
+          "mrr": 0.957
+        },
+        "noise.initials": {
+          "n": 2,
+          "top1": 1,
+          "top5": 1,
+          "top10": 1,
+          "mrr": 1
+        },
+        "noise.multi-variant": {
+          "n": 3,
+          "top1": 1,
+          "top5": 1,
+          "top10": 1,
+          "mrr": 1
+        },
+        "noise.ocr-0O": {
+          "n": 15,
+          "top1": 1,
+          "top5": 1,
+          "top10": 1,
+          "mrr": 1
+        },
+        "noise.ocr-1l": {
+          "n": 5,
+          "top1": 0.8,
+          "top5": 1,
+          "top10": 1,
+          "mrr": 0.84
+        },
+        "noise.ocr-rn-m": {
+          "n": 2,
+          "top1": 1,
+          "top5": 1,
+          "top10": 1,
+          "mrr": 1
+        },
+        "noise.series-larger": {
+          "n": 8,
+          "top1": 1,
+          "top5": 1,
+          "top10": 1,
+          "mrr": 1
+        },
+        "noise.split-words": {
+          "n": 16,
+          "top1": 0.938,
+          "top5": 1,
+          "top10": 1,
+          "mrr": 0.958
+        },
+        "noise.surname-first": {
+          "n": 6,
+          "top1": 1,
+          "top5": 1,
+          "top10": 1,
+          "mrr": 1
+        },
+        "noise.truncated-author": {
+          "n": 14,
+          "top1": 0.929,
+          "top5": 1,
+          "top10": 1,
+          "mrr": 0.952
+        },
+        "noise.truncated-title": {
+          "n": 6,
+          "top1": 0.833,
+          "top5": 1,
+          "top10": 1,
+          "mrr": 0.875
+        }
+      },
+      "latencyMs": {
+        "n": 161,
+        "p50": 35.4,
+        "p95": 93.8,
+        "max": 124.5,
+        "mean": 40.4
+      },
+      "none": {
+        "n": 6,
+        "topScoreMax": 0.721,
+        "topScoreMedian": 0.578
+      },
+      "hitTopScore": {
+        "n": 151,
+        "min": 0.71,
+        "p10": 0.855,
+        "median": 0.933
+      },
+      "gaps": [],
+      "missesTop5": []
+    },
+    "v2": {
+      "catalog": {
+        "file": "catalog-v2.sqlite",
+        "bytes": 6178123776,
+        "schemaVersion": 2,
+        "sources": "isfdb,openlibrary",
+        "works": 4245204,
+        "editions": 13014235,
+        "openLibraryDumpDate": "2026-10-31"
+      },
+      "rates": {
+        "clean": {
+          "n": 87,
+          "top1": 0.989,
+          "top5": 1,
+          "top10": 1,
+          "mrr": 0.992
+        },
+        "noisy": {
+          "n": 68,
+          "top1": 0.941,
+          "top5": 0.956,
+          "top10": 0.971,
+          "mrr": 0.947
+        },
+        "clean.dev": {
+          "n": 44,
+          "top1": 1,
+          "top5": 1,
+          "top10": 1,
+          "mrr": 1
+        },
+        "clean.test": {
+          "n": 43,
+          "top1": 0.977,
+          "top5": 1,
+          "top10": 1,
+          "mrr": 0.984
+        },
+        "noisy.dev": {
+          "n": 34,
+          "top1": 0.941,
+          "top5": 0.971,
+          "top10": 0.971,
+          "mrr": 0.949
+        },
+        "noisy.test": {
+          "n": 34,
+          "top1": 0.941,
+          "top5": 0.941,
+          "top10": 0.971,
+          "mrr": 0.945
+        },
+        "noise.initials": {
+          "n": 2,
+          "top1": 1,
+          "top5": 1,
+          "top10": 1,
+          "mrr": 1
+        },
+        "noise.multi-variant": {
+          "n": 3,
+          "top1": 1,
+          "top5": 1,
+          "top10": 1,
+          "mrr": 1
+        },
+        "noise.ocr-0O": {
+          "n": 15,
+          "top1": 1,
+          "top5": 1,
+          "top10": 1,
+          "mrr": 1
+        },
+        "noise.ocr-1l": {
+          "n": 5,
+          "top1": 0.8,
+          "top5": 0.8,
+          "top10": 0.8,
+          "mrr": 0.8
+        },
+        "noise.ocr-rn-m": {
+          "n": 2,
+          "top1": 1,
+          "top5": 1,
+          "top10": 1,
+          "mrr": 1
+        },
+        "noise.series-larger": {
+          "n": 8,
+          "top1": 1,
+          "top5": 1,
+          "top10": 1,
+          "mrr": 1
+        },
+        "noise.split-words": {
+          "n": 16,
+          "top1": 0.938,
+          "top5": 0.938,
+          "top10": 1,
+          "mrr": 0.945
+        },
+        "noise.surname-first": {
+          "n": 6,
+          "top1": 1,
+          "top5": 1,
+          "top10": 1,
+          "mrr": 1
+        },
+        "noise.truncated-author": {
+          "n": 14,
+          "top1": 0.857,
+          "top5": 0.857,
+          "top10": 0.929,
+          "mrr": 0.866
+        },
+        "noise.truncated-title": {
+          "n": 6,
+          "top1": 0.833,
+          "top5": 1,
+          "top10": 1,
+          "mrr": 0.875
+        }
+      },
+      "latencyMs": {
+        "n": 161,
+        "p50": 195.6,
+        "p95": 548.5,
+        "max": 1736.6,
+        "mean": 246.9
+      },
+      "none": {
+        "n": 6,
+        "topScoreMax": 0.933,
+        "topScoreMedian": 0.812
+      },
+      "hitTopScore": {
+        "n": 150,
+        "min": 0.71,
+        "p10": 0.855,
+        "median": 0.933
+      },
+      "gaps": [],
+      "missesTop5": [
+        {
+          "id": "n025",
+          "rank": null
+        },
+        {
+          "id": "n062",
+          "rank": 8
+        },
+        {
+          "id": "n066",
+          "rank": null
+        }
+      ]
+    },
+    "rankChanges": [
+      {
+        "id": "n025",
+        "v1": 1,
+        "v2": null
+      },
+      {
+        "id": "n062",
+        "v1": 3,
+        "v2": 8
+      },
+      {
+        "id": "n066",
+        "v1": 5,
+        "v2": null
+      }
+    ],
+    "host": {
+      "cpu": "Apple M4 Pro",
+      "node": "v24.22.1"
+    }
+  },
+  "lookalike-pilot-000": {
+    "set": "pilot-000",
+    "scope": "real use (OC35): machine agreement only, never accuracy (INV-17)",
+    "spineCount": 6894,
+    "images": 31,
+    "accept": {
+      "minScore": 0.72,
+      "minTitleEvidence": 0.8,
+      "minCoverage": 0.5,
+      "minReaders": 2
+    },
+    "readingSet": "all-crops",
+    "reproducedCachedDecisions": 1,
+    "v1": {
+      "confirmed": 718,
+      "confirmedShare": {
+        "value": 0.10414853495793444,
+        "lo": 0.06677149184448576,
+        "hi": 0.1404015314893264
+      },
+      "confirmedOpenLibraryWorks": 0,
+      "unknownByReason": {
+        "single-reader": 923,
+        "no-text": 1738,
+        "no-catalog-match": 3435,
+        "readers-disagree": 80
+      },
+      "topMargin": {
+        "all": {
+          "n": 9419,
+          "p10": 0,
+          "p25": 0.008,
+          "p50": 0.04,
+          "p75": 0.117,
+          "under002": 0.3612,
+          "under005": 0.5481
+        },
+        "topConfirms": {
+          "n": 2538,
+          "p10": 0,
+          "p25": 0.065,
+          "p50": 0.168,
+          "p75": 0.251,
+          "under002": 0.1446,
+          "under005": 0.2203
+        }
+      }
+    },
+    "v2": {
+      "confirmed": 992,
+      "confirmedShare": {
+        "value": 0.14389324049898464,
+        "lo": 0.11370114251722879,
+        "hi": 0.17177335120710122
+      },
+      "confirmedOpenLibraryWorks": 342,
+      "unknownByReason": {
+        "single-reader": 1371,
+        "no-text": 1738,
+        "no-catalog-match": 2604,
+        "readers-disagree": 189
+      },
+      "topMargin": {
+        "all": {
+          "n": 9785,
+          "p10": 0,
+          "p25": 0,
+          "p50": 0.034,
+          "p75": 0.122,
+          "under002": 0.4166,
+          "under005": 0.5775
+        },
+        "topConfirms": {
+          "n": 3843,
+          "p10": 0,
+          "p25": 0.02,
+          "p50": 0.124,
+          "p75": 0.215,
+          "under002": 0.2485,
+          "under005": 0.3284
+        }
+      }
+    },
+    "delta": {
+      "confirmedShare": {
+        "value": 0.03974470554105019,
+        "lo": 0.019966765281115236,
+        "hi": 0.06220292892812043
+      }
+    },
+    "transitions": {
+      "gained": 311,
+      "lost": 37,
+      "switched": 34,
+      "switchedToOpenLibrary": 31,
+      "same": 647
+    },
+    "lostToReason": {
+      "single-reader": 15,
+      "readers-disagree": 18,
+      "no-catalog-match": 4
+    }
+  },
+  "lookalike-yardstick-library-b2": {
+    "set": "yardstick-library-b2",
+    "scope": "yardstick (PROXY): wrong accepts against the annotated books of each image",
+    "spineCount": 1132,
+    "images": 40,
+    "accept": {
+      "minScore": 0.72,
+      "minTitleEvidence": 0.8,
+      "minCoverage": 0.5,
+      "minReaders": 2
+    },
+    "readingSet": "all-crops",
+    "reproducedCachedDecisions": 1,
+    "f0InventoryCatalog": {
+      "confirmed": 269,
+      "confirmedShare": {
+        "value": 0.23763250883392226,
+        "lo": 0.1827647673899542,
+        "hi": 0.2971555942954358
+      },
+      "confirmedOpenLibraryWorks": 0,
+      "wrongAccepts": 24,
+      "wrongAcceptShareOfAccepted": {
+        "value": 0.08921933085501858,
+        "lo": 0.051197426067907996,
+        "hi": 0.13488464377999262
+      },
+      "wrongAcceptShareOfSpines": {
+        "value": 0.02120141342756184,
+        "lo": 0.01211291493586295,
+        "hi": 0.03225885360772678
+      },
+      "unknownByReason": {
+        "single-reader": 160,
+        "no-catalog-match": 412,
+        "no-text": 290,
+        "readers-disagree": 1
+      },
+      "topMargin": {
+        "all": {
+          "n": 2021,
+          "p10": 0.009,
+          "p25": 0.044,
+          "p50": 0.164,
+          "p75": 0.298,
+          "under002": 0.144,
+          "under005": 0.2657
+        },
+        "topConfirms": {
+          "n": 700,
+          "p10": 0.156,
+          "p25": 0.246,
+          "p50": 0.326,
+          "p75": 0.403,
+          "under002": 0.0386,
+          "under005": 0.0486
+        }
+      }
+    },
+    "v1": {
+      "confirmed": 13,
+      "confirmedShare": {
+        "value": 0.011484098939929329,
+        "lo": 0.0033275569478597618,
+        "hi": 0.02349946244816464
+      },
+      "confirmedOpenLibraryWorks": 0,
+      "wrongAccepts": 6,
+      "wrongAcceptShareOfAccepted": {
+        "value": 0.46153846153846156,
+        "lo": 0.25,
+        "hi": 0.8333333333333334
+      },
+      "wrongAcceptShareOfSpines": {
+        "value": 0.00530035335689046,
+        "lo": 0.0010176732777292857,
+        "hi": 0.010544857591070775
+      },
+      "unknownByReason": {
+        "no-catalog-match": 811,
+        "no-text": 290,
+        "single-reader": 18
+      },
+      "topMargin": {
+        "all": {
+          "n": 2023,
+          "p10": 0,
+          "p25": 0.007,
+          "p50": 0.023,
+          "p75": 0.053,
+          "under002": 0.4439,
+          "under005": 0.7355
+        },
+        "topConfirms": {
+          "n": 45,
+          "p10": 0,
+          "p25": 0,
+          "p50": 0.084,
+          "p75": 0.2,
+          "under002": 0.3111,
+          "under005": 0.4667
+        }
+      }
+    },
+    "v2": {
+      "confirmed": 44,
+      "confirmedShare": {
+        "value": 0.038869257950530034,
+        "lo": 0.020075404514215852,
+        "hi": 0.06277490276221238
+      },
+      "confirmedOpenLibraryWorks": 34,
+      "wrongAccepts": 17,
+      "wrongAcceptShareOfAccepted": {
+        "value": 0.38636363636363635,
+        "lo": 0.21535714285714286,
+        "hi": 0.6296296296296297
+      },
+      "wrongAcceptShareOfSpines": {
+        "value": 0.015017667844522967,
+        "lo": 0.006423786597369563,
+        "hi": 0.02432494837406676
+      },
+      "unknownByReason": {
+        "no-catalog-match": 737,
+        "no-text": 290,
+        "single-reader": 53,
+        "readers-disagree": 8
+      },
+      "topMargin": {
+        "all": {
+          "n": 2038,
+          "p10": 0,
+          "p25": 0,
+          "p50": 0.017,
+          "p75": 0.044,
+          "under002": 0.5378,
+          "under005": 0.787
+        },
+        "topConfirms": {
+          "n": 164,
+          "p10": 0,
+          "p25": 0.01,
+          "p50": 0.071,
+          "p75": 0.181,
+          "under002": 0.2988,
+          "under005": 0.3841
+        }
+      }
+    },
+    "delta": {
+      "confirmedShare": {
+        "value": 0.027385159010600707,
+        "lo": 0.013850246329865465,
+        "hi": 0.04199905971294057
+      },
+      "wrongAcceptShareOfSpines": {
+        "value": 0.009717314487632508,
+        "lo": 0.0019192022988590114,
+        "hi": 0.017479520215057852
+      }
+    },
+    "transitions": {
+      "gained": 33,
+      "lost": 2,
+      "switched": 1,
+      "switchedToOpenLibrary": 1,
+      "same": 10
+    },
+    "lostToReason": {
+      "readers-disagree": 2
+    },
+    "wrongAmongSwitched": 1,
+    "wrongAmongGained": 13
+  }
+}

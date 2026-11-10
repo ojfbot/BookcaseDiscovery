@@ -39,7 +39,7 @@ These are things only the owner can do or decide. Items 1 and 2 are on the criti
 | 15 | Whenever ready | **Bring in the GPT assessment.** Capture it into the vault as a raw note, using the capture envelope or a paste. The conductor distills it to `wiki/sources/bookcase-discovery-gpt-assessment-<date>.md` and opens the reconciliation page with you (OC18). | — |
 | 0c | Before T-6 | **Phone for the live spike.** Say whether the spike app runs under a free Apple personal team on your iPhone (7-day profiles, up to 3 apps, rebuild each week) or you join the Apple Developer Program ($99/year, Apple's stated price 2026-10-31). TestFlight is v2 work either way. | Free provisioning for the spike |
 | 0b′ | ~~Before F-2 (**G-LIC**)~~ **Done 2026-10-31** | ~~Licence under the AGPL constraint (OC26).~~ **G-LIC ruled by the owner: the whole repo is AGPL-3.0.** F-2 may train without a licence hold; weights stay private until G-W regardless. The permissive-retrain option moves to the backlog (#6b) in case the owner later wants permissive weights. | — |
-| 16 | Before G-LIVE (O-7) ⌨ | **Set the live targets.** The gap analysis proposes ranges, labelled proposals: first box on a new spine ≤100 ms; first text label on a stable track 300 ms–1 s; first cheap-pass card ≤3 s; adjudicated revisions ≤10 s, never blocking; glass-to-glass overlay ≤150 ms; live recall within a margin you choose of still recall; a label change rate you can watch without irritation; k and the INV-24 margin and dwell from U-1's proposals. Pick numbers and a percentile (p50 or p95). | Take the ranges' upper ends at p95 for the first ruling |
+| 16 | Before G-SWEEP, and **before E-6′ is written up** ⌨ | **Set the sweep targets** in `docs/gates/G-SWEEP.md`: instance recall on the degraded tier, ID switches per track, copy swaps, fused CER against the still path, time to first useful card, thermal. Proposed ranges are in the packet, labelled proposals. Pick a number and a percentile per row. *(Rewritten 2026-11-05: the live targets of the gap cycle are superseded with G-LIVE.)* | Take the packet's proposed ranges at p95 for the first ruling |
 | 17 | Each shoot | **Store permission log.** Ask the staff before photographing or filming; note the date, store (private manifest only) and who said yes. No audio recording. | — |
 
 **High-tier steps that need your explicit word:** items 0, 0b, 0b′ (G-LIC), 4, 7 (key and ceiling), 10 (every gate except G-P), 13, 16 (the live targets), anything over the spend ceiling, releasing any photo, crop or label (G-PUB), and releasing any weights (G-W).
@@ -69,7 +69,7 @@ S1–S3 run **in parallel** from GO. S4 is the owner's lane and starts with chec
 | **S6** Identify | Retrieval, joint assignment, bands, adjudicator, scheduler; E4, E5 | I-1, I-2, I-3, **[G-R]**, I-4, I-5, E-4, E-5 | S2, S5 (G-P); **G-R before I-4** | E-4 and E-5 run records; packets G-E4 and G-E5 ruled; INV-1, 2, 5, 6, 13 tests green | Fixture report with bands and candidates |
 | **S7** Recommend and corrections | Ranked, explained, located recommendations; corrections reactivate | R-2, R-3, W-2 | S2 (R-1), S6 (I-3; I-5 for R-3) | INV-7 and INV-9 tests; fixture report shows recommendations with click-to-locate and the unresolved queue | Full report |
 | **S8** MVP | One clean end-to-end run, owner judgement, handoff | M-1, O-5, D-1, D-2 (D-1 waits for G-LIVE too) | S6 and S7 exits; G-E4 ruled | **G-MVP** (owner) on the M-1 report and `evals/MVP/` | **MVP demo** |
-| **S9** Live track (gap cycle, OC24–OC25) | Stage A: the streaming stage graph on a Mac harness. Stage B: the loop on the phone. Live scorer and the live-vs-still experiment | T-0, T-1, T-2, T-3, T-4, T-5 · **[G-SURF]** · T-6, T-8, T-7a, T-7b · V-5, O-6, E-6, O-7 | T-0 after L-1; T-1 needs the owner's iPhone on the Mac; Stage B after F-2 (fixture-trained detector) and G-SURF; E-6 after V-5 labels and T-7b | **G-LIVE** (owner): V-5 metrics on the video fixtures against the owner's targets (O-7) | Stage A: sticky labels and revising cards on the Mac from the Continuity Camera. Stage B: the same on the phone |
+| **S9** Natural sweep track (re-planned 2026-11-05; OC37–OC39) | Protocol arms and uncoached sweep clips; provenance fields and the privileged-depth go rule; guard classes for rich sessions; device spikes under `helpers/` (capture logger, camera path, LiDAR vs MoGe-2, Core ML benchmark); the lab card in asset-foundry; tracker, fusion, cards and a replay viewer on the Mac; the sweep scorer and sweep-vs-still | NS-1, NS-2, NS-3 · NS-4, NS-5 · NS-Z1 · NS-6, NS-7, NS-8, NS-9 (⌨) · AF-1 (asset-foundry) · T-0 (done), T-2, T-3, T-4, T-5′, T-8 · V-5′, E-6′ · later NS-10..NS-14 | Owner approval of the S9 proposal; NS-1..3 at the next shoot; NS-4 after DL-1 and DL-5 land; NS-Z1 after the rich-session ADR; NS-6..9 need Xcode on Yojimbo, Developer Mode and the Pro phone; E-6′ after V-5′ and the sweep targets | **G-SWEEP** (owner): V-5′ measures per physical book on held-out degraded-tier uncoached sweeps against targets set before the write-up (`docs/gates/G-SWEEP.md`) | A recorded natural sweep replayed on the Mac with instance tracks, labels and revising cards; later, the same on the phone |
 | **S10** Flywheel (gap cycle, OC27) | Dataset manifest, grouped splits, training on MPS, registry, prefill-and-correct, held-out harness | F-1, F-2, F-3, F-4 · **[G-LIC]** before F-2 | F-1 after K-3; F-2 after F-0's catalog-confirmed labels, P-2 and G-LIC; F-0 after H-0 (OC36); F-3 for later fixtures; F-4 after V-2 and V-5 | `models/registry/` holds one owner-trained detector with manifest hash, held-out metrics and a model-card stub; F-4 runs it on stills and clips; the Z-1 guard rejects weight and video files | A registry record and the harness output |
 
 ### Gates
@@ -85,9 +85,9 @@ S1–S3 run **in parallel** from GO. S4 is the owner's lane and starts with chec
 | **G-L** Licences | Local indexing allowed (MVP), redistribution (post-MVP) | Owner, only if C-0 flags a problem | `docs/licences.md` | C-1 merge if local use is in doubt; any distribution |
 | **G-MVP** | MVP accepted | Owner | M-1 report, `evals/MVP/`, O-5 judgements | D-1 final, D-2, and opening G-V2 and G-PUB |
 | **G-PUB** *(post-MVP)* | Which photos, crops or labels may be released as illustrations, and with what model card | Owner | Packet covering: curation criteria; redaction of people, signage and GPS; store consent; cover-art copyright; model-card contents (data, intended use, limits, eval numbers) | Any public image or label. Until it is ruled, only aggregates are public |
-| **G-V2** *(post-MVP)* | Whether to start v2, the native iOS app with Python backend helpers, and in what shape: separate repo, v2 branch, or `apps/ios/` package | Owner | Packet: MVP results; the portability seams as they actually landed (ADR §10); the v2 open questions (§8) | All v2 work. It opens only after G-MVP. **Its packet now receives measured inputs from S9**: detector size that runs on the Neural Engine, tracker choice, FTS5-on-iOS (T-8), 2D vs ARKit, catalog delivery |
-| **G-SURF** *(gap cycle)* Spike surface | Confirms Stage B (the on-phone loop) proceeds, and records what Stage A could not measure: Continuity Camera video is documented at ≤1080p with 12 MP stills (WWDC22), so pixels and Neural Engine throughput are unanswered on the Mac | Owner (the 2026-10-31 "on-phone loop allowed" answer is the standing default; the gate records the measured gap, and the owner may stop) | T-1 runtime format list and per-stage latencies on a recorded clip; T-6 on-device benchmark | T-7a, T-7b, T-8 |
-| **G-LIVE** *(gap cycle)* Live MVP | Whether the live experience on one bookcase meets the owner's targets (O-7), and what the G-V2 packet inherits | Owner | V-5 run record on the video fixtures: time to first annotation, time to first useful card, live vs still recall, ID switches and label change rate, anchor jitter, revision rate and RBO, glass-to-glass histograms, calls and spend; E-6 write-up; a live demo on the phone | D-1 final; "MVP done" (with G-MVP) |
+| **G-V2** *(post-MVP)* | Whether to start v2, the native iOS app with Python backend helpers, and in what shape: separate repo, v2 branch, or `apps/ios/` package | Owner | Packet: MVP results; the portability seams as they actually landed (ADR §10); the v2 open questions (§8) | All v2 work. **It opens when G-SWEEP is ruled (owner, 2026-11-05)**; G-MVP stays the recognition proof. **Its packet receives measured inputs from S9**: camera path (NS-7), device floor and thermal budget (NS-9), LiDAR vs mono geometry (NS-8), tracker choice and copy-swap rate (T-2, V-5′), FTS5-on-iOS (T-8), 2D vs ARKit anchors, catalog delivery |
+| ~~**G-SURF**~~ *(gap cycle)* | **Dissolved 2026-11-05 with T-1** (S9 re-plan, OC37): the Continuity Camera stage is dropped, and the owner has allowed the on-phone work as device spikes under `helpers/`. Its measured-gap question is answered by the spikes themselves (NS-6..NS-9) | — | — | Nothing |
+| **G-SWEEP** *(replaces G-LIVE, 2026-11-05)* The sweep gate | Whether the casual, uncoached natural sweep on one bookcase, on the degraded tier (phones without metric depth), handles each visible physical book as a discrete, bounded, identified object to the owner's targets, and what the G-V2 packet inherits | Owner | V-5′ run record on held-out degraded-tier sweeps by case and session: instance recall; ID switches, fragmentation and copy swaps (exact on the lab's synthetic replays); fused CER against the still path; time to first card; thermal timeline; E-6′ write-up; a replay demo (on-device if NS-12 exists). Targets set before the write-up in `docs/gates/G-SWEEP.md` | D-1 final; "MVP done" (with G-MVP); **G-V2 opens here** |
 | **G-LIC** *(gap cycle)* Detector licence | ~~Whole repo AGPL-3.0, permissive retrain, or Enterprise licence (OC26)~~ **Ruled 2026-10-31 by the owner: whole repo AGPL-3.0.** Z-0 records it in `docs/gates/G-LIC.md` with the Ultralytics licence quote | Owner | Owner's word, 2026-10-31 ("AGPL-3.0 repo") | Nothing now; F-2 is unblocked |
 | **G-W** *(post-MVP, gap cycle)* Weights release | Whether owner-trained weights may be published, under which licence, with which model card | Owner | Packet: faces stripped from training data (counts); boxes-only detector; membership-inference test (loss-threshold attack) near chance on held-out vs training photos; licence chain; model card and datasheet; takedown contact | Any public weight file. Until ruled, only registry JSON (hashes, metrics) is public |
 
@@ -761,141 +761,152 @@ The conductor then writes the **M1 demo** (fixture report from the G-P defaults)
 - **exit:** PR URL.
 - **tier:** T1 Haiku · XS · Low · budget 10.
 
-### S9 — Live track (gap cycle, 2026-10-31 late; OC24–OC25, OC28–OC29)
+### S9 — Natural sweep track (re-planned 2026-11-05; OC37–OC39, INV-22 as amended, INV-25)
 
-Newline unit per card: `CURRICULUM-MAP.md` §1b. All S9 cards inherit INV-20 to INV-23. Stage A cards (T-0 to T-5) need no photos; T-1 and T-6 onward need the owner's iPhone.
+> **Proposal, 2026-11-05, for the owner to approve before any card below is dispatched.** Written by the capture sub-conductor from the owner's 2026-11-05 decisions (grill; plan folder `decisions/open-unknowns.md`, "Natural sweep" entry) and the owner's capture research captures of 2026-11-04/05. **The casual, uncoached natural sweep replaces OC31's guided sweep and the live track as planned on 2026-10-31.** The stills MVP and G-MVP are untouched. The **sweep gate G-SWEEP replaces G-LIVE**, and **G-V2 opens at G-SWEEP**. G-SURF is dissolved with T-1. Older mentions of G-LIVE elsewhere in this file read as G-SWEEP. Companion packets: `docs/gates/G-SWEEP.md` (measures, targets to set, four owner rulings) and `decisions/adr/draft-rich-session-retention.md` (the INV-22 amendment). Wayfinder map: plan folder `decisions/wayfinder/natural-sweep-capture.md`.
 
-#### T-0 · Live contracts
-- **goal:** the event and record schemas the stream needs, as JSON Schema beside L-1's.
-- **entry:** L-1 merged.
-- **do:** add `Track` (id, session, first/last frame, state: born/stable/lost), `FrameSample` (sparse, ≤1 Hz, hash + timestamp), `TrackWindow` (per-track summary per window: best-frame hash, sharpness, pose), `OcrReading` scoped to a track with a `condition` key (viewpoint bucket, exposure bucket) for INV-20, `LookupResult`, `AdjudicationRequested/Result/CacheHit`, `CardProposed`, `CardRevised` (`previous`, `reason_event_ids`, `diff`), `CardRetracted`, `CardUndo`. Legal transitions for `Track`. Glossary entries in `CONTEXT.md`.
-- **exit:** examples validate; Zod agrees with the schemas; a test proves two `OcrReading`s with the same `condition` count as one observation; `replay` over a recorded event file is byte-identical.
-- **tier:** T2 Sonnet · S · Low · feeds T-2–T-5, T-7 · budget 40.
+Newline unit per card: `CURRICULUM-MAP.md` §1b (the S9 rows apply to the NS cards by stage). All S9 cards inherit INV-20 to INV-25 and the line "no frame, clip, depth map, pose log or weight file is ever committed; the Z-1 guard covers video, weight and rich-session types". Device-gated cards (⌨) need the owner's Pro iPhone, **Xcode on Yojimbo (not installed on 2026-11-05: only the Command Line Tools are present)** and Developer Mode on the phone.
 
-#### T-1 · `capture-live` Mac harness (Continuity Camera) ⌨
-- **goal:** frames from the owner's iPhone into the core, timestamped at every stage, with the proxy's limits recorded.
-- **entry:** T-0; the owner's iPhone paired as Continuity Camera (iOS 16+, macOS 13+).
-- **do:** a SwiftPM CLI in `helpers/capture-live/` that opens the Continuity Camera `AVCaptureDevice`, prints every supported format (resolution, fps), streams frames at the chosen format as JPEG or raw buffers over a local socket with capture timestamps; `alwaysDiscardsLateVideoFrames` on; a TS wrapper with `os_signpost`-style stage timestamps; a "record" mode that writes a clip plus timestamps for replay. **Writes no frames to disk outside record mode (INV-22).**
-- **exit:** the runtime format list is committed to `docs/live/continuity-camera-formats.md` (it is expected to top out at 1080p; record what it actually says); a 20-second recorded clip replays through the core with identical events; per-stage timestamp histogram in `evals/live-A/`.
-- **tier:** T2 Sonnet · S · Low · ⌨ (phone on the Mac) · feeds G-SURF · budget 40.
+#### What changed, in one table
 
-#### T-2 · Tracker and debounce
-- **goal:** spines keep identity across frames while the camera pans; a track becomes `stable` before anything expensive runs.
-- **entry:** T-0, P-2 or P-4 (a detector that emits OBB), T-1 (a recorded clip, or a proxy video of library shelves).
-- **do:** run Ultralytics `track` with an OBB model and BoT-SORT with `gmc_method` on; read the Ultralytics code to confirm whether OBB association is rotated-aware and record the finding; add a thin-box association cost (centre distance normalised by box height plus an angle term, or Gaussian-box distance) as a second arm; debounce: a track is `stable` after N frames (N a parameter) and emits `TrackWindow`s; cancel work when a track is lost. Ledger writes per lifecycle edge and per window, never per frame.
-- **exit:** on the recorded clip, ID switches and fragmentation per arm in `evals/live-A/tracker.json`; the stable-track count; a test that no per-frame event is written.
-- **tier:** T2 Sonnet · M · Low · feeds T-3, T-4, V-5 · budget 60.
+| Was (2026-10-31 to 11-02) | Is (2026-11-05) | Why |
+|---|---|---|
+| Guided sweep: hold a button, pace cues, framing guide, scrub-back (OC31, U-2, T-9) | **Natural sweep:** the shopper moves the way shoppers move; no mandated pan speed, dwell or framing; peripheral **nudges** are ignorable and get quieter as recognition improves; coaching is an exceptional recovery action | The owner's north star is to accommodate ordinary human movement, not to train the shopper (OC37) |
+| Two-stage spike: Continuity Camera harness (T-1), then the on-phone loop (T-7a/b), gate G-SURF between | **Device spikes under `helpers/`** (capture logger, camera-path probe, LiDAR paired probe, Core ML benchmark), each answering one deferred decision; recorded sweeps replay through the Mac core | The remaining questions are device questions (camera path, depth, thermal) that a 1080p proxy cannot answer; the owner has already allowed the on-phone work |
+| Live frames never retained; sweep video discarded once processed (INV-22) | **Default sessions unchanged.** An **opt-in rich session** on the LiDAR Pro retains full-rate video (no audio), depth and confidence, pose, intrinsics and tracking state, privately, after the bystander pass (INV-22 as amended, OC38) | Multi-view label fusion and the synthetic lab need frames, poses and depth beyond the discard |
+| G-LIVE judged latency, live-vs-still recall, label change rate on guided clips | **G-SWEEP** judged per **physical book** on uncoached, degraded-tier, held-out sweeps: instance recall, ID switches and copy swaps, text, time to first card, thermal | The unit is the discrete, bounded, identified book (INV-25); real use is the degraded tier (OC39) |
+| `apps/live-ios/` spike app (OC19 as amended, owner to confirm) | **Spikes live under `helpers/`** (`helpers/capture-arkit/`, `helpers/coreml-bench/`, …); the product app's shape stays a G-V2 question | Owner, 2026-11-05. The OC19 "owner to confirm" item is closed by this ruling |
+| "dv mode" | Dropped as a term. The concept is the **degraded tier**: phones without metric depth | Owner, 2026-11-05 |
 
-#### T-3 · Best-frame selection and OCR fusion
-- **goal:** one good reading per track per condition, from many frames.
-- **entry:** T-2; P-1 (`ocr-vision`).
-- **do:** score frames per track (variance of Laplacian, exposure, glare, apparent spine size and angle); keep best-k; run Vision `.fast` on each stable track's best frame and `.accurate` on the best-k set, both as tagged variants; fuse readings by confidence-weighted string alignment (ROVER-like); collapse readings with the same `condition` into one `OcrReading` (INV-20); emit a `needs-pixels` work item when the fused reading is below a size or confidence floor.
-- **exit:** on the recorded clip, CER of fast-single, accurate-single and fused readings against the owner's labels (or proxy labels), in `evals/live-A/ocr-fusion.json`; the INV-20 test from T-0 passes against real readings.
-- **tier:** T2 Sonnet · M · Low · feeds E-6, G-P (OCR live arm) · budget 60.
+#### Device tiers and what "real use" means now (OC39)
 
-#### T-4 · Streaming identify and cards
-- **goal:** lookups and cards while the stream runs; the adjudicator never blocks the loop.
-- **entry:** T-3; C-3; I-3 (bands); I-4 if merged, else a stub.
-- **do:** one lookup per distinct fused reading; candidate sets with `unknown`; cards proposed from cheap-pass evidence and ranked by R-2's features (or a stub ranking before R-2); adjudication only for stable, ambiguous tracks, debounced, cached by (crop hash, candidate-set hash, model), capped per session with `paused` on the cap (INV-2), queued for Batch-API re-adjudication at session end; `CardRevised` with was/now/why (INV-21); all through one writer actor batching events per transaction in WAL mode.
-- **exit:** on the recorded clip, a card timeline in `evals/live-A/cards.json` with revision count and RBO between successive lists; `replay` byte-identical; tests for the cap, the cache and the revision diff.
-- **tier:** T2 Sonnet · M · Medium (paid calls under the ceiling) · feeds T-5, E-6 · budget 60.
+| Tier | Devices | Rear depth | Role |
+|---|---|---|---|
+| **Metric-depth** | LiDAR Pro iPhones (12 Pro to 18 Pro), iPad Pro | ARKit `sceneDepth` 256×192 at 60 Hz; AVFoundation LiDAR depth 320×240 streaming, metric | **Development and teacher side only.** The owner's phone. Rich sessions are recorded here |
+| **Relative-stereo** | Non-Pro iPhones with two rear cameras | Dual-Wide disparity, relative, range at 1–3 m untested | Degraded tier |
+| **None** | Single-rear-camera iPhones (SE, 16e, 17e, Air) | None | Degraded tier |
 
-#### U-1 · Live overlay UX research (forked design sessions) ⌨
-- **goal:** a calm overlay: the top-k, minimal, filterable design OC30 asks for, specified tightly enough that T-5 and T-7a implement it rather than invent it.
-- **entry:** none to start (it can run before GO); T-0's vocabulary when merged. The owner forks it into dedicated design sessions (Claude Design, GPT Canvas) from `~/selfco/prompts/bookcase-discovery-live-overlay-ux-handoff.md`; GPT output returns via `raw/inbox/` as usual.
-- **do:** explore 2–3 overlay directions on real shelf geometry (thin rotated spines, 20–60 per shelf); define the lens set and the default; propose k per lens; define label states (box only → label → highlighted) and what a tap reveals (alternatives, band, why); propose hysteresis parameters (margin, dwell, card-batch interval) as ranges for O-7; the "closer look" affordance; colour-blind and Reduce Motion treatment; one mockup per direction and a recommendation.
-- **exit:** `docs/live/overlay-ux.md` with the chosen direction, the lens set, k, label states and proposed INV-24 parameters, plus mockups as private links; the owner rules the direction (a one-line decision in the doc). T-5 and T-7a cite it.
-- **tier:** design session (owner-launched) · S · Low · feeds T-5, T-7a, O-7 · no PR from the session itself; the conductor lands the doc.
-- **state (2026-11-02): closed.** The design landed in `docs/live/overlay-ux.md`, and the owner ruled all of §9 (see §10 there). T-5 and T-7a turn §8 into tests.
+**Real use** is an uncoached natural sweep on the **degraded tier**, held out by **case** (physical bookcase, `bookcaseId`) and **session**. The borrowed non-Pro phone gives **evaluation sessions only**; nothing recorded on it is trained on. Until a non-Pro session exists, the degraded tier is **simulated** by withholding depth from Pro captures, labelled as a simulation and never reported as a real-use number (owner ruling 4 in `docs/gates/G-SWEEP.md`). Every metric reports metric-depth and degraded-tier separately; the gate judges on the degraded tier (OC35 extended).
 
-#### T-5 · Mac live overlay and card panel
-- **goal:** see it work on the Mac: labels that stick, cards that revise visibly.
-- **entry:** T-4; U-1 (or OC30's defaults if U-1 has not ruled).
-- **do:** a local web view (or a small Swift window) fed by the core's event stream: frame preview with per-track boxes and labels smoothed per track in screen space, one label per spine, top-k highlight under a lens toggle and INV-24 hysteresis per `docs/live/overlay-ux.md`; a card panel with `revised` badges, the was/now/why line and undo; a "closer look" button that marks a track `needs-pixels`; Reduce Motion honoured.
-- **exit:** a screen recording of a recorded clip run is attached to the PR as a private link, not a file; labels persist through a lost detection for the configured grace; every revision shows its badge; a test that a flapping identity below the INV-24 margin never changes the shown label.
-- **tier:** T2 Sonnet · S · Low · feeds G-SURF demo · budget 40.
+#### Fate of the 2026-10-31 cards
 
-#### T-6 · Core ML export, Swift OBB decode and on-device benchmark ⌨
-- **goal:** the fixture-trained detector runs on the owner's iPhone, and we know how fast.
-- **entry:** F-2 (an owner-trained OBB model; or P-2's proxy weights if F-2 is late); checklist #0c; G-LIC ruled or the weights stay local.
-- **do:** export with `yolo export format=coreml imgsz=640 quantize=16` (and `quantize=8` as a second arm); a Swift package `OBBDecode` that decodes raw OBB outputs and runs rotated NMS (Core ML's embedded NMS does not cover OBB); a benchmark app target that runs the model with `.cpuAndNeuralEngine` on 200 frames of a recorded clip and reports per-frame latency distribution and the Xcode performance report; test nano and small sizes.
-- **exit:** `evals/live-B/coreml-bench.json` with p50/p95 per size and quantization on the named iPhone and iOS version; the decode package has tests against the Python decoder's output on the same frames.
-- **tier:** T2 Sonnet · M · Low · ⌨ (install on the phone) · feeds G-SURF, T-7a · budget 60.
+| Card | Fate | Note |
+|---|---|---|
+| T-0 live contracts | **Survives (merged, PR #15)**; amended by NS-4 | Gains the capture-provenance fields; the nudge grammar stays a sketch, not a contract, until its usability spike |
+| T-1 Continuity Camera harness | **Dropped** | Capped at 1080p and 12 MP; answers no pixel, depth or Neural Engine question. Its one useful piece, replaying a recorded clip through the core with identical events, moves into V-5′ as the replay path. **G-SURF dissolves with it** |
+| T-2 tracker and debounce | **Survives, changed** | Judged per physical book: ID switches, fragmentation and **copy swaps** against the lab's instance ground truth and the real-clip proxy (§ G-SWEEP). Input is uncoached sweep clips (NS-3), not pace-cued pans. A point-tracking arm (CoTracker3) is optional and GPU-lane gated; its licence (CC-BY-NC) keeps it a research comparison only |
+| T-3 best-frame selection and OCR fusion | **Survives** | Adds pose-aware keyframe selection when a rich session supplies poses; otherwise unchanged |
+| T-4 streaming identify and cards | **Survives** | Unchanged |
+| T-5 Mac live overlay and card panel | **Changed → T-5′ replay viewer** | A Mac viewer over a recorded sweep's event stream and keyframes (tracks, labels, cards, revisions), for owner review of instance tracks. No live camera on the Mac. S instead of M |
+| U-1 overlay UX | **Closed, survives** | Amendments from the seed (glare cue, two-level low light, CVD-safe status pill, per-bay done event, gap markers, haptics, relocalization) are one owner ruling, listed in G-SWEEP's packet |
+| U-2 guided sweep UX | **Superseded** | Mined, not discarded: the ribbon coverage replay, the 4K-with-fallback ruling, the 30-day keyframe retention ruling and the face rulings carry over. Hold-to-record, pace cues as coaching, the framing guide and the pacer are dropped. Its open questions 8 and 11 are moot; 1, 2, 5, 6, 9, 10, 12 carry into G-SWEEP's packet |
+| U-3 chat layer UX | **Survives** | Unchanged (main conductor's lane for 006) |
+| T-6 Core ML export and benchmark | **Survives → NS-9** | Sustained-sweep benchmark with a thermal timeline on both tiers; EdgeSAM as a second arm beside YOLO26n/s-obb |
+| T-7a / T-7b `apps/live-ios` loop | **Deferred → NS-12** | Re-carded as "sweep loop on device" after the four spikes answer camera path and device floor; lives under `helpers/`, not `apps/` |
+| T-8 FTS5 on iOS probe | **Survives** | Unchanged; shares the Xcode session with NS-9 |
+| T-9 guided sweep mode | **Dropped** | Replaced by NS-12 |
+| V-5 video fixtures and live scorer | **Survives, changed → V-5′** | Fixtures are uncoached natural-sweep clips on both tiers; the scorer gains instance recall, copy swaps and fragmentation per physical book, and the thermal timeline; CVAT keyframe labelling stays replaced by machine labels (OC36) plus the lab's exact ground truth on synthetic replays |
+| O-6 owner records sweep clips | **Survives, changed → NS-3** | Uncoached sweeps replace slow/normal/pause pans; Q-1's centre/edge/near/far stills are shot at the same visit |
+| E-6 live vs still | **Survives → E-6′ sweep vs still, same case** | Feeds G-SWEEP instead of G-LIVE |
+| O-7 owner sets the live targets | **Survives → sweep targets** | Set in `docs/gates/G-SWEEP.md` before E-6′ is written up (checklist #16 rewritten) |
 
-#### U-2 · Guided sweep UX (forked design session) ⌨
-- **goal:** the guided sweep mode (OC31) designed as well as U-1 designed the overlay.
-- **entry:** U-1's direction (A "Slabs"). Brief: `~/selfco/prompts/bookcase-discovery-guided-sweep-ux-handoff.md`.
-- **do:** the framing guide; pace cues and their thresholds as proposals; the hold-to-record gesture; the thinking overlay; the scrub-back replay (labels, cards and closer-look marks along the pan); how sweep and live modes switch; accessibility.
-- **exit:** a section added to `docs/live/overlay-ux.md`, with mockups by private link; an owner ruling.
-- **tier:** design session (owner-launched) · S · Low · feeds T-9.
-- **state (2026-11-02):** design delivered and landed as `docs/live/guided-sweep-ux.md`: direction B "Ribbon", 37 acceptance checks. **Waiting on the owner's ruling on its §10** (12 questions).
+#### Gate G-SWEEP (replaces G-LIVE)
 
-#### U-3 · Chat layer UX: clarify-by-tap and taste tree (forked design session) ⌨
-- **goal:** design the two chat experiments the owner chose (U-1 §9 Q8). In **002**, the agent asks and you tap: when identity is unsure, the app letters 2–3 spines A/B/C and asks which one you meant. In **006**, a conversation builds a branching map of your taste (themes → sub-themes → books) and exports it as a file other agents can read.
-- **entry:** U-1 ruled; R-0's vocabulary when available (006 uses it). Brief: `~/selfco/prompts/bookcase-discovery-chat-layer-ux-handoff.md`.
-- **do:** flows, mockups and states for both; how 002 feeds the evidence bands (a user tap counts as `ASSERTED` evidence and is never shown as a revision against the user); how 006 writes **pending** profile entries for owner review (Q7); the export format, as a proposal.
-- **exit:** a section in `docs/live/overlay-ux.md` (002) and in `docs/recommend/taste-model.md` (006), with mockups by private link; an owner ruling.
-- **tier:** design session (owner-launched) · S · Low · feeds T-4, T-7b, R-0, R-3.
-- **state (2026-11-02):** design delivered. 002 landed as `docs/live/chat-002-ux.md` (35 checks, 7 open questions); 006 as `docs/recommend/taste-tree-ux.md` (23 checks, 8 open questions, sample `taste-tree.md` export). **Waiting on the owner's ruling.** R-0 should adopt or replace 006's provisional node kinds.
+- **Decides:** whether the natural sweep on one bookcase meets the owner's targets per physical book on the degraded tier, and what the G-V2 packet inherits. **G-V2 opens when G-SWEEP is ruled.** "MVP done" stays G-MVP **and** G-SWEEP.
+- **Who:** owner, on a packet the conductor writes (`docs/gates/G-SWEEP.md`).
+- **Evidence:** V-5′ run record on held-out, uncoached, degraded-tier sweeps (by case and session), paired with the still path on the same case; E-6′ write-up; a replay demo on the Mac, or the on-device demo if NS-12 exists by then (labelled which).
+- **Measures** (every one a distribution, with its truth source named; INV-17, INV-23):
+  1. **Instance recall.** Visible physical books that end the sweep as exactly one track carrying one identity at `text-read` or above, over all visible physical books. Truth: exact on the lab's synthetic replays (stable physical ids); on a real case, the per-case union of books across every still and sweep of that case, labelled machine agreement.
+  2. **ID switches and copy swaps.** ID switches per track and per minute (TrackEval IDSW, IDF1, HOTA); **fragmentation** (tracks per physical book); **copy swaps**: pairs of adjacent copies of one work whose tracks merge or exchange identities during the sweep. Exact on lab replays; on real clips, the share of same-work neighbour pairs (F-0g copy groups) whose tracks merge or swap.
+  3. **Text.** Fused reading CER on tracks against the still path's accurate-on-48 MP reading of the same spines; `text-read` share per case.
+  4. **Time to first card.** Sweep start to first useful cheap-pass card, and to first confirmed identity; glass-to-glass only where an on-device loop exists.
+  5. **Thermal.** `ProcessInfo` thermal state timeline over a sustained sweep of at least three minutes at 4K, dropped frames, 4K→1080p fallback events, battery per minute.
+  Also reported, not gated: spend per sweep; unknowns with reason (OC32); spatial coverage (`seen`) reported apart from identity resolution, since neither implies the other.
+- **Targets:** the owner's, set in the packet **before** E-6′ exists (pre-registration; replaces O-7 and checklist #16). Proposed ranges, labelled proposals, are in the packet.
+- **Blocks:** D-1 final; "MVP done" (with G-MVP); G-V2.
 
-#### T-9 · Guided sweep mode ⌨
-- **goal:** hold, pan, release, then get results and a scrub-back replay, on the phone.
-- **entry:** T-7a (capture, detector, tracker on device); T-4 (cards); U-2.
-- **do:**
-  - Hold-to-record capture with a framing guide.
-  - Pace cues from CoreMotion angular velocity plus a per-frame blur score, with thresholds per U-2.
-  - On release: a thinking overlay while the clip runs through the track, fuse and identify path, on device or via the Mac core.
-  - A scrub-back replay over sparse keyframes with labels and cards.
-  - **The video is discarded once processed (INV-22 as amended)**; keyframes go through the face check; on-device only.
-  - The sweep's tracks and crops land in the ledger as flywheel data (F-1).
-- **exit:**
-  - On the `sf-store-001` shelves, a held sweep returns results.
-  - `evals/live-B/sweep.json`: time to result, recognition coverage per shelf (OC32), the share of frames the pace cue flagged, and the recall of cue-compliant vs non-compliant passes.
-  - A test that no video file remains after processing.
-- **tier:** T2 Sonnet · M · Low · ⌨ · feeds E-6, G-LIVE · budget 60.
+#### Cards, in dispatch order
 
-#### T-8 · FTS5 on iOS probe ⌨
-- **goal:** know whether the catalog index can live on the phone.
-- **entry:** C-3 (the catalog DB); checklist #0c.
-- **do:** a tiny iOS app target that opens the ISFDB SQLite file from the app container, prints `sqlite_version()` and `sqlite3_compileoption_used('ENABLE_FTS5')`, runs the C-3 golden queries through the trigram index, and times them; if FTS5 or trigram is missing, build and measure the bundled-SQLite fallback (GRDB with a custom build, or SQLite.swift).
-- **exit:** `docs/live/fts5-ios.md` with the version, compile options, query timings and the decision: on-device lookup, or lookup over the local link to the Mac core for the spike.
-- **tier:** T2 Sonnet · S · Low · ⌨ · feeds T-7b, G-V2 packet · budget 35.
+The first five need no device. **NS-1, NS-2 and NS-3 share one shoot.** NS-Z1 lands before NS-6 records anything. Nothing is dispatched before the owner approves this section.
 
-#### T-7a · `apps/live-ios` capture, detect, track, overlay ⌨
-- **goal:** boxes and labels that stick, on the phone, at 4K30.
-- **entry:** G-SURF; T-6; T-2 (tracker design); U-1; T-0 schemas (Swift Codable from the JSON Schemas, OC13).
-- **do:** a minimal SwiftUI app with no product UI: `AVCaptureSession` at 4K30 with `alwaysDiscardsLateVideoFrames`, Core ML detector via `OBBDecode`, a Swift port of the stable-track logic (with `VNTrackRectangleRequest` as a comparison arm), screen-space labels smoothed per track with the U-1 lens toggle, top-k highlight and INV-24 hysteresis, the HIG grace on lost detections, Reduce Motion honoured, and an on-demand 48 MP still through `AVCapturePhotoOutput.maxPhotoDimensions` when a track is marked `needs-pixels` (record whether the still can be taken while the stream runs); events written to a local SQLite ledger with the T-0 schemas and exported to the Mac; **no frame written to disk (INV-22)**; `NSCameraUsageDescription` and a privacy manifest in place.
-- **exit:** runs on the owner's phone against the `sf-store-001` shelves or a printed proxy; `evals/live-B/overlay.json` from a recorded clip replayed through the same code path: per-stage latencies, time to first annotation, ID switches, label change rate; the 48 MP-while-streaming finding in `docs/live/closer-look.md`.
-- **tier:** T2 Sonnet · M · Low · ⌨ · feeds T-7b, E-6 · budget 70.
+#### NS-1 · Overlap-and-margin arm (protocol only) ⌨
+- **goal:** measure what overlapping stills with margin recover from the `frame-edge` bucket (885 on the board; 638 cut by the frame, 247 in the lens's outer ring; `evals/Q3/report.md`), with no app.
+- **entry:** none for the protocol text and scorer; the owner's next shoot for the data; store permission logged (#17).
+- **do:** add an arm to `docs/capture-protocol.md` §4: 2–3 overlapping HEIF **originals** per case (not crops), the whole case inside the frame with a margin of about one shelf height, so every book is central in at least one still; **pre-register** (`evals/NS1/prereg.md`) the measure: per-case union of confirmed-plus-readable works across the overlapping stills against the single whole-case still, machine agreement, real use and controlled apart; a small per-case union scorer (`src/eval/ns1.ts`) that merges by work id, never by box (book-level registration is unplanned, `coverage.md` §5); record how many of the 634–638 cut books in `pilot-000` were cut by the owner's crop rather than the sensor frame (capture research Q10).
+- **exit:** protocol text merged; `evals/NS1/{prereg.md,metrics.json,report.md}` after the shoot; the lift and its interval, labelled machine agreement.
+- **tier:** T2 Sonnet · S · Low · ⌨ (owner shoot time) · feeds G-SWEEP's still baseline, NS-10 · budget 40.
 
-#### T-7b · `apps/live-ios` OCR, lookup and cards ⌨
-- **goal:** text labels and revising cards on the phone.
-- **entry:** T-7a; T-8 (on-device lookup or the local link); T-4 (card semantics); R-1 seeds.
-- **do:** Vision `.fast` on stable tracks and `.accurate` on best frames (T-3 rules in Swift); fusion and INV-20 collapsing; lookup on-device or over the link; cards with revision badges, was/now/why and undo (INV-21); adjudication requests sent to the Mac core only (the phone holds no API key); session cap honoured.
-- **exit:** on the video fixtures replayed through the device path, `evals/live-B/cards.json` (time to first useful card, revision rate, RBO) and `ocr.json` (CER of fast, accurate, fused); the live demo for G-LIVE.
-- **tier:** T2 Sonnet · M · Medium (paid calls via the Mac) · ⌨ · feeds E-6, G-LIVE · budget 70.
+#### NS-2 · Low-rows-level arm (protocol only) ⌨
+- **goal:** test whether `top-face` (642) and below-eye `single-reader` are a viewing-angle proxy, by shooting rows 4 and below level.
+- **entry:** same shoot as NS-1.
+- **do:** protocol arm: crouch or per-shelf shots so the lens is level with rows 4 and below; **pre-register** the measure: confirmed-plus-readable share per row, level against the current protocol, same case, same visit; a tilt reading from EXIF or device attitude recorded per still into the private manifest (never public).
+- **exit:** `evals/NS2/{prereg.md,metrics.json,report.md}`; a one-line verdict on whether `top-face` is an angle proxy (H-2's reader-side fixes were neutral, so this decides whether capture or geometry owns the bucket).
+- **tier:** T2 Sonnet · S · Low · ⌨ · feeds Q-1 follow-ups, G-SWEEP · budget 35.
 
-#### V-5 · Video fixtures and the live scorer
-- **goal:** the sweep clips become labelled fixtures, and the stream has a scorer.
-- **entry:** O-6 clips ingested by K-3 (hashes, no audio track); C-3; V-2.
-- **do:** CVAT via `uv`/Docker for keyframe labels with rotated boxes and track ids, interpolated between keyframes; a converter to the label schema; ~~the owner labels sparse keyframes (budget: about 1 hour per 3 clips, an estimate)~~ **OC36: keyframes are machine-labelled with F-0's stack and scored with the yardstick and optional V-6 taps; the owner labels nothing;** the scorer: time to first annotation and first useful card, window-based live recall vs still recall on the same shelf, HOTA/IDF1/ID switches via TrackEval, label change rate, anchor jitter (px, against interpolated ground truth), revision rate and RBO, glass-to-glass from a timecode-screen recording method, all as distributions; a `bookcase score --live` command.
-- **exit:** labels for ≥3 clips resolved to catalog IDs where readable; `pnpm test` on the scorer with a synthetic clip; `docs/live/metrics.md` defines every metric with its source or marks it a project definition.
-- **tier:** T2 Sonnet · M · Low · ⌨ (≈1–3 h labelling) · feeds E-6, G-LIVE · budget 60.
+#### NS-3 · Natural-sweep clips and Q-1's centre/edge/near/far test (protocol only) ⌨
+- **goal:** the first uncoached multi-view data of one case, on both tiers where a non-Pro phone is available, plus Q-1's controlled stills.
+- **entry:** same shoot as NS-1; K-3 ingest for the clips (hashes, no audio track).
+- **do:** replace `docs/capture-protocol.md` §6 (three paced pans) with: **two uncoached sweeps per case per phone**, the way a shopper would move, 4K if offered, video only, no audio, people out of frame, no instruction on speed or distance; then Q-1's four stills of one shelf (centre and edge of frame, at 1× and 0.5× distance) plus one 12 MP whole-case shot (`evals/Q1/report.md`, "what to try next" item 3); the private manifest records `deviceClass`, `lens`, `captureMode` for each file (NS-4's fields; until NS-4 lands, a sidecar JSON next to the export); **pre-register** the Q-1 test's measure (edge effect against lens distortion; H2 against H6).
+- **exit:** clips ingested under `$BOOKCASE_DATA/video/`; `evals/NS3/{prereg.md,metrics.json,report.md}` for the Q-1 test; the owner reports the count of sweeps per phone.
+- **tier:** T2 Sonnet · S · Low · ⌨ (about 30 minutes of owner time) · feeds T-2, T-3, V-5′, NS-10 · budget 35.
 
-#### O-6 · Owner records sweep clips ⌨
-- **goal:** video fixtures of `sf-store-001`. Protocol in checklist #8; no audio; people out of frame.
-- **exit:** clips in the same export as the stills; the owner reports the count.
+#### NS-4 · Capture-provenance fields for the label ledger and the manifests
+- **goal:** every label and every frame says which device tier, lens and capture mode produced it, which physical case and near-duplicate cluster it belongs to, how the label was made, and whether an RGB-only model could recover it.
+- **entry:** TS-0 merged (PR #64); **DL-1 (PR #76, merged) and DL-5 (PR #75) landed**, since both touch `src/eval/ts0.ts`; do not start while either is open.
+- **do:** add to TS-0's `LabelRow`, F-1's manifest row and the private fixture manifest (`src/capture/manifest.ts`), with the schema version bumped: `deviceClass` (`metric-depth` | `relative-stereo` | `none`) and `deviceModel`; `lens` (the existing lens class, now required on every row); `captureMode` (`protocol-still` | `shopper-still` | `natural-sweep` | `rich-sweep` | `live`); `caseId` — **the existing `bookcaseId`, made required** for every sweep session (the glossary's "bookcase" is the case; no second field); `dupClusterId` (the id of the near-duplicate cluster the frame or still belongs to, so a fused scene's frames stay in one split; derived from F-1's split groups and dHash clusters); `labelSource` (`single-view` for every row today | `mono-geometry` | `multiview-fusion` | `lidar-privileged` | `lidar-scale`), beside `basis`, which keeps its meaning; `rgbRecoverable` (`yes` | `no` | `unknown`; `yes` for every row today). JSON Schema in `contracts/` for the row (TS-0 left it as Zod; this card adds the schema and the Zod-agrees test). `assertTrainable` gains the rule: a row whose `deviceClass` is the borrowed non-Pro's evaluation set is refused. Glossary entries in `CONTEXT.md`.
+- **exit:** `node bin/bookcase dataset build` writes a new version with the fields on every `pilot-000` row (all `single-view`, `rgbRecoverable: yes`, `captureMode: shopper-still`); tests for the enum, the required `caseId` on sweep sessions and the refusal; `docs/dataset.md` and `docs/labels.md` updated.
+- **tier:** T2 Sonnet · S · Low · feeds NS-5, NS-6, V-5′, NS-10 · budget 40.
 
-#### E-6 · Live vs still, on the same shelf — *J*
-- **goal:** the live experience's numbers against the batch numbers, and the "pixels on demand" question.
-- **entry:** T-7b; V-5; E-1–E-3 records.
-- **do:** on the video fixtures: live recall (window-based) vs still recall per shelf, paired; CER of fused live OCR vs the batch's accurate-on-48 MP; how often `needs-pixels` fires and whether the 48 MP still resolves those spines; time to first annotation and first useful card; the tracker arms; spend per session. Write-up names what the Mac stage predicted correctly and what it missed.
-- **exit:** `evals/E6/` run record and `docs/gates/G-LIVE.md` packet with the owner's targets filled in from O-7 and each metric marked met or missed with the number.
-- **tier:** T2-J Opus · M · Medium (paid) · feeds **G-LIVE**, G-V2 packet · budget 50.
+#### NS-5 · Privileged-depth go rule (pre-registration only)
+- **goal:** write down, before any teacher or student is trained, how a LiDAR-privileged or fusion-labelled student is judged, so the bar is not fitted to the result.
+- **entry:** NS-4 (the fields the rule names).
+- **do:** `evals/NS5/prereg.md`: the student takes RGB only; its gain over a **no-privileged-information baseline** trained on the same frames is measured on **held-out, uncoached, degraded-tier sessions**, split by `caseId` and session, never on the yardstick and never on fused scenes it trained on; the interval of the lift must exclude 0; labels with `rgbRecoverable: no` are down-weighted or dropped (the recoverability rule, after Ortiz-Jimenez et al. 2023 and Hu et al. 2026: privileged information that is too predictive of the label hurts); teacher errors are reported as machine agreement, never accuracy (OC36); simulated degraded tier (depth withheld) is reported apart from real non-Pro sessions. Names the first two experiments it governs (NS-10 fusion, NS-11 mono-geometry student).
+- **exit:** the pre-registration merged, dated, before `evals/NS10/` or `evals/NS11/` exist; the conductor's review confirms no measurement is yet taken.
+- **tier:** T2 Sonnet · S (one page) · Low · feeds NS-10, NS-11, G-SWEEP · budget 20.
+- **landed:** 2026-11-05, `evals/NS5/prereg.md` (pre-registration only; no measurement taken; the owner's picks table is still blank).
 
-#### O-7 · Owner sets the live targets ⌨
-- **goal:** the numbers G-LIVE is judged by (checklist #16). Before E-6 is written up, so the bar is not fitted to the result.
-- **exit:** `docs/gates/G-LIVE.md` holds the targets and the percentile, dated, before `evals/E6/` exists.
+#### NS-Z1 · Z-1 guard file classes for rich sessions
+- **goal:** the privacy guard refuses every rich-session artefact class **before the first capture lands** (INV-19).
+- **entry:** `adr:rich-session-retention` accepted by the owner.
+- **do:** extend `scripts/privacy-guard.mjs` and `docs/privacy.md`: depth and confidence maps (`.exr`, `.npy`, `.npz`, `.pfm`, 16-bit `.png`/`.tiff` sequences over a size floor, packed `.bin`/`.depth`), pose and intrinsics logs (`.jsonl`/`.json` with `cameraTransform`/`intrinsics` keys at any depth, the way `chatgpt-export-shape` works), ARKit world maps (`.arworldmap`), meshes and point clouds (`.ply`, `.obj`, `.usdz`, `.usda`, `.usdc`), raw camera data (`.dng`); a `rich-sessions-dir` rule like `datasets-dir`; planted-leak tests for each; the boundary table rows in `docs/privacy.md` and `REQUIREMENTS.md`.
+- **exit:** `pnpm guard` red on every planted class and green on the tree; CI job green; `docs/privacy.md` names each new rule.
+- **tier:** T2 Sonnet · S · Low · **before NS-6** · budget 35.
+
+#### NS-6 · ARKit capture logger spike (`helpers/capture-arkit/`) ⌨
+- **goal:** a developer capture logger on the Pro iPhone, with quality gates and an export folder, for development sessions and opt-in rich sessions. **No Object Capture.** Not a product UI.
+- **entry:** NS-Z1 merged; `adr:rich-session-retention` accepted; Xcode installed on Yojimbo; Developer Mode on the phone; Apple Developer Program (paid, done); T-0 contracts; NS-4 fields.
+- **do:** an Xcode project under `helpers/capture-arkit/` (SwiftUI, ARKit, AVFoundation, Core Motion) that logs per frame: pose, intrinsics, EXIF, tracking state, thermal state, IMU, and on LiDAR `sceneDepth` with confidence; runs the quality gates (Laplacian sharpness ratio, IMU blur, glare share, iOS 26 lens-smudge request) and records them per frame; **default session:** writes crops, boxes-to-come, sparse keyframes (≤1 Hz, bystander pass) and events only; **rich session (explicit toggle, off by default, shown on screen while on):** writes full-rate 4K30 HEVC video without audio, the depth and confidence stream, and the per-frame log to the app container; **export** by Files, USB or AirDrop into `$BOOKCASE_DATA/private/rich-sessions/<session>/quarantine/` (INV-11: the app never reads Photos, ingest reads the exported folder); `bookcase ingest --rich <folder>` runs the Mac-side bystander pass (faces outside every book box blurred, the drop rule of INV-22), writes the retained copy and deletes the quarantine; a `manifest.json` with `deviceClass`, `deviceModel`, `lens`, `captureMode: rich-sweep`, `caseId`, permission-log reference, sizes and hashes; **the degraded-tier simulation switch** that withholds depth at ingest (owner ruling 4). `NSCameraUsageDescription` and a privacy manifest in place.
+- **exit:** one development session and one rich session of the owner's own shelf at home (not a store) exported, ingested and refused by the guard when planted in the checkout; `docs/capture/rich-sessions.md` with the session layout, sizes per minute measured (the "about 22 GB a visit" figure checked, INV-17), and the per-frame log schema; frames per second kept while logging, as a distribution.
+- **tier:** T2 Sonnet · L · Low · ⌨ · feeds NS-7, NS-8, NS-10, the lab card, V-5′ · budget 90.
+
+#### NS-7 · Camera-path probe ⌨
+- **goal:** decide the deferred camera path: ARKit tracking with 12 MP stills, AVFoundation 48 MP without tracking, or pause-and-switch.
+- **entry:** NS-6 (the project to add targets to); Xcode.
+- **do:** three small probes on the Pro phone, each a target in `helpers/capture-arkit/`: (a) one `AVCaptureSession` with video data output plus `AVCapturePhotoOutput` at `maxPhotoDimensions` 48 MP: does the photo succeed while the stream runs, the stall per capture, frames dropped around it; (b) ARKit `captureHighResolutionFrame()`: the pixel count actually returned on this phone (documented at 12 MP); (c) pause ARKit, switch to AVFoundation for one 48 MP still, resume: time to resume, and whether world tracking relocalizes or restarts. Each probe on 20 repetitions, with timestamps.
+- **exit:** `evals/NS7/{metrics.json,report.md}` with the three probes' distributions and the recommended path, as a proposal; `docs/capture/camera-path.md` records the decision once the owner rules.
+- **tier:** T2 Sonnet · M · Low · ⌨ · feeds NS-12, G-V2 packet · budget 50.
+
+#### NS-8 · LiDAR paired probe against MoGe-2 ⌨
+- **goal:** know whether LiDAR adds anything over MoGe-2 mono geometry for the shelf plane, book depth and `behind` gaps, before any LiDAR-only design.
+- **entry:** NS-6 (LiDAR depth frames with intrinsics); `helpers/depth` (H-2's cached stage); a small MPS slot (MoGe-2 at about 2 s a photo; not a GPU-lane heavy card).
+- **do:** a handful of paired frames of one case (the owner's home shelf, then one store case from NS-3's visit): LiDAR depth upsampled to the frame against MoGe-2's point map scaled by LiDAR (the "LiDAR as a scale prompt" reading); compare shelf-plane fit residual, per-book depth against the shelf plane, and detection of `behind` gaps (a book set back from the shelf edge); **pre-register** the keep rule for a LiDAR arm: LiDAR must beat mono by a named margin on at least two of the three, on the degraded tier's cases too (where it cannot run, the margin is the cost of not having it).
+- **exit:** `evals/NS8/{prereg.md,metrics.json,report.md}`; a one-line verdict feeding the wayfinder ticket "Does LiDAR beat MoGe-2".
+- **tier:** T2 Sonnet · M · Low · ⌨ · feeds NS-10, NS-11, the lab card · budget 50.
+
+#### NS-9 · Core ML benchmark, sustained sweep, both tiers ⌨
+- **goal:** the device floor for the live loop and its thermal budget, measured.
+- **entry:** F-2's registered detector (or P-2's proxy weights if F-2 is late); Xcode; the Pro phone, and the borrowed non-Pro when available; G-LIC ruled (done).
+- **do:** export YOLO26n-obb and YOLO26s-obb with `yolo export format=coreml imgsz=640` at float16 and int8; a Swift `OBBDecode` package with rotated NMS (Core ML's embedded NMS does not cover OBB), tested against the Python decoder on the same frames; an EdgeSAM arm for masks; a benchmark target under `helpers/coreml-bench/` that runs the model with `.cpuAndNeuralEngine` over a **sustained ten-minute replay** of a natural-sweep clip, logging per-frame latency, dropped frames, `ProcessInfo` thermal state and battery; T-8's FTS5 probe runs in the same Xcode session.
+- **exit:** `evals/NS9/{metrics.json,report.md}`: p50/p95 latency per model, size and quantization, per phone and iOS version, with the thermal timeline; the device floor as a proposal; `OBBDecode` tests green.
+- **tier:** T2 Sonnet · M · Low · ⌨ · feeds NS-12, G-SWEEP (thermal), G-V2 packet · budget 60.
+
+#### Lab card, in asset-foundry (not a BookcaseDiscovery card)
+
+**AF-1 · Instance ground truth for one real sweep replay.** The Blender/Kubric lab's first deliverable, in the `asset-foundry` repository, reusing its manifest → Blender subprocess → deterministic validator pattern. **Goal:** one procedural shelf of 20–30 synthetic books (original titles, licensed fonts and textures; no copied covers) with upright spines, one leaning volume, one face-out cover and one gap; **stable physical-book ids kept apart from title identity**; a synthetic handheld sweep first, then one **real ARKit camera path from NS-6** imported with explicit coordinate, intrinsics and projection conversion; render RGB plus Cryptomatte **instance masks**, depth, normals and point correspondences per frame; a validator that machine-checks ids, dimensions, projection consistency and determinism from a seed. **Exit:** an inspectable `.blend`, a deterministic `bpy` generator, a validated annotated sequence under `$BOOKCASE_DATA/synthetic/<scene>/` (private; the Z-1 guard covers the image types), and a replay through V-5′ that scores copy swaps exactly. Kubric vs BlenderProc vs plain `bpy` is decided in this first practicum (version isolation: Kubric pins an older Blender). Renders may run on Yuri between 20:00 and 07:00 Chicago. **Owner gates:** fonts and textures licensed; nothing from a copyrighted cover. Tier T2 Sonnet · M · Low · budget 60.
+
+#### Queued after the spikes (not briefed yet)
+
+NS-10 multi-view label-fusion spike on the Mac (SEAL / Panoptic-Lifting style; poses from NS-6 or from MapAnything / Depth Anything 3 Apache variants; a GPU-lane slot; governed by NS-5) · NS-11 mono-geometry student (distil MoGe-2 normals and face classes into a small RGB model; GPU lane; NS-5) · NS-12 sweep loop on device (the former T-7a/T-7b/T-9, under `helpers/`, after NS-7 and NS-9) · NS-13 nudge usability spike (yaw vs translate, pitch vs dolly, ease vs release, no-nudge vs peripheral vs full guidance) · NS-14 Dual-Wide disparity range on the non-Pro · V-5′, E-6′ as amended above · the U-1/U-2 amendments ruling.
 
 ### S10 — Flywheel (gap cycle; OC27)
 
@@ -1000,7 +1011,7 @@ Owner     : O-1 ─► K-2 ─► O-2 (may precede GO) ─► K-2' ─► K-3 �
 | 4 | P-4, C-3 | P-3 is not scheduled; E-2 may trigger it later |
 | 5 | R-1, V-4 (if O-3 hasn't started), I-1 | — |
 | Then | Follow the map | Owner-lane cards are dispatched the moment their owner signal arrives; they jump the queue |
-| Live track (gap cycle) | T-0 joins wave 2 (after L-1); T-1 and T-2 wave 3 (T-1 needs the phone on the Mac); T-3, T-4, F-1 wave 4; T-5 wave 5; **F-2 after F-0 and G-LIC** (heavy); T-6 and T-8 after F-2; **[G-SURF]**; then T-7a → T-7b; V-5 as soon as O-6 clips are ingested; E-6 last | Stage A needs no photos and runs beside the batch waves. Stage B waits for a fixture-trained detector. At most one heavy card at a time still holds: F-2 shares the slot with P-2 and P-3 |
+| Natural sweep track (re-planned 2026-11-05) | **After the owner approves S9:** NS-1, NS-2, NS-3 (protocol text and scorers now; data at the next shoot) and NS-5 beside the batch waves; NS-4 once DL-1 and DL-5 are merged; NS-Z1 once the rich-session ADR is accepted; T-2, T-3, T-4, T-5′ as NS-3 clips land; **NS-6 after NS-Z1 and Xcode**; NS-7, NS-8, NS-9 after NS-6 (NS-9 also needs F-2 or P-2 weights); AF-1 in asset-foundry from its first practicum, its real-path replay after NS-6; V-5′ as clips are ingested; E-6′ last, after the sweep targets are set | The protocol cards need no device and share one shoot; the guard classes land before any rich capture; the spikes each answer one deferred decision on the wayfinder map |
 
 **Critical path** — 14 steps, owner-bound:
 
@@ -1025,7 +1036,7 @@ Owner     : O-1 ─► K-2 ─► O-2 (may precede GO) ─► K-2' ─► K-3 �
 
 **Live chain (gap cycle) — 17 steps, now the long pole:**
 
-`O-1 → K-2 → O-2 (+O-6 clips) → K-3 → H-0 → F-0 → V-3 → E-2 ∥ E-3 → G-P → F-2 → T-6 → G-SURF → T-7a → T-7b → E-6 → O-7 → G-LIVE → D-1`
+`O-1 → K-2 → O-2 (+NS-3 sweeps) → K-3 → H-0 → F-0 → V-3 → E-2 ∥ E-3 → G-P → F-2 → NS-9 → V-5′ → sweep targets (#16) → E-6′ → G-SWEEP → D-1` *(re-planned 2026-11-05; the Xcode install and NS-Z1 → NS-6 run beside it and gate NS-7..NS-9)*
 
 - Shares its first eight steps with the batch chain. From G-P it needs a fixture-trained detector (F-2, heavy), the export and benchmark (T-6), the surface gate, the two phone cards, the experiment and the owner's targets.
 - **Owner-held steps (OC36):** seven (O-1, O-2 with O-6, G-LIC before F-2 (ruled), G-SURF, O-7, G-LIVE). V-5's keyframe labelling is done by machines, not the owner.

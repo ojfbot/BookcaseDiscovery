@@ -1,0 +1,13 @@
+[project]
+name = "bookcase-representations"
+version = "0.1.0"
+description = "F-R3 spike: label-free, CPU-only alternate image representations (colour spaces, illumination invariants, classical intrinsic split, edges and lines) scored against cached outlines, depth discontinuities and not-a-book flags."
+license = "AGPL-3.0-only"
+requires-python = ">=3.12,<3.13"
+dependencies = [
+  "numpy>=2",
+  "opencv-contrib-python==4.10.0.84",
+]
+
+[tool.uv]
+package = false

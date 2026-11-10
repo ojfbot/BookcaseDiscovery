@@ -10,6 +10,7 @@ uv run python detect.py < images.jsonl > detections.jsonl          # {"id", "ima
 uv run python read.py --reader ppocr < requests.jsonl > out.jsonl   # ocr-request lines (contracts/helpers/)
 uv run python read.py --reader qwen  < requests.jsonl > out.jsonl
 uv run python outline.py < boxes.jsonl > outlines.jsonl            # F-0b: {"id", "image", "polygon"} per line
+uv run python partition.py --groups groups.jsonl --cache DIR > tiles.jsonl  # F-0i: conflict tiles, logits cached
 uv run python imprint.py < requests.jsonl > out.jsonl              # F-0d: read.py's requests; publisher / imprint
 ```
 
@@ -22,6 +23,11 @@ uv run python imprint.py < requests.jsonl > out.jsonl              # F-0d: read.
 - `outline.py` (card F-0b): re-segments a cached box with SAM 2.1 base-plus from its polygon's axis-aligned box and
   returns the mask's simplified outer contour, which the crop-geometry experiment needs (F-0's cache keeps only the
   minimum-area rectangle).
+- `partition.py` (card F-0i): the instance partition's conflict tiles. Per conflict group planned by
+  `helpers/coverage/resolve.py`, each square window on the group's rotated tile is one joint SAM 2.1 base-plus call
+  (every in-window member's box, positive points on its exclusive core, negative points on its neighbours'), cut
+  square so the processor never squashes it; SAM's low-resolution logits are cached per group by job key. Nothing
+  here changes `detect.py`.
 - `render_f0b.py` (card F-0b): private before/after renders of crops; the runner writes them under the data root's
   `private/f0b/renders/`.
 - `imprint.py` (card F-0d): the imprint read, a separate Qwen3-VL-4B variant that cuts crops with `read.py`'s `crop`

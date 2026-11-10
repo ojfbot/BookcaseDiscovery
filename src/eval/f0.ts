@@ -4,15 +4,31 @@
 // Lines under $BOOKCASE_DATA/f0/<session>/ (private: they hold recognised text). Only aggregates leave
 // through `metrics`, which the CLI writes to evals/<run-id>/. Spec: docs/machine-labelling.md.
 import { spawn } from "node:child_process";
-import { appendFileSync, existsSync, mkdirSync, readFileSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { createInterface } from "node:readline";
 import { fileURLToPath } from "node:url";
 import type { DatabaseSync } from "node:sqlite";
+import { guardCheck, LOOKALIKE, type GuardArm, type LookalikeGuard } from "../catalog/lookalike.ts";
+import { counterCheck, type CounterKind, type RarityBasis } from "../catalog/rarity.ts";
 import { retrieve, type Candidate } from "../catalog/retrieve.ts";
+import { confirms, vote, type ReaderVotes, type SpineDecision } from "../identify/decision.ts";
+import { READER_MODELS, READERS, type ReaderName } from "../identify/readers.ts";
+import { openAppender, shownPath } from "../ledger/durable.ts";
+import { checkLineage, makeStamp, writeLineage, type LineageExpect, type LineageSchema, type LineageStamp } from "../ledger/lineage.ts";
+import { modelHashes } from "../ledger/models.ts";
 import { cropFor, cropName, F0_CROP, type CropMethod } from "../perceive/crop.ts";
 import { OcrHelperError, runOcr, type OcrRequest, type OcrResponse } from "../perceive/ocr.ts";
 import { assignShelves, type LabelSet, type Photo, type Polygon4 } from "./labels.ts";
+
+import type { Reading } from "../shared/readings.ts";
+
+// The reading record lives in src/shared/ (the catalog's coverage lookup uses it too); F-0 re-exports it.
+export type { Reading };
+
+// The decision core and the reader registry live in identify (DL-4: identify never imports eval); F-0 re-exports them.
+export { ACCEPT, confirms, vote, type ReaderVotes, type SpineDecision, type UnknownReason } from "../identify/decision.ts";
+export { READER_MODELS, READERS, type ReaderName } from "../identify/readers.ts";
 
 const REPO_ROOT = fileURLToPath(new URL("../../", import.meta.url));
 const HELPER = join(REPO_ROOT, "helpers", "label");
@@ -22,24 +38,6 @@ const HELPER = join(REPO_ROOT, "helpers", "label");
  * record names it (`crop`); records without one were read with F-0's original method (`F0_CROP`).
  */
 export const CROP: CropMethod = { ...F0_CROP, clip: true };
-
-/** Acceptance thresholds (OC36 yardstick 2). Conservative; see docs/machine-labelling.md. */
-export const ACCEPT = {
-  /**
-   * Retrieval evidence score of the agreed work, for each agreeing reader. Set from C-3's golden run, never from
-   * the yardstick: no-match top scores reached 0.721, correct top-1 scores went down to 0.71.
-   */
-  minScore: 0.72,
-  /** The title field must be explained, not just the author. */
-  minTitleEvidence: 0.8,
-  /** Share of the reading's tokens the work explains. */
-  minCoverage: 0.5,
-  /** Readers that must name the same work. */
-  minReaders: 2,
-} as const;
-
-export type ReaderName = "vision" | "ppocr" | "qwen";
-export const READERS: ReaderName[] = ["vision", "ppocr", "qwen"];
 
 export interface InputImage {
   /** Working-copy hash (or a yardstick file name): the stage key. */
@@ -58,6 +56,8 @@ export interface DetectedSpine {
   cut: boolean;
   /** The mask's simplified outer contour (working-copy pixels), when the detector kept it: the crop's spine face. */
   outline?: [number, number][];
+  /** The spine-face trim from the depth stage (H-2), where the box over-selects and the trim is feasible. */
+  face3d?: [number, number][];
 }
 
 export interface Detection {
@@ -83,47 +83,28 @@ export interface Detection {
   error?: string;
 }
 
-interface ReadVariant {
-  rotation: number;
-  text: string;
-  confidence: number;
-}
-
-export interface Reading {
-  id: string;
-  reader: ReaderName;
-  /** Crop method provenance (`cropName`); absent on F-0's original records. */
-  crop?: string;
-  variants: ReadVariant[];
-  seconds: number;
-  error?: string;
-}
-
-export type UnknownReason = "no-text" | "no-catalog-match" | "single-reader" | "readers-disagree";
-
-export interface SpineDecision {
-  id: string;
-  imageId: string;
-  boxScore: number;
-  /** Top confirmed work per reader (null: the reader's best candidate failed the bar, or it read nothing). */
-  confirmed: Partial<Record<ReaderName, string | null>>;
-  /** Top candidate per reader, confirmed or not. */
-  top: Partial<Record<ReaderName, string | null>>;
-  readText: Partial<Record<ReaderName, boolean>>;
-  accepted: Candidate | null;
-  agreeing: ReaderName[];
-  reason: UnknownReason | null;
-  hard: boolean;
-}
-
 // --- stage plumbing ---------------------------------------------------------------------------
 
+/**
+ * Rows of a JSONL file ([] when absent). A torn last line (a writer killed mid-line, or a power cut) is skipped and
+ * reported on stderr, and left in the file; a bad line anywhere else throws. `openAppender` sets a torn tail aside
+ * before the next append, so it never ends up mid-file.
+ */
 export function readJsonl<T>(path: string): T[] {
   if (!existsSync(path)) return [];
-  return readFileSync(path, "utf8")
+  const lines = readFileSync(path, "utf8")
     .split("\n")
-    .filter((l) => l.trim() !== "")
-    .map((l) => JSON.parse(l) as T);
+    .filter((l) => l.trim() !== "");
+  const rows: T[] = [];
+  for (let i = 0; i < lines.length; i++) {
+    try {
+      rows.push(JSON.parse(lines[i]!) as T);
+    } catch (e) {
+      if (i < lines.length - 1) throw new Error(`${shownPath(path)}: line ${i + 1} of ${lines.length} is not JSON (${(e as Error).message})`);
+      process.stderr.write(`readJsonl: ${shownPath(path)}: skipped 1 torn last line (${lines[i]!.length} chars) after ${rows.length} rows\n`);
+    }
+  }
+  return rows;
 }
 
 /** Spawn a helper, feed it request lines, append each answer line to `out`. Resolves when it exits. */
@@ -134,9 +115,10 @@ function runHelper(script: string, args: string[], requests: object[], out: stri
       stdio: ["pipe", "pipe", "pipe"],
       env: { ...process.env, ...env },
     });
+    const app = openAppender(out);
     const lines = createInterface({ input: child.stdout, crlfDelay: Infinity });
     lines.on("line", (line) => {
-      if (line.trim()) appendFileSync(out, `${line}\n`);
+      if (line.trim()) app.write(`${line}\n`);
     });
     let tail = "";
     child.stderr.setEncoding("utf8");
@@ -146,10 +128,11 @@ function runHelper(script: string, args: string[], requests: object[], out: stri
     });
     child.stdin.on("error", () => {});
     child.stdin.end(requests.map((r) => `${JSON.stringify(r)}\n`).join(""));
-    child.once("error", reject);
-    child.once("close", (code) =>
-      code === 0 ? resolve() : reject(new Error(`${script} exited ${code}: ${tail.split("\n").slice(-4).join(" | ")}`)),
-    );
+    child.once("error", (e) => (app.close(), reject(e)));
+    child.once("close", (code) => {
+      app.close();
+      code === 0 ? resolve() : reject(new Error(`${script} exited ${code}: ${tail.split("\n").slice(-4).join(" | ")}`));
+    });
   });
 }
 
@@ -165,6 +148,45 @@ export const ARM_NAMES: Record<Arm, string> = {
   b3: "owlv2-base-patch16-ensemble -> sam2.1-hiera-base-plus",
   b4: "mm-grounding-dino-large-all -> sam2.1-hiera-base-plus",
 };
+
+/** The model folders (under the data root's `models/`) each arm loads: what a detection cache's lineage stamp names. */
+export const ARM_MODELS: Record<Arm, readonly string[]> = {
+  b1: ["sam3"],
+  b2: ["grounding-dino-base", "sam2.1-hiera-base-plus"],
+  b3: ["owlv2-base-patch16-ensemble", "sam2.1-hiera-base-plus"],
+  b4: ["mm-grounding-dino-large-all", "sam2.1-hiera-base-plus"],
+};
+
+/** The F-0 stage caches' file classes and format versions (DL-3): `<class>.jsonl` beside each other in a stage folder. */
+export const STAGE_SCHEMAS = {
+  detect: { name: "f0/detect", version: 1 },
+  probe: { name: "f0/probe", version: 2 },
+  vision: { name: "f0/reading", version: 1 },
+  ppocr: { name: "f0/reading", version: 1 },
+  qwen: { name: "f0/reading", version: 1 },
+} as const satisfies Record<string, LineageSchema>;
+export type StageKind = keyof typeof STAGE_SCHEMAS;
+
+/** The arms a detection cache's rows were made with (rows before F-0's arms carry no `arm`: b2). */
+export function armsOf(rows: readonly { arm?: string }[]): Arm[] {
+  return [...new Set(rows.map((d) => (d.arm ?? "b2") as Arm))].sort();
+}
+
+/**
+ * What a stage cache's stamp must say now: its class and the current hashes of the models it was made with. The model
+ * hashes come from the models manifest (`bookcase models manifest`), never from the weights. A detection cache names
+ * its arms' models; a reader's cache its reader's; a probe none.
+ */
+export function stageExpect(kind: StageKind, arms: readonly Arm[] = [], root?: string): LineageExpect {
+  const names = kind === "detect" ? [...new Set(arms.flatMap((a) => ARM_MODELS[a]))] : kind === "probe" ? [] : READER_MODELS[kind];
+  return { schema: STAGE_SCHEMAS[kind], models: modelHashes(names, root) };
+}
+
+/** The stamp a stage cache gets after a write. */
+export function stageStamp(kind: StageKind, arms: readonly Arm[] = [], root?: string): LineageStamp {
+  const e = stageExpect(kind, arms, root);
+  return makeStamp({ schema: e.schema!, models: e.models });
+}
 
 const BOX_PRODUCER: Record<Arm, string> = {
   b1: "B1: sam3 (text prompt 'book spine', instance score >= 0.3), masks direct, tiled; min-area rect -> 4-point polygon",
@@ -226,6 +248,8 @@ export const SHELF_TILING: Tiling = { tile: 3100, overlap: 1300 };
 
 export async function detectStage(images: InputImage[], dir: string, log: (s: string) => void, arm: Arm = "b2", tiling: Tiling = CASE_TILING): Promise<Map<string, Detection>> {
   const out = join(dir, "detect.jsonl");
+  // DL-3: a cache made with other weights (or none named) is refused before anything is appended behind it.
+  checkLineage(out, stageExpect("detect", [arm]), { log });
   const cached = readJsonl<Detection>(out).filter((d) => !d.error);
   // Spine ids are positions in a detection, so readings cached beside boxes from another tiling would be misread
   // as this one's. Runs before F-0e carry no `layout`: they used the square 1600/700 or 3100/1300 grid.
@@ -241,6 +265,7 @@ export async function detectStage(images: InputImage[], dir: string, log: (s: st
     F0_POST: (tiling.post ?? []).join(","),
     F0_LAYOUT: tiling.layout ?? "grid",
   });
+  if (existsSync(out)) writeLineage(out, stageStamp("detect", armsOf([...cached, { arm }])));
   return new Map(readJsonl<Detection>(out).filter((d) => !d.error).map((d) => [d.id, d]));
 }
 
@@ -248,11 +273,25 @@ export async function detectStage(images: InputImage[], dir: string, log: (s: st
  * F-0f: the pixel probe of every box (helpers/label/probe.py: white share, edge share), which the blank-card rule
  * reads (`labelWhy` in f0f.ts). Cached as probe.jsonl beside the detections, keyed `<image>:s<i>` / `<image>:c<j>`.
  */
-export async function probeStage(images: InputImage[], dir: string, log: (s: string) => void): Promise<Map<string, { white: number; edges: number }>> {
+/** One box's pixel probe (helpers/label/probe.py); version 2 adds NB-3's values, version 1 lines carry no `version`. */
+export interface PixelProbe {
+  version?: number;
+  white: number;
+  edges: number;
+  edgeDensity?: number;
+  bandpass?: number;
+  warm?: number;
+  luma?: number;
+}
+
+export async function probeStage(images: InputImage[], dir: string, log: (s: string) => void): Promise<Map<string, PixelProbe>> {
   const out = join(dir, "probe.jsonl");
-  const done = new Set(readJsonl<{ id: string }>(out).map((r) => r.id.slice(0, r.id.lastIndexOf(":"))));
+  checkLineage(out, stageExpect("probe"), { log });
+  // A photo probed only at version 1 is probed again; its version-2 lines come later and win.
+  const done = new Set(readJsonl<{ id: string; version?: number }>(out).filter((r) => r.version === 2).map((r) => r.id.slice(0, r.id.lastIndexOf(":"))));
   await runHelper("probe.py", ["--detect", join(dir, "detect.jsonl")], images.filter((i) => !done.has(i.id)).map((i) => ({ id: i.id, image: i.path })), out, log);
-  return new Map(readJsonl<{ id: string; white: number; edges: number }>(out).map((r) => [r.id, r]));
+  if (existsSync(out)) writeLineage(out, stageStamp("probe"));
+  return new Map(readJsonl<PixelProbe & { id: string }>(out).map((r) => [r.id, r]));
 }
 
 /** One reader request per spine, cut by `method`; a spine with nothing inside the frame is not read. */
@@ -268,8 +307,9 @@ export function spineRequests(images: InputImage[], dets: Map<string, Detection>
   });
 }
 
-/** Ids already read with `method` (older records without a crop string count as F-0's method). */
-function readWith(path: string, method: CropMethod): Set<string> {
+/** Ids already read with `method` (older records without a crop string count as F-0's method). The cache's stamp is checked first. */
+function readWith(path: string, reader: ReaderName, method: CropMethod, log: (s: string) => void): Set<string> {
+  checkLineage(path, stageExpect(reader), { log });
   const name = cropName(method);
   return new Set(readJsonl<{ id: string; crop?: string }>(path).filter((r) => (r.crop ?? cropName(F0_CROP)) === name).map((r) => r.id));
 }
@@ -298,8 +338,9 @@ export async function visionStage(
   only?: Set<string>,
 ): Promise<void> {
   const out = join(dir, "vision.jsonl");
-  const done = readWith(out, method);
+  const done = readWith(out, "vision", method, log);
   const crop = cropName(method);
+  let wrote = false;
   for (const img of images) {
     const reqs = spineRequests([img], dets, method, only)
       .filter((r) => !done.has(r.id))
@@ -310,15 +351,19 @@ export async function visionStage(
     const res = [];
     for (let i = 0; i < reqs.length; i += 100) res.push(...(await visionBatch(reqs.slice(i, i + 100), log)));
     const per = (Date.now() - t0) / 1000 / reqs.length;
+    const app = openAppender(out);
     for (const r of res) {
       const line: Reading =
         "error" in r
           ? { id: r.id, reader: "vision", crop, variants: [], seconds: per, error: r.error.code }
           : { id: r.id, reader: "vision", crop, variants: r.variants.map((v) => ({ rotation: v.rotation, text: v.text, confidence: v.confidence })), seconds: per };
-      appendFileSync(out, `${JSON.stringify(line)}\n`);
+      app.write(`${JSON.stringify(line)}\n`);
     }
+    app.close();
+    wrote = true;
     log(`vision: ${img.id.slice(0, 12)} ${reqs.length} spines ${((Date.now() - t0) / 1000).toFixed(1)} s`);
   }
+  if (wrote || existsSync(out)) writeLineage(out, stageStamp("vision"));
 }
 
 export async function pyReaderStage(
@@ -333,7 +378,7 @@ export async function pyReaderStage(
   prompt: "spine" | "cover" = "spine",
 ): Promise<void> {
   const out = join(dir, `${reader}.jsonl`);
-  const done = readWith(out, method);
+  const done = readWith(out, reader, method, log);
   const reqs = spineRequests(images, dets, method, only).filter((r) => !done.has(r.id));
   // PP-OCR runs on the CPU, about 1 s a crop: split by image across workers (each loads the models once).
   const workers = reader === "ppocr" ? Math.max(1, Number(process.env.F0_PPOCR_WORKERS ?? 3)) : 1;
@@ -341,14 +386,20 @@ export async function pyReaderStage(
   const order = [...new Set(reqs.map((r) => r.image))];
   for (const r of reqs) shards[order.indexOf(r.image) % workers]!.push(r);
   await Promise.all(shards.map((s) => runHelper("read.py", ["--reader", reader, ...(prompt === "cover" ? ["--prompt", "cover"] : [])], s, out, log)));
+  if (existsSync(out)) writeLineage(out, stageStamp(reader));
 }
 
-/** Each spine's latest reading per reader; with `method`, only readings cut that way. */
+/**
+ * Each spine's latest reading per reader; with `method`, only readings cut that way. Each reader's cache is refused
+ * when its stamp names other weights than the models manifest does now, or when it has none (DL-3).
+ */
 export function loadReadings(dir: string, method?: CropMethod): Map<string, Partial<Record<ReaderName, Reading>>> {
   const byId = new Map<string, Partial<Record<ReaderName, Reading>>>();
   const name = method && cropName(method);
   for (const reader of READERS) {
-    for (const r of readJsonl<Reading & { reader: string }>(join(dir, `${reader}.jsonl`))) {
+    const path = join(dir, `${reader}.jsonl`);
+    checkLineage(path, stageExpect(reader));
+    for (const r of readJsonl<Reading & { reader: string }>(path)) {
       if (name && (r.crop ?? cropName(F0_CROP)) !== name) continue;
       const entry = byId.get(r.id) ?? {};
       entry[reader] = { ...r, reader };
@@ -367,13 +418,6 @@ export function variantsOf(r: Reading | undefined): string[] {
   return [...new Set(texts)];
 }
 
-/** Does the catalog confirm this candidate as the book (OC36 yardstick 2)? */
-export function confirms(c: Candidate | undefined): boolean {
-  if (!c) return false;
-  const title = c.evidence.find((e) => e.field === "title")?.score ?? 0;
-  return c.score >= ACCEPT.minScore && title >= ACCEPT.minTitleEvidence && c.queryCoverage >= ACCEPT.minCoverage;
-}
-
 export function topFor(db: DatabaseSync, r: Reading | undefined, cache: Map<string, Candidate | undefined>): Candidate | undefined {
   const variants = variantsOf(r);
   if (variants.length === 0) return undefined;
@@ -382,7 +426,28 @@ export function topFor(db: DatabaseSync, r: Reading | undefined, cache: Map<stri
   return cache.get(key);
 }
 
-/** Decide one spine from whatever readers have read it. */
+/** C-6: the lookalike guard in force and the readers' ranked candidates it reads, cached by variants like `topFor`. */
+export interface DecideGuard {
+  guard: LookalikeGuard;
+  ranked: Map<string, Candidate[]>;
+  /** C-7: the rarity basis (`src/catalog/rarity.ts`) and the counter-evidence kinds in force; after the guard's arms. */
+  rarity?: { basis: RarityBasis; kinds: ReadonlySet<CounterKind> };
+}
+
+/** One reader's ranked candidates, as deep as the lookalike guard looks; the first is `topFor`'s candidate. */
+export function rankedFor(db: DatabaseSync, r: Reading | undefined, cache: Map<string, Candidate[]>): Candidate[] {
+  const variants = variantsOf(r);
+  if (variants.length === 0) return [];
+  const key = variants.join("\u0000");
+  if (!cache.has(key)) cache.set(key, retrieve(db, variants, LOOKALIKE.depth));
+  return cache.get(key)!;
+}
+
+/**
+ * Decide one spine from whatever readers have read it. With `guard` (C-6), a reader confirms its top candidate only
+ * when it also passes the lookalike guard on that reader's ranked candidates, and (C-7, `guard.rarity`) when no
+ * counter-evidence in force holds against it; the vote is unchanged.
+ */
 export function decide(
   db: DatabaseSync,
   id: string,
@@ -390,39 +455,32 @@ export function decide(
   boxScore: number,
   reads: Partial<Record<ReaderName, Reading>>,
   cache: Map<string, Candidate | undefined>,
+  guard?: DecideGuard,
 ): SpineDecision {
-  const confirmed: SpineDecision["confirmed"] = {};
-  const top: SpineDecision["top"] = {};
-  const readText: SpineDecision["readText"] = {};
+  const v: ReaderVotes = { readText: {}, top: {}, confirmed: {} };
   const cands = new Map<string, Candidate>();
+  const lookalike: Partial<Record<ReaderName, GuardArm>> = {};
+  const counter: Partial<Record<ReaderName, CounterKind>> = {};
   for (const reader of READERS) {
     if (!reads[reader]) continue;
-    readText[reader] = variantsOf(reads[reader]).length > 0;
-    const c = topFor(db, reads[reader], cache);
-    top[reader] = c?.workId ?? null;
-    confirmed[reader] = confirms(c) ? c!.workId : null;
-    if (c && confirms(c) && !cands.has(c.workId)) cands.set(c.workId, c);
+    v.readText[reader] = variantsOf(reads[reader]).length > 0;
+    const ranked = guard ? rankedFor(db, reads[reader], guard.ranked) : null;
+    const c = ranked ? ranked[0] : topFor(db, reads[reader], cache);
+    v.top[reader] = c?.workId ?? null;
+    let ok = confirms(c);
+    if (ok && guard) {
+      const why = guardCheck(guard.guard, c!, ranked!);
+      if (why) (lookalike[reader] = why), (ok = false);
+    }
+    if (ok && guard?.rarity && guard.rarity.kinds.size > 0) {
+      const why = counterCheck(guard.rarity.basis, c!, ranked!, variantsOf(reads[reader]), guard.rarity.kinds);
+      if (why) (counter[reader] = why), (ok = false);
+    }
+    v.confirmed[reader] = ok ? c!.workId : null;
+    if (ok && !cands.has(c!.workId)) cands.set(c!.workId, c!);
   }
-  const votes = new Map<string, ReaderName[]>();
-  for (const [reader, w] of Object.entries(confirmed) as [ReaderName, string | null][]) {
-    if (w) votes.set(w, [...(votes.get(w) ?? []), reader]);
-  }
-  const ranked = [...votes.entries()].sort((a, b) => b[1].length - a[1].length);
-  const best = ranked[0];
-  const unique = best && (ranked.length === 1 || ranked[1]![1].length < best[1].length);
-  let accepted: Candidate | null = null;
-  let agreeing: ReaderName[] = [];
-  let reason: UnknownReason | null = null;
-  if (best && best[1].length >= ACCEPT.minReaders && unique) {
-    accepted = cands.get(best[0])!;
-    agreeing = best[1];
-  } else if (!Object.values(readText).some(Boolean)) reason = "no-text";
-  else if (votes.size === 0) reason = "no-catalog-match";
-  else if (votes.size > 1) reason = "readers-disagree";
-  else reason = "single-reader";
-  // Hard crop (OC10 rule, served by the local VLM): the two OCR readers have not settled it.
-  const hard = !(confirmed.vision && confirmed.vision === confirmed.ppocr);
-  return { id, imageId, boxScore, confirmed, top, readText, accepted, agreeing, reason, hard };
+  const { acceptedId, agreeing, reason, hard } = vote(v);
+  return { id, imageId, boxScore, confirmed: v.confirmed, top: v.top, readText: v.readText, accepted: acceptedId ? cands.get(acceptedId)! : null, agreeing, reason, hard, ...(guard ? { lookalike } : {}), ...(guard?.rarity ? { counter } : {}) };
 }
 
 // --- labels -----------------------------------------------------------------------------------

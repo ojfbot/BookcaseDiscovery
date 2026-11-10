@@ -1,0 +1,554 @@
+{
+ "schema": "ns10/metrics@1",
+ "set": "pilot-000",
+ "preregistration": "evals/NS10/prereg.md",
+ "note": "Machine agreement on 31 stills of one real-use set, not accuracy. No sweep clip was fused. The case is the F-1 capture group (pilot-000 has no bookcaseId).",
+ "constants": {
+  "iouMin": 0.5,
+  "tieBand": 0.05,
+  "minPixels": 50,
+  "bootstrap": {
+   "reps": 2000,
+   "seed": 20261105
+  },
+  "precisionFloor": 0.8
+ },
+ "cases": 6,
+ "stills": 31,
+ "verdict": {
+  "verdict": "not-shown",
+  "because": "the gain share's interval reaches 0"
+ },
+ "measures": {
+  "M1_booksPerGroup": {
+   "boxesBefore": 5757,
+   "fusedBooksAfter": 5426,
+   "joinedBooks": 275,
+   "boxesInJoinedBooks": 606,
+   "liftedBoxes": 2448,
+   "boxesInJoinedShare": {
+    "value": 0.10526315789473684,
+    "num": 606,
+    "den": 5757,
+    "interval": {
+     "lo": 0.04266109785202864,
+     "hi": 0.13153985806238652
+    }
+   }
+  },
+  "M2_gainShare": {
+   "gainedAndAgree": 26,
+   "singleReaderBoxes": 814,
+   "share": {
+    "value": 0.03194103194103194,
+    "num": 26,
+    "den": 814,
+    "interval": {
+     "lo": 0,
+     "hi": 0.046589371670086234
+    }
+   }
+  },
+  "M2b_newConflicts": {
+   "conflicts": 22,
+   "share": {
+    "value": 0.02702702702702703,
+    "num": 22,
+    "den": 814,
+    "interval": {
+     "lo": 0,
+     "hi": 0.045454545454545456
+    }
+   }
+  },
+  "M2c_gainAmongVisibleTwice": {
+   "singleReaderInFusedBooks": 81,
+   "share": {
+    "value": 0.32098765432098764,
+    "num": 26,
+    "den": 81,
+    "interval": {
+     "lo": 0,
+     "hi": 0.5
+    }
+   }
+  },
+  "M3_frameEdgeReadElsewhere": {
+   "frameEdgeBoxes": 2373,
+   "readElsewhere": 32,
+   "share": {
+    "value": 0.0134850400337126,
+    "num": 32,
+    "den": 2373,
+    "interval": {
+     "lo": 0.0006904446221811878,
+     "hi": 0.022027534418022528
+    }
+   }
+  },
+  "M3b_frameEdgeAgree": {
+   "withOwnReading": 20,
+   "agree": 9,
+   "share": {
+    "value": 0.45,
+    "num": 9,
+    "den": 20,
+    "interval": {
+     "lo": 0,
+     "hi": 1
+    }
+   }
+  },
+  "M3c_frameEdgeUnreadReadElsewhere_supplementary": {
+   "frameEdgeBoxesWithNoOwnReading": 1889,
+   "readElsewhere": 12,
+   "share": {
+    "value": 0.006352567496029645,
+    "num": 12,
+    "den": 1889,
+    "interval": {
+     "lo": 0,
+     "hi": 0.011865524060646011
+    }
+   }
+  },
+  "M4_copySafety": {
+   "fusedBooksWithTwoBoxesOfOneStill": 0,
+   "fusedBooksWithTwoBoxesOfOneCopyGroup": 0,
+   "exact": true
+  },
+  "M4b_copyExposure": {
+   "fusedBooksWithACopyGroupMember": 31,
+   "ofThoseDecidedByTieBreak": 0
+  },
+  "M5_associationPrecision": {
+   "pairsBothRead": 60,
+   "sameWork": 32,
+   "share": {
+    "value": 0.5333333333333333,
+    "num": 32,
+    "den": 60,
+    "interval": {
+     "lo": 0,
+     "hi": 1
+    }
+   }
+  },
+  "M5b_sameWorkPairRecovery": {
+   "unambiguousSameWorkPairs": 357,
+   "merged": 23,
+   "share": {
+    "value": 0.06442577030812324,
+    "num": 23,
+    "den": 357,
+    "interval": {
+     "lo": 0,
+     "hi": 0.11783088235294017
+    }
+   }
+  },
+  "candidates": {
+   "fusedBooksWithACandidate": 30,
+   "withAConflict": 6
+  }
+ },
+ "sensitivity": [
+  {
+   "iouMin": 0.1,
+   "joinedBooks": 420,
+   "gain": {
+    "value": 0.0343980343980344,
+    "num": 28,
+    "den": 814,
+    "interval": {
+     "lo": 0,
+     "hi": 0.05111288954261927
+    }
+   },
+   "conflicts": 26,
+   "precision": {
+    "value": 0.5540540540540541,
+    "num": 41,
+    "den": 74,
+    "interval": {
+     "lo": 0.25,
+     "hi": 0.7777777777777778
+    }
+   },
+   "sameWorkRecovery": {
+    "value": 0.08403361344537816,
+    "num": 30,
+    "den": 357,
+    "interval": {
+     "lo": 0.014925373134328358,
+     "hi": 0.4090909090909091
+    }
+   },
+   "copyBooks": 0
+  },
+  {
+   "iouMin": 0.3,
+   "joinedBooks": 390,
+   "gain": {
+    "value": 0.0343980343980344,
+    "num": 28,
+    "den": 814,
+    "interval": {
+     "lo": 0,
+     "hi": 0.05111288954261927
+    }
+   },
+   "conflicts": 25,
+   "precision": {
+    "value": 0.5633802816901409,
+    "num": 40,
+    "den": 71,
+    "interval": {
+     "lo": 0.25,
+     "hi": 1
+    }
+   },
+   "sameWorkRecovery": {
+    "value": 0.08123249299719888,
+    "num": 29,
+    "den": 357,
+    "interval": {
+     "lo": 0.014925373134328358,
+     "hi": 0.3448275862068966
+    }
+   },
+   "copyBooks": 0
+  },
+  {
+   "iouMin": 0.5,
+   "joinedBooks": 275,
+   "gain": {
+    "value": 0.03194103194103194,
+    "num": 26,
+    "den": 814,
+    "interval": {
+     "lo": 0,
+     "hi": 0.046589371670086234
+    }
+   },
+   "conflicts": 22,
+   "precision": {
+    "value": 0.5333333333333333,
+    "num": 32,
+    "den": 60,
+    "interval": {
+     "lo": 0,
+     "hi": 1
+    }
+   },
+   "sameWorkRecovery": {
+    "value": 0.06442577030812324,
+    "num": 23,
+    "den": 357,
+    "interval": {
+     "lo": 0,
+     "hi": 0.11783088235294017
+    }
+   },
+   "copyBooks": 0
+  },
+  {
+   "iouMin": 0.7,
+   "joinedBooks": 109,
+   "gain": {
+    "value": 0.012285012285012284,
+    "num": 10,
+    "den": 814,
+    "interval": {
+     "lo": 0,
+     "hi": 0.018165304268846504
+    }
+   },
+   "conflicts": 6,
+   "precision": {
+    "value": 0.65,
+    "num": 13,
+    "den": 20,
+    "interval": {
+     "lo": 0.65,
+     "hi": 0.65
+    }
+   },
+   "sameWorkRecovery": {
+    "value": 0.0196078431372549,
+    "num": 7,
+    "den": 357,
+    "interval": {
+     "lo": 0,
+     "hi": 0.0219435736677116
+    }
+   },
+   "copyBooks": 0
+  }
+ ],
+ "perCase": [
+  {
+   "case": "case 1",
+   "stills": 13,
+   "boxCount": 2778,
+   "lifted": 910,
+   "fusedBooks": 2575,
+   "joinedBooks": 156,
+   "boxesInJoined": 359,
+   "singleReader": 507,
+   "singleReaderJoined": 71,
+   "gain": 25,
+   "conflict": 18,
+   "frameEdge": 1101,
+   "frameEdgeReadElsewhere": 29,
+   "frameEdgeReadAgree": 8,
+   "frameEdgeReadOwn": 17,
+   "frameEdgeUnread": 813,
+   "frameEdgeUnreadReadElsewhere": 12,
+   "copyBooksSameStill": 0,
+   "copyBooksSameGroup": 0,
+   "copyExposure": 25,
+   "copyExposureTied": 0,
+   "pairsRead": 56,
+   "pairsSame": 30,
+   "sameWorkPairs": 313,
+   "sameWorkMerged": 21,
+   "candidates": 28,
+   "candidateConflicts": 6,
+   "teacher": {
+    "views": 13,
+    "poseOk": true,
+    "viewsUsable": 3,
+    "seconds": 10.59,
+    "peakRssMb": 10371.2,
+    "peakMpsMb": 8744.8,
+    "mogeAngleDegMedian": 15.960049808701267,
+    "mogeAngleDegP90": 73.71357633510551,
+    "mogeRelDepthMedian": 0.12999617266353014,
+    "mogeRelDepthP90": 0.5747403203651498,
+    "mogeScaleRatioMedian": 0.5191680572490448
+   }
+  },
+  {
+   "case": "case 2",
+   "stills": 6,
+   "boxCount": 473,
+   "lifted": 433,
+   "fusedBooks": 445,
+   "joinedBooks": 28,
+   "boxesInJoined": 56,
+   "singleReader": 23,
+   "singleReaderJoined": 2,
+   "gain": 1,
+   "conflict": 0,
+   "frameEdge": 263,
+   "frameEdgeReadElsewhere": 1,
+   "frameEdgeReadAgree": 1,
+   "frameEdgeReadOwn": 1,
+   "frameEdgeUnread": 239,
+   "frameEdgeUnreadReadElsewhere": 0,
+   "copyBooksSameStill": 0,
+   "copyBooksSameGroup": 0,
+   "copyExposure": 0,
+   "copyExposureTied": 0,
+   "pairsRead": 2,
+   "pairsSame": 2,
+   "sameWorkPairs": 7,
+   "sameWorkMerged": 2,
+   "candidates": 2,
+   "candidateConflicts": 0,
+   "teacher": {
+    "views": 6,
+    "poseOk": true,
+    "viewsUsable": 6,
+    "seconds": 6.06,
+    "peakRssMb": 10340.4,
+    "peakMpsMb": 7637.5,
+    "mogeAngleDegMedian": 4.172550587278381,
+    "mogeAngleDegP90": 5.6862385277260215,
+    "mogeRelDepthMedian": 0.024914224197846238,
+    "mogeRelDepthP90": 0.05406203768550562,
+    "mogeScaleRatioMedian": 0.6750221285397847
+   }
+  },
+  {
+   "case": "case 3",
+   "stills": 5,
+   "boxCount": 675,
+   "lifted": 303,
+   "fusedBooks": 627,
+   "joinedBooks": 39,
+   "boxesInJoined": 87,
+   "singleReader": 13,
+   "singleReaderJoined": 0,
+   "gain": 0,
+   "conflict": 0,
+   "frameEdge": 322,
+   "frameEdgeReadElsewhere": 0,
+   "frameEdgeReadAgree": 0,
+   "frameEdgeReadOwn": 0,
+   "frameEdgeUnread": 304,
+   "frameEdgeUnreadReadElsewhere": 0,
+   "copyBooksSameStill": 0,
+   "copyBooksSameGroup": 0,
+   "copyExposure": 2,
+   "copyExposureTied": 0,
+   "pairsRead": 0,
+   "pairsSame": 0,
+   "sameWorkPairs": 0,
+   "sameWorkMerged": 0,
+   "candidates": 0,
+   "candidateConflicts": 0,
+   "teacher": {
+    "views": 5,
+    "poseOk": true,
+    "viewsUsable": 5,
+    "seconds": 5.01,
+    "peakRssMb": 10333.5,
+    "peakMpsMb": 7637.5,
+    "mogeAngleDegMedian": 2.253806124278569,
+    "mogeAngleDegP90": 6.241723973238364,
+    "mogeRelDepthMedian": 0.010982729601208063,
+    "mogeRelDepthP90": 0.0462210339132096,
+    "mogeScaleRatioMedian": 0.7345927607218017
+   }
+  },
+  {
+   "case": "case 4",
+   "stills": 3,
+   "boxCount": 729,
+   "lifted": 390,
+   "fusedBooks": 677,
+   "joinedBooks": 52,
+   "boxesInJoined": 104,
+   "singleReader": 38,
+   "singleReaderJoined": 8,
+   "gain": 0,
+   "conflict": 4,
+   "frameEdge": 258,
+   "frameEdgeReadElsewhere": 2,
+   "frameEdgeReadAgree": 0,
+   "frameEdgeReadOwn": 2,
+   "frameEdgeUnread": 242,
+   "frameEdgeUnreadReadElsewhere": 0,
+   "copyBooksSameStill": 0,
+   "copyBooksSameGroup": 0,
+   "copyExposure": 4,
+   "copyExposureTied": 0,
+   "pairsRead": 2,
+   "pairsSame": 0,
+   "sameWorkPairs": 5,
+   "sameWorkMerged": 0,
+   "candidates": 0,
+   "candidateConflicts": 0,
+   "teacher": {
+    "views": 3,
+    "poseOk": true,
+    "viewsUsable": 3,
+    "seconds": 2.32,
+    "peakRssMb": 10324,
+    "peakMpsMb": 6572.2,
+    "mogeAngleDegMedian": 2.7876103252580884,
+    "mogeAngleDegP90": 2.967561402722988,
+    "mogeRelDepthMedian": 0.018164694102299213,
+    "mogeRelDepthP90": 0.022772784848067527,
+    "mogeScaleRatioMedian": 0.8847492803599358
+   }
+  },
+  {
+   "case": "case 5",
+   "stills": 2,
+   "boxCount": 528,
+   "lifted": 173,
+   "fusedBooks": 528,
+   "joinedBooks": 0,
+   "boxesInJoined": 0,
+   "singleReader": 114,
+   "singleReaderJoined": 0,
+   "gain": 0,
+   "conflict": 0,
+   "frameEdge": 216,
+   "frameEdgeReadElsewhere": 0,
+   "frameEdgeReadAgree": 0,
+   "frameEdgeReadOwn": 0,
+   "frameEdgeUnread": 150,
+   "frameEdgeUnreadReadElsewhere": 0,
+   "copyBooksSameStill": 0,
+   "copyBooksSameGroup": 0,
+   "copyExposure": 0,
+   "copyExposureTied": 0,
+   "pairsRead": 0,
+   "pairsSame": 0,
+   "sameWorkPairs": 17,
+   "sameWorkMerged": 0,
+   "candidates": 0,
+   "candidateConflicts": 0,
+   "teacher": {
+    "views": 2,
+    "poseOk": true,
+    "viewsUsable": 1,
+    "seconds": 1.61,
+    "peakRssMb": 10316.5,
+    "peakMpsMb": 6572.2,
+    "mogeAngleDegMedian": 0.7141758803093873,
+    "mogeAngleDegP90": 87.97038738340082,
+    "mogeRelDepthMedian": 0.00478328023929705,
+    "mogeRelDepthP90": 0.5542670675431074,
+    "mogeScaleRatioMedian": 0.5846192262170804
+   }
+  },
+  {
+   "case": "case 6",
+   "stills": 2,
+   "boxCount": 574,
+   "lifted": 239,
+   "fusedBooks": 574,
+   "joinedBooks": 0,
+   "boxesInJoined": 0,
+   "singleReader": 119,
+   "singleReaderJoined": 0,
+   "gain": 0,
+   "conflict": 0,
+   "frameEdge": 213,
+   "frameEdgeReadElsewhere": 0,
+   "frameEdgeReadAgree": 0,
+   "frameEdgeReadOwn": 0,
+   "frameEdgeUnread": 141,
+   "frameEdgeUnreadReadElsewhere": 0,
+   "copyBooksSameStill": 0,
+   "copyBooksSameGroup": 0,
+   "copyExposure": 0,
+   "copyExposureTied": 0,
+   "pairsRead": 0,
+   "pairsSame": 0,
+   "sameWorkPairs": 15,
+   "sameWorkMerged": 0,
+   "candidates": 0,
+   "candidateConflicts": 0,
+   "teacher": {
+    "views": 2,
+    "poseOk": true,
+    "viewsUsable": 1,
+    "seconds": 1.61,
+    "peakRssMb": 10319.6,
+    "peakMpsMb": 6572.2,
+    "mogeAngleDegMedian": 1.5591091385423965,
+    "mogeAngleDegP90": 89.87855159870105,
+    "mogeRelDepthMedian": 0.009594871468452535,
+    "mogeRelDepthP90": 0.5112707807769422,
+    "mogeScaleRatioMedian": 0.8121384185838048
+   }
+  }
+ ],
+ "teacher": {
+  "groupsWithPoseSuccess": 6,
+  "groupsWithTwoUsableViews": 4,
+  "viewsOnGroupPlane": 19,
+  "viewsTotal": 31,
+  "mogeOwnPlaneAngleDegMax": 6.647826102413365,
+  "mogeAngleDegMedian": 4.172550587278381,
+  "mogeAngleDegP90": 73.71357633510551,
+  "mogeRelDepthMedian": 0.024914224197846238,
+  "mogeRelDepthP90": 0.5193323920574793
+ }
+}

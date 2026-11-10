@@ -3,12 +3,20 @@
 //
 //   node src/eval/u4-cli.ts render     # photos, one SVG overlay per photo and variant, index.html (private)
 //
-// Inputs, all cached, no model runs: F-0e's `bands+strips` boxes (one oriented box per spine, plus bands), F-0b's
-// SAM mask outlines and Q-2's teacher rungs (both on F-0's boxes, so they are attached to F-0e's boxes by
-// overlap: display-draw.ts attachPieces), F-0's decisions and the catalog for the labelling mode's guess.
+//   node src/eval/u4-cli.ts render --source f0b   # U-4 as first shipped, for before/after comparisons
+//
+//   node src/eval/u4-cli.ts render --faces FILE --out DIR   # H-2: spine faces and top faces from the depth stage
+//
+// Inputs, all cached, no model runs: F-0e's `bands+strips` boxes (one oriented box per spine, plus bands) and
+// the catalog for the labelling mode's guess. Shapes, rungs and guesses come from one of two sources:
+// - `q2b` (default): each box's own outline (F-0i's exclusive outline on RB-1's box set; Q-2b's SAM 2.1 mask
+//   outline with `--box-set pre-rb1`), Q-2b's teacher rungs and F-0's decision on these boxes; not-a-book boxes
+//   (F-0c shapes, F-0f shelf labels, NB-3's `on-lip`) and boxes the partition drops are left out;
+// - `f0b`: F-0b's outlines and Q-2's rungs and decisions, all on F-0's boxes, attached to F-0e's boxes by
+//   overlap (display-draw.ts attachPieces).
 // Everything goes under the data root's `private/u4/`; the study prints aggregates only.
 import { execFileSync } from "node:child_process";
-import { mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import type { DatabaseSync } from "node:sqlite";
 import { dataRoot } from "../ledger/images.ts";
@@ -18,20 +26,33 @@ import { MODES, VARIANTS, checkRegistry, coverageState, variantHash } from "../r
 import type { DisplayVariant, ShapeSpec } from "../report/display-modes.ts";
 import { attachPieces, baseOutline, overlaySvg, partialFlags, quadAxis, stillProxies } from "../report/display-draw.ts";
 import type { Piece, Pt, Scene, SceneSpine } from "../report/display-draw.ts";
-import { readJsonl, type SpineDecision } from "./f0.ts";
+import { decide, loadReadings, readJsonl, type SpineDecision } from "./f0.ts";
+import { kinds } from "./f0c.ts";
+import { evidenceFor } from "./f0f-cli.ts";
+import { loadBoxSet, pilotOutlines, preRb1 } from "./rb1.ts";
+import type { Candidate } from "../catalog/retrieve.ts";
 import { quantile, rng } from "./q1.ts";
 import type { Rung } from "./q2.ts";
 
 const ROOT = dataRoot();
 const SET = "pilot-000";
 const ARM = "bands+strips";
-const OUT = join(ROOT, "private", "u4", "renders", SET);
+const flag = (name: string): string | undefined => (process.argv.includes(name) ? process.argv[process.argv.indexOf(name) + 1] : undefined);
+/** H-2's per-box face file (`private/h2/pilot-000/faces.jsonl`): each box's spine-face trim and visible top face. */
+const FACES = flag("--faces");
+const OUT = flag("--out") ?? join(ROOT, "private", "u4", "renders", SET);
+if (!OUT.startsWith(join(ROOT, "private"))) throw new Error("--out must be under the data root's private/");
 /** Long edge of the study's photos: enough to judge a highlight, light enough for 31 photos on one page. */
 const STUDY_EDGE = 2000;
 /** Detector tile size and step for the bands layout (helpers/label/detect.py band_tiles, F-0e). */
 const TILE = 1600;
 const OVERLAP = 700;
 const BAND_MARGIN = 0.12;
+
+/** Where shapes, rungs and guesses come from (see the header). */
+type Source = "q2b" | "f0b";
+const SOURCE: Source = process.argv.includes("--source") ? (process.argv[process.argv.indexOf("--source") + 1] as Source) : "q2b";
+if (SOURCE !== "q2b" && SOURCE !== "f0b") throw new Error("--source is q2b or f0b");
 
 const log = (s: string): void => console.error(`[u4] ${s}`);
 const median = (xs: number[]): number => quantile([...xs].sort((a, b) => a - b), 0.5);
@@ -42,6 +63,7 @@ interface Det {
   height: number;
   spines: { polygon: Pt[]; boxScore: number; cut: boolean }[];
   bands: { polygon: Pt[] }[];
+  gaps: { medianWidth: number };
   error?: string;
 }
 
@@ -81,41 +103,82 @@ function guessOf(d: SpineDecision | undefined, title: (workId: string) => string
   return top ? `${title(top) ?? "?"} ?` : null;
 }
 
+/** Per F-0e box: its own shape (or none), rung and guess, and whether the default pipeline keeps it. */
+interface Attached { pieces: Pt[][]; rung: Rung; guess: string | null; maskShare: number; keep: boolean }
+
+/** RB-1's box set (F-0i's partition, NB-3's `on-lip`) on the q2b source; `--box-set pre-rb1` for U-4 as first run. */
+const rb1Keeps: (id: string) => boolean = SOURCE === "q2b" && !preRb1() ? loadBoxSet(SET).keeps : () => true;
+
+/** Q-2b: each box's own mask outline, clipped and accepted by attachPieces' rules, one box at a time. */
+function ownPieces(d: Det, outlines: Map<string, Pt[]>, rungs: Map<string, Rung>, decisions: Map<string, SpineDecision>, title: (workId: string) => string | null, evidence: Parameters<typeof kinds>[1]): Attached[] {
+  const k = kinds({ ...(d as unknown as Parameters<typeof kinds>[0]), covers: [] }, evidence);
+  return d.spines.map((s, i) => {
+    const id = `${d.id}:${i}`;
+    const outline = outlines.get(id);
+    const rung = rungs.get(id) ?? "spine-found";
+    const guess = guessOf(decisions.get(id), title);
+    const a = attachPieces([s.polygon], outline && outline.length >= 3 ? [{ outline, rung, guess }] : [])[0]!;
+    return { pieces: a.pieces, rung, guess, maskShare: a.maskShare, keep: k.spines[i]!.kind === "spine" && rb1Keeps(id) };
+  });
+}
+
 function loadScenes(): { scenes: { name: string; imageId: string; source: string; scene: Scene }[]; maskShares: number[] } {
   const images = readJsonl<{ id: string; image: string }>(join(ROOT, "private", "f0e", `images-${SET}.jsonl`));
   const f0e = new Map(readJsonl<Det>(join(ROOT, "f0e", SET, ARM, "detect.jsonl")).filter((d) => !d.error).map((d) => [d.id, d]));
   const f0 = new Map(readJsonl<Det>(join(ROOT, "f0", SET, "detect.jsonl")).filter((d) => !d.error).map((d) => [d.id, d]));
-  const outlines = new Map(readJsonl<{ id: string; outline?: Pt[] }>(join(ROOT, "private", "f0b", SET, "outline.jsonl")).map((r) => [r.id, r.outline]));
-  const rungs = new Map(readJsonl<{ id: string; rung: Rung }>(join(ROOT, "private", "q2", "table", `${SET}.jsonl`)).map((r) => [r.id, r.rung]));
-  const decisions = new Map(readJsonl<SpineDecision>(join(ROOT, "f0", SET, "decisions.jsonl")).map((d) => [d.id, d]));
+  const outlines = new Map(
+    (SOURCE === "q2b" ? pilotOutlines(ROOT) : readJsonl<{ id: string; outline?: Pt[] }>(join(ROOT, "private", "f0b", SET, "outline.jsonl")))
+      .filter((r) => r.outline)
+      .map((r) => [r.id, r.outline!]),
+  );
+  const rungs = new Map(readJsonl<{ id: string; rung: Rung }>(join(ROOT, "private", SOURCE === "q2b" ? "q2b" : "q2", "table", `${SET}.jsonl`)).map((r) => [r.id, r.rung]));
   const db: DatabaseSync = openCatalog(catalogPaths().catalog);
+  // F-0's decision per box: cached for F-0's boxes; on F-0e's, computed once from the readings F-0e cached (as F-0c
+  // does; about 15 minutes of catalog retrieval) and kept under private/u4/. Delete that file after a re-read.
+  let decisions: Map<string, SpineDecision>;
+  if (SOURCE === "q2b") {
+    const cached = join(ROOT, "private", "u4", `decisions-${SET}.jsonl`);
+    if (!existsSync(cached)) {
+      log("deciding every box from F-0e's readings (once)");
+      const readings = loadReadings(join(ROOT, "f0e", SET, ARM));
+      const cache = new Map<string, Candidate | undefined>();
+      const all = [...f0e.values()].flatMap((d) => d.spines.map((s, i) => decide(db, `${d.id}:${i}`, d.id, s.boxScore, readings.get(`${d.id}:${i}`) ?? {}, cache)));
+      writeFileSync(cached, all.map((x) => JSON.stringify(x)).join("\n") + "\n");
+    }
+    decisions = new Map(readJsonl<SpineDecision>(cached).map((d) => [d.id, d]));
+  } else decisions = new Map(readJsonl<SpineDecision>(join(ROOT, "f0", SET, "decisions.jsonl")).map((d) => [d.id, d]));
   const titleStmt = db.prepare("SELECT title FROM works WHERE id = ?");
   const title = (id: string): string | null => (titleStmt.get(id) as { title: string } | undefined)?.title ?? null;
+  // The shipped not-a-book rules: F-0c's shapes and F-0f's shelf labels (reader text and a cached pixel probe).
+  const labelEvidence = SOURCE === "q2b" ? evidenceFor(SET) : new Map<string, Parameters<typeof kinds>[1]>();
+  const faces = new Map(
+    FACES ? readJsonl<{ id: string; face3d: Pt[] | null; topFace: Pt[] | null }>(FACES).map((r) => [r.id, r]) : [],
+  );
   const maskShares: number[] = [];
   const scenes = images.map((img, n) => {
     const d = f0e.get(img.id);
     if (!d) throw new Error(`photo ${n + 1} has no ${ARM} detections`);
-    const pieces: Piece[] = (f0.get(img.id)?.spines ?? []).flatMap((_, i): Piece[] => {
-      const id = `${img.id}:${i}`;
-      const outline = outlines.get(id);
-      const rung = rungs.get(id);
-      return outline && outline.length >= 3 && rung ? [{ outline, rung, guess: guessOf(decisions.get(id), title) }] : [];
-    });
     const quads = d.spines.map((s) => s.polygon);
     const bands = d.bands.map((b) => b.polygon);
-    const attached = attachPieces(quads, pieces);
+    let attached: Attached[];
+    if (SOURCE === "q2b") attached = ownPieces(d, outlines, rungs, decisions, title, labelEvidence.get(d.id));
+    else {
+      const pieces: Piece[] = (f0.get(img.id)?.spines ?? []).flatMap((_, i): Piece[] => {
+        const id = `${img.id}:${i}`;
+        const outline = outlines.get(id);
+        const rung = rungs.get(id);
+        return outline && outline.length >= 3 && rung ? [{ outline, rung, guess: guessOf(decisions.get(id), title) }] : [];
+      });
+      attached = attachPieces(quads, pieces).map((a) => ({ ...a, keep: true }));
+    }
     const partial = partialFlags(quads, bands);
-    maskShares.push(...attached.map((a) => a.maskShare));
-    const spines: SceneSpine[] = d.spines.map((s, i) => ({
-      index: i,
-      quad: s.polygon,
-      pieces: attached[i]!.pieces,
-      boxScore: s.boxScore,
-      cut: s.cut,
-      partial: partial[i]!,
-      rung: attached[i]!.rung,
-      guess: attached[i]!.guess,
-    }));
+    const spines: SceneSpine[] = d.spines.flatMap((s, i): SceneSpine[] => {
+      const a = attached[i]!;
+      if (!a.keep) return [];
+      maskShares.push(a.maskShare);
+      const f = faces.get(`${d.id}:${i}`);
+      return [{ index: i, quad: s.polygon, pieces: a.pieces, boxScore: s.boxScore, cut: s.cut, partial: partial[i]!, rung: a.rung, guess: a.guess, ...(f?.face3d ? { face: f.face3d } : {}), ...(f?.topFace ? { topFace: f.topFace } : {}) }];
+    });
     return { name: `${SET}-${String(n + 1).padStart(2, "0")}`, imageId: img.id, source: img.image, scene: { width: d.width, height: d.height, spines, bands, tiles: approxTiles(d) } };
   });
   db.close();
@@ -186,7 +249,7 @@ interface PhotoRow {
   shaped: number;
 }
 
-function page(rows: PhotoRow[], px: ProxySummary[], counts: Record<string, number>): string {
+function page(rows: PhotoRow[], px: ProxySummary[], counts: Record<string, number | null>): string {
   const variants = VARIANTS.map((v) => ({ id: v.id, mode: v.mode, name: v.name, intent: v.intent, hash: variantHash(v) }));
   const pxRows = px.map((p) => `<tr><td>${esc(p.variant)}</td><td>${esc(p.source)}</td><td>${p.jaggedness}</td><td>${p.wobble}</td><td>${p.areaCv}</td></tr>`).join("");
   const photos = rows
@@ -199,7 +262,7 @@ function page(rows: PhotoRow[], px: ProxySummary[], counts: Record<string, numbe
     .join("\n");
   return `<!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>U-4 display modes · ${SET} (private)</title>
+<title>${FACES ? "H-2 volume glow" : "U-4 display modes"} · ${SET} (private)</title>
 <style>
 :root{--paper:#f2efe7;--card:#fcfbf6;--ink:#17140f;--ink2:#574f44;--ground:#1d1b17;--line:rgba(252,251,246,.14)}
 *{box-sizing:border-box}body{margin:0;background:var(--ground);color:var(--card);font:14px/1.45 "Helvetica Neue",Helvetica,Arial,sans-serif}
@@ -223,7 +286,7 @@ figcaption{position:absolute;left:8px;top:8px;font:600 11px/1 "JetBrains Mono",M
 body.single #lb{grid-template-columns:1fr}
 </style></head><body>
 <header>
-<h1>U-4 display modes <small>${SET} · private · ${rows.length} photos</small></h1>
+<h1>${FACES ? "H-2 volume glow" : "U-4 display modes"} <small>${SET} · private · ${rows.length} photos</small></h1>
 ${["a", "b"]
   .map(
     (s) => `<div class="side" data-side="${s}"><b>${s.toUpperCase()}</b><span class="seg" role="group">${Object.keys(MODES)
@@ -237,8 +300,9 @@ ${["a", "b"]
 </header>
 <main>
 <div class="notes">
+${FACES ? `<p><b>H-2.</b> <code>user-glow-volume</code> cuts the glow back to each spine's face where MoGe-2's normals trimmed the box (${counts.facePct}% of spines), and lights the book's visible top face as a second, dimmer shape (${counts.topFacePct}% of spines, on read ones only). Compare it with <code>user-glow</code> (A). The owner judges it (exit d).</p>` : ""}
 <p><b>What this is.</b> Every photo drawn in each display variant (registry: <code>src/report/display-modes.ts</code>). Choose a mode and variant for A and B; click a photo to see it large. Lenses are not shown: this is the All lens, and any lens works inside any mode.</p>
-<p><b>Boxes</b> are F-0e's <code>${ARM}</code> run (one box per spine). <b>Object shapes</b> are F-0b's SAM mask outlines, which were measured on F-0's boxes; each is attached to the F-0e box holding most of it and clipped to that box. A box that the outlines cover less than 60 % of is drawn as its box (${counts.shapedPct}% of boxes are mask-shaped). <b>Coverage is per spine, not per segment.</b> Q-0's coverage segments are not built yet (Q-3). Each spine takes the highest Q-2 rung of the F-0 boxes attached to it; a spine with none stays <code>spine-found</code> (patchy). Filled means <code>text-read</code> or above: ${counts.filledPct}% of spines. Tile edges in dev mode are rebuilt from the returned bands, so they are approximate. Rungs are machine agreement, not accuracy.</p>
+<p><b>Boxes</b> are F-0e's <code>${ARM}</code> run (one box per spine)${SOURCE === "q2b" ? ", without not-a-book boxes (F-0c shapes, F-0f shelf labels)" : ""}. <b>Object shapes</b> are ${SOURCE === "q2b" ? "SAM 2.1 mask outlines of each box itself (Q-2b), clipped to the box" : "F-0b's SAM mask outlines, which were measured on F-0's boxes; each is attached to the F-0e box holding most of it and clipped to that box"}. A box that ${SOURCE === "q2b" ? "its outline covers" : "the outlines cover"} less than 60 % of is drawn as its box (${counts.shapedPct}% of boxes are mask-shaped). <b>Coverage is per spine, not per segment.</b> Q-0's coverage segments are not built yet (Q-3). ${SOURCE === "q2b" ? "Each spine takes its own Q-2b teacher rung." : "Each spine takes the highest Q-2 rung of the F-0 boxes attached to it; a spine with none stays <code>spine-found</code> (patchy)."} Filled means <code>text-read</code> or above: ${counts.filledPct}% of spines. Tile edges in dev mode are rebuilt from the returned bands, so they are approximate. Rungs are machine agreement, not accuracy.</p>
 <table><thead><tr><th>variant</th><th>outline drawn</th><th>jaggedness p90</th><th>perturbation wobble</th><th>area CV</th></tr></thead><tbody>${pxRows}</tbody></table>
 <p style="font-size:12px;color:#9d968a">Still proxies over every spine: jaggedness at the 90th percentile, the others medians (definitions in <code>docs/capture/display-modes.md</code>). Jaggedness 0 = convex. Wobble below 1 means the drawn edge moves less than the mask noise put in (σ = 2 % of the spine's width).</p>
 </div>
@@ -247,8 +311,8 @@ ${photos}
 <div id="lb"></div>
 <script>
 const V=${JSON.stringify(variants)};
-const state={a:"user-glow",b:"user-veil"};
-try{const s=JSON.parse(localStorage.getItem("u4")||"{}");if(V.some(v=>v.id===s.a))state.a=s.a;if(V.some(v=>v.id===s.b))state.b=s.b}catch(e){}
+const state={a:"user-glow",b:"${FACES ? "user-glow-volume" : "user-veil"}"};const KEY="${FACES ? "u4-h2" : "u4"}";
+try{const s=JSON.parse(localStorage.getItem(KEY)||"{}");if(V.some(v=>v.id===s.a))state.a=s.a;if(V.some(v=>v.id===s.b))state.b=s.b}catch(e){}
 const modeOf=id=>V.find(v=>v.id===id).mode;
 function sync(){
   for(const s of ["a","b"]){
@@ -258,7 +322,7 @@ function sync(){
     const v=V.find(x=>x.id===state[s]);sel.title=v.intent+" · "+v.hash;
     document.querySelectorAll('.panel[data-side="'+s+'"]').forEach(p=>{const n=p.closest(".photo").dataset.name;p.querySelector(".ov").src="overlays/"+n+"-"+state[s]+".svg";p.querySelector("figcaption").textContent=s.toUpperCase()+" · "+v.name});
   }
-  try{localStorage.setItem("u4",JSON.stringify(state))}catch(e){}
+  try{localStorage.setItem(KEY,JSON.stringify(state))}catch(e){}
 }
 document.querySelectorAll(".side").forEach(box=>{const s=box.dataset.side;
   box.querySelectorAll("button").forEach(b=>b.onclick=()=>{state[s]=V.find(v=>v.mode===b.dataset.mode).id;sync()});
@@ -307,16 +371,23 @@ function render(): void {
   for (const r of rows) r.scene = r.luma >= mid ? "bright" : "dim";
   const all = scenes.flatMap((s) => s.scene.spines);
   const pct = (n: number) => Math.round((1000 * n) / all.length) / 10;
-  const counts = { shapedPct: pct(all.filter((x) => x.pieces.length).length), filledPct: pct(all.filter((x) => coverageState(x.rung) === "filled").length) };
+  const counts = {
+    shapedPct: pct(all.filter((x) => x.pieces.length).length),
+    filledPct: pct(all.filter((x) => coverageState(x.rung) === "filled").length),
+    facePct: FACES ? pct(all.filter((x) => x.face).length) : null,
+    topFacePct: FACES ? pct(all.filter((x) => x.topFace).length) : null,
+  };
   const px = proxies(scenes.map((s) => s.scene));
   writeFileSync(join(OUT, "index.html"), page(rows, px, counts));
   const rungShare: Record<string, number> = {};
   for (const x of all) rungShare[x.rung] = (rungShare[x.rung] ?? 0) + 1;
   const summary = {
+    source: SOURCE,
     photos: scenes.length,
     spines: all.length,
     maskShaped: counts.shapedPct,
     maskShareP50: Math.round(median(maskShares) * 100) / 100,
+    ...(FACES ? { faceShaped: counts.facePct, topFace: counts.topFacePct } : {}),
     filled: counts.filledPct,
     rungs: Object.fromEntries(Object.entries(rungShare).map(([k, n]) => [k, pct(n)])),
     variants: VARIANTS.map((v) => ({ id: v.id, hash: variantHash(v) })),
@@ -324,12 +395,12 @@ function render(): void {
   };
   writeFileSync(join(OUT, "summary.json"), `${JSON.stringify(summary, null, 2)}\n`);
   console.log(JSON.stringify(summary, null, 2));
-  log(`wrote the study page under the data root (private/u4/renders/${SET}/index.html)`);
+  log(`wrote the study page under the data root's ${OUT.slice(ROOT.length + 1)}/index.html`);
 }
 
 const cmd = process.argv[2];
 if (cmd === "render") render();
 else {
-  console.error("usage: node src/eval/u4-cli.ts render");
+  console.error("usage: node src/eval/u4-cli.ts render [--source q2b|f0b] [--faces FILE --out DIR]");
   process.exit(2);
 }

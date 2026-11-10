@@ -116,6 +116,84 @@ node src/eval/f0f-cli.ts render [arm]               # the data root's private/f0
 - **Shelf labels and cards: on by default.** A box is `not-a-book` as a `shelf-strip` (section wording such as "Fiction/Fantasy" or "Alphabetical by Author", and strip-shaped and flat), a `shelf-talker` (recommendation wording: "Like ⟨author⟩?", "Now try", "Staff pick") or a `blank-card` (no reader text, flat, at least 75 % white card stock with few edges). In `f0-cli.ts` the rules run after Vision and PP-OCR, so labelled boxes never go to Qwen, and the pixel probe is a cached stage (`probe.jsonl`). F-0c's `kinds` applies them to cover-pass boxes too when given the evidence.
 - **Measured** in [`evals/F0f/report.md`](../evals/F0f/report.md). **No perspective step ships.** Low rows are seen from above, so their books' top faces show: Q-2's top seam then often finds the top face's far edge, and its "cut" share rises from 5 % (top third of the frame) to 24 % (bottom third), while boxes short of their row's top line do not rise (15 %, 12 %, 16 %). `tops` and `ends` (extend to the row's line, re-mask) did not lower partial height beyond noise and raised the seam error; `angles` (turn off-row boxes to the row's lean) lost confirmed works (−0.42 a photo), because the boxes it turned followed books that really lean. **The shelf-label filter ships:** it removes 17 `pilot-000` spine-path boxes and 13 of F-0c's 142 kept covers (both false covers in the owner's examples among them), and no confirmed book on either set.
 
+## Shelf structure, voids and `on-lip` (S-1)
+
+The owner asked for the shelves themselves and the empty places on them: to bound book sizes, and to tell signs on
+the shelf from books. S-1 reads H-2's cached depth stage, so it needs no new model. Code:
+
+- `helpers/shelf/shelf.py`: planes, voids and lip features ([README](../helpers/shelf/README.md));
+- `src/eval/s1.ts`: the `on-lip` rule and post step, and board pitch (pure);
+- `src/eval/s1-cli.ts`: the runner;
+- `helpers/shelf/render.py`: private renders;
+- `helpers/shelf/segment.py`: prior art.
+
+Results: [`evals/S1/report.md`](../evals/S1/report.md).
+
+```
+node src/eval/s1-cli.ts stage pilot-000     # the depth stage's keys from H-2's cache (all hits; also yardstick)
+node src/eval/s1-cli.ts shelf pilot-000     # planes, voids and lip features per photo (CPU)
+node src/eval/s1-cli.ts segment pilot-000   # prior art: OneFormer (ADE20K) and SAM 3 "shelf" masks (GPU)
+node src/eval/s1-cli.ts spot                # the blind spot-check sheet (private)
+node src/eval/s1-cli.ts analyse             # evals/S1/ (aggregates only)
+node src/eval/s1-cli.ts render pilot-000    # the data root's private/s1/renders/pilot-000/ (private)
+```
+
+- **Shelf planes.** Per row, a RANSAC fit of the board top, the lip and the back panel, each from the band's frame.
+  On `pilot-000` the lip is found on 96 % of rows, the board top on 83 % below eye level and on none above, and the
+  back panel on 60 %.
+- **Voids** are in Q-0's coverage-segment unit (median spine widths along the row): stretches no book outline
+  covers, where the back panel shows.
+  - They are rare on `pilot-000` (1.2 % of row length).
+  - Most uncovered stretches are books without an outline (`outline-gap`, mostly `front`), not voids.
+- **Bounds and scale.** Board pitch (median 35.6 cm on `pilot-000`) bounds book heights: 1.4 % of books exceed it.
+  Against a standard shelf, the depth and the pitch both say MoGe-2's metres run about 11–16 % long. That stays a
+  hypothesis.
+- **`on-lip`: its keep rule is met; it is a ready post step, not yet wired.** A flat box inside the frame whose pixels
+  lie mostly on a row's lip face, not behind the lip and in front of the books' faces, is `not-a-book` with the
+  sub-reason `on-lip` (`applyOnLip`, after F-0c's and F-0f's kinds).
+  - It removes 4 `pilot-000` boxes F-0f misses: all section strips or label clips in a blind spot check, none
+    confirmed.
+  - On the yardstick it removes 2, none confirmed, with titles unchanged.
+  - NB-3 (below) wired it into the default path.
+
+## Not-a-book v3 (NB-3)
+
+NB-3 tried three label-free evidence sources for the shelf, wood, background and sign boxes that F-0c's shapes and
+F-0f's text and whiteness miss. It ran on F-0i's partition, from cached stages only (CPU). Code:
+
+- `src/eval/nb3.ts`: the rule and post step, pure;
+- `src/eval/nb3-cli.ts`: the runner;
+- `src/eval/nb3-stage.ts`: the default path's depth stage;
+- `helpers/label/probe.py` version 2: R3-C's `edgeDensity`, `bandpass`, `warm` and `luma` per box.
+
+Results: [`evals/NB3/report.md`](../evals/NB3/report.md).
+
+```
+node src/eval/nb3-cli.ts stage pilot-000    # the depth stage on H-2's cache (stops on a geometry miss; also yardstick)
+node src/eval/nb3-cli.ts shelf pilot-000    # S-1's lip features on the partition
+node src/eval/nb3-cli.ts probe pilot-000    # the version-2 pixel probe
+node src/eval/nb3-cli.ts calibrate          # the pixel thresholds, from pilot-000's reference boxes only
+node src/eval/nb3-cli.ts spot               # the blind spot-check sheet (private)
+node src/eval/nb3-cli.ts analyse            # evals/NB3/ (aggregates only)
+```
+
+- **The rule.** A box the shipped kinds keep is `not-a-book` when one of three causes holds, taken in this order:
+  - **`on-lip`**: S-1's test.
+  - **`depth`**: no reader text, at most 20 % of the H-2 face split `front`, and at least 60 % `behind` plus `under`.
+  - **`pixel`**: no reader text, smooth, and warm: the 5th and 95th percentiles of `pilot-000`'s reader-and-depth
+    book faces.
+- **Only `on-lip` ships** (`NB3_SHIP`).
+  - It removes the same 4 `pilot-000` boxes as S-1 did, and 2 yardstick boxes. None was confirmed.
+  - `depth` and `pixel` remove no confirmed book, but only because of their text guard. In a blind spot check their
+    catches were judged *not a book* 0 of 20 (`depth`) and 5 of 18 (`pixel`): mostly unread books. `depth` misplaces
+    books seen from above, and a far shelf seen through a near one, as `behind`; `pixel` catches plain warm spines.
+- **Default path.** `f0-cli.ts` runs the depth stage when a shipped cause needs it:
+  - `helpers/depth/stage.py` on H-2's cache, which runs MoGe-2 on a geometry miss;
+  - then `helpers/shelf/shelf.py`.
+
+  The NB-3 post step runs after F-0c's and F-0f's kinds, before Qwen. The pixel probe is cached at version 2; a
+  version-1 cache is probed again.
+
 ## Copy groups (F-0g)
 
 Bookstores shelve several copies of one book side by side; F-0 identifies each on its own, so a blurred or angled copy stays `unknown` beside a confirmed twin. F-0g groups neighbouring copies and lets a confirmed copy lend its work to an unconfirmed one as recorded evidence. Code: `src/eval/f0g.ts` (neighbours, visual score, series guard, groups, propagation; pure), `src/eval/f0g-cli.ts` (runner), `helpers/label/appearance.py` (pixel similarities), `helpers/label/render_f0g.py` (private review page). Results: [`evals/F0g/report.md`](../evals/F0g/report.md).
@@ -135,3 +213,229 @@ node src/eval/f0g-cli.ts render               # the data root's private/f0g/rend
 - **Copy groups and propagation** (`copyGroups`, `propagate`). Runs of linked neighbours are copy groups. In a group whose confirmed copies share one work, an unconfirmed copy is labelled with the decision basis **`confirmed-by-copy`** if its own reads do not contradict the work and at least one of its readers supports it (the work's title evidence on that reader's text ≥ 0.5). Every copy keeps its own box and decision (INV-4), with the source copy and the supporting readers recorded; a group whose confirmed copies disagree propagates nothing.
 - **Work level.** A hardback and a paperback of one work look different, so they are two copy groups; copies are counted per work on a shelf band whatever they look like.
 - **Measured** in [`evals/F0g/report.md`](../evals/F0g/report.md), against the keep rule pre-registered there. **Propagation: on** (its rule met; re-measured on F-0f's box set at main `9653345`, unchanged). On `pilot-000` copy groups are common (about 5 a photo, mostly pairs) and `confirmed-by-copy` adds 0.29 confirmed boxes a photo (0.06 to 0.58), with no hard negative (shared author, different work) propagated in one-reader tests; on the yardstick nothing propagates (library shelves rarely hold copies), so it shows no harm but cannot show propagation's error rate. The per-copy record (group, size, basis, source, supporting readers) is private, under the data root's `private/f0g/<set>/copies.jsonl`; F-0's machine-label export does not carry the basis yet.
+
+## Pooled reading (F-0g2)
+
+When no copy in an F-0g copy group is confirmed, the copies can still say together what the book is. Each copy is a
+different crop of a different physical book, so its text is new pixel evidence, not a repeat read. F-0g2 fuses each
+reader model's text of all the copies and looks the fused reading up once in the catalog.
+
+Code: `src/eval/f0g2.ts` (alignment, fusion, the pooled vote, views; pure) and `src/eval/f0g2-cli.ts` (runner and
+private review page). Results: [`evals/F0g2/report.md`](../evals/F0g2/report.md).
+
+```
+node src/eval/f0g2-cli.ts analyse   # both sets: evals/F0g2/ (aggregates only); per-copy records under private/f0g2/<set>/
+node src/eval/f0g2-cli.ts render    # the data root's private/f0g2/renders/<set>/index.html (private)
+```
+
+- **Groups.** These are F-0g's copy groups (its visual test and series guard), with links that touch a box F-0i's
+  partition drops removed. A group is eligible when no copy is `readers-agree`.
+- **Fusion** (`fuse`). For one reader model:
+  - The texts are normalised as the catalog normalises them, then aligned with free end gaps, so a fragment can be a
+    prefix, a suffix or a piece of another read.
+  - The centre is the variant that agrees best with the other copies, which also lines up rotations.
+  - Over each centre character, the texts spanning it vote; ties go to the centre. Overhangs past the centre's ends
+    extend the reading, and texts that do not overlap are kept in a union variant.
+- **One vote per model (INV-6).** A model's pooled reading holds its fused texts and every copy's own text. It makes
+  one `retrieve` call, and its top candidate is that model's single vote, however many copies the model read. F-0's
+  `vote` then needs two models confirming one work under F-0's bar.
+- **`confirmed-by-pooling`.** A copy takes the pooled work only through F-0g's per-copy tests: no read of its own
+  contradicts the work, and one of its readers is consistent with it. Each copy keeps its own box and decision
+  (INV-4). Its record holds the group, the size, the basis, the source copies and the supporting models.
+- **Measured** in [`evals/F0g2/report.md`](../evals/F0g2/report.md) against the keep rule pre-registered there.
+  **`confirmed-by-pooling`: off** (K1 not met).
+  - On `pilot-000`, 1 of 113 eligible groups pooled to a work, and the series guard blocked all of its copies, so
+    0 boxes were confirmed.
+  - Most eligible groups have no model, or only one, past F-0's bar even when pooled.
+  - Where reads are cleaner, pooling names the right work: 10 of 10 non-trivial leave-one-reader-out confirmations,
+    and 27 of 27 when the confirmed copy is hidden.
+  - No hard negative (shared author, different work) is pooled into one, with or without the gates.
+  - On the yardstick nothing pools.
+  - Re-run `analyse` when more copies get a second reader, or when the catalog holds the shelved titles.
+
+## Neighbour context (F-0h)
+
+A spine beside a confirmed book by the same author is probably that author's too. F-0 identifies each spine alone, so a title one reader misread by a letter or two is lost among the catalog's namesakes even when its neighbour names the author. F-0h lets a confirmed neighbour narrow the search, and lets the spine's own text decide. Code: `src/eval/f0h.ts` (rows, anchors, brackets, the title test, the decision, order statistics, hypotheses; pure), `src/eval/f0h-cli.ts` (runner), `helpers/label/render_f0h.py` (private review page), `helpers/label/match_examples.py` (matches the owner's example images to their photos). Results: [`evals/F0h/report.md`](../evals/F0h/report.md). Design: [`docs/catalog/identification-research.md`](catalog/identification-research.md) §2.3.
+
+```
+node src/eval/f0h-cli.ts stats      # C-7's statistics sidecar for the yardstick's inventory catalog (once)
+node src/eval/f0h-cli.ts analyse    # both sets: evals/F0h/ (aggregates only); per-box records under private/f0h/<set>/
+node src/eval/f0h-cli.ts render     # the data root's private/f0h/renders/pilot-000/index.html (private)
+```
+
+- **Context is shelf evidence, not taste (INV-13).** It is what stands on this shelf in this photo, plus the catalog. The profile, seeds, overlay and lenses are never read.
+- **Rows, anchors and brackets.** A row is a run of upright book boxes on one shelf, in order along it. An **anchor** is a spine F-0 accepted (`readers-agree`) at most two places away in the row; never a copy-lent or context-confirmed spine, so confirmations cannot chain. A **bracket** is two anchors sharing an author with at most five unconfirmed spines between them.
+- **Proposals.** An anchor proposes its authors' works (P1) and its direct series' works (P2); a bracket proposes its author's works. At most 60 per reader, the best by the reader's text score when there are more.
+- **`confirmed-by-context`.** One reader's text must pick one proposal: every distinctive title token matched exactly, by skeleton or within edit distance 1 (2 for tokens of 7 or more letters), matched characters covering 0.8 of the title, two distinctive tokens or one long one, and retrieval's own scoring at title evidence ≥ 0.6 and coverage ≥ 0.5. The winner must undercut every other passing book by 2 edits, no better open-catalog reading may lead it by more than 0.05, C-7's counter-evidence must not fire on it, and no reader may confirm a different work under F-0's bar. Context stands in for the second reader only, never for title evidence. Each case is recorded privately with its anchors, source, K, readers, cost and margin, so the basis can be counted or switched off.
+- **Context hypothesis.** A spine with no usable text beside an anchor or inside a bracket gets a recorded, displayable hypothesis: the author it is likely by, with a prior measured on half A of `pilot-000` (bracket purity, or the same-author rate of nearby confirmed spines), and that author's works ranked by edition count, weighted by title position in an ordered bracket. Never a confirmation.
+- **Shelf-strip cue.** A `not-a-book` box whose text carries F-0f's strip wording labels the row above it: "alphabetical by author" marks it ordered, the section is recorded. Shelf-talker text is never read.
+- **Detection-gap flags.** Inside every bracket, gaps between boxes and S-1's `front` outline gaps are written privately (`private/f0h/<set>/detection-gaps.jsonl`) for re-detection (F-0k).
+- **Measured** in [`evals/F0h/report.md`](../evals/F0h/report.md), against the keep rule pre-registered there. **`confirmed-by-context`: on** as a recorded basis (all four parts met). On `pilot-000`'s half B it adds 3.50 confirmed boxes a photo (1.19 to 6.25). The neighbour shuffle keeps 4 % of the accepts, and leave-one-reader-out names no wrong work (0 of 220 accepts). On the yardstick it adds 12 accepts, one wrong; the wrong share of accepts stays at 8.2 %. Half A's order statistics feed I-2: most rows are ordered by author surname, and same-author runs are rarely broken (bracket purity 95 %). Records are private (`private/f0h/<set>/decisions.jsonl`, `hypotheses.jsonl`, `detection-gaps.jsonl`). F-0's machine-label export does not carry the basis yet.
+
+## Gap audit (Q-3)
+
+The owner sees many books that never get a label. Q-3 asks, for every book a person can see on a still, where on
+Q-0's coverage ladder the machine stopped, and why. It then ranks the causes by books lost, so the experiment queue
+works on the biggest first. It is CPU only and reads existing caches:
+
+- F-0i's partition, Q-2b's teacher rungs, F-0g's and F-0h's decision bases;
+- H-2's face shares, Q-1's features, F-0c's and F-0f's kinds;
+- S-2's rows and gaps.
+
+The only new computation is F-0's `decide` on C-5's catalog-v2 for `text-present` and `text-read` boxes. Code:
+`src/eval/q3.ts` (books, cause rules, gap geometry, ranking; pure) and `src/eval/q3-cli.ts` (runner). Results:
+[`evals/Q3/report.md`](../evals/Q3/report.md).
+
+```
+node src/eval/q3-cli.ts v2              # catalog-v2 re-decision for pilot-000 (CPU, about an hour; cached)
+node src/eval/q3-cli.ts audit pilot-000 # one record per book: stop rung, primary cause, splits (also: yardstick)
+node src/eval/q3-cli.ts match           # the owner's labelling-gaps example → its photo (ORB)
+node src/eval/q3-cli.ts analyse         # evals/Q3/ (aggregates only)
+node src/eval/q3-cli.ts render          # the data root's private/q3/renders/index.html (private)
+```
+
+- **Books.** Three kinds count as a book a person can see:
+  - every kept box;
+  - one book per median spine width of each S-2 `frontNoBox` stretch (a spine-like face with no box);
+  - every face-out cover F-0c keeps that no kept box stands for.
+
+  A book's **stop rung** is its teacher rung, and `confirmed-by-copy` and `confirmed-by-context` count as
+  `confirmed`. A book is lost below `confirmed`.
+- **Causes.** Each lost book gets one primary cause: the first rule that holds in its rung's pre-registered list.
+  - At `spine-found` and `text-present` the capture rules come first: frame cut, tile cut or side case, occlusion,
+    a face-out piece, top face, lying flat, dark or flat, outer ring.
+  - At `text-read` the cause is a catalog gap, split by whether catalog-v2 passes a reader.
+  - At `matched` it is a single reader, or two readers disagreeing (a misread).
+- **Measured** on `pilot-000` (machine agreement, never accuracy). Of 6,068 books, 5,244 (86 %) are lost, and only
+  307 of those were never boxed. The top causes:
+  - `catalog-gap`: 1,358;
+  - `frame-edge`: 877;
+  - `single-reader`: 741;
+  - `tiling-or-side-case`: 638, mostly side cases;
+  - `top-face`: 634, all below eye level.
+
+  The last four tie within their intervals.
+- **A baseline.** Re-run `audit` and `analyse` on each new box set; never carry the figures over. RB-1 (below) re-ran
+  them on the re-baseline box set: the same five causes lead, in the same order. Per-book records are private, under
+  the data root's `private/q3/<set>/`.
+
+## Zone, read per line, emit fields (F-0j)
+
+Pass 2 on F-0i's book regions: zone each region into text lines, read each line at PP-OCR's recogniser height, and
+emit title and author as fields. Code: `helpers/label/zone.py` (lines, neighbour shares, line mosaics),
+`src/perceive/zones.ts` (groups, roles, multi-book; pure), `helpers/label/fields.py` (Qwen's transcript-first field
+read), `src/eval/f0j.ts` and `src/eval/f0j-cli.ts` (variants, the field rule, runner), `helpers/label/render_f0j.py`
+(private review page). Design: [`docs/models/per-book-extraction.md`](models/per-book-extraction.md) §5. Results:
+[`evals/F0j/report.md`](../evals/F0j/report.md).
+
+```
+node src/eval/f0j-cli.ts zone pilot-000        # PP-OCRv5 DB detector on every region at native resolution (CPU)
+node src/eval/f0j-cli.ts lines pilot-000       # Vision and PP-OCR on every kept line (crop line;h=48;clip=frame)
+node src/eval/f0j-cli.ts run pilot-000 a0      # base, then a (lines), b (fields); c after `fields` (Qwen, GPU)
+node src/eval/f0j-cli.ts analyse               # evals/F0j/ (aggregates only)
+node src/eval/f0j-cli.ts render pilot-000      # the data root's private/f0j/renders/<set>/ (private)
+```
+
+- **Zoning.** Each region is warped upright at native resolution into its reading frame; PP-OCRv5's detector finds
+  lines; a line mostly on pixels another kept box owns (F-0i's label map) is a neighbour's and dropped. Lines group
+  into lines of print; the largest group is the title, a name-like group (catalog name forms) the author, a small
+  group at either end the imprint. Two title-sized groups apart across the spine flag the region `multi-book`, handed
+  back to pass 1.
+- **Line reads.** Each kept line is cut from the working copy, turned horizontal, scaled to 48 px and read by Vision
+  and PP-OCR both ways round (column lines also a quarter turned), through lossless per-photo mosaics so `read.py` and
+  the Vision helper are unchanged. A reader's whole-crop reading and its line variants are one retrieval, one vote.
+- **Field path** (arms B, C). A reader whose whole string fails F-0's bar may confirm the candidate its title and
+  author fields alone best explain, at the same bar; an author field naming another book's author withdraws.
+- **Measured** in [`evals/F0j/report.md`](../evals/F0j/report.md): **no arm ships.** Line reads add confirmed books on
+  both sets, but the yardstick's wrong accepts rise beyond their interval in every arm. Arm A adds 7 wrong accepts,
+  mostly another book by an author on the shelf. Arms B and C add 28 and 24, mostly field-path agreement between
+  Vision and PP-OCR reading the same zoner-cut lines, so a shared zoner correlates the two OCR readers. The shipped
+  pipeline is unchanged. The response contract gained an optional `fields` object (`contracts/helpers/ocr-response.schema.json`).
+
+## Reader error overlap (TS-1)
+
+TS-0 (ledger export) and TS-2 (distilled reader) will train on labels that pass agreement and the catalog check.
+TS-1 asks whether two of three readers agreeing deserves that trust: agreement is good evidence only when the readers'
+errors are uncorrelated. It is an audit: CPU only, from cached readings, and it changes no decision. Code:
+`src/eval/ts1.ts` (pair statistics, third-reader outcomes, title rarity, the recommendation rule; pure) and
+`src/eval/ts1-cli.ts` (runner). Results: [`evals/TS1/report.md`](../evals/TS1/report.md).
+
+```
+node src/eval/ts1-cli.ts boxes pilot-000   # one record per kept box (also: yardstick); private, under private/ts1/<set>/
+node src/eval/ts1-cli.ts analyse           # evals/TS1/ (aggregates only)
+```
+
+- **Routing shapes what can be measured.** Qwen reads only hard crops (Vision and PP-OCR not agreed), so a
+  Vision+PP-OCR label never has a third reader, all three readers never agree, and every Qwen figure is conditional on
+  the OCR pair having failed. On `pilot-000`'s reference set (catalog-confirmed books) each pair holds a reader that set
+  the reference, so P(both wrong) is 0 by construction. The joint-error measures are taken on the yardstick, and
+  `pilot-000` gets **third-reader dissent** (the reader outside a two-reader label confirms another work).
+- **Measured.** On the yardstick, when two readers are both wrong they name the same wrong work every time:
+  Vision–PP-OCR lift 36.7 (21.2 to 74.9) over independence, phi 0.62. The overlap is the catalog step the readers share:
+  labels on a shared or one-word title are 38 % wrong, labels on a distinctive title 3.9 % (1.1–7.4), whichever pair
+  agreed. Qwen's confirmations are no worse than Vision's on the same crops; half of Vision+Qwen's apparent excess is
+  one book under two inventory records. On `pilot-000`, 9–10 % of Qwen+OCR labels have the other OCR reader dissenting.
+- **Recommendation** (not implemented): no agreeing pair is strong on its own. Train on two-reader labels with a
+  distinctive title and no dissent; hold shared-title labels out unless C-7's namesake test or an author read supports
+  them; exclude dissented labels. A second OCR engine adds coverage, not an independent check on the catalog.
+
+## Spine end edges (F-0m)
+
+The owner's renders showed outlines blurring where a spine turns its corner into the paper-edge top face, and bottom
+edges missing. F-0m snaps each kept box's ends on F-0i's partition from geometry already cached: the top to the
+**top crease** (H-2's normals turning from `front` to `top` along the spine's axis) and the bottom to the **board
+contact** (S-1's board top at the book's own depth, or the lip's top edge where it hides the books' feet). CPU only.
+
+Code:
+
+- `helpers/depth/ends.py`: the snap, new outlines, box ends and label maps;
+- `helpers/depth/render_f0m.py`: private before/after renders, the owner's examples first;
+- `src/eval/f0m.ts`: row-end residuals, seam error, books lost, keep rules (pure);
+- `src/eval/f0m-cli.ts`: the runner.
+
+Results: [`evals/F0m/report.md`](../evals/F0m/report.md).
+
+```
+node src/eval/f0m-cli.ts ends pilot-000            # snapped ends, outlines, boxes, label maps (also yardstick-library-b2)
+node src/eval/f0m-cli.ts seams pilot-000           # Q-2's top seam on both arms
+node src/eval/f0m-cli.ts run pilot-000 clip --no-qwen   # readers on the changed set (then `snap`)
+node src/eval/f0m-cli.ts analyse --no-qwen         # evals/F0m/ (aggregates only)
+node src/eval/f0m-cli.ts render pilot-000          # the data root's private/f0m/renders/pilot-000/ (private)
+```
+
+- **Measured** in [`evals/F0m/report.md`](../evals/F0m/report.md), against the keep rules pre-registered there.
+  **Neither the snapped geometry nor the snapped reader crop ships.**
+  - The top crease does what the owner asked. Q-2's top-seam error falls by 16.4 points on `pilot-000` (30 below
+    eye level) and by 9.5 on the yardstick.
+  - The pre-registered bottom rule fails: the detection rectangles' bottoms were already on their row's line, and
+    the snap changes outlines more than boxes.
+  - Two piece outlines are lost, from a crease window longer than the outline; the fix is logged, not run.
+  - Readers: `pilot-000` confirmed +0.2 points (−0.4 to 0.9) on 4,763 changed boxes, and works 639 → 647. The crop
+    stays `rect;rot=fixed;clip=frame`.
+  - The report lists the caches a later adoption would invalidate.
+
+## Batched re-baseline (RB-1)
+
+F-0i's partition (#51) dropped 360 `pilot-000` boxes and 76 yardstick boxes and changed 1,001 and 134 outlines; NB-3
+(#61) then shipped `on-lip`. RB-1 re-ran every downstream result once on that box set, from caches on the CPU, in
+dependency order. Code: `src/eval/rb1.ts` (the box set, read by F-0g, Q-2b, U-4, H-2, S-1 and Q-3, and through
+F-0g's `loadBooks` by F-0h) and `src/eval/rb1-cli.ts` (the summary). Results: [`evals/RB1/report.md`](../evals/RB1/report.md),
+and a dated section in each card's report.
+
+```
+node src/eval/f0g-cli.ts pairs <set> && node src/eval/f0g-cli.ts evidence <set> && node src/eval/f0g-cli.ts analyse
+node src/eval/q2b-cli.ts u4 && node src/eval/q2b-cli.ts diag && node src/eval/q2b-cli.ts analyse
+node src/eval/h2-cli.ts faces <set> && node src/eval/h2-cli.ts analyse     # face file from the cached stage, no depth
+node src/eval/s1-cli.ts shelf <set> && node src/eval/s1-cli.ts analyse
+node src/eval/f0h-cli.ts analyse
+node src/eval/q3-cli.ts v2 && node src/eval/q3-cli.ts audit <set> && node src/eval/q3-cli.ts analyse
+node src/eval/rb1-cli.ts summary                                           # each card's dated section, and evals/RB1/
+```
+
+- **The box set** is the partition's kept boxes less NB-3's `on-lip` boxes: 5,757 on `pilot-000`, 1,038 on the
+  yardstick. Detection rectangles are unchanged, so per-box caches keyed by rectangle (Q-1's features, Q-2's top
+  seam, H-2's face rows, reader caches) stand. U-4, Q-2b's U-4 aggregates and S-1 take F-0i's exclusive outlines
+  in place of Q-2b's SAM 2.1 outlines. Every CLI takes `--box-set pre-rb1` to reproduce its published figures.
+- **No keep rule or go rule flipped.** `confirmed-by-copy` and `confirmed-by-context` stay on; Q-2b stays NO-GO;
+  `face3d` stays off; `on-lip` keeps its rule. U-4's mask-shaped share falls 83.2 % → 79.2 %, since an exclusive
+  outline covers less of its box. Q-3's ranking holds, `catalog-gap` first.

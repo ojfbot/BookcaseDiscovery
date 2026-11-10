@@ -1,0 +1,422 @@
+{
+ "card": "TS-0",
+ "scope": "pilot-000, real use (OC35): machine labels, never accuracy (INV-17); the yardstick is never exported",
+ "version": "v-f495741be2c5",
+ "sets": ["pilot-000"],
+ "keptBoxes": 5757,
+ "skipped": {
+  "conflict": 0,
+  "noLabel": 4933
+ },
+ "constants": {
+  "dataset": {
+   "schemaVersion": 2,
+   "captureGapSeconds": 120,
+   "nearDuplicateBits": 8,
+   "valShare": 0.2,
+   "seed": 1,
+   "heldOutSessions": ["sf-store-002"]
+  },
+  "bases": ["readers-agree","confirmed-by-copy","confirmed-by-context"]
+ },
+ "manifest": {
+  "photos": 31,
+  "bySplit": {
+   "train": 24,
+   "val": 7,
+   "held-out": 0
+  },
+  "bySession": {
+   "pilot-000": 31
+  },
+  "bySetting": {
+   "real-use": 31
+  },
+  "captureGroups": {
+   "train": 4,
+   "val": 2,
+   "held-out": 0
+  },
+  "splitGroups": {
+   "train": 4,
+   "val": 2,
+   "held-out": 0
+  },
+  "nearDuplicatePairs": {
+   "all": 0,
+   "acrossCaptureGroups": 0
+  },
+  "unhashed": 0,
+  "straddling": 0,
+  "byDeviceClass": {
+   "metric-depth": 31,
+   "relative-stereo": 0,
+   "none": 0
+  },
+  "byLens": {
+   "main": 4,
+   "ultra-wide": 27,
+   "telephoto": 0,
+   "unknown": 0
+  },
+  "byCaptureMode": {
+   "shopper-still": 31,
+   "protocol-still": 0,
+   "natural-sweep": 0,
+   "rich-session": 0
+  },
+  "withCase": 0,
+  "dupClusters": 0
+ },
+ "labels": {
+  "labels": 824,
+  "photos": 29,
+  "bySplit": {
+   "train": 667,
+   "val": 157,
+   "held-out": 0
+  },
+  "strong": {
+   "all": {
+    "strong": 472,
+    "not strong": 352
+   },
+   "train": {
+    "strong": 379,
+    "not strong": 288
+   },
+   "val": {
+    "strong": 93,
+    "not strong": 64
+   },
+   "held-out": {
+    "strong": 0,
+    "not strong": 0
+   }
+  },
+  "titleClass": {
+   "all": {
+    "distinctive": 560,
+    "shared": 264
+   },
+   "train": {
+    "distinctive": 456,
+    "shared": 211
+   },
+   "val": {
+    "distinctive": 104,
+    "shared": 53
+   },
+   "held-out": {
+    "distinctive": 0,
+    "shared": 0
+   }
+  },
+  "basis": {
+   "all": {
+    "readers-agree": 726,
+    "confirmed-by-copy": 9,
+    "confirmed-by-context": 89
+   },
+   "train": {
+    "readers-agree": 582,
+    "confirmed-by-copy": 9,
+    "confirmed-by-context": 76
+   },
+   "val": {
+    "readers-agree": 144,
+    "confirmed-by-copy": 0,
+    "confirmed-by-context": 13
+   },
+   "held-out": {
+    "readers-agree": 0,
+    "confirmed-by-copy": 0,
+    "confirmed-by-context": 0
+   }
+  },
+  "rung": {
+   "all": {
+    "not-seen": 0,
+    "seen": 0,
+    "spine-found": 0,
+    "text-present": 7,
+    "text-read": 17,
+    "matched": 74,
+    "confirmed": 726
+   },
+   "train": {
+    "not-seen": 0,
+    "seen": 0,
+    "spine-found": 0,
+    "text-present": 6,
+    "text-read": 15,
+    "matched": 64,
+    "confirmed": 582
+   },
+   "val": {
+    "not-seen": 0,
+    "seen": 0,
+    "spine-found": 0,
+    "text-present": 1,
+    "text-read": 2,
+    "matched": 10,
+    "confirmed": 144
+   },
+   "held-out": {
+    "not-seen": 0,
+    "seen": 0,
+    "spine-found": 0,
+    "text-present": 0,
+    "text-read": 0,
+    "matched": 0,
+    "confirmed": 0
+   }
+  },
+  "agreeing": {
+   "all": {
+    "vision+ppocr": 558,
+    "vision+qwen": 153,
+    "ppocr+qwen": 38,
+    "vision+ppocr+qwen": 1,
+    "one reader": 74
+   },
+   "train": {
+    "vision+ppocr": 443,
+    "vision+qwen": 130,
+    "ppocr+qwen": 31,
+    "vision+ppocr+qwen": 1,
+    "one reader": 62
+   },
+   "val": {
+    "vision+ppocr": 115,
+    "vision+qwen": 23,
+    "ppocr+qwen": 7,
+    "vision+ppocr+qwen": 0,
+    "one reader": 12
+   },
+   "held-out": {
+    "vision+ppocr": 0,
+    "vision+qwen": 0,
+    "ppocr+qwen": 0,
+    "vision+ppocr+qwen": 0,
+    "one reader": 0
+   }
+  },
+  "thirdReader": {
+   "all": {
+    "dissents": 17,
+    "contradicts": 72,
+    "supports": 74,
+    "read-nothing": 19,
+    "not-read": 544,
+    "none": 98
+   },
+   "train": {
+    "dissents": 13,
+    "contradicts": 60,
+    "supports": 62,
+    "read-nothing": 17,
+    "not-read": 430,
+    "none": 85
+   },
+   "val": {
+    "dissents": 4,
+    "contradicts": 12,
+    "supports": 12,
+    "read-nothing": 2,
+    "not-read": 114,
+    "none": 13
+   },
+   "held-out": {
+    "dissents": 0,
+    "contradicts": 0,
+    "supports": 0,
+    "read-nothing": 0,
+    "not-read": 0,
+    "none": 0
+   }
+  },
+  "dissenting": {
+   "all": {
+    "dissent": 17,
+    "no dissent": 807
+   },
+   "train": {
+    "dissent": 13,
+    "no dissent": 654
+   },
+   "val": {
+    "dissent": 4,
+    "no dissent": 153
+   },
+   "held-out": {
+    "dissent": 0,
+    "no dissent": 0
+   }
+  },
+  "sharedBacking": {
+   "all": {
+    "author read": 181,
+    "namesake test": 43,
+    "neither": 37,
+    "unmeasured": 3
+   },
+   "train": {
+    "author read": 144,
+    "namesake test": 33,
+    "neither": 33,
+    "unmeasured": 1
+   },
+   "val": {
+    "author read": 37,
+    "namesake test": 10,
+    "neither": 4,
+    "unmeasured": 2
+   },
+   "held-out": {
+    "author read": 0,
+    "namesake test": 0,
+    "neither": 0,
+    "unmeasured": 0
+   }
+  },
+  "basisByClass": {
+   "readers-agree|distinctive|strong": 472,
+   "readers-agree|shared|not strong": 243,
+   "confirmed-by-context|shared|not strong": 18,
+   "confirmed-by-context|distinctive|not strong": 71,
+   "confirmed-by-copy|distinctive|not strong": 6,
+   "readers-agree|distinctive|not strong": 11,
+   "confirmed-by-copy|shared|not strong": 3
+  },
+  "nearDuplicatePhotoLabels": 0,
+  "deviceClass": {
+   "all": {
+    "metric-depth": 824,
+    "relative-stereo": 0,
+    "none": 0
+   },
+   "train": {
+    "metric-depth": 667,
+    "relative-stereo": 0,
+    "none": 0
+   },
+   "val": {
+    "metric-depth": 157,
+    "relative-stereo": 0,
+    "none": 0
+   },
+   "held-out": {
+    "metric-depth": 0,
+    "relative-stereo": 0,
+    "none": 0
+   }
+  },
+  "lens": {
+   "all": {
+    "main": 46,
+    "ultra-wide": 778,
+    "telephoto": 0,
+    "unknown": 0
+   },
+   "train": {
+    "main": 45,
+    "ultra-wide": 622,
+    "telephoto": 0,
+    "unknown": 0
+   },
+   "val": {
+    "main": 1,
+    "ultra-wide": 156,
+    "telephoto": 0,
+    "unknown": 0
+   },
+   "held-out": {
+    "main": 0,
+    "ultra-wide": 0,
+    "telephoto": 0,
+    "unknown": 0
+   }
+  },
+  "captureMode": {
+   "all": {
+    "shopper-still": 824,
+    "protocol-still": 0,
+    "natural-sweep": 0,
+    "rich-session": 0
+   },
+   "train": {
+    "shopper-still": 667,
+    "protocol-still": 0,
+    "natural-sweep": 0,
+    "rich-session": 0
+   },
+   "val": {
+    "shopper-still": 157,
+    "protocol-still": 0,
+    "natural-sweep": 0,
+    "rich-session": 0
+   },
+   "held-out": {
+    "shopper-still": 0,
+    "protocol-still": 0,
+    "natural-sweep": 0,
+    "rich-session": 0
+   }
+  },
+  "labelSource": {
+   "all": {
+    "single-view": 824,
+    "mono-geometry": 0,
+    "multiview-fusion": 0,
+    "lidar-privileged": 0,
+    "lidar-scale": 0
+   },
+   "train": {
+    "single-view": 667,
+    "mono-geometry": 0,
+    "multiview-fusion": 0,
+    "lidar-privileged": 0,
+    "lidar-scale": 0
+   },
+   "val": {
+    "single-view": 157,
+    "mono-geometry": 0,
+    "multiview-fusion": 0,
+    "lidar-privileged": 0,
+    "lidar-scale": 0
+   },
+   "held-out": {
+    "single-view": 0,
+    "mono-geometry": 0,
+    "multiview-fusion": 0,
+    "lidar-privileged": 0,
+    "lidar-scale": 0
+   }
+  },
+  "rgbRecoverable": {
+   "all": {
+    "yes": 824,
+    "no": 0,
+    "unknown": 0
+   },
+   "train": {
+    "yes": 667,
+    "no": 0,
+    "unknown": 0
+   },
+   "val": {
+    "yes": 157,
+    "no": 0,
+    "unknown": 0
+   },
+   "held-out": {
+    "yes": 0,
+    "no": 0,
+    "unknown": 0
+   }
+  },
+  "withCase": 0,
+  "inDupCluster": 0
+ }
+}

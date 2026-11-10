@@ -30,6 +30,18 @@ export const OcrRequestSchema = z.strictObject({
   rotations: z.array(RotationSchema).min(1),
 });
 
+/** One field of a field read (F-0j): the transcript lines it points at and its text, or null when not read. */
+const FieldSchema = z.strictObject({ lineIds: z.array(z.number().int().min(0)), text: z.string().nullable() });
+
+/** F-0j's optional field read on an OCR variant: transcript lines first, then fields pointing at them. */
+export const OcrFieldsSchema = z.strictObject({
+  lines: z.array(z.strictObject({ i: z.number().int().min(0), text: z.string() })),
+  title: FieldSchema,
+  author: FieldSchema,
+  imprint: z.strictObject({ lineIds: z.array(z.number().int().min(0)), text: z.string().nullable(), from: z.enum(["text", "logo"]).nullable() }),
+  unassigned: z.array(z.number().int().min(0)).optional(),
+});
+
 export const OcrResponseSchema = z.union([
   z.strictObject({
     id: IdSchema,
@@ -39,6 +51,7 @@ export const OcrResponseSchema = z.union([
         langCorrection: z.boolean(),
         text: z.string(),
         confidence: ConfidenceSchema,
+        fields: OcrFieldsSchema.optional(),
       }),
     ),
     version: OcrVersionSchema,
@@ -50,6 +63,7 @@ export type DetectRequest = z.infer<typeof DetectRequestSchema>;
 export type DetectResponse = z.infer<typeof DetectResponseSchema>;
 export type OcrRequest = z.infer<typeof OcrRequestSchema>;
 export type OcrResponse = z.infer<typeof OcrResponseSchema>;
+export type OcrFields = z.infer<typeof OcrFieldsSchema>;
 
 /** Helper name (the schema file stem under `contracts/helpers/`) to its validator. */
 export const helperSchemas = {

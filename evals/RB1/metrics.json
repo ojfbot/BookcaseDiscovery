@@ -1,0 +1,657 @@
+{
+  "runId": "RB1",
+  "card": "RB-1",
+  "date": "2026-11-04",
+  "base": "116f4e9",
+  "boxSet": "F-0i's partition (#51) of the shipped default boxes less NB-3's on-lip boxes (#61); F-0m (#60) and F-0k (#62) shipped nothing",
+  "cards": [
+    {
+      "card": "F-0g",
+      "figures": [
+        {
+          "set": "pilot-000",
+          "figure": "boxes",
+          "before": "6121",
+          "after": "5757"
+        },
+        {
+          "set": "pilot-000",
+          "figure": "neighbour pairs",
+          "before": "4424",
+          "after": "4367"
+        },
+        {
+          "set": "pilot-000",
+          "figure": "copy groups per photo",
+          "before": "5.00 (3.45 to 6.65)",
+          "after": "4.97 (3.42 to 6.65)"
+        },
+        {
+          "set": "pilot-000",
+          "figure": "groups with a confirmed copy",
+          "before": "41",
+          "after": "41"
+        },
+        {
+          "set": "pilot-000",
+          "figure": "confirmed boxes (F-0)",
+          "before": "731",
+          "after": "726"
+        },
+        {
+          "set": "pilot-000",
+          "figure": "**extra confirmed boxes per photo** (confirmed-by-copy)",
+          "before": "0.29 (0.06 to 0.58)",
+          "after": "0.29 (0.06 to 0.58)"
+        },
+        {
+          "set": "pilot-000",
+          "figure": "confirmed-by-copy boxes",
+          "before": "9",
+          "after": "9"
+        },
+        {
+          "set": "pilot-000",
+          "figure": "visually same, both confirmed: different works (%)",
+          "before": "9.8 (2.7 to 19.4)",
+          "after": "9.8 (2.7 to 19.4)"
+        },
+        {
+          "set": "pilot-000",
+          "figure": "hard-negative one-reader views",
+          "before": "420",
+          "after": "432"
+        },
+        {
+          "set": "pilot-000",
+          "figure": "of them blocked (%)",
+          "before": "100.0 (100.0 to 100.0)",
+          "after": "100.0 (100.0 to 100.0)"
+        },
+        {
+          "set": "yardstick",
+          "figure": "boxes",
+          "before": "1116",
+          "after": "1038"
+        },
+        {
+          "set": "yardstick",
+          "figure": "copy groups",
+          "before": "15",
+          "after": "15"
+        },
+        {
+          "set": "yardstick",
+          "figure": "confirmed-by-copy boxes",
+          "before": "0",
+          "after": "0"
+        },
+        {
+          "set": "yardstick",
+          "figure": "wrong accepts with propagation",
+          "before": "22",
+          "after": "22"
+        },
+        {
+          "set": "yardstick",
+          "figure": "wrong share of accepted (%)",
+          "before": "8.2 (3.6 to 13.9)",
+          "after": "8.3 (3.7 to 14.0)"
+        }
+      ],
+      "verdicts": [
+        {
+          "label": "propagation ships (`confirmed-by-copy`)",
+          "before": true,
+          "after": true,
+          "flips": false
+        }
+      ]
+    },
+    {
+      "card": "Q-2b",
+      "figures": [
+        {
+          "set": "pilot-000",
+          "figure": "detected boxes",
+          "before": "6121",
+          "after": "5757"
+        },
+        {
+          "set": "pilot-000",
+          "figure": "student population",
+          "before": "3555",
+          "after": "3478"
+        },
+        {
+          "set": "pilot-000",
+          "figure": "τ",
+          "before": "0.72",
+          "after": "0.73"
+        },
+        {
+          "set": "pilot-000",
+          "figure": "filled share of the population (%)",
+          "before": "59.6 (54.1 to 64.7)",
+          "after": "59.2 (53.6 to 64.2)"
+        },
+        {
+          "set": "pilot-000",
+          "figure": "**student AUC** (leave one photo out)",
+          "before": "0.711 (0.664 to 0.754)",
+          "after": "0.710 (0.661 to 0.753)"
+        },
+        {
+          "set": "pilot-000",
+          "figure": "gain over crop width",
+          "before": "0.297 (0.225 to 0.368)",
+          "after": "0.305 (0.232 to 0.377)"
+        },
+        {
+          "set": "pilot-000",
+          "figure": "whole only: student AUC",
+          "before": "0.688 (0.640 to 0.734)",
+          "after": "0.687 (0.638 to 0.735)"
+        },
+        {
+          "set": "pilot-000",
+          "figure": "precision of \"filled\" at FILL_P (%)",
+          "before": "75.9 (68.8 to 81.5)",
+          "after": "75.4 (68.0 to 81.0)"
+        },
+        {
+          "set": "pilot-000",
+          "figure": "U-4 boxes drawn from their own outline (%)",
+          "before": "83.2",
+          "after": "79.2"
+        },
+        {
+          "set": "pilot-000",
+          "figure": "U-4 filled spines (%)",
+          "before": "50.2",
+          "after": "51.0"
+        },
+        {
+          "set": "yardstick",
+          "figure": "detected boxes",
+          "before": "1116",
+          "after": "1038"
+        },
+        {
+          "set": "yardstick",
+          "figure": "student population",
+          "before": "793",
+          "after": "757"
+        },
+        {
+          "set": "yardstick",
+          "figure": "student AUC (one pilot fit)",
+          "before": "0.802 (0.746 to 0.870)",
+          "after": "0.797 (0.732 to 0.861)"
+        },
+        {
+          "set": "yardstick",
+          "figure": "precision of \"filled\" at FILL_P (%)",
+          "before": "93.3 (88.7 to 98.0)",
+          "after": "91.8 (86.4 to 97.7)"
+        }
+      ],
+      "verdicts": [
+        {
+          "label": "Q-2's go rule (GO)",
+          "before": false,
+          "after": false,
+          "flips": false
+        }
+      ]
+    },
+    {
+      "card": "H-2",
+      "figures": [
+        {
+          "set": "pilot-000",
+          "figure": "over-selecting kept boxes (%)",
+          "before": "49.4 (46.4 to 52.6)",
+          "after": "49.1 (46.1 to 52.6)"
+        },
+        {
+          "set": "pilot-000",
+          "figure": "trim feasible, of over-selecting (%)",
+          "before": "57.8 (53.5 to 61.7)",
+          "after": "58.4 (53.9 to 62.7)"
+        },
+        {
+          "set": "pilot-000",
+          "figure": "**`face3d` confirmed Δ (pts)**",
+          "before": "-0.3 (-1.2 to 0.7)",
+          "after": "-0.4 (-1.4 to 0.6)"
+        },
+        {
+          "set": "pilot-000",
+          "figure": "distinct confirmed works, `face3d` arm",
+          "before": "512",
+          "after": "511"
+        },
+        {
+          "set": "pilot-000",
+          "figure": "distinct confirmed works Δ (`face3d` − `clip`)",
+          "before": "-7 (-11 to 3)",
+          "after": "-8 (-11 to 2)"
+        },
+        {
+          "set": "yardstick",
+          "figure": "over-selecting kept boxes (%)",
+          "before": "50.7 (43.6 to 57.8)",
+          "after": "49.9 (42.6 to 57.3)"
+        },
+        {
+          "set": "yardstick",
+          "figure": "`face3d` confirmed Δ (pts)",
+          "before": "-1.9 (-4.6 to 0.5)",
+          "after": "-2.0 (-5.1 to 0.6)"
+        },
+        {
+          "set": "yardstick",
+          "figure": "`face3d` wrong Δ (pts)",
+          "before": "0.5 (0.0 to 1.6)",
+          "after": "0.5 (0.0 to 1.7)"
+        }
+      ],
+      "verdicts": [
+        {
+          "label": "`face3d` crop ships",
+          "before": false,
+          "after": false,
+          "flips": false
+        }
+      ]
+    },
+    {
+      "card": "S-1",
+      "figures": [
+        {
+          "set": "pilot-000",
+          "figure": "rows",
+          "before": "168",
+          "after": "167"
+        },
+        {
+          "set": "pilot-000",
+          "figure": "**void share** (pooled, %)",
+          "before": "1.2 (0.4 to 2.2)",
+          "after": "1.2 (0.4 to 2.2)"
+        },
+        {
+          "set": "pilot-000",
+          "figure": "rows with a void (%)",
+          "before": "14.3 (8.0 to 21.8)",
+          "after": "14.4 (8.1 to 21.9)"
+        },
+        {
+          "set": "pilot-000",
+          "figure": "candidate share (%)",
+          "before": "12.2 (9.9 to 14.8)",
+          "after": "12.4 (10.1 to 15.0)"
+        },
+        {
+          "set": "pilot-000",
+          "figure": "of candidates, `outline-gap` (%)",
+          "before": "90.3 (84.2 to 96.6)",
+          "after": "90.3 (84.3 to 96.5)"
+        },
+        {
+          "set": "pilot-000",
+          "figure": "`on-lip` removes (spine path)",
+          "before": "4",
+          "after": "4"
+        },
+        {
+          "set": "pilot-000",
+          "figure": "`on-lip` removes confirmed",
+          "before": "0",
+          "after": "0"
+        },
+        {
+          "set": "yardstick",
+          "figure": "rows",
+          "before": "48",
+          "after": "48"
+        },
+        {
+          "set": "yardstick",
+          "figure": "void share (pooled, %)",
+          "before": "1.7 (0.6 to 3.2)",
+          "after": "1.8 (0.7 to 3.3)"
+        },
+        {
+          "set": "yardstick",
+          "figure": "candidate share (%)",
+          "before": "7.4 (4.5 to 10.7)",
+          "after": "7.5 (4.8 to 10.5)"
+        },
+        {
+          "set": "yardstick",
+          "figure": "`on-lip` removes (spine path)",
+          "before": "2",
+          "after": "2"
+        }
+      ],
+      "verdicts": [
+        {
+          "label": "`on-lip` keep rule met",
+          "before": true,
+          "after": true,
+          "flips": false
+        }
+      ]
+    },
+    {
+      "card": "F-0h",
+      "figures": [
+        {
+          "set": "pilot-000",
+          "figure": "half B: book boxes",
+          "before": "3238",
+          "after": "3057"
+        },
+        {
+          "set": "pilot-000",
+          "figure": "half B: confirmed-by-context",
+          "before": "56",
+          "after": "55"
+        },
+        {
+          "set": "pilot-000",
+          "figure": "**half B: extra confirmed per photo**",
+          "before": "3.50 (1.19 to 6.25)",
+          "after": "3.44 (1.19 to 6.19)"
+        },
+        {
+          "set": "pilot-000",
+          "figure": "all 31 photos: confirmed-by-context",
+          "before": "90",
+          "after": "89"
+        },
+        {
+          "set": "pilot-000",
+          "figure": "shuffle: share of real accepts (%)",
+          "before": "4.2",
+          "after": "4.6"
+        },
+        {
+          "set": "pilot-000",
+          "figure": "shuffle: p95 seed (%)",
+          "before": "7.2",
+          "after": "9.1"
+        },
+        {
+          "set": "pilot-000",
+          "figure": "leave one reader out: wrong of accepted",
+          "before": "0",
+          "after": "0"
+        },
+        {
+          "set": "pilot-000",
+          "figure": "leave one reader out: accepted",
+          "before": "220",
+          "after": "220"
+        },
+        {
+          "set": "yardstick",
+          "figure": "book boxes",
+          "before": "1116",
+          "after": "1038"
+        },
+        {
+          "set": "yardstick",
+          "figure": "confirmed-by-context",
+          "before": "12",
+          "after": "12"
+        },
+        {
+          "set": "yardstick",
+          "figure": "wrong accepts with context (22 without)",
+          "before": "23",
+          "after": "23"
+        },
+        {
+          "set": "yardstick",
+          "figure": "wrong share of accepts with context (%)",
+          "before": "8.2 (3.9 to 13.6)",
+          "after": "8.3 (3.9 to 13.7)"
+        }
+      ],
+      "verdicts": [
+        {
+          "label": "`confirmed-by-context` ships",
+          "before": true,
+          "after": true,
+          "flips": false
+        }
+      ]
+    },
+    {
+      "card": "Q-3",
+      "figures": [
+        {
+          "set": "pilot-000",
+          "figure": "books a person can see",
+          "before": "6068 (5058 to 7130)",
+          "after": "6064 (5053 to 7127)"
+        },
+        {
+          "set": "pilot-000",
+          "figure": "**lost below `confirmed`**",
+          "before": "5244 (4428 to 6061)",
+          "after": "5240 (4425 to 6052)"
+        },
+        {
+          "set": "pilot-000",
+          "figure": "lost share (%)",
+          "before": "86.4",
+          "after": "86.4"
+        },
+        {
+          "set": "yardstick",
+          "figure": "books a person can see",
+          "before": "1077 (893 to 1276)",
+          "after": "1075 (892 to 1272)"
+        },
+        {
+          "set": "yardstick",
+          "figure": "lost below `confirmed`",
+          "before": "799 (625 to 985)",
+          "after": "797 (623 to 982)"
+        },
+        {
+          "set": "yardstick",
+          "figure": "lost share (%)",
+          "before": "74.2",
+          "after": "74.1"
+        },
+        {
+          "set": "yardstick",
+          "figure": "annotated books found (reference, %)",
+          "before": "38.3",
+          "after": "38.3"
+        }
+      ],
+      "verdicts": []
+    }
+  ],
+  "flips": [],
+  "q3TopCauses": {
+    "pilot-000": {
+      "before": [
+        {
+          "cause": "catalog-gap",
+          "lost": [
+            1358,
+            1001,
+            1748.1
+          ]
+        },
+        {
+          "cause": "frame-edge",
+          "lost": [
+            877,
+            760,
+            995
+          ]
+        },
+        {
+          "cause": "single-reader",
+          "lost": [
+            741,
+            511,
+            974
+          ]
+        },
+        {
+          "cause": "tiling-or-side-case",
+          "lost": [
+            638,
+            437,
+            885
+          ]
+        },
+        {
+          "cause": "top-face",
+          "lost": [
+            634,
+            438,
+            840
+          ]
+        }
+      ],
+      "after": [
+        {
+          "cause": "catalog-gap",
+          "lost": [
+            1322,
+            973,
+            1707
+          ]
+        },
+        {
+          "cause": "frame-edge",
+          "lost": [
+            885,
+            766,
+            1006
+          ]
+        },
+        {
+          "cause": "single-reader",
+          "lost": [
+            740,
+            511,
+            973
+          ]
+        },
+        {
+          "cause": "tiling-or-side-case",
+          "lost": [
+            643,
+            438,
+            895
+          ]
+        },
+        {
+          "cause": "top-face",
+          "lost": [
+            642,
+            443,
+            850
+          ]
+        }
+      ]
+    },
+    "yardstick": {
+      "before": [
+        {
+          "cause": "catalog-gap",
+          "lost": [
+            278,
+            210,
+            351
+          ]
+        },
+        {
+          "cause": "single-reader",
+          "lost": [
+            135,
+            104,
+            170
+          ]
+        },
+        {
+          "cause": "frame-edge",
+          "lost": [
+            86,
+            56,
+            123
+          ]
+        },
+        {
+          "cause": "tiling-or-side-case",
+          "lost": [
+            68,
+            47,
+            92
+          ]
+        },
+        {
+          "cause": "dark-or-low-contrast",
+          "lost": [
+            55,
+            34,
+            80
+          ]
+        }
+      ],
+      "after": [
+        {
+          "cause": "catalog-gap",
+          "lost": [
+            272,
+            206,
+            343
+          ]
+        },
+        {
+          "cause": "single-reader",
+          "lost": [
+            135,
+            104,
+            170
+          ]
+        },
+        {
+          "cause": "frame-edge",
+          "lost": [
+            86,
+            56,
+            123
+          ]
+        },
+        {
+          "cause": "tiling-or-side-case",
+          "lost": [
+            68,
+            48,
+            91
+          ]
+        },
+        {
+          "cause": "dark-or-low-contrast",
+          "lost": [
+            55,
+            34,
+            80
+          ]
+        }
+      ]
+    }
+  }
+}

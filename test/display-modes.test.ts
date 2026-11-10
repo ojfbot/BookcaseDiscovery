@@ -45,7 +45,7 @@ describe("the display mode registry", () => {
     ["a duplicate id", (v: DisplayVariant[]) => [...v, v[0]!], /duplicate id/],
     ["a layer the mode does not allow", (v: DisplayVariant[]) => [...v, { ...v[0]!, id: "labelling-x", mode: "labelling" as const }], /layer tile-edge is not allowed in mode labelling/],
     ["an id that does not start with its mode", (v: DisplayVariant[]) => [...v, { ...v[0]!, id: "fancy" }], /does not start with its mode/],
-    ["one user variant only", (v: DisplayVariant[]) => v.filter((x) => x.id !== "user-veil" && x.id !== "user-ridge"), /two or more variants/],
+    ["one user variant only", (v: DisplayVariant[]) => v.filter((x) => x.mode !== "user" || x.id === "user-glow"), /two or more variants/],
     ["an opacity above 1", (v: DisplayVariant[]) => [...v, { ...v[0]!, id: "dev-x", layers: [{ kind: "box" as const, colour: "#fff", opacity: 1.5, widthPx: 1 }] }], /opacity 1.5/],
   ])("rejects %s", (_name, mutate, message) => {
     expect(checkRegistry(mutate(structuredClone(VARIANTS))).join("\n")).toMatch(message);

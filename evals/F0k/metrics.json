@@ -1,0 +1,766 @@
+{
+ "card": "F-0k",
+ "preregistration": "evals/F0k/prereg.md",
+ "sets": {
+  "pilot-000": {
+   "regions": {
+    "all": {
+     "row-gaps": 2,
+     "front-stretches": 153,
+     "headroom": 206
+    },
+    "capped": {
+     "row-gaps": 2,
+     "front-stretches": 153,
+     "headroom": 199
+    },
+    "tiles": {
+     "row-gaps": 2,
+     "front-stretches": 154,
+     "headroom": 296
+    },
+    "skipped": {
+     "row-gaps: S-1 stretch not found": 1
+    }
+   },
+   "reprompt": {
+    "photos": 31,
+    "tiles": 452,
+    "candidatesInRegions": 412,
+    "pool": {
+     "row-gaps": 4,
+     "front-stretches": 246,
+     "headroom": 99
+    },
+    "gpuSeconds": 621
+   },
+   "reproduction": {
+    "existingKept": 5761,
+    "reproduced": 5761
+   },
+   "arms": {
+    "row-gaps": {
+     "gate": {
+      "candidates": 4,
+      "nms": 2,
+      "duplicate": 1,
+      "recovered": 1
+     },
+     "recovered": 1,
+     "notABook": {},
+     "read": 1,
+     "textRead": 1,
+     "qwenSelected": 0,
+     "displaced": 0,
+     "acceptedRecovered": 0,
+     "echoAccepts": 0,
+     "pairsLostToDisplacement": 0,
+     "bySource": {
+      "row-gaps": {
+       "recovered": 1,
+       "accepted": 0
+      }
+     },
+     "byElevation": {
+      "below": {
+       "recovered": 1,
+       "accepted": 0
+      },
+      "level": {
+       "recovered": 0,
+       "accepted": 0
+      },
+      "above": {
+       "recovered": 0,
+       "accepted": 0
+      },
+      "unknown": {
+       "recovered": 0,
+       "accepted": 0
+      }
+     },
+     "noQwen": false,
+     "cost": {
+      "vision": {
+       "calls": 2,
+       "seconds": 0
+      },
+      "ppocr": {
+       "calls": 2,
+       "seconds": 1
+      },
+      "qwen": {
+       "calls": 0,
+       "seconds": 0
+      }
+     },
+     "confirmedWorks": {
+      "before": 629,
+      "after": 629,
+      "delta": {
+       "value": 0,
+       "lo": 0,
+       "hi": 0
+      }
+     }
+    },
+    "front-stretches": {
+     "gate": {
+      "candidates": 246,
+      "nms": 32,
+      "duplicate": 165,
+      "recovered": 30,
+      "piece-of": 13,
+      "absorbed": 6
+     },
+     "recovered": 30,
+     "notABook": {},
+     "read": 30,
+     "textRead": 24,
+     "qwenSelected": 12,
+     "displaced": 3,
+     "acceptedRecovered": 4,
+     "echoAccepts": 1,
+     "pairsLostToDisplacement": 1,
+     "bySource": {
+      "front-stretches": {
+       "recovered": 30,
+       "accepted": 4
+      }
+     },
+     "byElevation": {
+      "below": {
+       "recovered": 20,
+       "accepted": 3
+      },
+      "level": {
+       "recovered": 9,
+       "accepted": 1
+      },
+      "above": {
+       "recovered": 1,
+       "accepted": 0
+      },
+      "unknown": {
+       "recovered": 0,
+       "accepted": 0
+      }
+     },
+     "noQwen": false,
+     "cost": {
+      "vision": {
+       "calls": 60,
+       "seconds": 6
+      },
+      "ppocr": {
+       "calls": 60,
+       "seconds": 61
+      },
+      "qwen": {
+       "calls": 24,
+       "seconds": 31
+      }
+     },
+     "confirmedWorks": {
+      "before": 629,
+      "after": 631,
+      "delta": {
+       "value": 2,
+       "lo": -2,
+       "hi": 7
+      }
+     }
+    },
+    "headroom": {
+     "gate": {
+      "candidates": 99,
+      "nms": 31,
+      "duplicate": 41,
+      "piece-of": 17,
+      "recovered": 10
+     },
+     "recovered": 10,
+     "notABook": {},
+     "read": 10,
+     "textRead": 8,
+     "qwenSelected": 4,
+     "displaced": 1,
+     "acceptedRecovered": 0,
+     "echoAccepts": 0,
+     "pairsLostToDisplacement": 1,
+     "bySource": {
+      "headroom": {
+       "recovered": 10,
+       "accepted": 0
+      }
+     },
+     "byElevation": {
+      "below": {
+       "recovered": 9,
+       "accepted": 0
+      },
+      "level": {
+       "recovered": 1,
+       "accepted": 0
+      },
+      "above": {
+       "recovered": 0,
+       "accepted": 0
+      },
+      "unknown": {
+       "recovered": 0,
+       "accepted": 0
+      }
+     },
+     "noQwen": false,
+     "cost": {
+      "vision": {
+       "calls": 20,
+       "seconds": 2
+      },
+      "ppocr": {
+       "calls": 20,
+       "seconds": 19
+      },
+      "qwen": {
+       "calls": 8,
+       "seconds": 12
+      }
+     },
+     "confirmedWorks": {
+      "before": 629,
+      "after": 628,
+      "delta": {
+       "value": -1,
+       "lo": -3,
+       "hi": 0
+      }
+     }
+    },
+    "all": {
+     "gate": {
+      "candidates": 349,
+      "nms": 70,
+      "duplicate": 204,
+      "recovered": 39,
+      "piece-of": 30,
+      "absorbed": 6
+     },
+     "recovered": 39,
+     "notABook": {},
+     "read": 39,
+     "textRead": 31,
+     "qwenSelected": 15,
+     "displaced": 4,
+     "acceptedRecovered": 4,
+     "echoAccepts": 1,
+     "pairsLostToDisplacement": 2,
+     "bySource": {
+      "row-gaps": {
+       "recovered": 1,
+       "accepted": 0
+      },
+      "front-stretches": {
+       "recovered": 30,
+       "accepted": 4
+      },
+      "headroom": {
+       "recovered": 8,
+       "accepted": 0
+      }
+     },
+     "byElevation": {
+      "below": {
+       "recovered": 28,
+       "accepted": 3
+      },
+      "level": {
+       "recovered": 10,
+       "accepted": 1
+      },
+      "above": {
+       "recovered": 1,
+       "accepted": 0
+      },
+      "unknown": {
+       "recovered": 0,
+       "accepted": 0
+      }
+     },
+     "noQwen": false,
+     "cost": {
+      "vision": {
+       "calls": 78,
+       "seconds": 8
+      },
+      "ppocr": {
+       "calls": 78,
+       "seconds": 74
+      },
+      "qwen": {
+       "calls": 30,
+       "seconds": 38
+      }
+     },
+     "confirmedWorks": {
+      "before": 629,
+      "after": 630,
+      "delta": {
+       "value": 1,
+       "lo": -4,
+       "hi": 7
+      }
+     }
+    }
+   }
+  },
+  "yardstick-library-b2": {
+   "regions": {
+    "all": {
+     "row-gaps": 0,
+     "front-stretches": 14,
+     "headroom": 43
+    },
+    "capped": {
+     "row-gaps": 0,
+     "front-stretches": 14,
+     "headroom": 43
+    },
+    "tiles": {
+     "row-gaps": 0,
+     "front-stretches": 14,
+     "headroom": 67
+    },
+    "skipped": {}
+   },
+   "reprompt": {
+    "photos": 25,
+    "tiles": 81,
+    "candidatesInRegions": 51,
+    "pool": {
+     "row-gaps": 0,
+     "front-stretches": 24,
+     "headroom": 8
+    },
+    "gpuSeconds": 204
+   },
+   "reproduction": {
+    "existingKept": 1040,
+    "reproduced": 1040
+   },
+   "arms": {
+    "row-gaps": {
+     "gate": {},
+     "recovered": 0,
+     "notABook": {},
+     "read": 0,
+     "textRead": 0,
+     "qwenSelected": 0,
+     "displaced": 0,
+     "acceptedRecovered": 0,
+     "echoAccepts": 0,
+     "pairsLostToDisplacement": 0,
+     "bySource": {
+      "row-gaps": {
+       "recovered": 0,
+       "accepted": 0,
+       "wrong": 0
+      }
+     },
+     "byElevation": {
+      "below": {
+       "recovered": 0,
+       "accepted": 0
+      },
+      "level": {
+       "recovered": 0,
+       "accepted": 0
+      },
+      "above": {
+       "recovered": 0,
+       "accepted": 0
+      },
+      "unknown": {
+       "recovered": 0,
+       "accepted": 0
+      }
+     },
+     "noQwen": false,
+     "cost": {
+      "vision": {
+       "calls": 0,
+       "seconds": 0
+      },
+      "ppocr": {
+       "calls": 0,
+       "seconds": 0
+      },
+      "qwen": {
+       "calls": 0,
+       "seconds": 0
+      }
+     },
+     "wrongAccepts": {
+      "before": 22,
+      "after": 22,
+      "delta": {
+       "value": 0,
+       "lo": 0,
+       "hi": 0
+      }
+     },
+     "rightAccepts": {
+      "before": 244,
+      "after": 244,
+      "delta": {
+       "value": 0,
+       "lo": 0,
+       "hi": 0
+      }
+     },
+     "wrongShare": {
+      "before": 0.021153846153846155,
+      "after": 0.021153846153846155
+     },
+     "titles": {
+      "before": {
+       "recall": 0.36906584992343033,
+       "precision": 0.926923076923077
+      },
+      "after": {
+       "recall": 0.36906584992343033,
+       "precision": 0.926923076923077
+      },
+      "delta": {
+       "recall": [0,0,0],
+       "precision": [0,0,0]
+      }
+     }
+    },
+    "front-stretches": {
+     "gate": {
+      "candidates": 24,
+      "nms": 6,
+      "duplicate": 15,
+      "recovered": 2,
+      "absorbed": 1
+     },
+     "recovered": 2,
+     "notABook": {},
+     "read": 2,
+     "textRead": 2,
+     "qwenSelected": 1,
+     "displaced": 0,
+     "acceptedRecovered": 1,
+     "echoAccepts": 1,
+     "pairsLostToDisplacement": 0,
+     "bySource": {
+      "front-stretches": {
+       "recovered": 2,
+       "accepted": 1,
+       "wrong": 0
+      }
+     },
+     "byElevation": {
+      "below": {
+       "recovered": 1,
+       "accepted": 1
+      },
+      "level": {
+       "recovered": 1,
+       "accepted": 0
+      },
+      "above": {
+       "recovered": 0,
+       "accepted": 0
+      },
+      "unknown": {
+       "recovered": 0,
+       "accepted": 0
+      }
+     },
+     "noQwen": false,
+     "cost": {
+      "vision": {
+       "calls": 4,
+       "seconds": 1
+      },
+      "ppocr": {
+       "calls": 4,
+       "seconds": 12
+      },
+      "qwen": {
+       "calls": 2,
+       "seconds": 5
+      }
+     },
+     "wrongAccepts": {
+      "before": 22,
+      "after": 22,
+      "delta": {
+       "value": 0,
+       "lo": 0,
+       "hi": 0
+      }
+     },
+     "rightAccepts": {
+      "before": 244,
+      "after": 245,
+      "delta": {
+       "value": 1,
+       "lo": 0,
+       "hi": 3
+      }
+     },
+     "wrongShare": {
+      "before": 0.021153846153846155,
+      "after": 0.02111324376199616
+     },
+     "titles": {
+      "before": {
+       "recall": 0.36906584992343033,
+       "precision": 0.926923076923077
+      },
+      "after": {
+       "recall": 0.36906584992343033,
+       "precision": 0.926923076923077
+      },
+      "delta": {
+       "recall": [0,0,0],
+       "precision": [0,0,0]
+      }
+     }
+    },
+    "headroom": {
+     "gate": {
+      "candidates": 8,
+      "nms": 0,
+      "duplicate": 4,
+      "recovered": 3,
+      "piece-of": 1
+     },
+     "recovered": 3,
+     "notABook": {
+      "spans-books": 1
+     },
+     "read": 2,
+     "textRead": 1,
+     "qwenSelected": 1,
+     "displaced": 0,
+     "acceptedRecovered": 0,
+     "echoAccepts": 0,
+     "pairsLostToDisplacement": 0,
+     "bySource": {
+      "headroom": {
+       "recovered": 3,
+       "accepted": 0,
+       "wrong": 0
+      }
+     },
+     "byElevation": {
+      "below": {
+       "recovered": 1,
+       "accepted": 0
+      },
+      "level": {
+       "recovered": 2,
+       "accepted": 0
+      },
+      "above": {
+       "recovered": 0,
+       "accepted": 0
+      },
+      "unknown": {
+       "recovered": 0,
+       "accepted": 0
+      }
+     },
+     "noQwen": false,
+     "cost": {
+      "vision": {
+       "calls": 4,
+       "seconds": 1
+      },
+      "ppocr": {
+       "calls": 4,
+       "seconds": 10
+      },
+      "qwen": {
+       "calls": 2,
+       "seconds": 7
+      }
+     },
+     "wrongAccepts": {
+      "before": 22,
+      "after": 22,
+      "delta": {
+       "value": 0,
+       "lo": 0,
+       "hi": 0
+      }
+     },
+     "rightAccepts": {
+      "before": 244,
+      "after": 244,
+      "delta": {
+       "value": 0,
+       "lo": 0,
+       "hi": 0
+      }
+     },
+     "wrongShare": {
+      "before": 0.021153846153846155,
+      "after": 0.02111324376199616
+     },
+     "titles": {
+      "before": {
+       "recall": 0.36906584992343033,
+       "precision": 0.926923076923077
+      },
+      "after": {
+       "recall": 0.36906584992343033,
+       "precision": 0.926923076923077
+      },
+      "delta": {
+       "recall": [0,0,0],
+       "precision": [0,0,0]
+      }
+     }
+    },
+    "all": {
+     "gate": {
+      "candidates": 32,
+      "nms": 6,
+      "duplicate": 19,
+      "recovered": 5,
+      "piece-of": 1,
+      "absorbed": 1
+     },
+     "recovered": 5,
+     "notABook": {
+      "spans-books": 1
+     },
+     "read": 4,
+     "textRead": 3,
+     "qwenSelected": 2,
+     "displaced": 0,
+     "acceptedRecovered": 1,
+     "echoAccepts": 1,
+     "pairsLostToDisplacement": 0,
+     "bySource": {
+      "row-gaps": {
+       "recovered": 0,
+       "accepted": 0,
+       "wrong": 0
+      },
+      "front-stretches": {
+       "recovered": 2,
+       "accepted": 1,
+       "wrong": 0
+      },
+      "headroom": {
+       "recovered": 3,
+       "accepted": 0,
+       "wrong": 0
+      }
+     },
+     "byElevation": {
+      "below": {
+       "recovered": 2,
+       "accepted": 1
+      },
+      "level": {
+       "recovered": 3,
+       "accepted": 0
+      },
+      "above": {
+       "recovered": 0,
+       "accepted": 0
+      },
+      "unknown": {
+       "recovered": 0,
+       "accepted": 0
+      }
+     },
+     "noQwen": false,
+     "cost": {
+      "vision": {
+       "calls": 8,
+       "seconds": 2
+      },
+      "ppocr": {
+       "calls": 8,
+       "seconds": 22
+      },
+      "qwen": {
+       "calls": 4,
+       "seconds": 12
+      }
+     },
+     "wrongAccepts": {
+      "before": 22,
+      "after": 22,
+      "delta": {
+       "value": 0,
+       "lo": 0,
+       "hi": 0
+      }
+     },
+     "rightAccepts": {
+      "before": 244,
+      "after": 245,
+      "delta": {
+       "value": 1,
+       "lo": 0,
+       "hi": 3
+      }
+     },
+     "wrongShare": {
+      "before": 0.021153846153846155,
+      "after": 0.0210727969348659
+     },
+     "titles": {
+      "before": {
+       "recall": 0.36906584992343033,
+       "precision": 0.926923076923077
+      },
+      "after": {
+       "recall": 0.36906584992343033,
+       "precision": 0.926923076923077
+      },
+      "delta": {
+       "recall": [0,0,0],
+       "precision": [0,0,0]
+      }
+     }
+    }
+   }
+  }
+ },
+ "verdict": {
+  "row-gaps": {
+   "K0": true,
+   "K1": false,
+   "K2": true,
+   "keep": false
+  },
+  "front-stretches": {
+   "K0": true,
+   "K1": false,
+   "K2": true,
+   "keep": false
+  },
+  "headroom": {
+   "K0": true,
+   "K1": false,
+   "K2": true,
+   "keep": false
+  },
+  "all": {
+   "K0": true,
+   "K1": false,
+   "K2": true,
+   "keep": false
+  }
+ }
+}

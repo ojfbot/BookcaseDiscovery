@@ -1,0 +1,294 @@
+{
+ "card": "TS-2",
+ "prereg": "evals/TS2/prereg.md",
+ "ledgerVersion": "v-4e0ec70a69de",
+ "bar": {
+  "minScore": 0.72,
+  "minTitleEvidence": 0.8,
+  "minCoverage": 0.5,
+  "minReaders": 2
+ },
+ "constants": {
+  "lora": {
+   "rank": 8,
+   "alpha": 16,
+   "dropout": 0.05,
+   "learningRate": 0.0001,
+   "epochs": 2,
+   "batchSize": 1,
+   "seed": 20261105,
+   "maxSeqLength": 1024,
+   "trainOnCompletions": true,
+   "trainVision": false
+  },
+  "decode": {
+   "maxTokens": 48,
+   "temperature": 0
+  },
+  "steer": {
+   "k": 5,
+   "bias": 2,
+   "from": ["vision","ppocr"]
+  },
+  "replaces": "qwen"
+ },
+ "training": {
+  "trainRows": 379,
+  "trained": 379,
+  "droppedNoRotation": 0,
+  "excluded": {
+   "val-split": 157,
+   "not-strong": 226,
+   "one-reader": 62
+  },
+  "photos": 22,
+  "byPair": {
+   "ppocr+qwen": 14,
+   "vision+ppocr": 288,
+   "vision+qwen": 77
+  },
+  "rotations": {
+   "90": 242,
+   "270": 137
+  }
+ },
+ "yardstick": {
+  "scope": "PROXY (library shelves): evaluation only",
+  "readSet": 414,
+  "readers": {
+   "vision": {
+    "n": 387,
+    "secondsPerCrop": [0.1804,0.1776,0.1832]
+   },
+   "ppocr": {
+    "n": 414,
+    "secondsPerCrop": [3.4841,3.3229,3.6471]
+   },
+   "qwen": {
+    "n": 225,
+    "secondsPerCrop": [2.7657,2.6566,2.8838]
+   }
+  },
+  "steered": {
+   "read": 414,
+   "errors": 0,
+   "steeredOutputShare": 0.2126,
+   "secondsPerCrop": [2.9712,2.8797,3.0642],
+   "arms": {
+    "photos": 40,
+    "rows": 1038,
+    "base": {
+     "accepted": 266,
+     "confirmed": 244,
+     "wrong": 22
+    },
+    "fourth": {
+     "accepted": 360,
+     "confirmed": 327,
+     "wrong": 33,
+     "deltaConfirmed": [83,61,107.025],
+     "deltaWrong": [11,5,18],
+     "gained": 94,
+     "lost": 0,
+     "changed": 0
+    },
+    "replace": {
+     "accepted": 246,
+     "confirmed": 226,
+     "wrong": 20,
+     "deltaConfirmed": [-18,-27,-10],
+     "deltaWrong": [-2,-6,0],
+     "gained": 1,
+     "lost": 21,
+     "changed": 0
+    }
+   },
+   "keep": {
+    "fourth": {
+     "keep": false,
+     "confirmedUp": true,
+     "wrongNotUp": false
+    },
+    "replace": {
+     "keep": false,
+     "confirmedUp": false,
+     "wrongNotUp": true
+    }
+   },
+   "fourthGainsExploratory": {
+    "qwen|verbatim": {
+     "confirmed": 18,
+     "wrong": 3
+    },
+    "qwen|own": {
+     "confirmed": 52,
+     "wrong": 6
+    },
+    "vision|own": {
+     "confirmed": 6,
+     "wrong": 2
+    },
+    "vision|verbatim": {
+     "confirmed": 3,
+     "wrong": 0
+    },
+    "ppocr|verbatim": {
+     "confirmed": 2,
+     "wrong": 0
+    },
+    "ppocr|own": {
+     "confirmed": 2,
+     "wrong": 0
+    }
+   }
+  },
+  "free": {
+   "read": 414,
+   "errors": 0,
+   "steeredOutputShare": 0,
+   "secondsPerCrop": [2.9357,2.8418,3.0274],
+   "arms": {
+    "photos": 40,
+    "rows": 1038,
+    "base": {
+     "accepted": 266,
+     "confirmed": 244,
+     "wrong": 22
+    },
+    "fourth": {
+     "accepted": 359,
+     "confirmed": 326,
+     "wrong": 33,
+     "deltaConfirmed": [82,59,107],
+     "deltaWrong": [11,5,18],
+     "gained": 93,
+     "lost": 0,
+     "changed": 0
+    },
+    "replace": {
+     "accepted": 246,
+     "confirmed": 227,
+     "wrong": 19,
+     "deltaConfirmed": [-17,-27,-8],
+     "deltaWrong": [-3,-8,0],
+     "gained": 2,
+     "lost": 22,
+     "changed": 0
+    }
+   },
+   "keep": {
+    "fourth": {
+     "keep": false,
+     "confirmedUp": true,
+     "wrongNotUp": false
+    },
+    "replace": {
+     "keep": false,
+     "confirmedUp": false,
+     "wrongNotUp": true
+    }
+   },
+   "fourthGainsExploratory": {
+    "qwen|own": {
+     "confirmed": 68,
+     "wrong": 9
+    },
+    "vision|own": {
+     "confirmed": 9,
+     "wrong": 2
+    },
+    "ppocr|own": {
+     "confirmed": 5,
+     "wrong": 0
+    }
+   }
+  }
+ },
+ "pilot-000": {
+  "scope": "real use, val split: machine agreement with the confirmed work, never accuracy (INV-17)",
+  "readSet": 291,
+  "readers": {
+   "vision": {
+    "n": 281,
+    "secondsPerCrop": [0.1785,0.1774,0.1797]
+   },
+   "ppocr": {
+    "n": 291,
+    "secondsPerCrop": [1.3173,1.2392,1.4055]
+   },
+   "qwen": {
+    "n": 65,
+    "secondsPerCrop": [2.6469,2.4675,2.838]
+   }
+  },
+  "steered": {
+   "read": 291,
+   "errors": 0,
+   "steeredOutputShare": 0.3711,
+   "secondsPerCrop": [1.6338,1.5933,1.6783],
+   "agreement": {
+    "all": {
+     "labels": 157,
+     "photos": 6,
+     "agree": 130,
+     "otherWork": 11,
+     "noConfirm": 16,
+     "share": [0.828,0.125,0.8621]
+    },
+    "strong": {
+     "labels": 93,
+     "photos": 4,
+     "agree": 84,
+     "otherWork": 3,
+     "noConfirm": 6,
+     "share": [0.9032,0.5,0.9216]
+    }
+   },
+   "arms": {
+    "photos": 7,
+    "rows": 1249,
+    "base": {
+     "accepted": 144,
+     "confirmed": 144,
+     "wrong": 0
+    },
+    "fourth": {
+     "accepted": 229,
+     "confirmed": 229,
+     "wrong": 0,
+     "deltaConfirmed": [85,0,172],
+     "deltaWrong": [0,0,0],
+     "gained": 85,
+     "lost": 0,
+     "changed": 0
+    },
+    "replace": {
+     "accepted": 140,
+     "confirmed": 140,
+     "wrong": 0,
+     "deltaConfirmed": [-4,-8,-1],
+     "deltaWrong": [0,0,0],
+     "gained": 2,
+     "lost": 6,
+     "changed": 0
+    }
+   }
+  }
+ },
+ "gpu": {
+  "minutes": 69.1617,
+  "budget": 120,
+  "bySteps": {
+   "train": 20.275,
+   "read:yardstick:steered": 20.5917,
+   "read:pilot-000:steered": 7.985,
+   "read:yardstick:free": 20.31
+  }
+ },
+ "verdict": {
+  "yardstick": {
+   "fourth": false,
+   "replace": false
+  }
+ }
+}

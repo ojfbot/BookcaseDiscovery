@@ -4,6 +4,7 @@
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { z } from "zod";
+import type { FeatureSource, WorkFeature } from "../catalog/work-features.ts";
 
 export const FACETS = ["theme", "topos", "idea", "question", "style", "pattern", "form", "author"] as const;
 export const CROSSWALK_SOURCES = ["isfdb-tag", "lcsh", "lcgft", "bisac"] as const;
@@ -127,4 +128,47 @@ export function checkVocabulary(v: Vocabulary): string[] {
   }
   for (const g of crosswalk.generic) if (g !== g.toLowerCase().trim()) problems.push(`generic "${g}" must be case-folded and trimmed`);
   return problems;
+}
+
+/** Which crosswalk rules a `work_features` source is matched against. Open Library subjects have none yet (KN-1). */
+const RULE_SOURCE: Record<FeatureSource, (typeof CROSSWALK_SOURCES)[number] | null> = { "isfdb-tag": "isfdb-tag", "openlibrary-subject": null };
+
+export interface CrosswalkedTerm {
+  id: string;
+  weight: number;
+  /** The `work_features` row the term came from (its provenance: source, record id, fetched date). */
+  from: WorkFeature;
+}
+
+export interface Crosswalked {
+  terms: CrosswalkedTerm[];
+  /** Kept values no rule maps: shown in dev mode as `unmapped`, with no weight (§2.4). */
+  unmapped: WorkFeature[];
+  dropped: Array<{ from: WorkFeature; reason: "popularity" | "generic" }>;
+}
+
+/**
+ * The crosswalk (taste-model.md §2.4) over one work's shared book knowledge: the catalog's `work_features` rows
+ * (`workFeatures` in src/catalog/work-features.ts), never a copy of them. The drop list and the generic list run
+ * first; an ISFDB tag weighs `min(1, count / tagWeightDivisor)` times the rule's weight.
+ */
+export function crosswalkFeatures(v: Vocabulary, features: WorkFeature[]): Crosswalked {
+  const rules = new Map(v.crosswalk.rules.map((r) => [`${r.source}|${r.match}`, r]));
+  const out: Crosswalked = { terms: [], unmapped: [], dropped: [] };
+  for (const f of features) {
+    const reason = dropReason(v, f.term);
+    if (reason) {
+      out.dropped.push({ from: f, reason });
+      continue;
+    }
+    const source = RULE_SOURCE[f.source];
+    const rule = source && rules.get(`${source}|${f.term}`);
+    if (!rule) {
+      out.unmapped.push(f);
+      continue;
+    }
+    const base = f.source === "isfdb-tag" ? Math.min(1, f.count / v.crosswalk.tagWeightDivisor) : 1;
+    for (const t of rule.terms) out.terms.push({ id: t.id, weight: base * (t.weight ?? 1), from: f });
+  }
+  return out;
 }

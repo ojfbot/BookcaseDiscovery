@@ -25,6 +25,7 @@ import { imagesOf, meanCI, SETS, type SetName, type Slim } from "./f0c-cli.ts";
 import { boxImprint, runImprintHelper, type ImprintReading } from "./f0d-cli.ts";
 import { boxRows, type Tri } from "./f0e.ts";
 import { evidenceFor } from "./f0f-cli.ts";
+import { loadBoxSet, preRb1 } from "./rb1.ts";
 import {
   copyGroups,
   COPY,
@@ -66,21 +67,24 @@ const stage = (set: SetName): string => {
   mkdirSync(dir, { recursive: true });
   return dir;
 };
-const loadDets = (set: SetName): Map<string, Detection> =>
+export const loadDets = (set: SetName): Map<string, Detection> =>
   new Map(readJsonl<Detection>(join(SETS[set].base, "detect.jsonl")).filter((d) => !d.error).map((d) => [d.id, d]));
 
 /**
  * The shipped box set's kinds: per photo, whether each box is a book. F-0c's not-a-book flags and F-0f's shelf
  * labels and cards (from the base's Vision and PP-OCR text and F-0f's cached pixel probe); the cover pass is off.
+ * Then RB-1's box set: boxes F-0i's partition drops and NB-3's `on-lip` boxes are not books either
+ * (`--box-set pre-rb1` for the figures as first published).
  */
-const loadBooks = (set: SetName, dets: Map<string, Detection>): Map<string, boolean[]> => {
+export const loadBooks = (set: SetName, dets: Map<string, Detection>): Map<string, boolean[]> => {
   const ev = evidenceFor(set);
-  return new Map([...dets].map(([id, d]) => [id, kinds({ ...d, covers: [] }, ev.get(id)).spines.map((b) => b.kind === "spine")]));
+  const keeps = preRb1() ? () => true : loadBoxSet(set).keeps;
+  return new Map([...dets].map(([id, d]) => [id, kinds({ ...d, covers: [] }, ev.get(id)).spines.map((b, i) => b.kind === "spine" && keeps(`${id}:${i}`))]));
 };
 
 // --- pairs: neighbours and appearance ----------------------------------------------------------------------
 
-interface PairRow extends Neighbour, Appearance {}
+export interface PairRow extends Neighbour, Appearance {}
 interface PhotoPairs {
   id: string;
   pairs: PairRow[];
@@ -283,7 +287,7 @@ async function imprint(set: SetName, dryRun = false): Promise<void> {
 // --- analyse ------------------------------------------------------------------------------------------------
 
 /** Annotated copies per work per yardstick image (the annotation lists every book, so a work twice is two copies). */
-function yardstickCopies(): Map<string, Map<string, number>> {
+export function yardstickCopies(): Map<string, Map<string, number>> {
   const lib = join(ROOT, "proxy", "library-dataset");
   const cleanTitle = (t: string) => t.replace(/\s+:\s+/g, ": ").replace(/\s+/g, " ").trim(); // as in F-0 and Q-1
   const inv = parseCsv(readFileSync(join(lib, "data", "target_lists", "library_books.csv"), "utf8"));
@@ -306,7 +310,7 @@ function yardstickCopies(): Map<string, Map<string, number>> {
   return out;
 }
 
-interface PairOutcome {
+export interface PairOutcome {
   imageId: string;
   n: PairRow;
   score: number;
@@ -316,7 +320,7 @@ interface PairOutcome {
   b: SpineEvidence | undefined;
 }
 
-interface SetRun {
+export interface SetRun {
   set: SetName;
   dets: Map<string, Detection>;
   books: Map<string, boolean[]>;
@@ -329,9 +333,9 @@ interface SetRun {
   seconds: { pairsPerPhoto: number[]; analyse: number };
 }
 
-const noEvidence = (id: string): SpineEvidence => ({ id, accepted: null, readers: [] });
+export const noEvidence = (id: string): SpineEvidence => ({ id, accepted: null, readers: [] });
 
-function runSet(set: SetName, useImprint = true): SetRun {
+export function runSet(set: SetName, useImprint = true): SetRun {
   const t0 = Date.now();
   const dets = loadDets(set);
   const books = loadBooks(set, dets);

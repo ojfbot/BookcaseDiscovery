@@ -12,10 +12,11 @@
 // the overlay is post-MVP (OC22): this file ships the merge and the refusal rule, not the importer.
 //
 // `identify/` must not import this file (INV-13).
-import { existsSync, mkdirSync, readFileSync, renameSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync } from "node:fs";
 import { dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import { z } from "zod";
+import { writeFileDurable } from "../ledger/durable.ts";
 import type { Vocabulary } from "./vocabulary.ts";
 
 // ---- enums (values mirror contracts/profile.schema.json) ----
@@ -317,9 +318,7 @@ export function writeSeeds(file: ProfileFile, path: string = SEEDS_PATH, opts: C
   const problems = publishProblems(parsed, opts);
   if (problems.length) throw new SeedsRefusal(problems);
   mkdirSync(dirname(path), { recursive: true });
-  const tmp = `${path}.partial`;
-  writeFileSync(tmp, `${JSON.stringify(parsed, null, 2)}\n`);
-  renameSync(tmp, path);
+  writeFileDurable(path, `${JSON.stringify(parsed, null, 2)}\n`);
 }
 
 // ---- loading and the overlay merge ----

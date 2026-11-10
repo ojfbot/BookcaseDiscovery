@@ -8,7 +8,7 @@ import { DatabaseSync } from "node:sqlite";
 import { parseArgs } from "node:util";
 import { fileURLToPath } from "node:url";
 import { buildCatalog } from "../catalog/build.ts";
-import { openCatalog } from "../catalog/cli.ts";
+import { catalogPaths, openCatalog } from "../catalog/cli.ts";
 import { createSchema } from "../catalog/isfdb-staging.ts";
 import { normalize, surnameFirstToGivenFirst } from "../catalog/normalize.ts";
 import type { Candidate } from "../catalog/retrieve.ts";
@@ -37,8 +37,10 @@ import {
   type InputImage,
   type SpineDecision,
 } from "./f0.ts";
-import { kinds } from "./f0c.ts";
+import { kinds, type BoxKind } from "./f0c.ts";
 import { evidenceOf, type BoxEvidence } from "./f0f.ts";
+import { applyNb3, NB3_SHIP, type NB3Evidence } from "./nb3.ts";
+import { depthStage } from "./nb3-stage.ts";
 import { LabelSet } from "./labels.ts";
 
 const REPO_ROOT = fileURLToPath(new URL("../../", import.meta.url));
@@ -57,9 +59,18 @@ async function pipeline(images: InputImage[], db: DatabaseSync, dir: string, qwe
   // F-0f: shelf labels and cards (genre strips, shelf-talkers, blank cards), from what Vision and PP-OCR read and the
   // pixel probe, are not-a-book too and never go to Qwen.
   const ocr = loadReadings(dir, CROP);
-  const kindOf = notABook(dets, (imageId, ref) => {
+  const evidence = (imageId: string, ref: string) => {
     const r = ocr.get(`${imageId}:${ref.slice(1)}`);
     return r ? evidenceOf(r, probes.get(`${imageId}:${ref}`)) : undefined;
+  };
+  // NB-3: the shipped causes (on-lip, depth, pixel; evals/NB3) after F-0c's and F-0f's kinds, from the depth stage
+  // and the version-2 pixel probe. Not-a-book here too, and never sent to Qwen.
+  const needsDepth = NB3_SHIP["on-lip"] || NB3_SHIP.depth;
+  const depth = needsDepth ? depthStage(images, dets, dir, dataRoot(), (id, i) => flat(id, i).kind === "spine", log) : new Map();
+  const kindOf = notABook(dets, evidence, (imageId, i) => {
+    const e = evidence(imageId, `s${i}`);
+    const dp = depth.get(`${imageId}:${i}`);
+    return { lip: dp?.lip ?? null, faces: dp?.faces ?? null, probe: probes.get(`${imageId}:s${i}`) ?? null, textFound: e ? e.textFound : true };
   });
   const cache = new Map<string, Candidate | undefined>();
   const decideAll = (): SpineDecision[] => {
@@ -91,11 +102,17 @@ async function pipeline(images: InputImage[], db: DatabaseSync, dir: string, qwe
 /**
  * Each box's kind under the shipped rules: the not-a-book flags (evals/F0c, kept by its no-harm rule) and, given a
  * box's reader text and pixel probe, the shelf-label rules (evals/F0f, which removed no confirmed book). The cover
- * pass is off by default (it did not pass its keep rule), so no box is face-out here.
+ * pass is off by default (it did not pass its keep rule), so no box is face-out here. Given NB-3's evidence, the
+ * causes evals/NB3 shipped (`NB3_SHIP`) run after them.
  */
-function notABook(dets: Map<string, Detection>, evidence?: (imageId: string, ref: string) => BoxEvidence | undefined) {
-  const by = new Map([...dets].map(([id, d]) => [id, kinds({ ...d, covers: [] }, evidence && ((ref) => evidence(id, ref))).spines]));
-  return (imageId: string, i: number) => by.get(imageId)?.[i] ?? { kind: "spine" as const, why: "spine" };
+function notABook(dets: Map<string, Detection>, evidence?: (imageId: string, ref: string) => BoxEvidence | undefined, nb3?: (imageId: string, i: number) => NB3Evidence) {
+  const by = new Map(
+    [...dets].map(([id, d]) => {
+      const k = kinds({ ...d, covers: [] }, evidence && ((ref) => evidence(id, ref)));
+      return [id, nb3 && Object.values(NB3_SHIP).some(Boolean) ? applyNb3(k, d, (i) => nb3(id, i)) : k.spines] as const;
+    }),
+  );
+  return (imageId: string, i: number): { kind: BoxKind; why: string } => by.get(imageId)?.[i] ?? { kind: "spine", why: "spine" };
 }
 
 /** Each run writes its part (aggregates only) under $BOOKCASE_DATA/f0/parts/; `publish` joins the parts into evals/F0/. */
@@ -140,7 +157,7 @@ function fixtureImages(root: string, session: string): InputImage[] {
 async function pilot(session: string, limit: number, qwenCap: number, runId: string): Promise<void> {
   const root = dataRoot();
   const images = fixtureImages(root, session).slice(0, limit);
-  const db = openCatalog(join(root, "catalog", "catalog.sqlite"));
+  const db = openCatalog(catalogPaths().catalog);
   const dir = stageDir(root, session);
   const t0 = Date.now();
   const { dets, decisions, readings, hardSelected, hardTotal, kindOf } = await pipeline(images, db, dir, qwenCap);
@@ -513,6 +530,8 @@ const { positionals, values } = parseArgs({
     session: { type: "string", default: "pilot-000" },
     arm: { type: "string", default: "b2" },
     post: { type: "string", default: "" },
+    // DL-3: read a stage cache whose lineage stamp is missing or names other weights (`staleAllowed` in src/ledger/lineage.ts).
+    "allow-stale": { type: "boolean", default: false },
   },
 });
 const limit = Number(values.limit);

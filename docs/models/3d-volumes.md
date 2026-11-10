@@ -23,6 +23,8 @@ more robust and more striking overlay?
 - **Not yet:** monocular 3D box detectors (Cube R-CNN, OVMono3D, 3D-MOOD), SAM 3D Objects, and diffusion
   normal models. **Next for "many angles":** MapAnything (Apache-2.0 variant) or Depth Anything 3 (Base, Apache-2.0)
   on a sweep, once a multi-view capture of one shelf exists.
+- **H-2 (§8) built it:** a cached depth stage and face shares per box. The `face3d` reader crop failed F-0b's keep
+  rule and stays off. A `user-glow-volume` display variant awaits the owner's judgement.
 - **No owner action is needed** for the recommended path. Only optional models are gated or large: SAM 3D Objects
   (gated, SAM License, 13.1 GB) and VGGT-1B-Commercial (gated, 10.1 GB). Neither was downloaded.
 
@@ -200,9 +202,96 @@ The code installs MoGe from its official GitHub repo at commit `b942f00` (MIT; t
 
 ## 7. What this card does not settle
 
-- Whether a normals-based trim helps the readers: that is H-2's exit (a).
+- Whether a normals-based trim helps the readers: that is H-2's exit (a). *Since settled (§8): it does not, so the
+  crop stays off.*
 - Metric scale and book depth from one still. A known reference, LiDAR or multi-view would settle them.
 - Whether the face split holds on a fresh session. Every number here is from the `pilot-000` dev set, and the
   per-box plane fallback was added after looking at it.
 - The licence conflict on Depth Anything 3 Large-1.1 (HF says Apache-2.0, GitHub says CC BY-NC 4.0). It doesn't
   matter while MoGe-2 is the pick.
+
+## 8. H-2: the depth stage, face shares and the `face3d` crop
+
+Card H-2 built §5's card. Results: [`evals/H2/report.md`](../../evals/H2/report.md); the keep rule was
+committed before the first reader run.
+
+**The depth stage** (`helpers/depth/stage.py`, [README](../../helpers/depth/README.md)). Geometry per photo
+and faces per box are each looked up in a cache before they are computed. The geometry key covers the model id,
+its revision and weight hash, the MoGe code commit, the geometry code, the long side, the field of view and the
+working copy's hash. The faces key covers the geometry key, the face code and the photo's boxes and bands. A re-run
+is all cache hits. New boxes re-run only the face split (about 1 s a photo on the CPU); a new model revision
+re-runs both. The cache holds the point map, normals and mask per photo, and per box the face-split rows, band
+frames and a class map: what S-1 (shelf structure and voids) needs for gaps and shelf planes. It sits under the data
+root's `private/h2/cache/`. On `pilot-000` the stage reproduces H-1's face split exactly, on all 6,145 boxes.
+
+**Face shares per box.** For each default box after the shipped not-a-book filter (F-0e `bands+strips` on
+`pilot-000`; F-0's B2 on the yardstick), the private file `private/h2/<set>/faces.jsonl` holds:
+
+- the six shares;
+- whether the box over-selects and whether its trim is feasible;
+- the trim (where both hold);
+- the visible top face;
+- the elevation and the plane fallback.
+
+**Proposed contract field (not in this card: `contracts/` is not edited).** An optional `faces` object on
+`SpineObserved`, for a contract card that L-1's owner reviews:
+
+```jsonc
+"faces": {
+  "model": { "id": "Ruicheng/moge-2-vitl-normal", "revision": "cb0e8bb…", "code": "<faces.py hash>" },
+  "shares": { "front": 0.71, "edge": 0.06, "top": 0.19, "under": 0, "cover": 0.04, "behind": 0 }, // sum to 1
+  "overSelects": true,          // top + under + cover + behind ≥ 0.15 of the box (H-1)
+  "trim": [[x, y], …4],         // working-copy pixels; present only when the trim is feasible
+  "topFace": [[x, y], …4] | null // the cuboid's top where the camera sees it (display only)
+}
+```
+
+- Shares are machine measurements, never accuracy (INV-17).
+- The `model` triple is the replay pin (INV-14).
+- No pixels and no text are recorded (OC9).
+
+**The `face3d` crop: off.** The crop is `face3d;rot=fixed;clip=frame` (`src/perceive/crop.ts`, `FACE3D_CROP`). On
+boxes that over-select and have a feasible trim, it reads the trim in place of the rectangle. It failed F-0b's
+keep rule:
+
+- `pilot-000` confirmed −0.3 points (−1.2 to 0.7);
+- distinct confirmed works 519 → 512;
+- the yardstick is not hurt.
+
+Top-face trims are neutral, and cover trims cost (`evals/H2`, finding 2): the readers already cope with a box that
+runs onto a book's top, and a receding cover often carries text. So the trim's value is in labels and display,
+not reading:
+
+- F-0c's not-a-book flag: a box mostly `behind` or `cover`;
+- Q-2's top seam (H-1 finding 7);
+- `user-glow-volume` ([`display-modes.md`](../capture/display-modes.md) §2.1, owner's exit d).
+
+**Exits.**
+
+- (a) off, as above.
+- (b) the fresh-session spot check is written down in `evals/H2/report.md` and not run: no fresh session exists.
+- (c) median 3.2 s a photo on MPS, but the first photo of the first run took 5.8 s (MPS warm-up,
+  *hypothesis*), so it is not met as pre-registered.
+- (d) is the owner's.
+
+## 9. S-2: the headroom map
+
+Card S-2 maps what lies above each shelf row's books: [`evals/S2/report.md`](../../evals/S2/report.md), with its
+measures and an adequacy check committed before the first full run. It runs on the CPU from H-2's cache and F-0i's
+partition (`helpers/shelf/headroom.py`).
+
+- **Region.** Per row, from the books' top curve up to the board line. The top curve is F-0f's fitted top lines,
+  recomputed on the partition. The board line is the lower edge of the board above's lip face, from S-1's pitch
+  partner. Standing books' pixels are left out.
+- **Classes.** Each headroom pixel is *empty* (more than 8 cm behind the spine plane), *occluded* (the board's
+  underside or lip), *occupied* (a surface at the books' depth above their tops) or *unknown*.
+- **Result on `pilot-000`** (machine measurement):
+  - headroom is 19.7 % of a bay, a gap of 10.4 cm or 29 % of the pitch;
+  - it is 46 % empty, 38 % occluded, 14 % occupied;
+  - below eye level it is mostly empty, above eye level 89 % occluded.
+- **Occupied regions are mostly the case.**
+  - Uprights between bays and the board's front edge account for 15 of the 20 regions spot-checked; 4 were real
+    objects.
+  - The regions agree little with the default's boxes, and recall 2 of the 7 flat books in the headroom.
+  - So the map fails its adequacy check: F-0k reads it as a candidate list only.
+- **Next** (hypotheses): split rows at uprights, bound *empty* by the back-panel plane, and trim the board's edge.

@@ -1,0 +1,862 @@
+{
+ "runId": "H2",
+ "card": "H-2",
+ "date": "2026-11-04",
+ "model": {
+  "id": "Ruicheng/moge-2-vitl-normal",
+  "revision": "cb0e8bbd6b1e243589717c78e750b1ba4c093acf",
+  "licence": "MIT",
+  "longSide": 2048
+ },
+ "shippedCrop": "rect;rot=fixed;clip=frame",
+ "candidateCrop": "face3d;rot=fixed;clip=frame",
+ "bootstrap": {
+  "unit": "photo (cluster), paired: the same boxes before and after",
+  "reps": 2000,
+  "interval": "95 % percentile",
+  "units": "percentage points (distinct works: count)"
+ },
+ "keepRule": "keep when the pilot-000 confirmed-share interval excludes 0 upward, pilot-000 distinct confirmed works do not fall, and on the yardstick the confirmed share does not fall, nor the wrong-accept share rise, beyond its interval",
+ "verdict": {
+  "keep": false,
+  "pilotConfirmedExcludesZero": false,
+  "pilotDistinctWorksNotDown": false,
+  "yardstickConfirmedNotDown": true,
+  "yardstickWrongNotUp": true
+ },
+ "sets": {
+  "pilot-000": {
+   "scope": "real use (OC35): machine agreement, never accuracy (INV-17)",
+   "faces": {
+    "boxCount": 5757,
+    "measured": 5757,
+    "skipped": 0,
+    "photos": 31,
+    "overSelects": [0.4912,0.4613,0.5255],
+    "trimFeasibleOfOverSelecting": [0.5842,0.5391,0.6271],
+    "face3dCandidates": 1652,
+    "trimAreaShareQuartiles": [0.6808,0.7475,0.7933],
+    "pixelShares": {
+     "front": 0.7329,
+     "edge": 0.0588,
+     "top": 0.1053,
+     "under": 0.0031,
+     "cover": 0.0805,
+     "behind": 0.0195
+    },
+    "byElevation": {
+     "below": {
+      "boxCount": 3168,
+      "overSelects": [0.75,0.7152,0.7843],
+      "pixelShares": {
+       "front": 0.6518,
+       "edge": 0.0602,
+       "top": 0.1877,
+       "under": 0,
+       "cover": 0.0789,
+       "behind": 0.0214
+      }
+     },
+     "level": {
+      "boxCount": 1114,
+      "overSelects": [0.2029,0.1643,0.244],
+      "pixelShares": {
+       "front": 0.8171,
+       "edge": 0.0529,
+       "top": 0.0069,
+       "under": 0.0031,
+       "cover": 0.0933,
+       "behind": 0.0267
+      }
+     },
+     "above": {
+      "boxCount": 1475,
+      "overSelects": [0.1532,0.1328,0.1739],
+      "pixelShares": {
+       "front": 0.8483,
+       "edge": 0.061,
+       "top": 0.0001,
+       "under": 0.0104,
+       "cover": 0.0722,
+       "behind": 0.0079
+      }
+     }
+    },
+    "dominantExtraOfOverSelecting": {
+     "top": 66.7,
+     "behind": 7.5,
+     "cover": 25.6,
+     "under": 0.2
+    },
+    "ownPlane": 18.8,
+    "topFaceShown": 56.4
+   },
+   "timing": {
+    "photos": 31,
+    "device": "mps",
+    "coldAllMisses": true,
+    "secondsPerPhoto": {
+     "total": {
+      "p50": 3.225,
+      "p90": 3.552,
+      "max": 5.788
+     },
+     "decode": {
+      "p50": 0.145,
+      "p90": 0.153,
+      "max": 0.154
+     },
+     "infer": {
+      "p50": 0.99,
+      "p90": 0.998,
+      "max": 3.663
+     },
+     "save": {
+      "p50": 1.01,
+      "p90": 1.081,
+      "max": 1.2
+     },
+     "faces": {
+      "p50": 1.037,
+      "p90": 1.278,
+      "max": 1.373
+     }
+    },
+    "modelLoadSeconds": 7.63,
+    "fovFromExif": 17,
+    "warm": {
+     "photos": 31,
+     "allHits": true,
+     "totalP50": 0.075
+    }
+   },
+   "face3d": {
+    "cropMethod": "face3d;rot=fixed;clip=frame",
+    "against": "rect;rot=fixed;clip=frame",
+    "subset": 1652,
+    "all": {
+     "boxCount": 1652,
+     "photos": 31,
+     "textRead": {
+      "before": 79.6,
+      "after": 78.7,
+      "delta": -0.9,
+      "lo": -2,
+      "hi": 0.1
+     },
+     "confirmed": {
+      "before": 11.3,
+      "after": 10.8,
+      "delta": -0.4,
+      "lo": -1.4,
+      "hi": 0.6
+     }
+    },
+    "strata": {
+     "below eye level": {
+      "boxCount": 1512,
+      "photos": 30,
+      "textRead": {
+       "before": 79.2,
+       "after": 78.7,
+       "delta": -0.5,
+       "lo": -1.3,
+       "hi": 0.3
+      },
+      "confirmed": {
+       "before": 11.1,
+       "after": 10.8,
+       "delta": -0.3,
+       "lo": -1.2,
+       "hi": 0.8
+      }
+     },
+     "level": {
+      "boxCount": 70,
+      "photos": 24,
+      "textRead": {
+       "before": 88.6,
+       "after": 81.4,
+       "delta": -7.1,
+       "lo": -16.9,
+       "hi": 0
+      },
+      "confirmed": {
+       "before": 11.4,
+       "after": 7.1,
+       "delta": -4.3,
+       "lo": -8.1,
+       "hi": 0
+      }
+     },
+     "above eye level": {
+      "boxCount": 70,
+      "photos": 23,
+      "textRead": {
+       "before": 78.6,
+       "after": 75.7,
+       "delta": -2.9,
+       "lo": -15,
+       "hi": 6.9
+      },
+      "confirmed": {
+       "before": 14.3,
+       "after": 14.3,
+       "delta": 0,
+       "lo": -5.1,
+       "hi": 6.9
+      }
+     },
+     "mostly a top face": {
+      "boxCount": 1419,
+      "photos": 30,
+      "textRead": {
+       "before": 79.2,
+       "after": 78.6,
+       "delta": -0.6,
+       "lo": -1.2,
+       "hi": 0.2
+      },
+      "confirmed": {
+       "before": 10.9,
+       "after": 10.8,
+       "delta": -0.1,
+       "lo": -1,
+       "hi": 1.1
+      }
+     },
+     "mostly a cover": {
+      "boxCount": 228,
+      "photos": 30,
+      "textRead": {
+       "before": 82.9,
+       "after": 79.8,
+       "delta": -3.1,
+       "lo": -7.3,
+       "hi": 0.8
+      },
+      "confirmed": {
+       "before": 14,
+       "after": 11.4,
+       "delta": -2.6,
+       "lo": -4.7,
+       "hi": -0.5
+      }
+     },
+     "mostly behind": {
+      "boxCount": 4,
+      "photos": 3,
+      "textRead": {
+       "before": 50,
+       "after": 50,
+       "delta": 0,
+       "lo": -50,
+       "hi": 100
+      },
+      "confirmed": {
+       "before": 0,
+       "after": 0,
+       "delta": 0,
+       "lo": 0,
+       "hi": 0
+      }
+     },
+     "whole boxes": {
+      "boxCount": 975,
+      "photos": 31,
+      "textRead": {
+       "before": 83.9,
+       "after": 84,
+       "delta": 0.1,
+       "lo": -1.2,
+       "hi": 1.2
+      },
+      "confirmed": {
+       "before": 11.8,
+       "after": 11.5,
+       "delta": -0.3,
+       "lo": -1.4,
+       "hi": 1
+      }
+     },
+     "cut or partial boxes": {
+      "boxCount": 677,
+      "photos": 27,
+      "textRead": {
+       "before": 73.4,
+       "after": 71,
+       "delta": -2.4,
+       "lo": -4,
+       "hi": -1
+      },
+      "confirmed": {
+       "before": 10.5,
+       "after": 9.9,
+       "delta": -0.6,
+       "lo": -2.1,
+       "hi": 1.3
+      }
+     },
+     "in frame": {
+      "boxCount": 1514,
+      "photos": 31,
+      "textRead": {
+       "before": 80.1,
+       "after": 79,
+       "delta": -1.1,
+       "lo": -2,
+       "hi": -0.1
+      },
+      "confirmed": {
+       "before": 11.5,
+       "after": 11.2,
+       "delta": -0.3,
+       "lo": -1.4,
+       "hi": 0.8
+      }
+     },
+     "partly out of frame": {
+      "boxCount": 138,
+      "photos": 26,
+      "textRead": {
+       "before": 74.6,
+       "after": 75.4,
+       "delta": 0.7,
+       "lo": -3.1,
+       "hi": 5.5
+      },
+      "confirmed": {
+       "before": 8.7,
+       "after": 7.2,
+       "delta": -1.4,
+       "lo": -3.1,
+       "hi": 0
+      }
+     }
+    },
+    "distinctConfirmedWorks": {
+     "before": 519,
+     "after": 511,
+     "delta": {
+      "value": -8,
+      "lo": -11,
+      "hi": 2
+     }
+    },
+    "clipArmMatchesCachedInFrame": 100,
+    "cost": {
+     "before": {
+      "vision": {
+       "calls": 3304,
+       "seconds": 719
+      },
+      "ppocr": {
+       "calls": 3304,
+       "seconds": 3211
+      },
+      "qwen": {
+       "calls": 504,
+       "seconds": 712
+      }
+     },
+     "after": {
+      "vision": {
+       "calls": 3304,
+       "seconds": 225
+      },
+      "ppocr": {
+       "calls": 3304,
+       "seconds": 2160
+      },
+      "qwen": {
+       "calls": 492,
+       "seconds": 417
+      }
+     }
+    }
+   }
+  },
+  "yardstick-library-b2": {
+   "scope": "PROXY: Library Dataset sample, box arm B2; confirmed = accepted and annotated in the image",
+   "faces": {
+    "boxCount": 1038,
+    "measured": 1038,
+    "skipped": 0,
+    "photos": 40,
+    "overSelects": [0.499,0.4263,0.5727],
+    "trimFeasibleOfOverSelecting": [0.3842,0.3027,0.4553],
+    "face3dCandidates": 199,
+    "trimAreaShareQuartiles": [0.6785,0.759,0.8085],
+    "pixelShares": {
+     "front": 0.7604,
+     "edge": 0.0455,
+     "top": 0.0363,
+     "under": 0.0006,
+     "cover": 0.1095,
+     "behind": 0.0477
+    },
+    "byElevation": {
+     "below": {
+      "boxCount": 381,
+      "overSelects": [0.6378,0.4919,0.7423],
+      "pixelShares": {
+       "front": 0.7138,
+       "edge": 0.0424,
+       "top": 0.0891,
+       "under": 0.0001,
+       "cover": 0.1301,
+       "behind": 0.0245
+      }
+     },
+     "level": {
+      "boxCount": 590,
+      "overSelects": [0.422,0.3468,0.5027],
+      "pixelShares": {
+       "front": 0.7856,
+       "edge": 0.0468,
+       "top": 0.0122,
+       "under": 0.0006,
+       "cover": 0.0985,
+       "behind": 0.0563
+      }
+     },
+     "above": {
+      "boxCount": 67,
+      "overSelects": [0.3881,0.2361,0.75],
+      "pixelShares": {
+       "front": 0.7241,
+       "edge": 0.0486,
+       "top": 0.0005,
+       "under": 0.0049,
+       "cover": 0.1231,
+       "behind": 0.0987
+      }
+     }
+    },
+    "dominantExtraOfOverSelecting": {
+     "cover": 49,
+     "top": 23.9,
+     "behind": 26.8,
+     "under": 0.2
+    },
+    "ownPlane": 6.9,
+    "topFaceShown": 36
+   },
+   "timing": {
+    "photos": 40,
+    "device": "mps",
+    "coldAllMisses": true,
+    "secondsPerPhoto": {
+     "total": {
+      "p50": 2.623,
+      "p90": 3.4242,
+      "max": 3.818
+     },
+     "decode": {
+      "p50": 0.05,
+      "p90": 0.0757,
+      "max": 0.094
+     },
+     "infer": {
+      "p50": 1.0235,
+      "p90": 1.0481,
+      "max": 1.312
+     },
+     "save": {
+      "p50": 0.8815,
+      "p90": 1.1741,
+      "max": 1.248
+     },
+     "faces": {
+      "p50": 0.765,
+      "p90": 1.1053,
+      "max": 1.571
+     }
+    },
+    "modelLoadSeconds": 3.42,
+    "fovFromExif": 0,
+    "warm": {
+     "photos": 40,
+     "allHits": true,
+     "totalP50": 0.0595
+    }
+   },
+   "face3d": {
+    "cropMethod": "face3d;rot=fixed;clip=frame",
+    "against": "rect;rot=fixed;clip=frame",
+    "subset": 199,
+    "all": {
+     "boxCount": 199,
+     "photos": 37,
+     "textRead": {
+      "before": 87.4,
+      "after": 85.9,
+      "delta": -1.5,
+      "lo": -3.7,
+      "hi": 0
+     },
+     "confirmed": {
+      "before": 35.7,
+      "after": 33.7,
+      "delta": -2,
+      "lo": -5.1,
+      "hi": 0.6
+     },
+     "wrong": {
+      "before": 2,
+      "after": 2.5,
+      "delta": 0.5,
+      "lo": 0,
+      "hi": 1.7
+     }
+    },
+    "strata": {
+     "below eye level": {
+      "boxCount": 122,
+      "photos": 20,
+      "textRead": {
+       "before": 86.9,
+       "after": 85.2,
+       "delta": -1.6,
+       "lo": -5.2,
+       "hi": 0
+      },
+      "confirmed": {
+       "before": 35.2,
+       "after": 33.6,
+       "delta": -1.6,
+       "lo": -5.3,
+       "hi": 2.3
+      },
+      "wrong": {
+       "before": 1.6,
+       "after": 1.6,
+       "delta": 0,
+       "lo": 0,
+       "hi": 0
+      }
+     },
+     "level": {
+      "boxCount": 69,
+      "photos": 26,
+      "textRead": {
+       "before": 89.9,
+       "after": 88.4,
+       "delta": -1.4,
+       "lo": -5.2,
+       "hi": 0
+      },
+      "confirmed": {
+       "before": 39.1,
+       "after": 36.2,
+       "delta": -2.9,
+       "lo": -9.1,
+       "hi": 2.4
+      },
+      "wrong": {
+       "before": 2.9,
+       "after": 4.3,
+       "delta": 1.4,
+       "lo": 0,
+       "hi": 4.8
+      }
+     },
+     "above eye level": {
+      "boxCount": 8,
+      "photos": 6,
+      "textRead": {
+       "before": 75,
+       "after": 75,
+       "delta": 0,
+       "lo": 0,
+       "hi": 0
+      },
+      "confirmed": {
+       "before": 12.5,
+       "after": 12.5,
+       "delta": 0,
+       "lo": 0,
+       "hi": 0
+      },
+      "wrong": {
+       "before": 0,
+       "after": 0,
+       "delta": 0,
+       "lo": 0,
+       "hi": 0
+      }
+     },
+     "mostly a top face": {
+      "boxCount": 79,
+      "photos": 12,
+      "textRead": {
+       "before": 82.3,
+       "after": 82.3,
+       "delta": 0,
+       "lo": 0,
+       "hi": 0
+      },
+      "confirmed": {
+       "before": 36.7,
+       "after": 34.2,
+       "delta": -2.5,
+       "lo": -7,
+       "hi": 2.3
+      },
+      "wrong": {
+       "before": 3.8,
+       "after": 3.8,
+       "delta": 0,
+       "lo": 0,
+       "hi": 0
+      }
+     },
+     "mostly a cover": {
+      "boxCount": 114,
+      "photos": 37,
+      "textRead": {
+       "before": 92.1,
+       "after": 89.5,
+       "delta": -2.6,
+       "lo": -6,
+       "hi": 0
+      },
+      "confirmed": {
+       "before": 36,
+       "after": 34.2,
+       "delta": -1.8,
+       "lo": -5.8,
+       "hi": 1.7
+      },
+      "wrong": {
+       "before": 0.9,
+       "after": 1.8,
+       "delta": 0.9,
+       "lo": 0,
+       "hi": 3.2
+      }
+     },
+     "mostly behind": {
+      "boxCount": 5,
+      "photos": 5,
+      "textRead": {
+       "before": 80,
+       "after": 80,
+       "delta": 0,
+       "lo": 0,
+       "hi": 0
+      },
+      "confirmed": {
+       "before": 20,
+       "after": 20,
+       "delta": 0,
+       "lo": 0,
+       "hi": 0
+      },
+      "wrong": {
+       "before": 0,
+       "after": 0,
+       "delta": 0,
+       "lo": 0,
+       "hi": 0
+      }
+     },
+     "whole boxes": {
+      "boxCount": 160,
+      "photos": 31,
+      "textRead": {
+       "before": 93.8,
+       "after": 92.5,
+       "delta": -1.2,
+       "lo": -3.6,
+       "hi": 0
+      },
+      "confirmed": {
+       "before": 41.3,
+       "after": 40,
+       "delta": -1.2,
+       "lo": -4.5,
+       "hi": 1.7
+      },
+      "wrong": {
+       "before": 1.9,
+       "after": 2.5,
+       "delta": 0.6,
+       "lo": 0,
+       "hi": 2.3
+      }
+     },
+     "cut or partial boxes": {
+      "boxCount": 39,
+      "photos": 16,
+      "textRead": {
+       "before": 61.5,
+       "after": 59,
+       "delta": -2.6,
+       "lo": -8.6,
+       "hi": 0
+      },
+      "confirmed": {
+       "before": 12.8,
+       "after": 7.7,
+       "delta": -5.1,
+       "lo": -12.1,
+       "hi": 0
+      },
+      "wrong": {
+       "before": 2.6,
+       "after": 2.6,
+       "delta": 0,
+       "lo": 0,
+       "hi": 0
+      }
+     },
+     "in frame": {
+      "boxCount": 179,
+      "photos": 34,
+      "textRead": {
+       "before": 88.8,
+       "after": 87.2,
+       "delta": -1.7,
+       "lo": -4.4,
+       "hi": 0
+      },
+      "confirmed": {
+       "before": 35.8,
+       "after": 34.1,
+       "delta": -1.7,
+       "lo": -4.6,
+       "hi": 1.1
+      },
+      "wrong": {
+       "before": 2.2,
+       "after": 2.8,
+       "delta": 0.6,
+       "lo": 0,
+       "hi": 2
+      }
+     },
+     "partly out of frame": {
+      "boxCount": 20,
+      "photos": 9,
+      "textRead": {
+       "before": 75,
+       "after": 75,
+       "delta": 0,
+       "lo": 0,
+       "hi": 0
+      },
+      "confirmed": {
+       "before": 35,
+       "after": 30,
+       "delta": -5,
+       "lo": -18.2,
+       "hi": 18.2
+      },
+      "wrong": {
+       "before": 0,
+       "after": 0,
+       "delta": 0,
+       "lo": 0,
+       "hi": 0
+      }
+     }
+    },
+    "clipArmMatchesCachedInFrame": 100,
+    "cost": {
+     "before": {
+      "vision": {
+       "calls": 398,
+       "seconds": 37
+      },
+      "ppocr": {
+       "calls": 398,
+       "seconds": 627
+      },
+      "qwen": {
+       "calls": 178,
+       "seconds": 228
+      }
+     },
+     "after": {
+      "vision": {
+       "calls": 398,
+       "seconds": 37
+      },
+      "ppocr": {
+       "calls": 398,
+       "seconds": 630
+      },
+      "qwen": {
+       "calls": 174,
+       "seconds": 225
+      }
+     }
+    }
+   }
+  }
+ },
+  "rebaseline": {
+    "run": "RB1",
+    "date": "2026-11-04",
+    "base": "116f4e9",
+    "figures": [
+      {
+        "set": "pilot-000",
+        "figure": "over-selecting kept boxes (%)",
+        "before": "49.4 (46.4 to 52.6)",
+        "after": "49.1 (46.1 to 52.6)"
+      },
+      {
+        "set": "pilot-000",
+        "figure": "trim feasible, of over-selecting (%)",
+        "before": "57.8 (53.5 to 61.7)",
+        "after": "58.4 (53.9 to 62.7)"
+      },
+      {
+        "set": "pilot-000",
+        "figure": "**`face3d` confirmed Δ (pts)**",
+        "before": "-0.3 (-1.2 to 0.7)",
+        "after": "-0.4 (-1.4 to 0.6)"
+      },
+      {
+        "set": "pilot-000",
+        "figure": "distinct confirmed works, `face3d` arm",
+        "before": "512",
+        "after": "511"
+      },
+      {
+        "set": "pilot-000",
+        "figure": "distinct confirmed works Δ (`face3d` − `clip`)",
+        "before": "-7 (-11 to 3)",
+        "after": "-8 (-11 to 2)"
+      },
+      {
+        "set": "yardstick",
+        "figure": "over-selecting kept boxes (%)",
+        "before": "50.7 (43.6 to 57.8)",
+        "after": "49.9 (42.6 to 57.3)"
+      },
+      {
+        "set": "yardstick",
+        "figure": "`face3d` confirmed Δ (pts)",
+        "before": "-1.9 (-4.6 to 0.5)",
+        "after": "-2.0 (-5.1 to 0.6)"
+      },
+      {
+        "set": "yardstick",
+        "figure": "`face3d` wrong Δ (pts)",
+        "before": "0.5 (0.0 to 1.6)",
+        "after": "0.5 (0.0 to 1.7)"
+      }
+    ],
+    "verdicts": [
+      {
+        "label": "`face3d` crop ships",
+        "before": false,
+        "after": false,
+        "flips": false
+      }
+    ]
+  }
+}

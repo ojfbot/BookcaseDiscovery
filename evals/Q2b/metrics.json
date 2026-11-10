@@ -1,0 +1,2354 @@
+{
+ "runId": "Q2b",
+ "card": "Q-2b",
+ "date": "2026-11-04",
+ "question": "Q-2's teacher and student, pre-registered and unchanged, on the current default boxes (F-0e bands+strips on pilot-000, F-0c's and F-0f's not-a-book filter on): does the predicted fill now pass Q-2's go rule",
+ "inputs": "pilot-000 (31 photos): F-0e bands+strips boxes, the readers F-0e ran on them, F-0's decision (F-0c's cached base decisions); yardstick-library B2 (40 Library Dataset images, PROXY): F-0's own B2 run, the default for shelf-scale photos; both after the shipped not-a-book filter (F-0c shape rules, F-0f shelf-label rules); Q-1's features and Q-2's top-seam geometry re-measured on the new pilot-000 boxes",
+ "labels": "teacher rungs are machine agreement, not accuracy (INV-17); pilot-000 and the yardstick are reported separately, never pooled (OC35); the student is trained on pilot-000 only and scored on the yardstick unchanged (H-0 §4.3)",
+ "bootstrap": {
+  "unit": "photo (cluster), paired across models",
+  "reps": 1000,
+  "interval": "95 % percentile"
+ },
+ "teacher": {
+  "tau": 0.73,
+  "tauRule": "smallest τ on a 0.01 grid at which at most 1 % of null pairs (reader A on one box, reader B on a different box of the same photo) agree; set on pilot-000 only",
+  "similarity": "1 - (edit distance from the shorter squashed reading to its closest substring of the longer) / its length; readings shorter than 5 normalised characters never agree; best over reader pairs and variants",
+  "tauStudy": {
+   "pilot-000": {
+    "nullPairs": 4448,
+    "sweep": [
+     {
+      "tau": 0.6,
+      "nullPass": 0.0364,
+      "acceptedPass": 0.9532,
+      "noCatalogMatchPass": 0.5995
+     },
+     {
+      "tau": 0.7,
+      "nullPass": 0.0108,
+      "acceptedPass": 0.8471,
+      "noCatalogMatchPass": 0.4851
+     },
+     {
+      "tau": 0.73,
+      "nullPass": 0.0092,
+      "acceptedPass": 0.8058,
+      "noCatalogMatchPass": 0.4454
+     },
+     {
+      "tau": 0.75,
+      "nullPass": 0.0092,
+      "acceptedPass": 0.781,
+      "noCatalogMatchPass": 0.4317
+     },
+     {
+      "tau": 0.8,
+      "nullPass": 0.0067,
+      "acceptedPass": 0.7245,
+      "noCatalogMatchPass": 0.3749
+     },
+     {
+      "tau": 0.85,
+      "nullPass": 0.0045,
+      "acceptedPass": 0.6667,
+      "noCatalogMatchPass": 0.3153
+     },
+     {
+      "tau": 0.9,
+      "nullPass": 0.0036,
+      "acceptedPass": 0.6033,
+      "noCatalogMatchPass": 0.2578
+     },
+     {
+      "tau": 0.95,
+      "nullPass": 0.0027,
+      "acceptedPass": 0.5,
+      "noCatalogMatchPass": 0.1962
+     },
+     {
+      "tau": 1,
+      "nullPass": 0.0025,
+      "acceptedPass": 0.4077,
+      "noCatalogMatchPass": 0.1606
+     }
+    ]
+   },
+   "yardstick-library-b2": {
+    "nullPairs": 778,
+    "sweep": [
+     {
+      "tau": 0.6,
+      "nullPass": 0.108,
+      "acceptedPass": 0.9662,
+      "noCatalogMatchPass": 0.847
+     },
+     {
+      "tau": 0.7,
+      "nullPass": 0.0604,
+      "acceptedPass": 0.8872,
+      "noCatalogMatchPass": 0.7732
+     },
+     {
+      "tau": 0.73,
+      "nullPass": 0.0476,
+      "acceptedPass": 0.8609,
+      "noCatalogMatchPass": 0.7432
+     },
+     {
+      "tau": 0.75,
+      "nullPass": 0.045,
+      "acceptedPass": 0.8496,
+      "noCatalogMatchPass": 0.7295
+     },
+     {
+      "tau": 0.8,
+      "nullPass": 0.0347,
+      "acceptedPass": 0.8083,
+      "noCatalogMatchPass": 0.6831
+     },
+     {
+      "tau": 0.85,
+      "nullPass": 0.0231,
+      "acceptedPass": 0.7368,
+      "noCatalogMatchPass": 0.6038
+     },
+     {
+      "tau": 0.9,
+      "nullPass": 0.018,
+      "acceptedPass": 0.6579,
+      "noCatalogMatchPass": 0.5437
+     },
+     {
+      "tau": 0.95,
+      "nullPass": 0.0129,
+      "acceptedPass": 0.5526,
+      "noCatalogMatchPass": 0.4699
+     },
+     {
+      "tau": 1,
+      "nullPass": 0.0116,
+      "acceptedPass": 0.4398,
+      "noCatalogMatchPass": 0.4016
+     }
+    ]
+   }
+  },
+  "floor": 0.225,
+  "floorRule": "Q-1's H3 cut (B2 box score), kept: the go-rule result moves little across 0.20-0.30 (sensitivity)",
+  "population": "box score >= floor, long axis not horizontal (F-0's reader cannot read lying boxes; Q-1 finding 3), the five student features measurable",
+  "sets": {
+   "pilot-000": {
+    "photos": 31,
+    "detected": {
+     "n": 5757,
+     "rungs": {
+      "spine-found": 1235,
+      "text-present": 1620,
+      "text-read": 1301,
+      "matched": 875,
+      "confirmed": 726
+     }
+    },
+    "belowFloor": {
+     "n": 2248,
+     "rungs": {
+      "spine-found": 673,
+      "text-present": 736,
+      "text-read": 384,
+      "matched": 303,
+      "confirmed": 152
+     }
+    },
+    "lyingAtOrAboveFloor": {
+     "n": 31,
+     "rungs": {
+      "spine-found": 22,
+      "text-present": 5,
+      "text-read": 1,
+      "matched": 3,
+      "confirmed": 0
+     }
+    },
+    "incompleteFeatures": 0,
+    "population": {
+     "n": 3478,
+     "rungs": {
+      "spine-found": 540,
+      "text-present": 879,
+      "text-read": 916,
+      "matched": 569,
+      "confirmed": 574
+     }
+    },
+    "populationFilled": [0.592,0.5361,0.6421],
+    "acceptedNotInAnnotations": null
+   },
+   "yardstick-library-b2": {
+    "photos": 40,
+    "detected": {
+     "n": 1038,
+     "rungs": {
+      "spine-found": 258,
+      "text-present": 94,
+      "text-read": 272,
+      "matched": 148,
+      "confirmed": 266
+     }
+    },
+    "belowFloor": {
+     "n": 264,
+     "rungs": {
+      "spine-found": 166,
+      "text-present": 30,
+      "text-read": 40,
+      "matched": 8,
+      "confirmed": 20
+     }
+    },
+    "lyingAtOrAboveFloor": {
+     "n": 17,
+     "rungs": {
+      "spine-found": 10,
+      "text-present": 4,
+      "text-read": 0,
+      "matched": 1,
+      "confirmed": 2
+     }
+    },
+    "incompleteFeatures": 0,
+    "population": {
+     "n": 757,
+     "rungs": {
+      "spine-found": 82,
+      "text-present": 60,
+      "text-read": 232,
+      "matched": 139,
+      "confirmed": 244
+     }
+    },
+    "populationFilled": [0.8124,0.7637,0.8537],
+    "acceptedNotInAnnotations": 22
+   }
+  }
+ },
+ "student": {
+  "label": "teacher rung >= text-read (1) vs spine-found or text-present (0)",
+  "folds": "pilot-000: leave one photo out (31 fits per model); yardstick: one fit on all of pilot-000, applied unchanged",
+  "features": {
+   "logCropWidthPx": "+ (more is more readable)",
+   "logDetail": "+ (more is more readable)",
+   "glareShare": "- (more is less readable)",
+   "lumaOffMid": "- (more is less readable)",
+   "tiltDeg": "- (more is less readable)",
+   "heightOffBand": "- (more is less readable)",
+   "topSeamOff": "- (more is less readable)",
+   "topBelowCentre": "- (more is less readable)"
+  },
+  "baseline": "crop width alone (log short side), direction learned per fold",
+  "monotone": "active-set: a feature whose standardised weight comes out against its declared sign is dropped and the model refit",
+  "fullFitWeights": {
+   "baseline": {
+    "weights": {
+     "logCropWidthPx": -0.0449
+    },
+    "intercept": 0.3725,
+    "dropped": []
+   },
+   "student": {
+    "weights": {
+     "logCropWidthPx": 0,
+     "logDetail": 0.8705,
+     "glareShare": 0,
+     "lumaOffMid": 0,
+     "tiltDeg": -0.2025
+    },
+    "intercept": 0.4113,
+    "dropped": ["logCropWidthPx","lumaOffMid","glareShare"]
+   },
+   "student-logCropWidthPx": {
+    "weights": {
+     "logDetail": 0.8705,
+     "glareShare": 0,
+     "lumaOffMid": 0,
+     "tiltDeg": -0.2025
+    },
+    "intercept": 0.4113,
+    "dropped": ["lumaOffMid","glareShare"]
+   },
+   "student-logDetail": {
+    "weights": {
+     "logCropWidthPx": 0,
+     "glareShare": 0,
+     "lumaOffMid": 0,
+     "tiltDeg": -0.1529
+    },
+    "intercept": 0.3738,
+    "dropped": ["glareShare","lumaOffMid","logCropWidthPx"]
+   },
+   "student-glareShare": {
+    "weights": {
+     "logCropWidthPx": 0,
+     "logDetail": 0.8705,
+     "lumaOffMid": 0,
+     "tiltDeg": -0.2025
+    },
+    "intercept": 0.4113,
+    "dropped": ["logCropWidthPx","lumaOffMid"]
+   },
+   "student-lumaOffMid": {
+    "weights": {
+     "logCropWidthPx": 0,
+     "logDetail": 0.8705,
+     "glareShare": 0,
+     "tiltDeg": -0.2025
+    },
+    "intercept": 0.4113,
+    "dropped": ["logCropWidthPx","glareShare"]
+   },
+   "student-tiltDeg": {
+    "weights": {
+     "logCropWidthPx": 0,
+     "logDetail": 0.858,
+     "glareShare": 0,
+     "lumaOffMid": 0
+    },
+    "intercept": 0.4062,
+    "dropped": ["logCropWidthPx","lumaOffMid","glareShare"]
+   },
+   "student+heightOffBand": {
+    "weights": {
+     "logCropWidthPx": 0,
+     "logDetail": 0.8699,
+     "glareShare": 0,
+     "lumaOffMid": 0,
+     "tiltDeg": -0.1905,
+     "heightOffBand": -0.0638
+    },
+    "intercept": 0.4116,
+    "dropped": ["logCropWidthPx","lumaOffMid","glareShare"]
+   },
+   "student+topSeamOff": {
+    "weights": {
+     "logCropWidthPx": 0,
+     "logDetail": 0.8802,
+     "glareShare": 0,
+     "lumaOffMid": 0,
+     "tiltDeg": -0.182,
+     "topSeamOff": -0.2996
+    },
+    "intercept": 0.4174,
+    "dropped": ["logCropWidthPx","lumaOffMid","glareShare"]
+   },
+   "student+geometry": {
+    "weights": {
+     "logCropWidthPx": 0,
+     "logDetail": 0.8797,
+     "glareShare": 0,
+     "lumaOffMid": 0,
+     "tiltDeg": -0.1651,
+     "heightOffBand": -0.0878,
+     "topSeamOff": -0.3061
+    },
+    "intercept": 0.4178,
+    "dropped": ["logCropWidthPx","lumaOffMid","glareShare"]
+   },
+   "diag:signFree": {
+    "weights": {
+     "logCropWidthPx": -0.4054,
+     "logDetail": 1.0551,
+     "glareShare": 0.0093,
+     "lumaOffMid": 0.1265,
+     "tiltDeg": -0.1489
+    },
+    "intercept": 0.4204,
+    "dropped": []
+   },
+   "diag:student+viewElevation": {
+    "weights": {
+     "logCropWidthPx": 0,
+     "logDetail": 0.87,
+     "glareShare": 0,
+     "lumaOffMid": 0,
+     "tiltDeg": -0.1597,
+     "topBelowCentre": -0.3275
+    },
+    "intercept": 0.4184,
+    "dropped": ["logCropWidthPx","lumaOffMid","glareShare"]
+   },
+   "diag:student+fragment": {
+    "weights": {
+     "logCropWidthPx": 0,
+     "logDetail": 0.8719,
+     "glareShare": 0,
+     "lumaOffMid": 0,
+     "tiltDeg": -0.2026,
+     "cutByTile": -0.0798,
+     "heightOverBand": 0
+    },
+    "intercept": 0.4116,
+    "dropped": ["logCropWidthPx","lumaOffMid","glareShare","heightOverBand"]
+   }
+  },
+  "foldsDropping": {
+   "baseline": {
+    "logCropWidthPx": 0
+   },
+   "student": {
+    "logCropWidthPx": 31,
+    "logDetail": 0,
+    "glareShare": 31,
+    "lumaOffMid": 31,
+    "tiltDeg": 0
+   },
+   "student-logCropWidthPx": {
+    "logDetail": 0,
+    "glareShare": 31,
+    "lumaOffMid": 31,
+    "tiltDeg": 0
+   },
+   "student-logDetail": {
+    "logCropWidthPx": 29,
+    "glareShare": 31,
+    "lumaOffMid": 31,
+    "tiltDeg": 0
+   },
+   "student-glareShare": {
+    "logCropWidthPx": 31,
+    "logDetail": 0,
+    "lumaOffMid": 31,
+    "tiltDeg": 0
+   },
+   "student-lumaOffMid": {
+    "logCropWidthPx": 31,
+    "logDetail": 0,
+    "glareShare": 31,
+    "tiltDeg": 0
+   },
+   "student-tiltDeg": {
+    "logCropWidthPx": 31,
+    "logDetail": 0,
+    "glareShare": 31,
+    "lumaOffMid": 31
+   },
+   "student+heightOffBand": {
+    "logCropWidthPx": 31,
+    "logDetail": 0,
+    "glareShare": 31,
+    "lumaOffMid": 31,
+    "tiltDeg": 0,
+    "heightOffBand": 0
+   },
+   "student+topSeamOff": {
+    "logCropWidthPx": 31,
+    "logDetail": 0,
+    "glareShare": 31,
+    "lumaOffMid": 31,
+    "tiltDeg": 0,
+    "topSeamOff": 0
+   },
+   "student+geometry": {
+    "logCropWidthPx": 31,
+    "logDetail": 0,
+    "glareShare": 31,
+    "lumaOffMid": 31,
+    "tiltDeg": 0,
+    "heightOffBand": 0,
+    "topSeamOff": 0
+   },
+   "diag:signFree": {
+    "logCropWidthPx": 0,
+    "logDetail": 0,
+    "glareShare": 0,
+    "lumaOffMid": 0,
+    "tiltDeg": 0
+   },
+   "diag:student+viewElevation": {
+    "logCropWidthPx": 31,
+    "logDetail": 0,
+    "glareShare": 31,
+    "lumaOffMid": 31,
+    "tiltDeg": 0,
+    "topBelowCentre": 0
+   },
+   "diag:student+fragment": {
+    "logCropWidthPx": 31,
+    "logDetail": 0,
+    "glareShare": 31,
+    "lumaOffMid": 31,
+    "tiltDeg": 0,
+    "cutByTile": 0,
+    "heightOverBand": 31
+   }
+  },
+  "scores": {
+   "pilot-000": {
+    "n": 3478,
+    "photos": 31,
+    "filledShare": [0.592,0.5372,0.6385],
+    "models": {
+     "baseline": {
+      "auc": [0.4046,0.3651,0.4394],
+      "ece": [0.0665,0.0413,0.0968],
+      "brier": [0.2435,0.2348,0.2539]
+     },
+     "student": {
+      "auc": [0.7097,0.6606,0.7527],
+      "ece": [0.0375,0.0311,0.0673],
+      "brier": [0.2062,0.1921,0.2238],
+      "dBaseline": [0.3051,0.2321,0.3767]
+     },
+     "student-logCropWidthPx": {
+      "auc": [0.7097,0.6606,0.7527],
+      "ece": [0.0375,0.0311,0.0673],
+      "brier": [0.2062,0.1921,0.2238],
+      "dBaseline": [0.3051,0.2321,0.3767],
+      "dStudent": [0,0,0]
+     },
+     "student-logDetail": {
+      "auc": [0.4997,0.4685,0.5336],
+      "ece": [0.028,0.0124,0.0649],
+      "brier": [0.2421,0.2333,0.2531],
+      "dBaseline": [0.0951,0.0501,0.1441],
+      "dStudent": [-0.21,-0.2686,-0.1479]
+     },
+     "student-glareShare": {
+      "auc": [0.7097,0.6606,0.7527],
+      "ece": [0.0375,0.0311,0.0673],
+      "brier": [0.2062,0.1921,0.2238],
+      "dBaseline": [0.3051,0.2321,0.3767],
+      "dStudent": [0,0,0]
+     },
+     "student-lumaOffMid": {
+      "auc": [0.7097,0.6606,0.7527],
+      "ece": [0.0375,0.0311,0.0673],
+      "brier": [0.2062,0.1921,0.2238],
+      "dBaseline": [0.3051,0.2321,0.3767],
+      "dStudent": [0,0,0]
+     },
+     "student-tiltDeg": {
+      "auc": [0.7018,0.6542,0.7459],
+      "ece": [0.0286,0.0227,0.0653],
+      "brier": [0.2083,0.1941,0.2257],
+      "dBaseline": [0.2972,0.2233,0.3697],
+      "dStudent": [-0.0079,-0.0137,-0.0021]
+     },
+     "student+heightOffBand": {
+      "auc": [0.7089,0.6592,0.7522],
+      "ece": [0.0375,0.0298,0.0654],
+      "brier": [0.2064,0.1922,0.2241],
+      "dBaseline": [0.3044,0.2309,0.3764],
+      "dStudent": [-0.0008,-0.0029,0.0014]
+     },
+     "student+topSeamOff": {
+      "auc": [0.7221,0.673,0.7673],
+      "ece": [0.0394,0.0277,0.0645],
+      "brier": [0.2024,0.1871,0.2209],
+      "dBaseline": [0.3175,0.2419,0.3898],
+      "dStudent": [0.0124,0.0047,0.0206]
+     },
+     "student+geometry": {
+      "auc": [0.7216,0.6707,0.7679],
+      "ece": [0.038,0.0285,0.0669],
+      "brier": [0.2024,0.1869,0.2211],
+      "dBaseline": [0.317,0.2405,0.3904],
+      "dStudent": [0.0119,0.0037,0.0206]
+     },
+     "diag:signFree": {
+      "auc": [0.7342,0.6874,0.773],
+      "ece": [0.0318,0.0251,0.0556],
+      "brier": [0.1996,0.185,0.2169],
+      "dBaseline": [0.3296,0.2585,0.3973],
+      "dStudent": [0.0244,0.0112,0.0348]
+     },
+     "diag:student+viewElevation": {
+      "auc": [0.7219,0.6778,0.7621],
+      "ece": [0.0491,0.0382,0.0716],
+      "brier": [0.2014,0.1863,0.2184],
+      "dBaseline": [0.3173,0.2484,0.3827],
+      "dStudent": [0.0122,-0.0032,0.0262]
+     },
+     "diag:student+fragment": {
+      "auc": [0.7098,0.662,0.7527],
+      "ece": [0.0362,0.0298,0.0648],
+      "brier": [0.2062,0.1919,0.224],
+      "dBaseline": [0.3052,0.2322,0.3767],
+      "dStudent": [0.0001,-0.0021,0.0021]
+     }
+    }
+   },
+   "yardstick-library-b2": {
+    "n": 757,
+    "photos": 40,
+    "filledShare": [0.8124,0.7645,0.8551],
+    "models": {
+     "baseline": {
+      "auc": [0.4322,0.3668,0.4993],
+      "ece": [0.2398,0.1924,0.2817],
+      "brier": [0.2091,0.2027,0.2164]
+     },
+     "student": {
+      "auc": [0.7969,0.7323,0.8613],
+      "ece": [0.294,0.2519,0.3377],
+      "brier": [0.2012,0.1864,0.2186],
+      "dBaseline": [0.3646,0.2666,0.4667]
+     },
+     "student-logCropWidthPx": {
+      "auc": [0.7969,0.7323,0.8613],
+      "ece": [0.294,0.2519,0.3377],
+      "brier": [0.2012,0.1864,0.2186],
+      "dBaseline": [0.3646,0.2666,0.4667],
+      "dStudent": [0,0,0]
+     },
+     "student-logDetail": {
+      "auc": [0.4986,0.4161,0.5696],
+      "ece": [0.2102,0.1647,0.2526],
+      "brier": [0.1942,0.186,0.2037],
+      "dBaseline": [0.0664,-0.0304,0.145],
+      "dStudent": [-0.2983,-0.4115,-0.2037]
+     },
+     "student-glareShare": {
+      "auc": [0.7969,0.7323,0.8613],
+      "ece": [0.294,0.2519,0.3377],
+      "brier": [0.2012,0.1864,0.2186],
+      "dBaseline": [0.3646,0.2666,0.4667],
+      "dStudent": [0,0,0]
+     },
+     "student-lumaOffMid": {
+      "auc": [0.7969,0.7323,0.8613],
+      "ece": [0.294,0.2519,0.3377],
+      "brier": [0.2012,0.1864,0.2186],
+      "dBaseline": [0.3646,0.2666,0.4667],
+      "dStudent": [0,0,0]
+     },
+     "student-tiltDeg": {
+      "auc": [0.794,0.7296,0.8603],
+      "ece": [0.3108,0.2684,0.3541],
+      "brier": [0.212,0.1974,0.2296],
+      "dBaseline": [0.3617,0.2592,0.4694],
+      "dStudent": [-0.0029,-0.0104,0.0044]
+     },
+     "student+heightOffBand": {
+      "auc": [0.8009,0.7393,0.8649],
+      "ece": [0.296,0.2535,0.3411],
+      "brier": [0.2038,0.1885,0.2233],
+      "dBaseline": [0.3687,0.2715,0.4704],
+      "dStudent": [0.004,-0.0028,0.0112]
+     },
+     "student+topSeamOff": {
+      "auc": [0.8003,0.7364,0.8618],
+      "ece": [0.2889,0.2499,0.3323],
+      "brier": [0.1995,0.1829,0.2187],
+      "dBaseline": [0.3681,0.2655,0.4652],
+      "dStudent": [0.0034,-0.0136,0.0196]
+     },
+     "student+geometry": {
+      "auc": [0.8075,0.748,0.8656],
+      "ece": [0.2953,0.257,0.3389],
+      "brier": [0.2028,0.1856,0.2248],
+      "dBaseline": [0.3753,0.2787,0.4697],
+      "dStudent": [0.0106,-0.0044,0.0249]
+     },
+     "diag:signFree": {
+      "auc": [0.8001,0.731,0.867],
+      "ece": [0.44,0.3917,0.4879],
+      "brier": [0.3195,0.2928,0.3518],
+      "dBaseline": [0.3679,0.2821,0.4592],
+      "dStudent": [0.0033,-0.0217,0.0316]
+     },
+     "diag:student+viewElevation": {
+      "auc": [0.7947,0.7288,0.8555],
+      "ece": [0.2544,0.2194,0.2971],
+      "brier": [0.178,0.1633,0.1946],
+      "dBaseline": [0.3625,0.2616,0.4636],
+      "dStudent": [-0.0021,-0.0153,0.0098]
+     },
+     "diag:student+fragment": {
+      "auc": [0.7926,0.73,0.8601],
+      "ece": [0.3008,0.2578,0.3423],
+      "brier": [0.2065,0.1919,0.2235],
+      "dBaseline": [0.3604,0.2635,0.4637],
+      "dStudent": [-0.0042,-0.0103,0.0024]
+     }
+    }
+   }
+  },
+  "calibration": {
+   "pilot-000": {
+    "student": [
+     {
+      "lo": 0,
+      "hi": 0.1,
+      "n": 17,
+      "meanP": 0.0732,
+      "observed": 0
+     },
+     {
+      "lo": 0.1,
+      "hi": 0.2,
+      "n": 105,
+      "meanP": 0.1534,
+      "observed": 0.1333
+     },
+     {
+      "lo": 0.2,
+      "hi": 0.3,
+      "n": 206,
+      "meanP": 0.2557,
+      "observed": 0.1845
+     },
+     {
+      "lo": 0.3,
+      "hi": 0.4,
+      "n": 301,
+      "meanP": 0.3518,
+      "observed": 0.3389
+     },
+     {
+      "lo": 0.4,
+      "hi": 0.5,
+      "n": 417,
+      "meanP": 0.4525,
+      "observed": 0.4341
+     },
+     {
+      "lo": 0.5,
+      "hi": 0.6,
+      "n": 499,
+      "meanP": 0.5513,
+      "observed": 0.6413
+     },
+     {
+      "lo": 0.6,
+      "hi": 0.7,
+      "n": 712,
+      "meanP": 0.6524,
+      "observed": 0.6798
+     },
+     {
+      "lo": 0.7,
+      "hi": 0.8,
+      "n": 796,
+      "meanP": 0.7503,
+      "observed": 0.7525
+     },
+     {
+      "lo": 0.8,
+      "hi": 0.9,
+      "n": 416,
+      "meanP": 0.8357,
+      "observed": 0.7572
+     },
+     {
+      "lo": 0.9,
+      "hi": 1,
+      "n": 9,
+      "meanP": 0.9119,
+      "observed": 0.6667
+     }
+    ],
+    "baseline": [
+     {
+      "lo": 0,
+      "hi": 0.1,
+      "n": 0,
+      "meanP": null,
+      "observed": null
+     },
+     {
+      "lo": 0.1,
+      "hi": 0.2,
+      "n": 0,
+      "meanP": null,
+      "observed": null
+     },
+     {
+      "lo": 0.2,
+      "hi": 0.3,
+      "n": 0,
+      "meanP": null,
+      "observed": null
+     },
+     {
+      "lo": 0.3,
+      "hi": 0.4,
+      "n": 0,
+      "meanP": null,
+      "observed": null
+     },
+     {
+      "lo": 0.4,
+      "hi": 0.5,
+      "n": 0,
+      "meanP": null,
+      "observed": null
+     },
+     {
+      "lo": 0.5,
+      "hi": 0.6,
+      "n": 2800,
+      "meanP": 0.5866,
+      "observed": 0.6289
+     },
+     {
+      "lo": 0.6,
+      "hi": 0.7,
+      "n": 678,
+      "meanP": 0.6062,
+      "observed": 0.4395
+     },
+     {
+      "lo": 0.7,
+      "hi": 0.8,
+      "n": 0,
+      "meanP": null,
+      "observed": null
+     },
+     {
+      "lo": 0.8,
+      "hi": 0.9,
+      "n": 0,
+      "meanP": null,
+      "observed": null
+     },
+     {
+      "lo": 0.9,
+      "hi": 1,
+      "n": 0,
+      "meanP": null,
+      "observed": null
+     }
+    ]
+   },
+   "yardstick-library-b2": {
+    "student": [
+     {
+      "lo": 0,
+      "hi": 0.1,
+      "n": 20,
+      "meanP": 0.0665,
+      "observed": 0
+     },
+     {
+      "lo": 0.1,
+      "hi": 0.2,
+      "n": 38,
+      "meanP": 0.1446,
+      "observed": 0.2632
+     },
+     {
+      "lo": 0.2,
+      "hi": 0.3,
+      "n": 54,
+      "meanP": 0.2563,
+      "observed": 0.5556
+     },
+     {
+      "lo": 0.3,
+      "hi": 0.4,
+      "n": 60,
+      "meanP": 0.3595,
+      "observed": 0.7833
+     },
+     {
+      "lo": 0.4,
+      "hi": 0.5,
+      "n": 104,
+      "meanP": 0.4517,
+      "observed": 0.8269
+     },
+     {
+      "lo": 0.5,
+      "hi": 0.6,
+      "n": 194,
+      "meanP": 0.5544,
+      "observed": 0.8969
+     },
+     {
+      "lo": 0.6,
+      "hi": 0.7,
+      "n": 177,
+      "meanP": 0.6513,
+      "observed": 0.9435
+     },
+     {
+      "lo": 0.7,
+      "hi": 0.8,
+      "n": 94,
+      "meanP": 0.743,
+      "observed": 0.9149
+     },
+     {
+      "lo": 0.8,
+      "hi": 0.9,
+      "n": 16,
+      "meanP": 0.8271,
+      "observed": 0.9375
+     },
+     {
+      "lo": 0.9,
+      "hi": 1,
+      "n": 0,
+      "meanP": null,
+      "observed": null
+     }
+    ],
+    "baseline": [
+     {
+      "lo": 0,
+      "hi": 0.1,
+      "n": 0,
+      "meanP": null,
+      "observed": null
+     },
+     {
+      "lo": 0.1,
+      "hi": 0.2,
+      "n": 0,
+      "meanP": null,
+      "observed": null
+     },
+     {
+      "lo": 0.2,
+      "hi": 0.3,
+      "n": 0,
+      "meanP": null,
+      "observed": null
+     },
+     {
+      "lo": 0.3,
+      "hi": 0.4,
+      "n": 0,
+      "meanP": null,
+      "observed": null
+     },
+     {
+      "lo": 0.4,
+      "hi": 0.5,
+      "n": 0,
+      "meanP": null,
+      "observed": null
+     },
+     {
+      "lo": 0.5,
+      "hi": 0.6,
+      "n": 743,
+      "meanP": 0.576,
+      "observed": 0.8183
+     },
+     {
+      "lo": 0.6,
+      "hi": 0.7,
+      "n": 14,
+      "meanP": 0.6052,
+      "observed": 0.5
+     },
+     {
+      "lo": 0.7,
+      "hi": 0.8,
+      "n": 0,
+      "meanP": null,
+      "observed": null
+     },
+     {
+      "lo": 0.8,
+      "hi": 0.9,
+      "n": 0,
+      "meanP": null,
+      "observed": null
+     },
+     {
+      "lo": 0.9,
+      "hi": 1,
+      "n": 0,
+      "meanP": null,
+      "observed": null
+     }
+    ]
+   }
+  },
+  "goRule": {
+   "rule": "student AUC >= 0.75 on pilot-000 (leave-one-image-out), and its gain over the crop-width baseline has a 95 % interval excluding 0",
+   "studentAuc": [0.7097,0.6606,0.7527],
+   "gainOverBaseline": [0.3051,0.2321,0.3767],
+   "go": false,
+   "robustness": {
+    "pilot-000": {
+     "oracleWidthAuc": [0.5185,0.5013,0.5544],
+     "gainOverOracleWidth": [0.1912,0.127,0.2381],
+     "studentVsSpineFound": [0.8721,0.8454,0.8965],
+     "studentVsTextPresent": [0.6099,0.558,0.6583],
+     "studentInSample": [0.7152,0.6686,0.7538]
+    },
+    "yardstick-library-b2": {
+     "oracleWidthAuc": [0.5678,0.5085,0.6282],
+     "gainOverOracleWidth": [0.2291,0.1601,0.2985],
+     "studentVsSpineFound": [0.9357,0.8976,0.9671],
+     "studentVsTextPresent": [0.6071,0.5069,0.722],
+     "studentInSample": [0.7969,0.7399,0.8543]
+    }
+   },
+   "signFree": {
+    "auc": [0.7342,0.6874,0.773],
+    "gainOverBaseline": [0.3296,0.2585,0.3973],
+    "passes": false
+   }
+  },
+  "operatingPoint": {
+   "rule": "FILL_P = the lowest score at which at least 90 % of predicted fills are measured >= text-read on pilot-000 (leave-one-image-out); if none does, Q-0's starting value 0.7",
+   "fillP": 0.7,
+   "targetMet": false,
+   "bestPrecision": 0.7564,
+   "atFillP": {
+    "pilot-000": {
+     "filledShare": [0.3511,0.2882,0.4084],
+     "precision": [0.7535,0.68,0.8103],
+     "recall": [0.4468,0.3936,0.493]
+    },
+    "yardstick-library-b2": {
+     "filledShare": [0.1453,0.1065,0.1875],
+     "precision": [0.9182,0.8643,0.9768],
+     "recall": [0.1642,0.1207,0.2112]
+    }
+   },
+   "curve": {
+    "pilot-000": [
+     {
+      "fillP": 0.3,
+      "filledShare": 0.9057,
+      "precision": 0.6371,
+      "recall": 0.9747
+     },
+     {
+      "fillP": 0.35,
+      "filledShare": 0.8643,
+      "precision": 0.6524,
+      "recall": 0.9524
+     },
+     {
+      "fillP": 0.4,
+      "filledShare": 0.8191,
+      "precision": 0.6687,
+      "recall": 0.9252
+     },
+     {
+      "fillP": 0.45,
+      "filledShare": 0.7602,
+      "precision": 0.688,
+      "recall": 0.8834
+     },
+     {
+      "fillP": 0.5,
+      "filledShare": 0.6993,
+      "precision": 0.7089,
+      "recall": 0.8373
+     },
+     {
+      "fillP": 0.55,
+      "filledShare": 0.6291,
+      "precision": 0.7162,
+      "recall": 0.761
+     },
+     {
+      "fillP": 0.6,
+      "filledShare": 0.5558,
+      "precision": 0.7263,
+      "recall": 0.6819
+     },
+     {
+      "fillP": 0.65,
+      "filledShare": 0.4606,
+      "precision": 0.7434,
+      "recall": 0.5784
+     },
+     {
+      "fillP": 0.7,
+      "filledShare": 0.3511,
+      "precision": 0.7535,
+      "recall": 0.4468
+     },
+     {
+      "fillP": 0.75,
+      "filledShare": 0.2361,
+      "precision": 0.7564,
+      "recall": 0.3016
+     },
+     {
+      "fillP": 0.8,
+      "filledShare": 0.1222,
+      "precision": 0.7553,
+      "recall": 0.1559
+     },
+     {
+      "fillP": 0.85,
+      "filledShare": 0.0371,
+      "precision": 0.7209,
+      "recall": 0.0452
+     },
+     {
+      "fillP": 0.9,
+      "filledShare": 0.0026,
+      "precision": 0.6667,
+      "recall": 0.0029
+     },
+     {
+      "fillP": 0.95,
+      "filledShare": 0,
+      "precision": null,
+      "recall": 0
+     }
+    ],
+    "yardstick-library-b2": [
+     {
+      "fillP": 0.3,
+      "filledShare": 0.852,
+      "precision": 0.8915,
+      "recall": 0.935
+     },
+     {
+      "fillP": 0.35,
+      "filledShare": 0.823,
+      "precision": 0.8989,
+      "recall": 0.9106
+     },
+     {
+      "fillP": 0.4,
+      "filledShare": 0.7728,
+      "precision": 0.9026,
+      "recall": 0.8585
+     },
+     {
+      "fillP": 0.45,
+      "filledShare": 0.7015,
+      "precision": 0.9058,
+      "recall": 0.7821
+     },
+     {
+      "fillP": 0.5,
+      "filledShare": 0.6354,
+      "precision": 0.9189,
+      "recall": 0.7187
+     },
+     {
+      "fillP": 0.55,
+      "filledShare": 0.531,
+      "precision": 0.9328,
+      "recall": 0.6098
+     },
+     {
+      "fillP": 0.6,
+      "filledShare": 0.3791,
+      "precision": 0.9338,
+      "recall": 0.4358
+     },
+     {
+      "fillP": 0.65,
+      "filledShare": 0.2721,
+      "precision": 0.9417,
+      "recall": 0.3154
+     },
+     {
+      "fillP": 0.7,
+      "filledShare": 0.1453,
+      "precision": 0.9182,
+      "recall": 0.1642
+     },
+     {
+      "fillP": 0.75,
+      "filledShare": 0.0727,
+      "precision": 0.9273,
+      "recall": 0.0829
+     },
+     {
+      "fillP": 0.8,
+      "filledShare": 0.0211,
+      "precision": 0.9375,
+      "recall": 0.0244
+     },
+     {
+      "fillP": 0.85,
+      "filledShare": 0.0013,
+      "precision": 1,
+      "recall": 0.0016
+     },
+     {
+      "fillP": 0.9,
+      "filledShare": 0,
+      "precision": null,
+      "recall": 0
+     },
+     {
+      "fillP": 0.95,
+      "filledShare": 0,
+      "precision": null,
+      "recall": 0
+     }
+    ]
+   }
+  },
+  "sensitivity": {
+   "noFloor": {
+    "floor": 0,
+    "lying": false,
+    "pilot-000": {
+     "n": 5684,
+     "student": [0.7268,0.6915,0.7572],
+     "baseline": [0.3377,0.3042,0.3794],
+     "gain": [0.3891,0.3217,0.4466],
+     "filled": [0.5091,0.4467,0.5656]
+    },
+    "yardstick-library-b2": {
+     "n": 990,
+     "student": [0.8596,0.8138,0.904],
+     "baseline": [0.651,0.5906,0.7044],
+     "gain": [0.2086,0.1512,0.2654],
+     "filled": [0.6869,0.6119,0.753]
+    }
+   },
+   "floor0.20": {
+    "floor": 0.2,
+    "lying": false,
+    "pilot-000": {
+     "n": 4335,
+     "student": [0.7136,0.6686,0.7507],
+     "baseline": [0.3761,0.3339,0.4215],
+     "gain": [0.3375,0.2529,0.4096],
+     "filled": [0.5608,0.4997,0.6152]
+    },
+    "yardstick-library-b2": {
+     "n": 822,
+     "student": [0.8197,0.7683,0.8748],
+     "baseline": [0.4208,0.36,0.4823],
+     "gain": [0.3989,0.3112,0.4892],
+     "filled": [0.7737,0.7139,0.8214]
+    }
+   },
+   "floor0.225": {
+    "floor": 0.225,
+    "lying": false,
+    "pilot-000": {
+     "n": 3478,
+     "student": [0.7097,0.6612,0.7514],
+     "baseline": [0.4046,0.3625,0.4436],
+     "gain": [0.3051,0.2245,0.3777],
+     "filled": [0.592,0.5354,0.6409]
+    },
+    "yardstick-library-b2": {
+     "n": 757,
+     "student": [0.7969,0.7398,0.8601],
+     "baseline": [0.4322,0.369,0.4982],
+     "gain": [0.3646,0.2715,0.462],
+     "filled": [0.8124,0.7631,0.8552]
+    }
+   },
+   "floor0.25": {
+    "floor": 0.25,
+    "lying": false,
+    "pilot-000": {
+     "n": 2598,
+     "student": [0.687,0.6269,0.7443],
+     "baseline": [0.4743,0.438,0.5063],
+     "gain": [0.2127,0.1327,0.2924],
+     "filled": [0.6359,0.5805,0.6904]
+    },
+    "yardstick-library-b2": {
+     "n": 679,
+     "student": [0.7831,0.7189,0.8593],
+     "baseline": [0.4634,0.3896,0.5394],
+     "gain": [0.3197,0.21,0.4316],
+     "filled": [0.8439,0.8035,0.8827]
+    }
+   },
+   "floor0.30": {
+    "floor": 0.3,
+    "lying": false,
+    "pilot-000": {
+     "n": 1156,
+     "student": [0.6366,0.5415,0.7316],
+     "baseline": [0.5257,0.4727,0.5758],
+     "gain": [0.1109,0.0095,0.2281],
+     "filled": [0.7093,0.6482,0.7697]
+    },
+    "yardstick-library-b2": {
+     "n": 477,
+     "student": [0.7073,0.578,0.8471],
+     "baseline": [0.4592,0.36,0.5904],
+     "gain": [0.2482,0.0401,0.4335],
+     "filled": [0.9078,0.8674,0.9442]
+    }
+   },
+   "floor0.225+lying": {
+    "floor": 0.225,
+    "lying": true,
+    "pilot-000": {
+     "n": 3509,
+     "student": [0.7102,0.6621,0.7514],
+     "baseline": [0.4115,0.3702,0.4508],
+     "gain": [0.2986,0.2187,0.3699],
+     "filled": [0.5879,0.5305,0.6379]
+    },
+    "yardstick-library-b2": {
+     "n": 774,
+     "student": [0.7803,0.7112,0.8492],
+     "baseline": [0.4448,0.3808,0.5112],
+     "gain": [0.3354,0.2418,0.4332],
+     "filled": [0.7984,0.7479,0.8429]
+    }
+   },
+   "floor0.225, whole only (no cut or partial)": {
+    "floor": 0.225,
+    "lying": false,
+    "pilot-000": {
+     "n": 2682,
+     "student": [0.6853,0.6306,0.7356],
+     "baseline": [0.3473,0.3232,0.3779],
+     "gain": [0.3381,0.2663,0.4002],
+     "filled": [0.6018,0.5522,0.6505]
+    },
+    "yardstick-library-b2": {
+     "n": 622,
+     "student": [0.7247,0.631,0.821],
+     "baseline": [0.4393,0.3675,0.5217],
+     "gain": [0.2854,0.1587,0.4179],
+     "filled": [0.8585,0.8089,0.9044]
+    }
+   }
+  }
+ },
+ "fragments": {
+  "why": "the same fragment measures on the current default boxes (F-0e bands+strips on pilot-000), to compare with Q-2's",
+  "definitions": {
+   "cut": "F-0's per-box flag: cut by a detector tile edge",
+   "partial": "not cut, box long side < 0.55 of its shelf band's height",
+   "whole": "neither"
+  },
+  "features": "diag:student+fragment adds cutByTile (-) and heightOverBand (+, capped at 1.5, missing = 1) to the student",
+  "sets": {
+   "pilot-000": {
+    "perPhotoMedian": {
+     "cutByTile": 0.0351,
+     "partialOfUpright": 0.1579
+    },
+    "population": {
+     "whole": {
+      "n": 2682,
+      "share": 0.7711,
+      "filled": [0.6018,0.552,0.6506],
+      "aucStudent": [0.6873,0.6384,0.7353],
+      "aucStudentFragment": [0.6872,0.6382,0.7352]
+     },
+     "cut": {
+      "n": 74,
+      "share": 0.0213,
+      "filled": [0.473,0.3283,0.5922],
+      "aucStudent": [0.737,0.6227,0.8498],
+      "aucStudentFragment": [0.7099,0.5917,0.8282]
+     },
+     "partial": {
+      "n": 722,
+      "share": 0.2076,
+      "filled": [0.5679,0.4093,0.6838],
+      "aucStudent": [0.7836,0.7362,0.818],
+      "aucStudentFragment": [0.7835,0.7361,0.8178]
+     }
+    }
+   },
+   "yardstick-library-b2": {
+    "perPhotoMedian": {
+     "cutByTile": 0,
+     "partialOfUpright": 0.1111
+    },
+    "population": {
+     "whole": {
+      "n": 622,
+      "share": 0.8217,
+      "filled": [0.8585,0.8055,0.8986],
+      "aucStudent": [0.7243,0.6279,0.8323],
+      "aucStudentFragment": [0.7243,0.6279,0.8323]
+     },
+     "cut": {
+      "n": 59,
+      "share": 0.0779,
+      "filled": [0.8136,0.7231,0.9112],
+      "aucStudent": [0.8598,0.6395,0.9659],
+      "aucStudentFragment": [0.8598,0.6395,0.9659]
+     },
+     "partial": {
+      "n": 76,
+      "share": 0.1004,
+      "filled": [0.4342,0.2698,0.5845],
+      "aucStudent": [0.9098,0.8296,0.9674],
+      "aucStudentFragment": [0.9098,0.8296,0.9674]
+     }
+    }
+   }
+  }
+ },
+ "ownerHypothesis": {
+  "ownerSaid": "top edges are missed at frame edges and in oblique views where a book's top face shows beside its spine",
+  "features": {
+   "heightOffBand": "|log(box long side / median long side of the boxes in its shelf band)|; 0 when the band has fewer than 3 boxes",
+   "topSeamOff": "|offset| of the strongest colour step across the spine near its top (helpers/coverage/geometry.py), as a share of the long side; > 0.05 inside = overshoot, < -0.05 = cut"
+  },
+  "cells": {
+   "edge": "radial > 0.5612 (Q-1 H2)",
+   "topInView": "top end below 0.6 of the frame height (camera looks down onto the top: a geometric proxy, not a detector)"
+  },
+  "sets": {
+   "pilot-000": {
+    "breakdown": {
+     "all": {
+      "n": 3478,
+      "photos": 31,
+      "filled": [0.592,0.5307,0.6412],
+      "byTop": {
+       "clean": {
+        "n": 1746,
+        "share": 0.502,
+        "filled": [0.6621,0.5927,0.7236]
+       },
+       "overshoot": {
+        "n": 1228,
+        "share": 0.3531,
+        "filled": [0.5195,0.4592,0.5751]
+       },
+       "cut": {
+        "n": 465,
+        "share": 0.1337,
+        "filled": [0.5441,0.4682,0.6008]
+       },
+       "none": {
+        "n": 39,
+        "share": 0.0112,
+        "filled": [0.3077,0.1538,0.4186]
+       }
+      },
+      "aucStudent": [0.7097,0.6628,0.754],
+      "aucGeometry": [0.7216,0.6707,0.7702],
+      "dAuc": [0.0119,0.0036,0.0208]
+     },
+     "centre": {
+      "n": 2061,
+      "photos": 31,
+      "filled": [0.7001,0.6454,0.7494],
+      "byTop": {
+       "clean": {
+        "n": 1198,
+        "share": 0.5813,
+        "filled": [0.7237,0.667,0.78]
+       },
+       "overshoot": {
+        "n": 602,
+        "share": 0.2921,
+        "filled": [0.6545,0.5909,0.7189]
+       },
+       "cut": {
+        "n": 261,
+        "share": 0.1266,
+        "filled": [0.6973,0.5941,0.7815]
+       },
+       "none": {
+        "n": 0,
+        "share": 0,
+        "filled": null
+       }
+      },
+      "aucStudent": [0.6613,0.602,0.719],
+      "aucGeometry": [0.6683,0.6087,0.7288],
+      "dAuc": [0.0071,-0.003,0.0184]
+     },
+     "edge": {
+      "n": 1417,
+      "photos": 31,
+      "filled": [0.4347,0.3716,0.489],
+      "byTop": {
+       "clean": {
+        "n": 548,
+        "share": 0.3867,
+        "filled": [0.5274,0.4306,0.6303]
+       },
+       "overshoot": {
+        "n": 626,
+        "share": 0.4418,
+        "filled": [0.3898,0.3294,0.4467]
+       },
+       "cut": {
+        "n": 204,
+        "share": 0.144,
+        "filled": [0.348,0.2793,0.4065]
+       },
+       "none": {
+        "n": 39,
+        "share": 0.0275,
+        "filled": [0.3077,0.1613,0.4194]
+       }
+      },
+      "aucStudent": [0.7081,0.6575,0.7505],
+      "aucGeometry": [0.7176,0.666,0.7574],
+      "dAuc": [0.0095,-0.0038,0.0236]
+     },
+     "topNotInView": {
+      "n": 2392,
+      "photos": 31,
+      "filled": [0.6735,0.6107,0.7252],
+      "byTop": {
+       "clean": {
+        "n": 1494,
+        "share": 0.6246,
+        "filled": [0.7095,0.6417,0.7698]
+       },
+       "overshoot": {
+        "n": 671,
+        "share": 0.2805,
+        "filled": [0.5782,0.5021,0.6505]
+       },
+       "cut": {
+        "n": 196,
+        "share": 0.0819,
+        "filled": [0.7857,0.6894,0.8513]
+       },
+       "none": {
+        "n": 31,
+        "share": 0.013,
+        "filled": [0.2903,0.1212,0.4375]
+       }
+      },
+      "aucStudent": [0.675,0.6148,0.7312],
+      "aucGeometry": [0.6924,0.6309,0.7511],
+      "dAuc": [0.0175,0.0066,0.0303]
+     },
+     "topInView": {
+      "n": 1086,
+      "photos": 29,
+      "filled": [0.4125,0.3435,0.4688],
+      "byTop": {
+       "clean": {
+        "n": 252,
+        "share": 0.232,
+        "filled": [0.381,0.2869,0.4785]
+       },
+       "overshoot": {
+        "n": 557,
+        "share": 0.5129,
+        "filled": [0.4488,0.3775,0.5104]
+       },
+       "cut": {
+        "n": 269,
+        "share": 0.2477,
+        "filled": [0.368,0.2735,0.4407]
+       },
+       "none": {
+        "n": 8,
+        "share": 0.0074,
+        "filled": [0.375,0,0.8333]
+       }
+      },
+      "aucStudent": [0.7248,0.6685,0.769],
+      "aucGeometry": [0.6978,0.6356,0.7511],
+      "dAuc": [-0.027,-0.0417,-0.0122]
+     },
+     "centreTopNotInView": {
+      "n": 1584,
+      "photos": 31,
+      "filled": [0.7468,0.6986,0.7941],
+      "byTop": {
+       "clean": {
+        "n": 1099,
+        "share": 0.6938,
+        "filled": [0.7407,0.6827,0.7979]
+       },
+       "overshoot": {
+        "n": 325,
+        "share": 0.2052,
+        "filled": [0.7385,0.6564,0.8103]
+       },
+       "cut": {
+        "n": 160,
+        "share": 0.101,
+        "filled": [0.8063,0.7167,0.8788]
+       },
+       "none": {
+        "n": 0,
+        "share": 0,
+        "filled": null
+       }
+      },
+      "aucStudent": [0.6425,0.5724,0.7154],
+      "aucGeometry": [0.6467,0.5784,0.7228],
+      "dAuc": [0.0043,-0.0055,0.016]
+     },
+     "centreTopInView": {
+      "n": 477,
+      "photos": 27,
+      "filled": [0.5451,0.4517,0.622],
+      "byTop": {
+       "clean": {
+        "n": 99,
+        "share": 0.2075,
+        "filled": [0.5354,0.4347,0.6338]
+       },
+       "overshoot": {
+        "n": 277,
+        "share": 0.5807,
+        "filled": [0.556,0.462,0.6319]
+       },
+       "cut": {
+        "n": 101,
+        "share": 0.2117,
+        "filled": [0.5248,0.3406,0.6667]
+       },
+       "none": {
+        "n": 0,
+        "share": 0,
+        "filled": null
+       }
+      },
+      "aucStudent": [0.6598,0.5719,0.7245],
+      "aucGeometry": [0.6413,0.5516,0.7128],
+      "dAuc": [-0.0186,-0.0377,0.0022]
+     },
+     "edgeTopNotInView": {
+      "n": 808,
+      "photos": 31,
+      "filled": [0.5297,0.4529,0.6019],
+      "byTop": {
+       "clean": {
+        "n": 395,
+        "share": 0.4889,
+        "filled": [0.6228,0.5126,0.7151]
+       },
+       "overshoot": {
+        "n": 346,
+        "share": 0.4282,
+        "filled": [0.4277,0.3631,0.4957]
+       },
+       "cut": {
+        "n": 36,
+        "share": 0.0446,
+        "filled": [0.6944,0.4825,0.8621]
+       },
+       "none": {
+        "n": 31,
+        "share": 0.0384,
+        "filled": [0.2903,0.125,0.4287]
+       }
+      },
+      "aucStudent": [0.6681,0.5944,0.7235],
+      "aucGeometry": [0.6984,0.6313,0.7453],
+      "dAuc": [0.0303,0.0132,0.0496]
+     },
+     "edgeTopInView": {
+      "n": 609,
+      "photos": 29,
+      "filled": [0.3087,0.2399,0.3698],
+      "byTop": {
+       "clean": {
+        "n": 153,
+        "share": 0.2512,
+        "filled": [0.281,0.189,0.3932]
+       },
+       "overshoot": {
+        "n": 280,
+        "share": 0.4598,
+        "filled": [0.3429,0.2489,0.429]
+       },
+       "cut": {
+        "n": 168,
+        "share": 0.2759,
+        "filled": [0.2738,0.1951,0.3293]
+       },
+       "none": {
+        "n": 8,
+        "share": 0.0131,
+        "filled": [0.375,0,0.8]
+       }
+      },
+      "aucStudent": [0.7413,0.6646,0.7942],
+      "aucGeometry": [0.7016,0.6271,0.7568],
+      "dAuc": [-0.0398,-0.0611,-0.0171]
+     }
+    },
+    "separation": {
+     "heightOffBand": {
+      "n": 3462,
+      "auc": [0.4705,0.439,0.5061]
+     },
+     "heightOffBandSigned": {
+      "n": 3462,
+      "auc": [0.5281,0.4995,0.5611]
+     },
+     "topSeamOff": {
+      "n": 3439,
+      "auc": [0.4031,0.3691,0.4353]
+     },
+     "topSeamSigned": {
+      "n": 3439,
+      "auc": [0.445,0.4149,0.4726]
+     },
+     "topY": {
+      "n": 3478,
+      "auc": [0.416,0.378,0.4522]
+     }
+    },
+    "topClassShareAllDetected": {
+     "clean": 0.4575,
+     "overshoot": 0.3707,
+     "cut": 0.156,
+     "none": 0.0158
+    }
+   },
+   "yardstick-library-b2": {
+    "breakdown": {
+     "all": {
+      "n": 757,
+      "photos": 40,
+      "filled": [0.8124,0.7682,0.856],
+      "byTop": {
+       "clean": {
+        "n": 376,
+        "share": 0.4967,
+        "filled": [0.8431,0.8075,0.8786]
+       },
+       "overshoot": {
+        "n": 259,
+        "share": 0.3421,
+        "filled": [0.7915,0.7173,0.8676]
+       },
+       "cut": {
+        "n": 120,
+        "share": 0.1585,
+        "filled": [0.7667,0.6311,0.8827]
+       },
+       "none": {
+        "n": 2,
+        "share": 0.0026,
+        "filled": [0.5,0,1]
+       }
+      },
+      "aucStudent": [0.7969,0.7358,0.8637],
+      "aucGeometry": [0.8075,0.7488,0.8677],
+      "dAuc": [0.0106,-0.0047,0.0234]
+     },
+     "centre": {
+      "n": 614,
+      "photos": 40,
+      "filled": [0.8599,0.8146,0.8993],
+      "byTop": {
+       "clean": {
+        "n": 300,
+        "share": 0.4886,
+        "filled": [0.8867,0.8482,0.9217]
+       },
+       "overshoot": {
+        "n": 216,
+        "share": 0.3518,
+        "filled": [0.8519,0.7882,0.9095]
+       },
+       "cut": {
+        "n": 98,
+        "share": 0.1596,
+        "filled": [0.7959,0.6696,0.9032]
+       },
+       "none": {
+        "n": 0,
+        "share": 0,
+        "filled": null
+       }
+      },
+      "aucStudent": [0.7716,0.6727,0.8592],
+      "aucGeometry": [0.7844,0.693,0.8638],
+      "dAuc": [0.0128,-0.005,0.031]
+     },
+     "edge": {
+      "n": 143,
+      "photos": 37,
+      "filled": [0.6084,0.5031,0.7252],
+      "byTop": {
+       "clean": {
+        "n": 76,
+        "share": 0.5315,
+        "filled": [0.6711,0.5735,0.7879]
+       },
+       "overshoot": {
+        "n": 43,
+        "share": 0.3007,
+        "filled": [0.4884,0.32,0.7273]
+       },
+       "cut": {
+        "n": 22,
+        "share": 0.1538,
+        "filled": [0.6364,0.4137,0.875]
+       },
+       "none": {
+        "n": 2,
+        "share": 0.014,
+        "filled": [0.5,0,1]
+       }
+      },
+      "aucStudent": [0.8071,0.7364,0.8958],
+      "aucGeometry": [0.8286,0.7559,0.9081],
+      "dAuc": [0.0216,-0.0096,0.0446]
+     },
+     "topNotInView": {
+      "n": 727,
+      "photos": 40,
+      "filled": [0.8281,0.7884,0.8623],
+      "byTop": {
+       "clean": {
+        "n": 368,
+        "share": 0.5062,
+        "filled": [0.8505,0.8187,0.8852]
+       },
+       "overshoot": {
+        "n": 243,
+        "share": 0.3343,
+        "filled": [0.8107,0.7297,0.8804]
+       },
+       "cut": {
+        "n": 114,
+        "share": 0.1568,
+        "filled": [0.7982,0.6806,0.9111]
+       },
+       "none": {
+        "n": 2,
+        "share": 0.0028,
+        "filled": [0.5,0,1]
+       }
+      },
+      "aucStudent": [0.7839,0.7077,0.8578],
+      "aucGeometry": [0.7961,0.7267,0.8671],
+      "dAuc": [0.0122,-0.0049,0.03]
+     },
+     "topInView": {
+      "n": 30,
+      "photos": 6,
+      "filled": [0.4333,0.2609,0.7778],
+      "byTop": {
+       "clean": {
+        "n": 8,
+        "share": 0.2667,
+        "filled": [0.5,0.125,0.8571]
+       },
+       "overshoot": {
+        "n": 16,
+        "share": 0.5333,
+        "filled": [0.5,0,0.75]
+       },
+       "cut": {
+        "n": 6,
+        "share": 0.2,
+        "filled": [0.1667,0,1]
+       },
+       "none": {
+        "n": 0,
+        "share": 0,
+        "filled": null
+       }
+      },
+      "aucStudent": [0.905,0.76,1],
+      "aucGeometry": [0.8869,0.625,1],
+      "dAuc": [-0.0181,-0.15,0.0231]
+     },
+     "centreTopNotInView": {
+      "n": 597,
+      "photos": 40,
+      "filled": [0.8677,0.8258,0.9052],
+      "byTop": {
+       "clean": {
+        "n": 297,
+        "share": 0.4975,
+        "filled": [0.8889,0.8468,0.926]
+       },
+       "overshoot": {
+        "n": 204,
+        "share": 0.3417,
+        "filled": [0.8627,0.7955,0.9212]
+       },
+       "cut": {
+        "n": 96,
+        "share": 0.1608,
+        "filled": [0.8125,0.6857,0.9176]
+       },
+       "none": {
+        "n": 0,
+        "share": 0,
+        "filled": null
+       }
+      },
+      "aucStudent": [0.751,0.6414,0.8517],
+      "aucGeometry": [0.7657,0.6643,0.8573],
+      "dAuc": [0.0147,-0.005,0.0352]
+     },
+     "centreTopInView": {
+      "n": 17,
+      "photos": 5,
+      "filled": [0.5882,0.4,1],
+      "byTop": {
+       "clean": {
+        "n": 3,
+        "share": 0.1765,
+        "filled": [0.6667,0,1]
+       },
+       "overshoot": {
+        "n": 12,
+        "share": 0.7059,
+        "filled": [0.6667,0.5556,1]
+       },
+       "cut": {
+        "n": 2,
+        "share": 0.1176,
+        "filled": [0,0,0]
+       },
+       "none": {
+        "n": 0,
+        "share": 0,
+        "filled": null
+       }
+      },
+      "aucStudent": [1,1,1],
+      "aucGeometry": [1,1,1],
+      "dAuc": [0,0,0]
+     },
+     "edgeTopNotInView": {
+      "n": 130,
+      "photos": 37,
+      "filled": [0.6462,0.5507,0.7315],
+      "byTop": {
+       "clean": {
+        "n": 71,
+        "share": 0.5462,
+        "filled": [0.6901,0.5873,0.7937]
+       },
+       "overshoot": {
+        "n": 39,
+        "share": 0.3,
+        "filled": [0.5385,0.3333,0.7827]
+       },
+       "cut": {
+        "n": 18,
+        "share": 0.1385,
+        "filled": [0.7222,0.5,0.926]
+       },
+       "none": {
+        "n": 2,
+        "share": 0.0154,
+        "filled": [0.5,0,1]
+       }
+      },
+      "aucStudent": [0.8155,0.7412,0.902],
+      "aucGeometry": [0.8385,0.7649,0.9118],
+      "dAuc": [0.023,-0.0108,0.0494]
+     },
+     "edgeTopInView": {
+      "n": 13,
+      "photos": 3,
+      "filled": [0.2308,0,0.6],
+      "byTop": {
+       "clean": {
+        "n": 5,
+        "share": 0.3846,
+        "filled": [0.4,0,0.6667]
+       },
+       "overshoot": {
+        "n": 4,
+        "share": 0.3077,
+        "filled": [0,0,0]
+       },
+       "cut": {
+        "n": 4,
+        "share": 0.3077,
+        "filled": [0.25,0,1]
+       },
+       "none": {
+        "n": 0,
+        "share": 0,
+        "filled": null
+       }
+      },
+      "aucStudent": [0.7,0.5,0.75],
+      "aucGeometry": [0.7,0.5,0.75],
+      "dAuc": [0,0,0]
+     }
+    },
+    "separation": {
+     "heightOffBand": {
+      "n": 754,
+      "auc": [0.3699,0.3081,0.4342]
+     },
+     "heightOffBandSigned": {
+      "n": 754,
+      "auc": [0.6302,0.5556,0.7198]
+     },
+     "topSeamOff": {
+      "n": 755,
+      "auc": [0.4474,0.4052,0.495]
+     },
+     "topSeamSigned": {
+      "n": 755,
+      "auc": [0.4838,0.4152,0.5596]
+     },
+     "topY": {
+      "n": 757,
+      "auc": [0.4052,0.3184,0.5017]
+     }
+    },
+    "topClassShareAllDetected": {
+     "clean": 0.5116,
+     "overshoot": 0.3247,
+     "cut": 0.159,
+     "none": 0.0048
+    }
+   }
+  }
+ },
+ "vsQ2": {
+  "q2": {
+   "detected": 6894,
+   "population": 3958,
+   "filled": [0.6026,0.5487,0.6511],
+   "tau": 0.71,
+   "auc": [0.7291,0.6917,0.7615],
+   "gain": [0.2764,0.2119,0.3359],
+   "gainOverOracleWidth": [0.2045,0.1588,0.248],
+   "inSample": [0.7329,0.6982,0.7659],
+   "vsSpineFound": [0.8635,0.8419,0.8839],
+   "vsTextPresent": [0.6335,0.5971,0.6735],
+   "ece": [0.0277,0.0217,0.054],
+   "brier": [0.1988,0.1871,0.2112],
+   "yardAuc": [0.8031,0.7469,0.8689],
+   "yardEce": [0.281,0.2361,0.3235],
+   "fillP": 0.7,
+   "fillTargetMet": false,
+   "bestPrecision": 0.8249,
+   "fillPrecision": [0.7773,0.7316,0.8193],
+   "fillShare": [0.3936,0.3258,0.4514],
+   "fillRecall": [0.5078,0.4514,0.5546],
+   "cutShare": 0.3752,
+   "partialShare": 0.1564,
+   "wholeShare": 0.4684,
+   "cutPerPhotoMedian": 0.2887,
+   "wholeOnly": {
+    "n": 1854,
+    "auc": [0.7234,0.6768,0.7654],
+    "gain": [0.1873,0.1218,0.2477],
+    "go": false
+   },
+   "go": false
+  },
+  "q2b": {
+   "detected": 5757,
+   "population": 3478,
+   "filled": [0.592,0.5361,0.6421],
+   "tau": 0.73,
+   "auc": [0.7097,0.6606,0.7527],
+   "gain": [0.3051,0.2321,0.3767],
+   "gainOverOracleWidth": [0.1912,0.127,0.2381],
+   "inSample": [0.7152,0.6686,0.7538],
+   "vsSpineFound": [0.8721,0.8454,0.8965],
+   "vsTextPresent": [0.6099,0.558,0.6583],
+   "ece": [0.0375,0.0311,0.0673],
+   "brier": [0.2062,0.1921,0.2238],
+   "yardAuc": [0.7969,0.7323,0.8613],
+   "yardEce": [0.294,0.2519,0.3377],
+   "fillP": 0.7,
+   "fillTargetMet": false,
+   "bestPrecision": 0.7564,
+   "fillPrecision": [0.7535,0.68,0.8103],
+   "fillShare": [0.3511,0.2882,0.4084],
+   "fillRecall": [0.4468,0.3936,0.493],
+   "cutShare": 0.0213,
+   "partialShare": 0.2076,
+   "wholeShare": 0.7711,
+   "cutPerPhotoMedian": 0.0351,
+   "wholeOnly": {
+    "n": 2682,
+    "auc": [0.6853,0.6306,0.7356],
+    "gain": [0.3381,0.2663,0.4002],
+    "go": false
+   },
+   "go": false
+  },
+  "wholeAndAllAgree": true
+ },
+ "outlinesForU4": {
+  "run": {
+   "model": "F-0i's exclusive outlines (partition, #51), cut from the SAM 2.1 box-prompted outlines",
+   "boxCount": 5757,
+   "errors": 0,
+   "secondsP50": null
+  },
+  "rule": "drawn from its outline when at least 50 % of the mask lies inside the box (grown 3 % along, 8 % across) and covers at least 60 % of it",
+  "shaped": 0.7921,
+  "maskMostlyOutsideBox": 0.0019,
+  "maskUnderCover": 0.206,
+  "boxShapeByKind": {
+   "whole": 0.2043,
+   "partial": 0.2107,
+   "cut": 0.2432
+  },
+  "before": {
+   "source": "f0b",
+   "spineCount": 6145,
+   "maskShapedPct": 69,
+   "maskShareP50": 0.76,
+   "filledPct": 48.2,
+   "rungsPct": {
+    "spine-found": 30.1,
+    "confirmed": 11.1,
+    "text-read": 22.1,
+    "matched": 15,
+    "text-present": 21.8
+   },
+   "proxies": [
+    {
+     "variant": "dev-boxes",
+     "source": "quad, 0 smoothing passes",
+     "jaggedness": 0,
+     "wobble": 1,
+     "areaCv": 0.018
+    },
+    {
+     "variant": "dev-quiet",
+     "source": "quad, 0 smoothing passes",
+     "jaggedness": 0,
+     "wobble": 1,
+     "areaCv": 0.018
+    },
+    {
+     "variant": "labelling-hairline",
+     "source": "quad, 0 smoothing passes",
+     "jaggedness": 0,
+     "wobble": 1,
+     "areaCv": 0.018
+    },
+    {
+     "variant": "user-glow",
+     "source": "mask hull, 2 smoothing passes",
+     "jaggedness": 0,
+     "wobble": 0.752,
+     "areaCv": 0.018
+    },
+    {
+     "variant": "user-glow-volume",
+     "source": "mask hull, 2 smoothing passes",
+     "jaggedness": 0,
+     "wobble": 0.752,
+     "areaCv": 0.018
+    },
+    {
+     "variant": "user-veil",
+     "source": "mask hull, 3 smoothing passes",
+     "jaggedness": 0,
+     "wobble": 0.743,
+     "areaCv": 0.018
+    },
+    {
+     "variant": "user-ridge",
+     "source": "mask, 1 smoothing pass",
+     "jaggedness": 0.051,
+     "wobble": 0.791,
+     "areaCv": 0.019
+    }
+   ]
+  },
+  "after": {
+   "source": "q2b",
+   "spineCount": 5757,
+   "maskShapedPct": 79.2,
+   "maskShareP50": 0.81,
+   "filledPct": 51,
+   "rungsPct": {
+    "spine-found": 21.5,
+    "text-present": 27.5,
+    "confirmed": 12.6,
+    "matched": 15.2,
+    "text-read": 23.2
+   },
+   "proxies": [
+    {
+     "variant": "dev-boxes",
+     "source": "quad, 0 smoothing passes",
+     "jaggedness": 0,
+     "wobble": 1,
+     "areaCv": 0.018
+    },
+    {
+     "variant": "dev-quiet",
+     "source": "quad, 0 smoothing passes",
+     "jaggedness": 0,
+     "wobble": 1,
+     "areaCv": 0.018
+    },
+    {
+     "variant": "labelling-hairline",
+     "source": "quad, 0 smoothing passes",
+     "jaggedness": 0,
+     "wobble": 1,
+     "areaCv": 0.018
+    },
+    {
+     "variant": "user-glow",
+     "source": "mask hull, 2 smoothing passes",
+     "jaggedness": 0,
+     "wobble": 0.752,
+     "areaCv": 0.016
+    },
+    {
+     "variant": "user-glow-volume",
+     "source": "mask hull, 2 smoothing passes",
+     "jaggedness": 0,
+     "wobble": 0.752,
+     "areaCv": 0.016
+    },
+    {
+     "variant": "user-veil",
+     "source": "mask hull, 3 smoothing passes",
+     "jaggedness": 0,
+     "wobble": 0.744,
+     "areaCv": 0.016
+    },
+    {
+     "variant": "user-ridge",
+     "source": "mask, 1 smoothing pass",
+     "jaggedness": 0.083,
+     "wobble": 0.791,
+     "areaCv": 0.005
+    }
+   ]
+  }
+ },
+ "notPreRegistered": {
+  "tauHeldAtQ2": {
+   "detected": 5757,
+   "population": 3478,
+   "filled": [0.6044,0.5491,0.6544],
+   "tau": 0.71,
+   "auc": [0.7158,0.671,0.7563],
+   "gain": [0.3097,0.2367,0.379],
+   "gainOverOracleWidth": [0.1969,0.135,0.2421],
+   "inSample": [0.721,0.6778,0.7584],
+   "vsSpineFound": [0.8716,0.8456,0.8956],
+   "vsTextPresent": [0.6151,0.5679,0.6604],
+   "ece": [0.0316,0.0256,0.059],
+   "brier": [0.2024,0.1885,0.219],
+   "yardAuc": [0.8104,0.7545,0.8718],
+   "yardEce": [0.2918,0.2496,0.3331],
+   "fillP": 0.7,
+   "fillTargetMet": false,
+   "bestPrecision": 0.7852,
+   "fillPrecision": [0.7686,0.7016,0.8225],
+   "fillShare": [0.3913,0.3289,0.4491],
+   "fillRecall": [0.4976,0.4462,0.5441],
+   "cutShare": 0.0213,
+   "partialShare": 0.2076,
+   "wholeShare": 0.7711,
+   "cutPerPhotoMedian": 0.0351,
+   "wholeOnly": {
+    "n": 2682,
+    "auc": [0.6926,0.6424,0.7393],
+    "gain": [0.3469,0.2771,0.4072],
+    "go": false
+   },
+   "go": false
+  }
+ },
+  "rebaseline": {
+    "run": "RB1",
+    "date": "2026-11-04",
+    "base": "116f4e9",
+    "figures": [
+      {
+        "set": "pilot-000",
+        "figure": "detected boxes",
+        "before": "6121",
+        "after": "5757"
+      },
+      {
+        "set": "pilot-000",
+        "figure": "student population",
+        "before": "3555",
+        "after": "3478"
+      },
+      {
+        "set": "pilot-000",
+        "figure": "τ",
+        "before": "0.72",
+        "after": "0.73"
+      },
+      {
+        "set": "pilot-000",
+        "figure": "filled share of the population (%)",
+        "before": "59.6 (54.1 to 64.7)",
+        "after": "59.2 (53.6 to 64.2)"
+      },
+      {
+        "set": "pilot-000",
+        "figure": "**student AUC** (leave one photo out)",
+        "before": "0.711 (0.664 to 0.754)",
+        "after": "0.710 (0.661 to 0.753)"
+      },
+      {
+        "set": "pilot-000",
+        "figure": "gain over crop width",
+        "before": "0.297 (0.225 to 0.368)",
+        "after": "0.305 (0.232 to 0.377)"
+      },
+      {
+        "set": "pilot-000",
+        "figure": "whole only: student AUC",
+        "before": "0.688 (0.640 to 0.734)",
+        "after": "0.687 (0.638 to 0.735)"
+      },
+      {
+        "set": "pilot-000",
+        "figure": "precision of \"filled\" at FILL_P (%)",
+        "before": "75.9 (68.8 to 81.5)",
+        "after": "75.4 (68.0 to 81.0)"
+      },
+      {
+        "set": "pilot-000",
+        "figure": "U-4 boxes drawn from their own outline (%)",
+        "before": "83.2",
+        "after": "79.2"
+      },
+      {
+        "set": "pilot-000",
+        "figure": "U-4 filled spines (%)",
+        "before": "50.2",
+        "after": "51.0"
+      },
+      {
+        "set": "yardstick",
+        "figure": "detected boxes",
+        "before": "1116",
+        "after": "1038"
+      },
+      {
+        "set": "yardstick",
+        "figure": "student population",
+        "before": "793",
+        "after": "757"
+      },
+      {
+        "set": "yardstick",
+        "figure": "student AUC (one pilot fit)",
+        "before": "0.802 (0.746 to 0.870)",
+        "after": "0.797 (0.732 to 0.861)"
+      },
+      {
+        "set": "yardstick",
+        "figure": "precision of \"filled\" at FILL_P (%)",
+        "before": "93.3 (88.7 to 98.0)",
+        "after": "91.8 (86.4 to 97.7)"
+      }
+    ],
+    "verdicts": [
+      {
+        "label": "Q-2's go rule (GO)",
+        "before": false,
+        "after": false,
+        "flips": false
+      }
+    ]
+  }
+}

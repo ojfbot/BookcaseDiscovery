@@ -1,0 +1,195 @@
+{
+ "card": "DL-5",
+ "date": "2026-11-05",
+ "scope": "counts only; pilot-000 is real use (machine labels, INV-17); the yardstick is PROXY (library shelves), evaluation only (OC35)",
+ "prereg": "none: nothing is decided by a keep rule (see report.md)",
+ "roles": {
+  "trainable": ["training-source"],
+  "setsByRole": {
+   "training-source": 1,
+   "yardstick": 12,
+   "proxy": 2,
+   "audit": 0,
+   "held-out": 1
+  },
+  "registered": 16
+ },
+ "leakage": {
+  "version": "v-4e0ec70a69de",
+  "sets": ["pilot-000"],
+  "manifest": {
+   "photos": 31,
+   "bySplit": {
+    "train": 24,
+    "val": 7,
+    "held-out": 0
+   },
+   "captureGroups": 6,
+   "withStore": 0,
+   "withBookcase": 0
+  },
+  "labels": 824,
+  "photos": {
+   "train": 23,
+   "val": 6
+  },
+  "works": {
+   "all": 556,
+   "trainOnly": 423,
+   "valOnly": 132,
+   "heldOutOnly": 0,
+   "inBoth": 1
+  },
+  "labelsOnWorksInBoth": {
+   "train": 1,
+   "val": 2
+  },
+  "ts2": {
+   "trainWorks": 256,
+   "valLabels": 157,
+   "valLabelsOnTrainWorks": 2,
+   "valWorksInTrain": 1
+  },
+  "copies": {
+   "groups": 154,
+   "groupsSpanningPhotos": 0,
+   "groupsStraddlingSplit": 0,
+   "copiesInBothAtMost": 1
+  }
+ },
+ "yardstickReuse": {
+  "cards": 42,
+  "byUse": {
+   "gated": 23,
+   "read": 13,
+   "not read": 6
+  },
+  "gatedVia": {
+   "boolean metric": 14,
+   "keep paragraph": 8,
+   "by reading": 1
+  },
+  "byCard": {
+   "C3-catalog-retrieval": "not read",
+   "C4": "not read",
+   "C5": "gated (keep paragraph)",
+   "C6": "gated (boolean metric)",
+   "C7": "gated (boolean metric)",
+   "C8": "gated (keep paragraph)",
+   "C9": "gated (boolean metric)",
+   "F0": "gated (by reading)",
+   "F0b": "gated (boolean metric)",
+   "F0c": "gated (boolean metric)",
+   "F0d": "gated (boolean metric)",
+   "F0e": "read",
+   "F0f": "gated (boolean metric)",
+   "F0g": "gated (boolean metric)",
+   "F0g2": "gated (keep paragraph)",
+   "F0h": "gated (boolean metric)",
+   "F0i": "gated (boolean metric)",
+   "F0j": "gated (boolean metric)",
+   "F0k": "gated (keep paragraph)",
+   "F0m": "gated (boolean metric)",
+   "FR1": "read",
+   "FR2": "read",
+   "FR3": "not read",
+   "H1": "not read",
+   "H2": "gated (boolean metric)",
+   "KN1": "read",
+   "KN2": "gated (keep paragraph)",
+   "KN3": "not read",
+   "MM1": "read",
+   "MM2": "gated (keep paragraph)",
+   "NB3": "read",
+   "Q1": "read",
+   "Q2": "read",
+   "Q2b": "read",
+   "Q3": "read",
+   "RB1": "read",
+   "S1": "gated (boolean metric)",
+   "S2": "read",
+   "SC1": "gated (keep paragraph)",
+   "TS0": "not read",
+   "TS1": "read",
+   "TS2": "gated (keep paragraph)"
+  },
+  "byReading": {
+   "F0": "the box arms B1 to B4 were compared on the yardstick's title score and B2 kept as the default"
+  }
+ },
+ "yardstickParts": {
+  "annotatedImages": 388,
+  "step": 9,
+  "sample": {
+   "images": 40,
+   "annotatedBooks": 718,
+   "stageCaches": 7,
+   "stageCachesExactlyTheSample": 6,
+   "cardsReading": 36
+  },
+  "smokeStride": {
+   "images": 44,
+   "readByCards": "F-0 only, while the pipeline was built (src/eval/f0-cli.ts)"
+  },
+  "cachedOutsideSample": {
+   "images": 3,
+   "inSmokeStride": 1
+  },
+  "untouched": {
+   "images": 302,
+   "annotatedBooks": 5632,
+   "distinctBooks": 4931,
+   "distinctBooksAlsoInSample": 11,
+   "cardsReading": 0
+  },
+  "sampleDistinctBooks": 654,
+  "zhongYang": {
+   "filesAtDataRoot": 0,
+   "cardsReading": 0
+  }
+ },
+ "quarantine": {
+  "yardstickNow": {
+   "photos": 40,
+   "boxCount": 1040,
+   "labels": 266,
+   "wrong": 22,
+   "lo": 0.037,
+   "hi": 0.142
+  },
+  "slices": [
+   {
+    "images": 40,
+    "boxCount": 1040,
+    "labels": 266,
+    "wrongAccepts": 22,
+    "wrongShareHalfWidth": 0.0525,
+    "zeroNewWrongUpper": 0.0029
+   },
+   {
+    "images": 100,
+    "boxCount": 2600,
+    "labels": 665,
+    "wrongAccepts": 55,
+    "wrongShareHalfWidth": 0.0332,
+    "zeroNewWrongUpper": 0.0012
+   },
+   {
+    "images": 150,
+    "boxCount": 3900,
+    "labels": 998,
+    "wrongAccepts": 83,
+    "wrongShareHalfWidth": 0.0271,
+    "zeroNewWrongUpper": 0.0008
+   },
+   {
+    "images": 302,
+    "boxCount": 7852,
+    "labels": 2008,
+    "wrongAccepts": 166,
+    "wrongShareHalfWidth": 0.0191,
+    "zeroNewWrongUpper": 0.0004
+   }
+  ]
+ }
+}

@@ -33,6 +33,7 @@ import {
   auc,
 } from "./q1.ts";
 import type { Outcome, Row } from "./q1.ts";
+import { assertTrainable } from "./set-roles.ts";
 
 const REPO = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
 const HELPER = join(REPO, "helpers", "coverage");
@@ -49,8 +50,8 @@ const r4 = (x: number) => Math.round(x * 10000) / 10000;
 const readJsonl = <T>(p: string): T[] => readFileSync(p, "utf8").split("\n").filter((l) => l.trim()).map((l) => JSON.parse(l) as T);
 
 interface Detection { id: string; width: number; height: number; spines: unknown[] }
-interface Decision { id: string; imageId: string; accepted: { workId: string } | null; reason: string | null }
-interface Reading { id: string; variants: { text: string; confidence: number }[] }
+export interface Decision { id: string; imageId: string; accepted: { workId: string } | null; reason: string | null }
+export interface Reading { id: string; variants: { text: string; confidence: number }[] }
 
 // --- features ------------------------------------------------------------------------------------------
 
@@ -159,12 +160,19 @@ const FEATURES = Object.values(FAMILIES).flat();
 const MODEL = ["shortPx", "lapVar", "rmsContrast", "highlightFrac", "radial"];
 const LOGGED = new Set(["shortPx", "lapVar"]);
 
-type Raw = Record<string, unknown> & { id: string; imageId: string; image: Record<string, number> };
+export type Raw = Record<string, unknown> & { id: string; imageId: string; image: Record<string, number> };
 
 function rowsFor(set: string, truth: Map<string, Set<string>> | null): Row[] {
-  const feats = readJsonl<Raw>(join(PRIV, "features", `${set}.jsonl`));
-  const dec = new Map(readJsonl<Decision>(join(ROOT, "f0", set, "decisions.jsonl")).map((d) => [d.id, d]));
-  const pp = new Map(readJsonl<Reading>(join(ROOT, "f0", set, "ppocr.jsonl")).map((r) => [r.id, r]));
+  return rowsFrom(
+    readJsonl<Raw>(join(PRIV, "features", `${set}.jsonl`)),
+    new Map(readJsonl<Decision>(join(ROOT, "f0", set, "decisions.jsonl")).map((d) => [d.id, d])),
+    new Map(readJsonl<Reading>(join(ROOT, "f0", set, "ppocr.jsonl")).map((r) => [r.id, r])),
+    truth,
+  );
+}
+
+/** Q-1's per-box rows from features.py output, F-0-shaped decisions and PP-OCR readings (Q-2b reuses it on other boxes). */
+export function rowsFrom(feats: Raw[], dec: Map<string, Decision>, pp: Map<string, Reading>, truth: Map<string, Set<string>> | null): Row[] {
   const num = (v: unknown): number | null => (typeof v === "number" && Number.isFinite(v) ? v : typeof v === "boolean" ? Number(v) : null);
   // Each photo's median spine lapVar, so lapVarRel says "crisper or softer than the rest of this photo".
   const medLap = new Map<string, number>();
@@ -173,7 +181,7 @@ function rowsFor(set: string, truth: Map<string, Set<string>> | null): Row[] {
   }
   return feats.map((x) => {
     const d = dec.get(x.id);
-    if (!d) throw new Error(`no decision for a detected spine in ${set}`);
+    if (!d) throw new Error("no decision for a detected spine");
     const p = pp.get(x.id);
     const conf = p ? Math.max(0, ...p.variants.filter((v) => v.text.trim()).map((v) => v.confidence)) : null;
     const f: Record<string, number | null> = {};
@@ -223,6 +231,7 @@ const complete = (r: Row) => MODEL.every((f) => r.f[f] !== null && Number.isFini
 
 /** Logistic regression and depth-3 tree, confirmed (1) vs no-text (0), fit on two thirds of pilot-000's photos. */
 function models(pilot: Row[], others: Record<string, Row[]>) {
+  assertTrainable(PILOT, "Q-1");
   const use = pilot.filter((r) => (isConf(r.outcome) || isNoText(r.outcome)) && complete(r));
   const { train, test } = splitByImage(use, 3);
   const y = (rs: Row[]) => rs.map((r) => (isConf(r.outcome) ? 1 : 0));

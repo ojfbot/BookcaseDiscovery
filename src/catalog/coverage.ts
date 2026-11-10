@@ -8,18 +8,19 @@
 // reader's text (`RESOLVE`). The resolved record's ISBNs, then its clean title and author, are looked up
 // in ISFDB. This adapts docs/catalog/backend-options.md §5, which assumed labelled spines.
 //
-// Live calls are rate-limited and every response is cached under the data root's `catalog/coverage/`, so
-// a rerun makes no calls. Everything per box (reader text, queries, records) is private; only the
+// Live calls go through C-10's lookup cache (`lookup.ts`): rate-limited, budgeted, cached under the data root's
+// `catalog/coverage/v2/` on a normalized key, and tried only after the cache, known and local tiers (`resolveBox`),
+// so a rerun makes no calls. Everything per box (reader text, queries, records) is private; only the
 // aggregates from `estimateCoverage` leave through the CLI. Method and results: evals/C4/report.md.
-import { createHash } from "node:crypto";
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
-import { join } from "node:path";
 import type { DatabaseSync } from "node:sqlite";
-import type { ReaderName, Reading, SpineDecision } from "../eval/f0.ts";
-import { quantile, rng } from "../eval/q1.ts";
+import type { ReaderName, Reading, UnknownReason } from "../shared/readings.ts";
+import { quantile, rng } from "../shared/stats.ts";
 import { toIsbn13 } from "./isbn.ts";
 import { confusableReadings, editDistance, normalize, skeleton, splitSubtitle, STOPWORDS, surnameFirstToGivenFirst, tokenize, tokensWithInitials } from "./normalize.ts";
-import { retrieve } from "./retrieve.ts";
+import { LookupCache, type Answer, type From, type KnownIndex, type LookupOptions, type Source } from "./lookup.ts";
+import { retrieve, type Candidate } from "./retrieve.ts";
+
+export { SPACING_MS, USER_AGENT, type FetchLike, type Source } from "./lookup.ts";
 
 // ---------------------------------------------------------------------------------------------
 // Pre-registered constants (evals/C4/report.md § Method). Changing one after the full run is a new run.
@@ -77,7 +78,14 @@ export const SF_SUBJECT =
 // Sample
 // ---------------------------------------------------------------------------------------------
 
-export function stratumOf(d: Pick<SpineDecision, "accepted" | "reason">): Stratum | null {
+/** What the sample needs of F-0's decision for a box (a `SpineDecision` satisfies it; catalog never imports identify). */
+export interface DecidedSpine {
+  id: string;
+  accepted: Candidate | null;
+  reason: UnknownReason | null;
+}
+
+export function stratumOf(d: Pick<DecidedSpine, "accepted" | "reason">): Stratum | null {
   if (d.accepted) return "confirmed";
   if (d.reason === null || d.reason === "no-text") return null;
   return d.reason;
@@ -94,7 +102,7 @@ export interface SampledBox {
  * the seed and the set of boxes only, never on file order.
  */
 export function drawSample(
-  decisions: Pick<SpineDecision, "id" | "accepted" | "reason">[],
+  decisions: DecidedSpine[],
   seed = SEED,
   sizes: Record<Stratum, number> = SAMPLE,
   tuning = TUNING_CONFIRMED,
@@ -157,8 +165,6 @@ export function keywordTokens(text: string): string[] {
   const toks = tokenize(normalize(text)).filter((t) => t.length >= 3 && /\p{L}/u.test(t) && !STOPWORDS.has(t));
   return [...new Set(toks)].slice(0, LIMITS.keywordTokens);
 }
-
-export type Source = "openlibrary" | "loc";
 
 export interface LiveQuery {
   source: Source;
@@ -223,12 +229,54 @@ export function cleanQuery(source: Source, title: string, author: string): strin
   return source === "openlibrary" ? olUrl({ title: t, author: a }) : locUrl(`dc.title="${t}" and dc.creator="${a}"`);
 }
 
+/** How a query combines its tokens: Open Library `title=`/`author=` or LoC `dc.title`/`dc.creator`; all of them; any of them. */
+export type Shape = "fielded" | "and" | "or";
+
+const keyTokens = (s: string) => [...new Set(tokenize(normalize(s)).filter((t) => t.length >= 3 && /\p{L}/u.test(t) && !STOPWORDS.has(t)))].sort();
+
+/** A query's shape and normalized parts, read back from its URL (the inverse of `liveQueries`' builders). */
+export function queryParts(source: Source, url: string): { shape: Shape; title: string[]; author: string } {
+  const p = new URL(url).searchParams;
+  const author = (a: string) => surnameOf(a) ?? keyTokens(a).join(" ");
+  if (source === "openlibrary") {
+    if (p.has("title")) return { shape: "fielded", title: keyTokens(p.get("title") ?? ""), author: author(p.get("author") ?? "") };
+    const q = p.get("q") ?? "";
+    return q.includes(" OR ") ? { shape: "or", title: keyTokens(q.split(" OR ").join(" ")), author: "" } : { shape: "and", title: keyTokens(q), author: "" };
+  }
+  const cql = p.get("query") ?? "";
+  const f = cql.match(/^dc\.title="([^"]*)" and dc\.creator="([^"]*)"$/);
+  if (f) return { shape: "fielded", title: keyTokens(f[1]!), author: author(f[2]!) };
+  return cql.includes(" or ") ? { shape: "or", title: keyTokens(cql.split(" or ").join(" ")), author: "" } : { shape: "and", title: keyTokens(cql), author: "" };
+}
+
+/**
+ * The cache key of a query (C-10): source, shape, its keyword tokens de-duplicated and sorted, and for a
+ * fielded query the author's surname. Token order, repeated tokens and author spellings that share a surname
+ * give one key, so reader variants of one spine share a cache entry.
+ */
+export function queryKey(source: Source, url: string): string {
+  const k = queryParts(source, url);
+  // A query with no keyword token at all (none is built today) keeps its own entry rather than share an empty key.
+  if (k.title.length === 0 && k.author === "") return `${source}|url|${url}`;
+  return `${source}|${k.shape}|${k.title.join(" ")}|${k.author}`;
+}
+
+export function parseRecords(source: Source, body: string): OutsideRecord[] {
+  return source === "openlibrary" ? parseOpenLibrary(body) : parseMods(body);
+}
+
+/** C-10's lookup cache with C-4's query key and parsers. `root` is the data root's `catalog/coverage/`. */
+export function openLookup(root: string, opts: Omit<LookupOptions, "keyOf" | "recordIds"> = {}): LookupCache {
+  return new LookupCache(root, { ...opts, keyOf: queryKey, recordIds: (source, body) => parseRecords(source, body).map((r) => r.id) });
+}
+
 // ---------------------------------------------------------------------------------------------
 // Records
 // ---------------------------------------------------------------------------------------------
 
 export interface OutsideRecord {
-  source: Source;
+  /** `isfdb`: a work of the local ISFDB catalog, proposed by the local tier (C-10). */
+  source: Source | "isfdb";
   id: string;
   title: string;
   subtitle: string | null;
@@ -365,7 +413,8 @@ export function resolves(rec: OutsideRecord, texts: ReaderText[]): boolean {
 
 export interface IsfdbHit {
   workId: string;
-  how: "isbn" | "title-author";
+  /** `local`: the resolving record is itself an ISFDB work (C-10's local tier). */
+  how: "isbn" | "title-author" | "local";
 }
 
 const noArticle = (t: string) => t.replace(/^(the|a|an) /, "");
@@ -409,159 +458,140 @@ export function genreOf(rec: OutsideRecord): Genre {
 }
 
 // ---------------------------------------------------------------------------------------------
-// Live calls: rate-limited, cached
-// ---------------------------------------------------------------------------------------------
-
-/** Identifies the app; no email address (card brief), so Open Library's 1 request/s unidentified rate applies. */
-export const USER_AGENT = "BookcaseDiscovery/0.0 (catalog coverage measurement, card C-4; +https://github.com/ojfbot/BookcaseDiscovery)";
-/** Minimum spacing between calls: Open Library at most 1/s, LoC at most 10/min, each with a margin. */
-export const SPACING_MS: Record<Source, number> = { openlibrary: 1100, loc: 6500 };
-
-export type FetchLike = (url: string, init: { headers: Record<string, string> }) => Promise<{ status: number; text(): Promise<string> }>;
-
-export interface LiveOptions {
-  fetch?: FetchLike;
-  /** Refuse to call out: a cache miss is an error (a rerun must make no calls). */
-  offline?: boolean;
-  sleep?: (ms: number) => Promise<void>;
-  now?: () => number;
-}
-
-export class LiveCache {
-  calls: Record<Source, number> = { openlibrary: 0, loc: 0 };
-  hits: Record<Source, number> = { openlibrary: 0, loc: 0 };
-  errors: Record<Source, number> = { openlibrary: 0, loc: 0 };
-  private last: Record<Source, number> = { openlibrary: -Infinity, loc: -Infinity };
-  private readonly fetchImpl: FetchLike;
-  private readonly sleep: (ms: number) => Promise<void>;
-  private readonly now: () => number;
-  readonly dir: string;
-  private readonly opts: LiveOptions;
-
-  constructor(dir: string, opts: LiveOptions = {}) {
-    this.dir = dir;
-    this.opts = opts;
-    this.fetchImpl = opts.fetch ?? ((url, init) => fetch(url, init));
-    this.sleep = opts.sleep ?? ((ms) => new Promise((r) => setTimeout(r, ms)));
-    this.now = opts.now ?? (() => Date.now());
-  }
-
-  path(source: Source, url: string): string {
-    return join(this.dir, source, `${createHash("sha256").update(url).digest("hex")}.json`);
-  }
-
-  /**
-   * The response body, from the cache or the source. Null when the source failed three times: an HTTP
-   * error on every try is cached as a failure (some queries make Open Library answer 500 every time, and
-   * a rerun must see the same thing); a network error is not cached.
-   */
-  async get(source: Source, url: string): Promise<string | null> {
-    const p = this.path(source, url);
-    if (existsSync(p)) {
-      this.hits[source]++;
-      const c = JSON.parse(readFileSync(p, "utf8")) as { body: string | null };
-      if (c.body === null) this.errors[source]++;
-      return c.body;
-    }
-    if (this.opts.offline) throw new Error(`offline: no cached ${source} response for a query (cache key ${p.slice(-69, -5)})`);
-    let status: number | null = null;
-    for (let attempt = 1; attempt <= 3; attempt++) {
-      status = null;
-      const wait = this.last[source] + SPACING_MS[source] - this.now();
-      if (wait > 0) await this.sleep(wait);
-      this.last[source] = this.now();
-      this.calls[source]++;
-      try {
-        const res = await this.fetchImpl(url, { headers: { "User-Agent": USER_AGENT, Accept: source === "loc" ? "application/xml" : "application/json" } });
-        status = res.status;
-        if (res.status === 200) {
-          const body = await res.text();
-          mkdirSync(join(this.dir, source), { recursive: true });
-          writeFileSync(p, JSON.stringify({ url, status: 200, fetchedAt: new Date(this.now()).toISOString(), body }));
-          return body;
-        }
-        if (res.status !== 429 && res.status < 500) break;
-      } catch {
-        // network error: retry
-      }
-      await this.sleep(attempt * (source === "loc" ? 30000 : 10000));
-    }
-    this.errors[source]++;
-    if (status !== null) {
-      mkdirSync(join(this.dir, source), { recursive: true });
-      writeFileSync(p, JSON.stringify({ url, status, fetchedAt: new Date(this.now()).toISOString(), body: null }));
-    }
-    return null;
-  }
-}
-
-// ---------------------------------------------------------------------------------------------
-// One box
+// One box: tiers (C-10)
 // ---------------------------------------------------------------------------------------------
 
 export type BoxClass = "in-isfdb" | "not-in-isfdb" | "unresolved";
+
+/**
+ * Which tier answered a box: a fresh cached response (`cache`, or `stale` when no call could be made), a record
+ * already resolved for its copy group or work (`known`), a local catalog's work (`local-isfdb`,
+ * `local-openlibrary`), or a live call (`live`).
+ */
+export type Tier = "cache" | "stale" | "known" | "local-isfdb" | "local-openlibrary" | "live";
+
+/** The local tier (`lookup-local.ts`): catalog works tried as records under the same resolution rule. */
+export interface LocalTier {
+  resolve(texts: ReaderText[]): { tier: "local-isfdb" | "local-openlibrary"; record: OutsideRecord } | null;
+  /** Does a local Open Library work hold this record's book (the clean-label union check)? */
+  inOpenLibrary(record: OutsideRecord): boolean;
+}
+
+export interface TierContext {
+  local?: LocalTier | null;
+  known?: KnownIndex<OutsideRecord> | null;
+  /** The box's copy group key (`copyKey`), when F-0g put it in one. */
+  copy?: string | null;
+}
 
 export interface BoxResult {
   id: string;
   stratum: Stratum;
   role: SampledBox["role"];
   cls: BoxClass;
-  resolvedBy: Source | null;
+  resolvedBy: OutsideRecord["source"] | null;
+  /** Which tier answered (null: unresolved). */
+  tier: Tier | null;
+  /** No live call was made for this box although one was needed: its copy or work was resolved (`known`), or the budget was spent (`budget`). */
+  skipped: "known" | "budget" | null;
+  /** Queries with no fresh cache entry: the box needed the tiers past the cache. */
+  pending: number;
   /** The resolving record (private table only). */
   record: OutsideRecord | null;
   isfdb: IsfdbHit | null;
   /** Does Open Library hold the resolved book (it resolved it, or a clean title+author query finds it)? */
   inOpenLibrary: boolean;
   genre: Genre | null;
-  queries: { source: Source; kind: LiveQuery["kind"]; url: string; records: number }[];
+  queries: { source: Source; kind: LiveQuery["kind"]; url: string; key: string; from: From; records: number }[];
   /** For confirmed boxes: F-0's accepted work, and whether the ISFDB check found the same one. */
   f0WorkId: string | null;
   agreesWithF0: boolean | null;
 }
 
-async function firstResolving(live: LiveCache, queries: LiveQuery[], texts: ReaderText[], log: BoxResult["queries"]): Promise<OutsideRecord | null> {
-  for (const q of queries) {
-    const body = await live.get(q.source, q.url);
-    const recs = body === null ? [] : q.source === "openlibrary" ? parseOpenLibrary(body) : parseMods(body);
-    log.push({ source: q.source, kind: q.kind, url: q.url, records: recs.length });
-    const hit = recs.slice(0, LIMITS.records).find((r) => resolves(r, texts));
-    if (hit) return hit;
-  }
-  return null;
+async function ask(cache: LookupCache, q: Pick<LiveQuery, "source" | "kind" | "url">, log: BoxResult["queries"]): Promise<{ answer: Answer; recs: OutsideRecord[] }> {
+  const answer = await cache.get(q.source, q.url);
+  const recs = answer.body === null ? [] : parseRecords(q.source, answer.body);
+  log.push({ source: q.source, kind: q.kind, url: q.url, key: answer.key, from: answer.from, records: recs.length });
+  return { answer, recs };
 }
 
+const firstResolving = (recs: OutsideRecord[], texts: ReaderText[]) => recs.slice(0, LIMITS.records).find((r) => resolves(r, texts)) ?? null;
+
+/**
+ * Resolves one box through the tiers (evals/C10/prereg.md): every query with a fresh cache entry in C-4's
+ * order (Open Library, then LoC); then, only if some query would need a live call, a record known for the
+ * box's copy group or work, then the local catalogs; a box whose copy or work is already resolved stops
+ * there; the rest go live in C-4's order, within the cache's budget. A fully cached box is resolved exactly as
+ * C-4 resolved it.
+ */
 export async function resolveBox(
   db: DatabaseSync,
-  live: LiveCache,
+  cache: LookupCache,
   box: SampledBox,
   reads: Partial<Record<ReaderName, Reading>>,
   f0WorkId: string | null,
+  ctx: TierContext = {},
 ): Promise<BoxResult> {
   const texts = readerTexts(reads);
   const queries: BoxResult["queries"] = [];
-  let record = await firstResolving(live, liveQueries(texts, "openlibrary"), texts, queries);
-  let resolvedBy: Source | null = record ? "openlibrary" : null;
-  let inOpenLibrary = record !== null;
-  if (!record) {
-    record = await firstResolving(live, liveQueries(texts, "loc"), texts, queries);
+  const pending: LiveQuery[] = [];
+  let hit: { record: OutsideRecord; tier: Tier } | null = null;
+  let skipped: BoxResult["skipped"] = null;
+  for (const q of [...liveQueries(texts, "openlibrary"), ...liveQueries(texts, "loc")]) {
+    if (cache.peek(q.source, q.url).state !== "fresh") {
+      pending.push(q);
+      continue;
+    }
+    const record = firstResolving((await ask(cache, q, queries)).recs, texts);
     if (record) {
-      resolvedBy = "loc";
-      // Union with Open Library is measured on the clean label (§5), not on the OCR.
-      const url = cleanQuery("openlibrary", record.title, record.authors[0] ?? "");
-      const body = await live.get("openlibrary", url);
-      const recs = body === null ? [] : parseOpenLibrary(body);
-      queries.push({ source: "openlibrary", kind: "fielded", url, records: recs.length });
-      inOpenLibrary = recs.some((r) => resolves(r, [{ reader: "qwen", text: `${record!.title} ${record!.authors.join(" ")}` }]));
+      hit = { record, tier: "cache" };
+      break;
     }
   }
-  const isfdb = record ? isfdbHolds(db, record) : null;
+  const copy = ctx.copy ?? null;
+  if (!hit && pending.length > 0) {
+    const known = ctx.known?.recordsFor(copy, f0WorkId).find((r) => resolves(r, texts));
+    if (known) hit = { record: known, tier: "known" };
+    const local = hit ? null : ctx.local?.resolve(texts);
+    if (local) hit = local;
+    if (!hit && ctx.known?.has(copy, f0WorkId)) skipped = "known";
+    else if (!hit) {
+      for (const q of pending) {
+        const { answer, recs } = await ask(cache, q, queries);
+        if (answer.from === "skipped") skipped = "budget";
+        const record = firstResolving(recs, texts);
+        if (record) {
+          hit = { record, tier: answer.from === "stale" ? "stale" : "live" };
+          break;
+        }
+      }
+    }
+  }
+  const record = hit?.record ?? null;
+  let inOpenLibrary = record?.source === "openlibrary";
+  if (record?.source === "loc") {
+    // Union with Open Library is measured on the clean label (§5), not on the OCR.
+    const q = { source: "openlibrary" as const, kind: "fielded" as const, url: cleanQuery("openlibrary", record.title, record.authors[0] ?? "") };
+    const clean = [{ reader: "qwen" as const, text: `${record.title} ${record.authors.join(" ")}` }];
+    if (cache.peek(q.source, q.url).state !== "fresh" && ctx.local?.inOpenLibrary(record)) inOpenLibrary = true;
+    else {
+      const { answer, recs } = await ask(cache, q, queries);
+      if (answer.from === "skipped") skipped ??= "budget";
+      inOpenLibrary = recs.some((r) => resolves(r, clean));
+    }
+  } else if (record?.source === "isfdb") inOpenLibrary = ctx.local?.inOpenLibrary(record) ?? false;
+  if (record) ctx.known?.add(copy, f0WorkId, record);
+  const isfdb = !record ? null : record.source === "isfdb" ? { workId: record.id, how: "local" as const } : isfdbHolds(db, record);
   const cls: BoxClass = !record ? "unresolved" : isfdb ? "in-isfdb" : "not-in-isfdb";
   return {
     id: box.id,
     stratum: box.stratum,
     role: box.role,
     cls,
-    resolvedBy,
+    resolvedBy: record?.source ?? null,
+    tier: hit?.tier ?? null,
+    skipped,
+    pending: pending.length,
     record,
     isfdb,
     inOpenLibrary,

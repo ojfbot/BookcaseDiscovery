@@ -1,0 +1,33 @@
+{
+  "id": "spine-4",
+  "variants": [
+    {
+      "rotation": 90,
+      "langCorrection": false,
+      "text": "EXAMPLE TITLE ALPHA",
+      "confidence": 1,
+      "fields": {
+        "title": {
+          "lineIds": [
+            0
+          ],
+          "text": "EXAMPLE TITLE ALPHA"
+        },
+        "author": {
+          "lineIds": [],
+          "text": null
+        },
+        "imprint": {
+          "lineIds": [],
+          "text": null,
+          "from": null
+        }
+      }
+    }
+  ],
+  "version": {
+    "helper": "synthetic-ocr 0.0.0",
+    "os": "synthetic-os 1.0",
+    "requestRevision": 3
+  }
+}

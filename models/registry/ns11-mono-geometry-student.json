@@ -1,0 +1,91 @@
+{
+  "name": "ns11-mono-geometry-student",
+  "card": "NS-11",
+  "kind": "from-scratch-cnn",
+  "base": null,
+  "architecture": {
+    "name": "GeometryStudentNet",
+    "parameters": 1604318,
+    "family": "ResNet-style CNN, trained from scratch",
+    "input": "128x128 letterboxed RGB crop of a detected box + a 12-number geometry vector of its outline",
+    "outputs": "three face shares (spine, top, cover) + a unit mean normal in the camera frame"
+  },
+  "teacher": {
+    "model": "Ruicheng/moge-2-vitl-normal",
+    "revision": "cb0e8bbd6b1e243589717c78e750b1ba4c093acf",
+    "weightsSha256": "280741fd09bc3f403ccff9967784c2a391b52d2c0742ae3efdb21d9f90cc1a01",
+    "mogeCommit": "b942f00bdc2a2a23ebb474fbe034d487e6dcceec",
+    "facesSha256": "fec353c222d34a52ca88907de986779912a9615722e7a2b75237e35ddef78ed4",
+    "geometrySha256": "40c3d2a655bc5b7e5be5c988263844672ce44d568550d1a163e32c736e2dc40d",
+    "licence": "MIT",
+    "role": "label generator (MIT licence); never a model input",
+    "labelSource": "mono-geometry",
+    "rgbRecoverable": "yes"
+  },
+  "trainer": {
+    "library": "torch",
+    "version": "2.15.0",
+    "device": "mps",
+    "exporter": "coremltools 9.0"
+  },
+  "targets": {
+    "class": "mono-geometry-targets",
+    "schema": {
+      "name": "ns11/mono-geometry-targets",
+      "version": 1
+    },
+    "ledgerVersion": "v-f495741be2c5",
+    "tablesSha256": {
+      "pilot": "25d148630666bdf51c0318927b1e4fd28326723bcd1ec46a774edab52c878e3b",
+      "yardstick": "4c5af75c82a891e5b7601a22e6149796e24b625e55da88d2004ed81cdd456fae"
+    },
+    "admittedBoxes": {
+      "pilot": 5592,
+      "yardstick": 906
+    },
+    "scheme": "drop-unrecoverable (removes none: every row is mono-geometry x yes)"
+  },
+  "splits": {
+    "artifact": {
+      "trainSplitGroups": 4,
+      "valSplitGroups": 2,
+      "trainRows": 4360,
+      "valRows": 1232
+    },
+    "keepRuleRuns": "leave-one-split-group-out over the 6 split groups of pilot-000",
+    "yardstick": "evaluation only (PROXY), never trained on"
+  },
+  "hyperparameters": {
+    "optimiser": "AdamW",
+    "learningRate": 0.002,
+    "weightDecay": 0.0001,
+    "batchSize": 64,
+    "epochs": 40,
+    "warmupEpochs": 2,
+    "schedule": "cosine to zero",
+    "seed": 20261105,
+    "augmentation": "brightness/contrast +-20 %, random resized crop 90-100 %, no flips"
+  },
+  "weightsSha256": "02ea745d97aa172f7bb43ff2e02ec6b300ab16fa5258a10567b0e4ba60e76e5b",
+  "coreMl": {
+    "packageSha256": "861a5f6cc40eec3cfde1921cdfa1e0a6e421d52f4f5c8a9c17670653b674d762",
+    "bytes": 3244445,
+    "precision": "float16",
+    "format": "mlprogram"
+  },
+  "metrics": {
+    "evals": "evals/NS11/metrics.json",
+    "developmentKeepRule": "kept",
+    "ns5": "insufficient data"
+  },
+  "licenceChain": "Student weights: trained from scratch, no base model. Teacher: MoGe-2 (MIT), used as a label generator. Training photos: pilot-000 (private real-use stills). No third-party weight in the student.",
+  "release": {
+    "status": "private-only",
+    "gates": {
+      "G-W": "not eligible",
+      "G-PUB": "not eligible"
+    },
+    "why": "Trained on the private pilot-000 stills; nothing is uploaded anywhere. A development run: NS-5 verdict is insufficient data."
+  },
+  "evals": "evals/NS11/report.md"
+}

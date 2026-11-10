@@ -1,6 +1,7 @@
 // `pnpm labels:import <export.json> --session <id>`: Label Studio JSON export -> $BOOKCASE_DATA/labels/<session>.json
-import { chmodSync, mkdirSync, readFileSync, renameSync, writeFileSync, existsSync } from "node:fs";
+import { chmodSync, mkdirSync, readFileSync, existsSync } from "node:fs";
 import { parseArgs } from "node:util";
+import { writeFileDurable } from "../ledger/durable.ts";
 import { LabelSet, labelsDir } from "./labels.ts";
 import { fromLabelStudio } from "./labelstudio.ts";
 import type { LsTask } from "./labelstudio.ts";
@@ -33,11 +34,11 @@ export function main(argv: string[], env: NodeJS.ProcessEnv = process.env): numb
   mkdirSync(dir, { recursive: true, mode: 0o700 });
   chmodSync(dir, 0o700);
   if (existing) {
-    writeFileSync(`${target}.bak`, readFileSync(target), { mode: 0o600 }); // one rolling backup
+    writeFileDurable(`${target}.bak`, readFileSync(target), { mode: 0o600 }); // one rolling backup
     chmodSync(`${target}.bak`, 0o600);
   }
-  writeFileSync(`${target}.tmp`, JSON.stringify(labels, null, 2) + "\n", { mode: 0o600 });
-  renameSync(`${target}.tmp`, target);
+  // Hand labels are owner facts: atomic and durable (DL-1).
+  writeFileDurable(target, JSON.stringify(labels, null, 2) + "\n", { mode: 0o600 });
 
   for (const w of warnings) console.error(`warning: ${w}`);
   const spines = labels.photos.reduce((n, p) => n + p.spines.length, 0);
