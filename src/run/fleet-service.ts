@@ -3,6 +3,7 @@ import { accessSync, constants, existsSync, mkdirSync, readFileSync, realpathSyn
 import { homedir } from "node:os";
 import { dirname, isAbsolute, join } from "node:path";
 import { fileURLToPath } from "node:url";
+import { fleetGeneration } from "./fleet-generation.ts";
 
 const label = "org.bookcasediscovery.fleet-worker";
 const entry = fileURLToPath(new URL("../../bin/bookcase", import.meta.url));
@@ -22,11 +23,13 @@ function plistString(value: string): string {
 }
 
 export function workerPlist(node: string, worker: string, env: NodeJS.ProcessEnv): string {
+  const generation = fleetGeneration(env);
   const values = {
     BOOKCASE_DATA: env.BOOKCASE_DATA,
     BOOKCASE_OCR_VISION: env.BOOKCASE_OCR_VISION,
     FLEET_TOKEN_FILE: env.FLEET_TOKEN_FILE,
     FLEET_ENDPOINT: env.FLEET_ENDPOINT,
+    ...(generation === undefined ? {} : { FLEET_GENERATION: generation }),
     ...(env.FLEET_SERVICE_PROFILE === "nas" ? {
       FLEET_SERVICE_PROFILE: "nas",
       FLEET_AUTO_INPUTS: "1",

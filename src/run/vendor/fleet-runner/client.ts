@@ -16,7 +16,7 @@ export class FleetHttpError extends Error {
   }
 }
 
-export function fleetClient(endpoint: string, id: string, tokenFile: string) {
+export function fleetClient(endpoint: string, id: string, tokenFile: string, generation?: string) {
   const base = new URL(endpoint);
   if (
     !["http:", "https:"].includes(base.protocol) ||
@@ -29,8 +29,13 @@ export function fleetClient(endpoint: string, id: string, tokenFile: string) {
     throw new Error("invalid fleet endpoint");
   }
   const authorize = signer(id, tokenFile);
+  const bindGeneration = (target: string) =>
+    generation
+      ? `${target}${target.includes("?") ? "&" : "?"}generation=${encodeURIComponent(generation)}`
+      : target;
 
   async function transfer(target: string, body?: Uint8Array, signal?: AbortSignal) {
+    target = bindGeneration(target);
     const method = body === undefined ? "GET" : "POST";
     const res = await fetch(new URL(target, base), {
       method,
@@ -52,6 +57,7 @@ export function fleetClient(endpoint: string, id: string, tokenFile: string) {
   }
 
   async function request<T>(target: string, data?: object, signal?: AbortSignal): Promise<T> {
+    target = bindGeneration(target);
     const method = data === undefined ? "GET" : "POST";
     const body = Buffer.from(data === undefined ? "" : JSON.stringify(data));
     const authorization = authorize(method, target, body);
@@ -81,6 +87,8 @@ export function fleetClient(endpoint: string, id: string, tokenFile: string) {
       request<WorkerControl>("/worker-control", undefined, signal),
     control: (worker: string, action: "pause" | "drain" | "resume") =>
       request<WorkerControl>("/control", { worker, action }),
+    releaseRecoveryHold: (recoveryPoint: string) =>
+      request<{ released: boolean }>("/recovery/release", { generation, recoveryPoint }),
     presence: (observation: WorkerObservation, signal?: AbortSignal) =>
       request<{ received: boolean }>("/worker-status", observation, signal),
     uploadInput: async (bytes: Uint8Array) => {

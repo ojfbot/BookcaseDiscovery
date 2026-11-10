@@ -16,6 +16,10 @@ BookcaseDiscovery checkout. Set these variables using local values:
   All eligible workers use a byte-identical copy of the helper pinned on admission.
 - `FLEET_TOKEN_FILE` points to this worker's owner-only private credential file.
 - `FLEET_ENDPOINT` is the LAN URL of the Yojimbo queue server.
+- `FLEET_GENERATION` is optional. Leave it unset for the legacy service; after a
+  Fleet Runner restore, set it to the returned generation UUID before installing
+  or reinstalling the worker service. Requests are signed against that generation.
+  The service install records it in the LaunchAgent child environment.
 
 Stage each input in every eligible worker's local store before admission.
 Run `pnpm exec ./bin/bookcase fleet stage "$PHOTO"` on each worker, using that
@@ -262,6 +266,9 @@ export BOOKCASE_OCR_VISION="$LOCAL_PINNED_HELPER"
 export FLEET_TOKEN_FILE="$NAS_WORKER_KEY"
 export FLEET_ENDPOINT="$ISOLATED_NAS_HTTPS_ENDPOINT"
 export NODE_EXTRA_CA_CERTS="$LOCAL_NAS_PUBLIC_CERT"
+# After restoring the queue, export the generation returned by fleet-runner restore.
+# Leave FLEET_GENERATION unset for a legacy queue.
+# export FLEET_GENERATION="<restore generation UUID>"
 # Generate locally; register only the .pub sibling with the isolated server.
 pnpm exec ./bin/bookcase fleet nas keygen
 pnpm exec ./bin/bookcase fleet nas service install "$WORKER"

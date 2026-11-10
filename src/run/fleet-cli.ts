@@ -4,6 +4,7 @@ import { basename, extname, join, resolve } from "node:path";
 import { dataRoot, ImageStore } from "../ledger/images.ts";
 import { defaultOcrBinary, ocrBinaryAvailable } from "../perceive/ocr.ts";
 import { isServiceWorker, workerService } from "./fleet-service.ts";
+import { fleetGeneration } from "./fleet-generation.ts";
 import { mayClaim } from "./fleet-worker-policy.ts";
 import { acquireNasSlot, nasEligibility } from "./fleet-eligibility.ts";
 import { errorCode } from "./vendor/fleet-runner/diagnostics.ts";
@@ -120,8 +121,11 @@ export async function fleetCommand(argv: string[], env: NodeJS.ProcessEnv = proc
       return 0;
     }
     if (!token || !endpoint) throw new Error("missing fleet configuration");
+    const generation = fleetGeneration(env);
+    const clientFor = (id: string) =>
+      fleetClient(endpoint, id, token, ...(generation === undefined ? [] : [generation]));
     if (command === "report") {
-      const report = await fleetClient(endpoint, "owner", token).report();
+      const report = await clientFor("owner").report();
       console.log(JSON.stringify(report, null, 2));
       return 0;
     }
@@ -152,7 +156,7 @@ export async function fleetCommand(argv: string[], env: NodeJS.ProcessEnv = proc
           { payload: null, ...(env.FLEET_SERVICE_PROFILE === "nas" ? { requires: ["apple-vision", `vision-${ocrHelperId(binary).split(":").at(-1)!.slice(0, 48)}`] } : {}) },
         );
       }
-      const client = fleetClient(endpoint, "owner", token);
+      const client = clientFor("owner");
       if (env.FLEET_AUTO_INPUTS === "1") {
         for (const hash of spec.inputs) {
           const image = command === "enqueue" ? resolve(arg!) : images.find(hash);
@@ -188,7 +192,7 @@ export async function fleetCommand(argv: string[], env: NodeJS.ProcessEnv = proc
         console.error("fleet work needs the executable OCR helper");
         return 1;
       }
-      const client = fleetClient(endpoint, arg!, token);
+      const client = clientFor(arg!);
       let remotePaused = false;
       let busy = false;
       let phase: WorkerObservation["phase"] = "starting";
@@ -262,7 +266,7 @@ export async function fleetCommand(argv: string[], env: NodeJS.ProcessEnv = proc
       } finally { await releaseSlot?.(); }
     }
 
-    const report = await fleetClient(endpoint, "owner", token).verify(readFileSync(keyFile, "utf8"));
+    const report = await clientFor("owner").verify(readFileSync(keyFile, "utf8"));
     const worker = arg!;
     if (!/^[a-z][a-z0-9-]{0,62}$/.test(worker)) throw new Error("invalid worker");
     const completed = report.period.byWorker[worker]?.completed ?? 0;
