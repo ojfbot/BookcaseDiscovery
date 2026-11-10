@@ -70,6 +70,26 @@ Smallest design that is correct under interruption, with the parts fleet-runner'
 - **Capacity:** one worker process runs one job at a time. A host runs one GPU worker plus N CPU workers. This replaces OPERATING-MODEL's "one heavy-compute card at a time" convention with an enforced limit per host.
 - **Remote workers (N-2):** the laptop reaches the table **through the same CLI over SSH** (`ssh <host> bookcase jobs claim --json …`), authenticated by an SSH key the owner installs. Inputs and outputs move by `rsync` over SSH, by content hash. No new network service, no open port beyond SSH, and no cloud. When the NAS arrives, files move there. When fleet-runner can host compute jobs, the transport becomes its API (N-3); job kinds, keys and handlers stay.
 
+### BookcaseDiscovery compute tracer (core #578)
+
+The owner chose authenticated, pull-only LAN HTTP for the live read-vision
+pilot because Remote Login is off on Yuri. Yojimbo alone opens the interim
+SQLite table. The owner controls the LAN firewall and stages each input by
+hash on every eligible worker. Each host provisions its own signing key.
+Outputs are uploaded under a fenced attempt and remain in shadow for owner
+review. This is a local P0–P2 compute tracer.
+
+[Core #578](https://github.com/ojfbot/core/issues/578) combined the N-2
+remote-worker proof with the N-3 queue transport proof for read-vision.
+[Client #30](https://github.com/ojfbot/BookcaseDiscovery/pull/30) covers the
+client and [drill #37](https://github.com/ojfbot/BookcaseDiscovery/pull/37)
+covers process-suspension recovery. These prove one leased read-vision
+completion and stale-upload rejection. The N-1 detector and other reader
+handlers, byte-equal pilot reread, and 1.3× detection-contention check
+remain open. The resident follow-up targets a completion by each host,
+a verified stop path, and server restart recovery. Yuri may claim from
+20:00 to 07:00 America/Chicago while on external power.
+
 ## 6. Privacy (OC9, INV-19)
 
 | Data | Where it may be | Never |
