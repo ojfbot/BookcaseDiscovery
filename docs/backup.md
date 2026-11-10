@@ -16,10 +16,10 @@ brings back, not what is skipped.
 
 | class | what | where | if lost |
 |---|---|---|---|
-| **fact** | the event ledgers; originals; labels; the private fixture manifests with the permission log; the frozen dataset history (`splits.json` cannot be regenerated, DL-1) | `ledger/`, `images/`, `raw/`, `labels/`, `private/fixtures/`, `datasets/` | gone for good |
+| **fact** | the event ledgers; originals; the audio-free clips (NS-K); labels; the private fixture manifests with the permission log, and the clip and frame manifests beside them; the frozen dataset history (`splits.json` cannot be regenerated, DL-1) | `ledger/`, `images/`, `raw/`, `video/`, `labels/`, `private/fixtures/`, `datasets/` | gone for good |
 | **derived** | stage caches, the depth and fusion caches, the proxy sets; each has a lineage stamp and a rebuild command | `f0*/`, every folder under `private/` but `fixtures/`, `proxy/` | hours of GPU time for some |
 | **re-fetchable** | model weights (pinned by revision in the models manifest), catalog dumps and catalogs | `models/`, `catalog/` | a download, and hours to rebuild a catalog |
-| **unclassified** | anything the rows above do not name: a top-level folder no card owns yet, a loose file under `private/` or at the top | | treated like a fact until it is named |
+| **unclassified** | anything the rows above do not name: a top-level folder no card owns yet (`inbox/`, where the clips with audio stay until the owner rules), a loose file under `private/` or at the top | | treated like a fact until it is named |
 
 Left out of every snapshot, and counted (never named) in the output:
 
