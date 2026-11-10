@@ -2,7 +2,7 @@ import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { afterEach, beforeEach, expect, it } from "vitest";
+import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import { ImageStore, sha256Hex } from "../src/ledger/images.ts";
 import { fleetCommand } from "../src/run/fleet-cli.ts";
 import { readVisionHandler, readVisionJob } from "../src/run/job-kinds.ts";
@@ -39,4 +39,14 @@ it("stages a local input and resolves a path-free claim by its keyed hash", asyn
   await expect(handler(claim, ctx)).resolves.toMatchObject({ sha256: expect.stringMatching(/^[0-9a-f]{64}$/) });
   await expect(handler({ ...claim, fence: 2, inputs: ["0".repeat(64)] }, ctx))
     .rejects.toMatchObject({ code: "input-missing" });
+});
+
+it("keeps the NAS profile read-vision-only at the admission CLI", async () => {
+  const error = vi.spyOn(console, "error").mockImplementation(() => {});
+  try {
+    expect(await fleetCommand(["nas", "admit", "synthetic-job.json"], { BOOKCASE_DATA: root })).toBe(1);
+    expect(error).toHaveBeenCalledWith("NAS profile admits read-vision jobs only");
+  } finally {
+    error.mockRestore();
+  }
 });

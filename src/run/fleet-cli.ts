@@ -108,6 +108,10 @@ export async function fleetCommand(argv: string[], env: NodeJS.ProcessEnv = proc
       console.log(`cached readings equal: ${cached.equal} of ${result.requests} (${cached.differ} differ, ${cached.missing} not cached)`);
       return cached.equal === result.requests ? 0 : 1;
     }
+    if (command === "admit" && env.FLEET_SERVICE_PROFILE === "nas") {
+      console.error("NAS profile admits read-vision jobs only");
+      return 1;
+    }
     if (command === "eligibility" && env.FLEET_SERVICE_PROFILE === "nas") {
       const binary = defaultOcrBinary(env);
       let expected = "";
