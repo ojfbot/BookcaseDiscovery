@@ -8,13 +8,13 @@ The packet refuses to run unless these source/runtime pins match:
 
 | Item | Required pin |
 |---|---|
-| BookcaseDiscovery current app main parent | `ed3f01e5e7d5369beda01b5a2c1c567cec691d66` |
+| BookcaseDiscovery current app main parent | `699a1a8c9730ab038199d03ecddc447b0e1cf9e3` |
 | Drill source | one clean commit whose first parent is the app-main pin above; its full SHA is recorded in each local packet and the new commit receipt |
 | Current app vendored FleetRunner client/worker | `dad1d204bb2e01c691aa69de3ce3f0b218f7de21` (`src/run/vendor/fleet-runner/core-revision.txt`) |
 | Refreshed HTTPS NAS service source pin | `78c71e9a7f085c092425fdbe99193a06c06e9e3f` |
 | Signed status build label | `78c71e9` |
 | Refreshed NAS image ID | `sha256:704a311810e999f7cfc24f26a8c22a6cd8090cc63017fc66dc13706fa9865066` |
-| Application runtime | Node `24.22.2`, BookcaseDiscovery source `ed3f01e5e7d5369beda01b5a2c1c567cec691d66` plus the frozen drill commit |
+| Application runtime | Node `24.22.2`, BookcaseDiscovery source `699a1a8c9730ab038199d03ecddc447b0e1cf9e3` plus the frozen drill commit |
 | Synthetic output fixture | `fleet-runner packaging fixture v1\n`, SHA-256 `f04565eea01f62eeb7149c8609c8a901ca0af5ffb74c37a181ca0955479e7890` |
 
 The NAS image ID is the intended refreshed candidate pin, not a live assertion. Before each admission, the owner rechecks the running service through the existing approved operator channel and signed HTTPS status. Stop if the image, source manifest, build label, certificate identity, queue baseline, or readiness differs. The script performs no Docker inspection and never prints the endpoint, CA path, token path, worker data root, or service-local paths.
@@ -51,7 +51,7 @@ Before a daytime exception, the owner must decide and create the existing same-d
 
 ## One serialized trial
 
-Run trial IDs exactly once and in this order: `lid-1`, `lid-2`, `lid-3`, `wifi-1`, `wifi-2`, `wifi-3`. The command’s final argument is `prior-passed-trial-count`: the number of earlier trials that finished `passed` (0 through 5). The status baseline is always 4 historical read-vision jobs plus 10 historical proof fixtures plus that many new passed trial fixtures. Only one `.g6-physical-active.json` lock may exist. A crash or failed check leaves the lock and packet for reconciliation; do not delete or reuse them by hand.
+Run trial IDs exactly once and in this order: `lid-1`, `lid-2`, `lid-3`, `wifi-1`, `wifi-2`, `wifi-3`. `prepare` accepts `prior-passed-trial-count` from 0 through 5 only. The status baseline is always 4 historical read-vision jobs plus 10 historical proof fixtures plus that many new passed trial fixtures. Final verification of `wifi-3` accepts the completed count of 6; there is no seventh trial or admission. Only one `.g6-physical-active.json` lock may exist. A crash or failed check leaves the lock and packet for reconciliation; do not delete or reuse them by hand.
 
 1. **Owner admit and baseline.** On the coordinator, with `FLEET_ID=owner`, recheck the approved image/source receipt and run the following. The command first validates TLS configuration, reads signed status, and checks the historical category counts and idle queue; only then does it create the active lock, private checkpoint packet and one synthetic fixture admission.
 
@@ -75,7 +75,7 @@ Run trial IDs exactly once and in this order: `lid-1`, `lid-2`, `lid-3`, `wifi-1
    node src/run/g6-physical-drill.ts observe lid-1 yuri 120000
    ```
 
-3. **Perform the single manual interruption.** For a `lid-*` trial, verify Yuri is on AC and perform an actual macOS lid sleep; retain local `pmset -g log` entries covering sleep and wake. For a `wifi-*` trial, retain before/after route and associated-network evidence, physically disconnect Wi-Fi, and leave it down across lease expiry and reclaim. No simulated worker pause or fetch stub counts. Do not close the lid or toggle Wi-Fi until the one-shot hold process reports that it has started and the owner has observed the first claim.
+3. **Perform the single manual interruption.** After the owner observes Yuri’s first claim, wait for and locally confirm at least one `heartbeat` receipt with `accepted: true` (the one-shot worker’s heartbeat interval is 60 seconds). If that receipt is absent, do not interrupt. For a `lid-*` trial, verify Yuri is on AC and perform an actual macOS lid sleep; retain local `pmset -g log` entries covering sleep and wake. For a `wifi-*` trial, retain before/after route and associated-network evidence, physically disconnect Wi-Fi, and leave it down across lease expiry and reclaim. No simulated worker pause or fetch stub counts. Do not close the lid or toggle Wi-Fi until the first claim and one accepted heartbeat are confirmed.
 
 4. **Eligible other-host reclaim.** Once the physical interruption begins, on Yojimbo start its bounded, one-job reclaimer. It polls every five seconds for at most 320 seconds, checks the local NAS eligibility and remote pause gate each time, and can claim only the unique trial capability with the `proof-fixture` handler.
 
