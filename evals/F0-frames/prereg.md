@@ -75,3 +75,24 @@ as hypotheses.
 Aggregates only: `evals/F0-frames/{prereg.md,metrics.json,report.md}`. Per-box and per-frame outputs stay in the
 stage caches under the data root. No frame, crop, OCR text, title, author, image id, clip or frame name, capture time,
 store or path is written to the repo, the PR or the commits.
+
+## Amendment, 2026-11-11: the run scope is every 3rd frame (owner's ruling)
+
+Fixed before any step of this run starts. The 20-frame pilot projected the full 616-frame run at 107,157 s (29.8 h),
+over the card's 10-hour stop line, and the card stopped. On the owner's ruling, the run is now **every 3rd frame of
+`sf-store-001`'s image list, in list order**: the sample part `sf-store-001.every-3` (the 3rd, 6th, …, 615th frame:
+205 of 616, about a third). It caches beside the session under its own name, like the pilot.
+
+- **What changes**: only the set the measures are taken on. Wherever §1 and §2 say `sf-store-001` for the run, read
+  `sf-store-001.every-3`. Measures 1 to 10, the units, the comparison with `pilot-000` and the video-tier note are
+  unchanged. Frame counts in measure 1 are counted against the 205 frames of the sample, and the 616 of the session are
+  named beside them.
+- **Spacing**: frames of a sweep are 1 s apart; every 3rd frame is about 3 s apart. Neighbouring frames of the sample
+  overlap less than neighbouring frames of the session. Measure 8's work recurrence is therefore taken at about 3 s
+  spacing, not 1 s, and is not a figure for the whole session.
+- **Time**: the pilot projects this run at 3,479 × 205 / 20 = 35,660 s (9.9 h), by the same linear rule. The owner
+  chose the run knowing this, so the 10-hour line does not stop it. **It stops if a step fails, or if the run's own
+  projection after F-0 is over about 15 hours**: F-0's actual seconds × (the pilot's total ÷ the pilot's F-0 seconds,
+  3,479 / 1,181) over 54,000 s. The pilot's projection is set against the actual time (measure 10).
+- **What the report says**: it covers about a third of the session's frames, not all of them. No figure is scaled up
+  to the whole session.
