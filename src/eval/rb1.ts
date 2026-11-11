@@ -12,7 +12,9 @@ import { modelHashes } from "../ledger/models.ts";
 import { readJsonl } from "./f0.ts";
 import { PARTITION_MODELS, PARTITION_SCHEMA } from "./lineage-classes.ts";
 import { NB3_SHIP, type NB3Why } from "./nb3.ts";
+import { acceptSet, setPaths } from "./set-paths.ts";
 
+/** The sets RB-1's own summary re-ran. `loadBoxSet` takes any declared session too (NS-K2, src/eval/set-paths.ts). */
 export type RB1Set = "pilot-000" | "yardstick";
 /** Why RB-1's box set leaves a box out that the pre-RB-1 inputs kept. */
 export type RB1Drop = "f0i-dropped" | NB3Why;
@@ -28,9 +30,6 @@ export interface Nb3Flag {
   id: string;
   causes: NB3Why[];
 }
-
-/** F-0i's and NB-3's private folders per set (F-0i names the yardstick by its B2 run). */
-const F0I_SET: Record<RB1Set, string> = { "pilot-000": "pilot-000", yardstick: "yardstick-library-b2" };
 
 /**
  * Boxes RB-1 leaves out, with why: every box the partition drops, then every kept box whose first NB-3 cause is one
@@ -56,10 +55,12 @@ export interface BoxSet {
   keeps: (id: string) => boolean;
 }
 
-/** RB-1's box set for one set, from F-0i's `partition.jsonl` and NB-3's `flags.jsonl` under the data root's `private/`. */
-export function loadBoxSet(set: RB1Set, root = dataRoot()): BoxSet {
-  const part = join(root, "private", "f0i", F0I_SET[set], "partition.jsonl");
-  const flags = join(root, "private", "nb3", set, "flags.jsonl");
+/** RB-1's box set for one set (a declared session or `yardstick`), from F-0i's `partition.jsonl` and NB-3's `flags.jsonl` under the data root's `private/`. */
+export function loadBoxSet(set: string, root = dataRoot()): BoxSet {
+  // F-0i names the yardstick by its B2 run; NB-3 calls it `yardstick` (both in set-paths).
+  const paths = setPaths(acceptSet("RB-1", set), root);
+  const part = join(paths.f0i, "partition.jsonl");
+  const flags = join(paths.nb3, "flags.jsonl");
   if (!existsSync(part)) throw new Error(`${set}: no F-0i partition at the data root's private/f0i/`);
   if (!existsSync(flags)) throw new Error(`${set}: no NB-3 flags at the data root's private/nb3/ (run nb3-cli.ts flags ${set})`);
   // DL-3: the partition must name the weights the models manifest names now.

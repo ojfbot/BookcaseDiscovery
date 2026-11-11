@@ -20,7 +20,8 @@ import { dataRoot } from "../ledger/images.ts";
 import { COVER_CROP, F0_CROP } from "../perceive/crop.ts";
 import { decide, loadReadings, pyReaderStage, readJsonl, visionStage, type Detection, type InputImage, type Reading, type ReaderName, type SpineDecision } from "./f0.ts";
 import { coverReading, kinds, type KindedBox } from "./f0c.ts";
-import { imagesOf, SETS, type SetName, type Slim } from "./f0c-cli.ts";
+import { imagesOf, setCfg, SETS, type SetName, type Slim } from "./f0c-cli.ts";
+import { acceptSet, needs, setPaths } from "./set-paths.ts";
 import { agreementChange, titleDelta, type RungCounts, type Tri } from "./f0e.ts";
 import { evidenceOf, KEEP, LABEL, offRow, perspectiveBoxes, ROW, rowPerspective, seamCut, seamError, seamOvershoot, shortTop, THIRDS, TOPS_SHORT, type BoxEvidence, type PerspectiveBox } from "./f0f.ts";
 import { yardstickTruth } from "./q1-cli.ts";
@@ -35,13 +36,13 @@ export const ARMS = ["angles", "tops", "ends"] as const;
 export type ArmName = (typeof ARMS)[number];
 const SETS_F0F: SetName[] = ["pilot-000", "yardstick"];
 
-/** Where each set's base boxes and readings are (F-0e's default on pilot-000, F-0's B2 run on the yardstick). */
-const baseDir = (set: SetName) => SETS[set].base;
+/** Where a set's base boxes and readings are (F-0e's default on a session, F-0's B2 run on the yardstick). */
+const baseDir = (set: string) => setCfg(set).base;
 const armDir = (set: SetName, arm: ArmName | "base") => (arm === "base" ? baseDir(set) : join(ROOT, "f0f", set, arm));
 const loadDets = (path: string): Map<string, Detection> => new Map(readJsonl<Detection>(path).filter((d) => !d.error).map((d) => [d.id, d]));
-const imagesList = (set: SetName) => {
+const imagesList = (set: string) => {
   mkdirSync(PRIV, { recursive: true });
-  const path = join(PRIV, `images-${set}.jsonl`);
+  const path = setPaths(set, ROOT).f0fImages;
   writeFileSync(path, imagesOf(set).map((i) => `${JSON.stringify({ id: i.id, image: i.path })}\n`).join(""));
   return path;
 };
@@ -90,11 +91,12 @@ async function geometryOf(set: SetName, arm: ArmName | "base"): Promise<void> {
   await helper("coverage", "geometry.py", ["--detect", join(armDir(set, arm), "detect.jsonl"), "--images", imagesList(set)], {}, null, geometryPath(set, arm));
 }
 
-const probePath = (set: SetName) => join(PRIV, `probe-${set}.jsonl`);
+const probePath = (set: string) => setPaths(set, ROOT).f0fProbe;
 
-async function probe(set: SetName): Promise<void> {
+async function probe(set: string): Promise<void> {
+  needs("F-0f", set, "cover pass", join(setPaths(set, ROOT).f0c, "detect.jsonl"), `f0c-cli.ts detect ${set}`);
   // F-0c's detections: the base's spines verbatim plus the cover pass's boxes.
-  await helper("label", "probe.py", ["--detect", join(ROOT, "f0c", set, "detect.jsonl"), "--images", imagesList(set)], {}, null, probePath(set));
+  await helper("label", "probe.py", ["--detect", join(setPaths(set, ROOT).f0c, "detect.jsonl"), "--images", imagesList(set)], {}, null, probePath(set));
 }
 
 // --- read: only the boxes an arm changed -------------------------------------------------------------------
@@ -373,12 +375,13 @@ function compare(set: SetName, arm: ArmName) {
  * Each box's label evidence on one set: spine-path boxes `s<i>` from the base's Vision and PP-OCR readings (what the
  * pipeline has when it applies the rules, before Qwen), covers `c<j>` from all three of F-0c's cover readings.
  */
-export function evidenceFor(set: SetName): Map<string, (ref: string) => BoxEvidence | undefined> {
+export function evidenceFor(set: string): Map<string, (ref: string) => BoxEvidence | undefined> {
+  const f0c = setPaths(set, ROOT).f0c;
   const spine = loadReadings(baseDir(set));
-  const cover = loadReadings(join(ROOT, "f0c", set, "covers"), COVER_CROP);
+  const cover = loadReadings(join(f0c, "covers"), COVER_CROP);
   const probes = new Map(readJsonl<{ id: string; white: number; edges: number }>(probePath(set)).map((p) => [p.id, p]));
   const out = new Map<string, (ref: string) => BoxEvidence | undefined>();
-  for (const id of loadDets(join(ROOT, "f0c", set, "detect.jsonl")).keys())
+  for (const id of loadDets(join(f0c, "detect.jsonl")).keys())
     out.set(id, (ref) => {
       const r = (ref.startsWith("s") ? spine : cover).get(`${id}:${ref.slice(1)}`);
       if (!r) return undefined;
@@ -646,7 +649,8 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   if (cmd === "detect") await detect(set, arm as ArmName);
   else if (cmd === "geometry") await geometryOf(set, arm);
   else if (cmd === "read") await read(set, arm as ArmName);
-  else if (cmd === "probe") await probe(set);
+  // probe takes any declared session (NS-K2) or the yardstick; the arms stay on F-0f's two sets.
+  else if (cmd === "probe") await probe(acceptSet("F-0f", set));
   else if (cmd === "analyse") analyse();
   else if (cmd === "render") await render();
   else {

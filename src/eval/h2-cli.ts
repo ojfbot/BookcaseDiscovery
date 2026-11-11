@@ -4,6 +4,7 @@
 //   node src/eval/h2-cli.ts stage <set> [--tag T]   # helpers/depth/stage.py: geometry + faces per photo, cached
 //   node src/eval/h2-cli.ts faces <set>             # the per-box face file on the kept boxes, from the latest stage run
 //   node src/eval/h2-cli.ts base <set>              # F-0's decision per box from the cached readings (once)
+//   node src/eval/h2-cli.ts images <set> [--dry-run]  # NS-K2: the depth stage's image list alone (no model)
 //   node src/eval/h2-cli.ts run <set> <arm>         # arm: clip (before) | face3d (after), on the face3d subset
 //   node src/eval/h2-cli.ts analyse                 # evals/H2/{metrics.json,report.md}: aggregates only
 //   node src/eval/h2-cli.ts render                  # U-4's still study with spine faces and top faces (private)
@@ -27,6 +28,7 @@ import { dominantExtra, elevationBand, faceShares, face3dTrim, topFace, FACE_CLA
 import { SETS as F0B_SETS, cost, delta, firstPassHard, geometry, type Geo, type Pair } from "./f0b-cli.ts";
 import { spineIds } from "./q2b-cli.ts";
 import { compactJson, outcomeOf, yardstickTruth } from "./q1-cli.ts";
+import { acceptSet, needs, sessionImages, setPaths, YARDSTICK, YARDSTICK_B2 } from "./set-paths.ts";
 import { clusterBootstrap, quantile } from "./q1.ts";
 import type { Outcome } from "./q1.ts";
 
@@ -38,31 +40,33 @@ const REPS = 2000;
 const log = (s: string): void => console.error(`[h2] ${s}`);
 const r4 = (x: number) => Math.round(x * 10000) / 10000;
 
+/** The two sets H-2's own analysis compares. stage, faces, base and images take any declared session too (NS-K2). */
 export type SetName = "pilot-000" | "yardstick-library-b2";
-const SETS: Record<SetName, { stage: string; filter: "pilot-000" | "yardstick"; images: (ids: string[]) => { id: string; image: string }[] }> = {
-  "pilot-000": {
-    stage: join(ROOT, "f0e", "pilot-000", "bands+strips"),
-    filter: "pilot-000",
-    images: () => readJsonl<{ id: string; image: string }>(join(ROOT, "private", "f0e", "images-pilot-000.jsonl")),
-  },
-  "yardstick-library-b2": {
-    stage: join(ROOT, "f0", "yardstick-library-b2"),
-    filter: "yardstick",
-    images: (ids) => ids.map((id) => ({ id, image: join(ROOT, "proxy", "library-dataset", "images", `${id}.jpg`) })),
-  },
-};
+interface SetCfg { stage: string; filter: string; images: (ids: string[]) => { id: string; image: string }[] }
+/**
+ * A set's default boxes, the name the not-a-book filter knows it by, and its photos (src/eval/set-paths.ts): a session
+ * has F-0e's `bands+strips` boxes and its manifest's working copies in the image store; the yardstick F-0's B2 boxes
+ * and the Library Dataset's images.
+ */
+function setOf(set: string): SetCfg {
+  const p = setPaths(set, ROOT);
+  if (p.kind === "yardstick") return { stage: p.base, filter: YARDSTICK, images: (ids) => ids.map((id) => ({ id, image: p.image(id)! })) };
+  return { stage: p.base, filter: set, images: () => sessionImages(set, ROOT) };
+}
+const SETS: Record<SetName, SetCfg> = { "pilot-000": setOf("pilot-000"), "yardstick-library-b2": setOf(YARDSTICK_B2) };
+/** `run` (the face3d arms) stays on H-2's two sets. */
 const isSet = (s: string | undefined): s is SetName => s === "pilot-000" || s === "yardstick-library-b2";
 
 export const ARMS: Record<string, CropMethod> = { clip: CROP, face3d: FACE3D_CROP };
 
 // --- inputs ----------------------------------------------------------------------------------------------
 
-function loadDets(set: SetName): Map<string, Detection> {
-  return new Map(readJsonl<Detection>(join(SETS[set].stage, "detect.jsonl")).filter((d) => !d.error).map((d) => [d.id, d]));
+function loadDets(set: string): Map<string, Detection> {
+  return new Map(readJsonl<Detection>(join(setOf(set).stage, "detect.jsonl")).filter((d) => !d.error).map((d) => [d.id, d]));
 }
 
-function inputImages(set: SetName, dets: Map<string, Detection>): InputImage[] {
-  const paths = new Map(SETS[set].images([...dets.keys()]).map((x) => [x.id, x.image]));
+function inputImages(set: string, dets: Map<string, Detection>): InputImage[] {
+  const paths = new Map(setOf(set).images([...dets.keys()]).map((x) => [x.id, x.image]));
   return [...dets.keys()].map((id) => {
     const path = paths.get(id);
     if (!path || !existsSync(path)) throw new Error(`image missing for a cached detection in ${set}`);
@@ -71,11 +75,11 @@ function inputImages(set: SetName, dets: Map<string, Detection>): InputImage[] {
 }
 
 /** Box ids the shipped not-a-book rules keep as spines (F-0c shapes, F-0f shelf labels; cover pass off), on RB-1's box set. */
-const keptIds = (set: SetName): Set<string> => spineIds(join(SETS[set].stage, "detect.jsonl"), SETS[set].filter);
+const keptIds = (set: string): Set<string> => spineIds(join(setOf(set).stage, "detect.jsonl"), setOf(set).filter);
 
 /** The depth stage's row per box id (`<photo>:<box>`), from the latest stage run. */
-function faceRows(set: SetName): Map<string, FaceRow> {
-  const path = join(PRIV, set, "stage-latest.jsonl");
+function faceRows(set: string): Map<string, FaceRow> {
+  const path = join(setPaths(set, ROOT).h2, "stage-latest.jsonl");
   if (!existsSync(path)) throw new Error(`${set}: no depth stage output; run \`h2-cli.ts stage ${set}\` first`);
   checkLineage(path, { schema: DEPTH_STAGE_SCHEMA, models: modelHashes(DEPTH_MODELS) });
   return new Map(readJsonl<FaceRow & { photo?: boolean }>(path).filter((r) => !r.photo).map((r) => [`${r.id}:${r.box}`, r]));
@@ -110,18 +114,42 @@ function subsetOf(set: SetName, dets: Map<string, Detection>, kept: Set<string>)
 
 // --- stage: geometry and faces per photo -----------------------------------------------------------------
 
-function stage(set: SetName, tag: string): void {
+/** The depth stage's image list text: one line per cached detection, in detection order. */
+const imagesText = (set: string, dets: Map<string, Detection>): string => inputImages(set, dets).map((x) => JSON.stringify({ id: x.id, image: x.path })).join("\n") + "\n";
+
+/**
+ * The image list alone (NS-K2; no model): what `stage` writes before the depth stage runs. With no detections cached
+ * yet, a session's list is its manifest's photos (they are what F-0 detects on). `--dry-run` writes nothing and says
+ * how many photos the list holds and whether the list on disk is the same.
+ */
+function images(set: string, dryRun: boolean): void {
+  const dets = loadDets(set);
+  const dir = setPaths(set, ROOT).h2;
+  const path = join(dir, "images.jsonl");
+  const fromManifest = dets.size === 0 && setPaths(set, ROOT).kind === "session";
+  const rows = fromManifest ? sessionImages(set, ROOT) : inputImages(set, dets).map((x) => ({ id: x.id, image: x.path }));
+  const text = rows.map((x) => JSON.stringify(x)).join("\n") + "\n";
+  const same = existsSync(path) ? readFileSync(path, "utf8") === text : null;
+  log(`${set}: image list of ${rows.length} photos (${fromManifest ? "from the manifest; no detections cached yet" : `from ${dets.size} cached detections`}); on disk: ${same === null ? "none" : same ? "identical" : "different"}${dryRun ? " (dry run, nothing written)" : ""}`);
+  if (dryRun) return;
+  mkdirSync(dir, { recursive: true });
+  writeFileSync(path, text);
+}
+
+function stage(set: string, tag: string): void {
+  needs("H-2", set, "default boxes", join(setOf(set).stage, "detect.jsonl"), `f0e-cli.ts detect --set ${set} --label bands+strips`);
   const py = join(REPO, "helpers", "depth", ".venv", "bin", "python");
   if (!existsSync(py)) throw new Error("helpers/depth has no .venv: run `uv sync` there first");
   const dets = loadDets(set);
-  const dir = join(PRIV, set);
+  const dir = setPaths(set, ROOT).h2;
   mkdirSync(dir, { recursive: true });
   const images = join(dir, "images.jsonl");
-  writeFileSync(images, inputImages(set, dets).map((x) => JSON.stringify({ id: x.id, image: x.path })).join("\n") + "\n");
+  // No EXIF is assumed: stage.py's --exif-fov reads a field of view only from a full-frame still's EXIF, else MoGe-2 estimates it.
+  writeFileSync(images, imagesText(set, dets));
   const out = join(dir, `stage-${tag}.jsonl`);
   const fd = openSync(out, "w");
   log(`${set}: depth stage over ${dets.size} photos (${tag})`);
-  const r = spawnSync(py, ["-I", join(REPO, "helpers", "depth", "stage.py"), "--images", images, "--detect", join(SETS[set].stage, "detect.jsonl"), "--cache", CACHE, "--exif-fov"], {
+  const r = spawnSync(py, ["-I", join(REPO, "helpers", "depth", "stage.py"), "--images", images, "--detect", join(setOf(set).stage, "detect.jsonl"), "--cache", CACHE, "--exif-fov"], {
     stdio: ["ignore", fd, "inherit"],
   });
   closeSync(fd);
@@ -135,8 +163,8 @@ function stage(set: SetName, tag: string): void {
 }
 
 /** The private per-box file: face shares and the trim per kept box, from the latest stage run (no depth runs). */
-function faces(set: SetName): void {
-  const dir = join(PRIV, set);
+function faces(set: string): void {
+  const dir = setPaths(set, ROOT).h2;
   const kept = keptIds(set);
   const rows = [...faceRows(set)].filter(([id]) => kept.has(id));
   writeFileSync(
@@ -163,14 +191,16 @@ function faces(set: SetName): void {
 
 // --- base: F-0's decision per kept box from the cached readings ------------------------------------------
 
-function base(set: SetName): void {
+function base(set: string): void {
+  needs("H-2", set, "default boxes", join(setOf(set).stage, "detect.jsonl"), `f0e-cli.ts detect --set ${set} --label bands+strips`);
   const dets = loadDets(set);
   const kept = keptIds(set);
-  const db = openCatalog(F0B_SETS[set].catalog);
-  const readings = loadReadings(SETS[set].stage);
+  const p = setPaths(set, ROOT);
+  const db = openCatalog(p.catalog);
+  const readings = loadReadings(setOf(set).stage);
   const cache = new Map<string, Candidate | undefined>();
-  const out = join(PRIV, set, "base-decisions.jsonl");
-  mkdirSync(join(PRIV, set), { recursive: true });
+  const out = join(p.h2, "base-decisions.jsonl");
+  mkdirSync(p.h2, { recursive: true });
   writeFileSync(out, "");
   let n = 0;
   for (const d of dets.values())
@@ -182,7 +212,7 @@ function base(set: SetName): void {
       if (++n % 500 === 0) log(`${set}: base ${n}`);
     });
   // Sanity against the decisions other cards cached on the same readings.
-  const cached = set === "pilot-000" ? join(ROOT, "f0c", set, "base-decisions.jsonl") : join(SETS[set].stage, "decisions.jsonl");
+  const cached = p.kind === "session" ? join(p.f0c, "base-decisions.jsonl") : join(setOf(set).stage, "decisions.jsonl");
   const ref = new Map(readJsonl<{ id: string; accepted: string | { workId: string } | null }>(cached).map((x) => [x.id, workOf(x)]));
   const mine = readJsonl<{ id: string; accepted: { workId: string } | null }>(out);
   const same = mine.filter((x) => ref.get(x.id) === workOf(x)).length;
@@ -529,14 +559,16 @@ function render(): void {
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   const [cmd, set, arg] = process.argv.slice(2);
   const tag = process.argv.includes("--tag") ? process.argv[process.argv.indexOf("--tag") + 1]! : "latest";
-  if (cmd === "stage" && isSet(set)) stage(set, tag);
-  else if (cmd === "faces" && isSet(set)) faces(set);
-  else if (cmd === "base" && isSet(set)) base(set);
+  // stage, faces, base and images take any declared session (NS-K2) or the yardstick's B2 run; anything else is refused.
+  if (cmd === "stage") stage(acceptSet("H-2", set), tag);
+  else if (cmd === "faces") faces(acceptSet("H-2", set));
+  else if (cmd === "base") base(acceptSet("H-2", set));
+  else if (cmd === "images") images(acceptSet("H-2", set), process.argv.includes("--dry-run"));
   else if (cmd === "run" && isSet(set) && arg) await run(set, arg);
   else if (cmd === "analyse") analyse();
   else if (cmd === "render") render();
   else {
-    console.error("usage: h2-cli.ts stage <set> [--tag T] | faces <set> | base <set> | run <set> <clip|face3d> | analyse | render   (set: pilot-000 | yardstick-library-b2)");
+    console.error("usage: h2-cli.ts stage <set> [--tag T] | faces <set> | base <set> | images <set> [--dry-run] | run <set> <clip|face3d> | analyse | render   (set: a declared session | yardstick-library-b2; run: pilot-000 | yardstick-library-b2)");
     process.exit(2);
   }
 }

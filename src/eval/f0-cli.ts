@@ -1,5 +1,6 @@
 // F-0 runner. `node src/eval/f0-cli.ts pilot|yardstick|publish [--limit n] [--qwen-cap n] [--run-id id]`.
-// pilot: machine-labels a fixture session from the ledger (real use; machine agreement, never accuracy).
+// pilot: machine-labels a fixture session from the ledger (real use; machine agreement, never accuracy). --session takes
+// any session declared in src/eval/set-roles.ts (NS-K2; default pilot-000).
 // yardstick: runs the same pipeline on the Library Dataset (PROXY) and scores titles against its own labels.
 // Private outputs go under $BOOKCASE_DATA; only aggregates are written to evals/<run-id>/.
 import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
@@ -23,6 +24,7 @@ import {
   loadReadings,
   machineAgreement,
   pyReaderStage,
+  readJsonl,
   CROP,
   stackFor,
   stageDir,
@@ -38,6 +40,7 @@ import {
   type SpineDecision,
 } from "./f0.ts";
 import { kinds, type BoxKind } from "./f0c.ts";
+import { acceptSet, setPaths } from "./set-paths.ts";
 import { evidenceOf, type BoxEvidence } from "./f0f.ts";
 import { applyNb3, NB3_SHIP, type NB3Evidence } from "./nb3.ts";
 import { depthStage } from "./nb3-stage.ts";
@@ -154,9 +157,18 @@ function fixtureImages(root: string, session: string): InputImage[] {
     });
 }
 
-async function pilot(session: string, limit: number, qwenCap: number, runId: string): Promise<void> {
+async function pilot(session: string, limit: number, qwenCap: number, runId: string, dryRun = false): Promise<void> {
+  // NS-K2: any declared session (a training source, or a held-out one, which is labelled to be measured and never
+  // trained on); an undeclared name is refused before anything runs.
+  acceptSet("F-0", session);
   const root = dataRoot();
   const images = fixtureImages(root, session).slice(0, limit);
+  // --dry-run (NS-K2): the photos the run would take, all found in the image store; no model loads, nothing is written.
+  if (dryRun) {
+    const cached = new Set(readJsonl<{ id: string; error?: string }>(join(setPaths(session, root).f0, "detect.jsonl")).filter((d) => !d.error).map((d) => d.id));
+    log(`${session}: ${images.length} photos from the ledger, every working copy in the image store; ${images.filter((i) => cached.has(i.id)).length} already detected (dry run, nothing written)`);
+    return;
+  }
   const db = openCatalog(catalogPaths().catalog);
   const dir = stageDir(root, session);
   const t0 = Date.now();
@@ -179,7 +191,8 @@ async function pilot(session: string, limit: number, qwenCap: number, runId: str
     wallSeconds: Math.round((Date.now() - t0) / 1000),
     ...machineAgreement(dets, decisions, readings),
   };
-  const dir2 = writeEval("pilot", metrics, pilotReport(metrics as unknown as PilotMetrics));
+  // pilot-000's part keeps its name; another session's part is its own, so it never overwrites pilot-000's.
+  const dir2 = writeEval(session === "pilot-000" ? "pilot" : `pilot-${session}`, metrics, pilotReport(metrics as unknown as PilotMetrics));
   log(`labels: ${set.photos.length} photos, ${decisions.length} spines -> $BOOKCASE_DATA/labels/${session}.machine.json`);
   log(`aggregates -> ${dir2}`);
 }
@@ -532,12 +545,13 @@ const { positionals, values } = parseArgs({
     post: { type: "string", default: "" },
     // DL-3: read a stage cache whose lineage stamp is missing or names other weights (`staleAllowed` in src/ledger/lineage.ts).
     "allow-stale": { type: "boolean", default: false },
+    "dry-run": { type: "boolean", default: false },
   },
 });
 const limit = Number(values.limit);
 const qwenCap = Number(values["qwen-cap"]);
 const cmd = positionals[0];
-if (cmd === "pilot") await pilot(values.session!, limit, qwenCap, values["run-id"] ?? "F0-pilot-000");
+if (cmd === "pilot") await pilot(values.session!, limit, qwenCap, values["run-id"] ?? `F0-${values.session}`, values["dry-run"]);
 else if (cmd === "yardstick") {
   const arm = values.arm as Arm;
   if (!ARMS.includes(arm)) throw new Error(`--arm must be one of ${ARMS.join(", ")}`);
@@ -545,6 +559,6 @@ else if (cmd === "yardstick") {
 }
 else if (cmd === "publish") publish(values["run-id"] ?? "F0");
 else {
-  console.error("usage: node src/eval/f0-cli.ts pilot|yardstick|publish [--limit n] [--qwen-cap n] [--run-id id] [--session id] [--arm b2|b3|b4] [--post strips,extend]");
+  console.error("usage: node src/eval/f0-cli.ts pilot|yardstick|publish [--limit n] [--qwen-cap n] [--run-id id] [--session id] [--dry-run] [--arm b2|b3|b4] [--post strips,extend]");
   process.exit(2);
 }

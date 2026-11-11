@@ -7,6 +7,8 @@
 //   node src/eval/q2b-cli.ts diag       # not pre-registered: the same run with τ held at Q-2's value (private)
 //   node src/eval/q2b-cli.ts u4         # U-4's still study before (F-0b outlines) and after (these); keeps both summaries
 //   node src/eval/q2b-cli.ts all        # features, diag, analyse, render (outlines and u4 first, for Part B's aggregates)
+//   node src/eval/q2b-cli.ts features|outlines <session>   # NS-K2: the same steps on any other declared session
+//   node src/eval/q2b-cli.ts table <session>               # NS-K2: its rung table at analyse's τ (no student scores)
 //
 // The population is the current default: on pilot-000, F-0e's `bands+strips` boxes with the readers F-0e ran on
 // them and F-0's decision (F-0c's cached `base-decisions`); on the yardstick, F-0's own B2 run, which F-0e left as
@@ -24,7 +26,9 @@ import { loadBoxSet, pilotOutlines, preRb1 } from "./rb1.ts";
 import { area, clipConvex, growQuad, MASK_COVER, PIECE_INSIDE, type Pt } from "../report/display-draw.ts";
 import { quantile } from "./q1.ts";
 import { rowsFrom, type Decision as Q1Decision, type Raw, type Reading } from "./q1-cli.ts";
-import { PILOT, Q2_RUN, YARD, analyse, geometry, render, type Run } from "./q2-cli.ts";
+import { PILOT, Q2_RUN, YARD, analyse, geometry, render, rungTable, type Run, type SetInputs } from "./q2-cli.ts";
+import { acceptSet, needs, setPaths } from "./set-paths.ts";
+import { imagesOf } from "./f0c-cli.ts";
 
 const REPO = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
 const ROOT = dataRoot();
@@ -34,7 +38,7 @@ const BASE = join(ROOT, "f0e", PILOT, "bands+strips");
 const log = (s: string) => process.stderr.write(`q2b: ${s}\n`);
 
 /** Box ids the shipped not-a-book rules keep as spines: F-0c's shape rules and F-0f's shelf-label rules (cover pass off). */
-export function spineIds(detect: string, set: "pilot-000" | "yardstick"): Set<string> {
+export function spineIds(detect: string, set: string): Set<string> {
   const ev = evidenceFor(set);
   const keep = new Set<string>();
   for (const d of readJsonl<Detection>(detect)) {
@@ -47,11 +51,24 @@ export function spineIds(detect: string, set: "pilot-000" | "yardstick"): Set<st
   return new Set([...keep].filter(box.keeps));
 }
 
-let kept: Record<string, Set<string>> | null = null;
+/** Each set's kept ids, computed on first use (the yardstick's on F-0's own B2 run, a session's on its default). */
+const kept = new Map<string, Set<string>>();
 const keepOf = (set: string) => (id: string) => {
-  kept ??= { [PILOT]: spineIds(join(BASE, "detect.jsonl"), "pilot-000"), [YARD]: spineIds(join(Q2_RUN.sets[YARD]!.stage, "detect.jsonl"), "yardstick") };
-  return kept[set]!.has(id);
+  if (!kept.has(set)) kept.set(set, set === YARD ? spineIds(join(Q2_RUN.sets[YARD]!.stage, "detect.jsonl"), "yardstick") : spineIds(join(setPaths(set, ROOT).base, "detect.jsonl"), set));
+  return kept.get(set)!.has(id);
 };
+
+/**
+ * A session's Q-2b inputs (NS-K2, src/eval/set-paths.ts): F-0e's `bands+strips` boxes and readings, F-0c's cached
+ * base decisions, Q-1's features and table re-measured on those boxes, and the shipped not-a-book filter.
+ */
+export function sessionInputs(set: string): SetInputs {
+  const p = setPaths(set, ROOT);
+  return { stage: p.base, decisions: join(p.f0c, "base-decisions.jsonl"), features: p.q2bFeatures, images: p.q2bImages, table: p.q2bQ1Table, keep: keepOf(set) };
+}
+
+/** Q-2b's run narrowed to one session, for the per-session steps (features, outlines, table). */
+const sessionRun = (set: string): Run => (set === PILOT ? Q2B_RUN : { ...Q2B_RUN, sets: { [set]: sessionInputs(set) } });
 
 /** F-0c's slim decision (accepted is a work id) in the shape Q-1's table expects. */
 interface Slim { id: string; imageId: string; accepted: string | null; reason: Q1Decision["reason"] }
@@ -66,14 +83,8 @@ export const Q2B_RUN: Run = {
   question: "Q-2's teacher and student, pre-registered and unchanged, on the current default boxes (F-0e bands+strips on pilot-000, F-0c's and F-0f's not-a-book filter on): does the predicted fill now pass Q-2's go rule",
   inputs: "pilot-000 (31 photos): F-0e bands+strips boxes, the readers F-0e ran on them, F-0's decision (F-0c's cached base decisions); yardstick-library B2 (40 Library Dataset images, PROXY): F-0's own B2 run, the default for shelf-scale photos; both after the shipped not-a-book filter (F-0c shape rules, F-0f shelf-label rules); Q-1's features and Q-2's top-seam geometry re-measured on the new pilot-000 boxes",
   sets: {
-    [PILOT]: {
-      stage: BASE,
-      decisions: join(ROOT, "f0c", PILOT, "base-decisions.jsonl"),
-      features: join(PRIV, "features", `${PILOT}.jsonl`),
-      images: Q2_RUN.sets[PILOT]!.images, // the same 31 working copies
-      table: join(PRIV, "q1table", `${PILOT}.jsonl`),
-      keep: keepOf(PILOT),
-    },
+    // The same 31 working copies as Q-1's list (set-paths keeps that one literal).
+    [PILOT]: sessionInputs(PILOT),
     [YARD]: { ...Q2_RUN.sets[YARD]!, keep: keepOf(YARD) },
   },
   prelude: (m) => {
@@ -99,13 +110,20 @@ function diag(): void {
 
 // --- features: the CPU pixel pass on the new boxes ---------------------------------------------------------
 
-function features(): void {
+/**
+ * Q-1's features and table and Q-2's top seam on one session's default boxes. With no session, pilot-000's as first
+ * run (its geometry step re-measures the yardstick too); a new session first writes its own image list (NS-K2).
+ */
+function features(set: string = PILOT): void {
   const py = join(REPO, "helpers", "coverage", ".venv", "bin", "python");
   if (!existsSync(py)) throw new Error("helpers/coverage has no .venv: run `uv sync` there first");
-  const inp = Q2B_RUN.sets[PILOT]!;
+  const run = sessionRun(set);
+  const inp = run.sets[set]!;
+  needs("Q-2b", set, "F-0c base decisions", inp.decisions, `f0c-cli.ts base ${set}`);
   mkdirSync(dirname(inp.features), { recursive: true });
+  if (set !== PILOT) writeFileSync(inp.images, imagesOf(set).map((i) => JSON.stringify({ id: i.id, image: i.path })).join("\n") + "\n");
   const fd = openSync(inp.features, "w");
-  log(`${PILOT}: Q-1 features on the default boxes`);
+  log(`${set}: Q-1 features on the default boxes`);
   const r = spawnSync(py, ["-I", join(REPO, "helpers", "coverage", "features.py"), "--detect", join(inp.stage, "detect.jsonl"), "--images", inp.images], { stdio: ["ignore", fd, "inherit"] });
   closeSync(fd);
   if (r.status !== 0) throw new Error("features.py failed");
@@ -115,23 +133,41 @@ function features(): void {
   const rows = rowsFrom(readJsonl<Raw>(inp.features), dec, pp, null);
   mkdirSync(dirname(inp.table), { recursive: true });
   writeFileSync(inp.table, rows.map((x) => JSON.stringify(x)).join("\n") + "\n");
-  log(`${PILOT}: ${rows.length} boxes measured`);
-  geometry(Q2B_RUN);
+  log(`${set}: ${rows.length} boxes measured`);
+  if (set === PILOT) geometry(Q2B_RUN);
+  else geometry(run, [set]);
+}
+
+/**
+ * A session's rung table (TS-0's rungs, F-0i's kept ids), NS-K2: Q-2's teacher at the τ Q-2b's analysis set on
+ * pilot-000's null pairing (evals/Q2b/metrics.json), on the session's kept boxes. pilot-000's own table is written
+ * by `analyse`, with the student's scores, and is never rewritten here.
+ */
+function table(set: string): void {
+  if (set === PILOT) throw new Error(`Q-2b: ${PILOT}'s rung table is written by \`q2b-cli.ts analyse\`; \`table\` is for the other sessions`);
+  const inp = sessionRun(set).sets[set]!;
+  needs("Q-2b", set, "F-0c base decisions", inp.decisions, `f0c-cli.ts base ${set}`);
+  needs("Q-2b", set, "Q-1 features", inp.table, `q2b-cli.ts features ${set}`);
+  const tau = (JSON.parse(readFileSync(join(Q2B_RUN.evalDir, "metrics.json"), "utf8")) as { teacher: { tau: number } }).teacher.tau;
+  const n = rungTable(sessionRun(set), set, tau);
+  log(`${set}: rung table for ${n} kept boxes at τ ${tau} under the data root's private/q2b/table/`);
 }
 
 // --- outlines: SAM 2.1 box-prompted masks for U-4 ----------------------------------------------------------
 
-/** Every kept default pilot-000 box through F-0b's outline.py; ids already in the output are skipped (resume). */
-async function outlines(): Promise<void> {
+/** Every kept default box of a session (pilot-000 by default) through F-0b's outline.py; ids already done are skipped (resume). */
+async function outlines(set: string = PILOT): Promise<void> {
   const py = join(REPO, "helpers", "label", ".venv", "bin", "python");
   if (!existsSync(py)) throw new Error("helpers/label has no .venv: run `uv sync` there first");
-  const out = join(PRIV, "outlines", `${PILOT}.jsonl`);
+  const inp = sessionRun(set).sets[set]!;
+  needs("Q-2b", set, "image list", inp.images, `q2b-cli.ts features ${set}`);
+  const out = setPaths(set, ROOT).outlines;
   mkdirSync(dirname(out), { recursive: true });
   const done = new Set(existsSync(out) ? readJsonl<{ id: string }>(out).map((x) => x.id) : []);
-  const image = new Map(readJsonl<{ id: string; image: string }>(Q2B_RUN.sets[PILOT]!.images).map((x) => [x.id, x.image]));
-  const keep = keepOf(PILOT);
+  const image = new Map(readJsonl<{ id: string; image: string }>(inp.images).map((x) => [x.id, x.image]));
+  const keep = keepOf(set);
   const reqs: string[] = [];
-  for (const d of readJsonl<Detection>(join(BASE, "detect.jsonl"))) {
+  for (const d of readJsonl<Detection>(join(inp.stage, "detect.jsonl"))) {
     if (d.error) continue;
     d.spines.forEach((s, i) => {
       const id = `${d.id}:${i}`;
@@ -304,15 +340,19 @@ export function compare(q2: M, q2b: M, label = "Q-2b"): { json: Record<string, u
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   const cmd = process.argv[2];
-  if (cmd === "features") features();
+  const set = process.argv[3];
+  // features, outlines and table take one declared session (NS-K2); with none, features and outlines run pilot-000's.
+  const session = (): string => (set === undefined || set.startsWith("--") ? PILOT : acceptSet("Q-2b", set));
+  if (cmd === "features") features(session());
+  else if (cmd === "table") table(acceptSet("Q-2b", set));
   else if (cmd === "analyse") analyse(Q2B_RUN);
   else if (cmd === "render") render(Q2B_RUN, [PILOT]);
-  else if (cmd === "outlines") await outlines();
+  else if (cmd === "outlines") await outlines(session());
   else if (cmd === "diag") diag();
   else if (cmd === "u4") u4Study();
   else if (cmd === "all") { features(); diag(); analyse(Q2B_RUN); render(Q2B_RUN, [PILOT]); }
   else {
-    process.stderr.write("usage: q2b-cli.ts features | analyse | render | outlines | diag | u4 | all\n");
+    process.stderr.write("usage: q2b-cli.ts features [session] | table <session> | outlines [session] | analyse | render | diag | u4 | all\n");
     process.exit(2);
   }
 }

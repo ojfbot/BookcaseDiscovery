@@ -2,6 +2,7 @@
 //
 //   node src/eval/f0g-cli.ts pairs <set>      # neighbours and their appearance similarities (helpers/label/appearance.py)
 //   node src/eval/f0g-cli.ts evidence <set>   # each paired spine's reader tops (F-0's topFor), cached
+//   node src/eval/f0g-cli.ts copies <set>     # NS-K2: one set's copy record (copies.jsonl) alone, as analyse writes it
 //   node src/eval/f0g-cli.ts calibrate        # fit the visual score on pilot-000's confirmed neighbours; prints VISUAL
 //   node src/eval/f0g-cli.ts imprint <set>    # F-0d's imprint read on members of groups that could propagate (--dry-run: count only)
 //   node src/eval/f0g-cli.ts analyse          # evals/F0g/{metrics.json,report.md} tables (aggregates only)
@@ -21,7 +22,8 @@ import { dataRoot } from "../ledger/images.ts";
 import { cropFor, cropName } from "../perceive/crop.ts";
 import { confirms, CROP, loadReadings, readJsonl, topFor, variantsOf, type Detection, type Reading, type ReaderName } from "./f0.ts";
 import { kinds } from "./f0c.ts";
-import { imagesOf, meanCI, SETS, type SetName, type Slim } from "./f0c-cli.ts";
+import { imagesOf, meanCI, setCfg, type SetName, type Slim } from "./f0c-cli.ts";
+import { acceptSet, needs, setPaths, YARDSTICK } from "./set-paths.ts";
 import { boxImprint, runImprintHelper, type ImprintReading } from "./f0d-cli.ts";
 import { boxRows, type Tri } from "./f0e.ts";
 import { evidenceFor } from "./f0f-cli.ts";
@@ -62,13 +64,13 @@ const SET_NAMES: SetName[] = ["pilot-000", "yardstick"];
 /** The pre-registered operating point: the share of different-work neighbours allowed past the visual test. */
 export const CALIBRATION = { falsePassRate: 0.02, folds: 3 } as const;
 
-const stage = (set: SetName): string => {
-  const dir = join(PRIV, set);
+const stage = (set: string): string => {
+  const dir = setPaths(set, ROOT).f0g;
   mkdirSync(dir, { recursive: true });
   return dir;
 };
-export const loadDets = (set: SetName): Map<string, Detection> =>
-  new Map(readJsonl<Detection>(join(SETS[set].base, "detect.jsonl")).filter((d) => !d.error).map((d) => [d.id, d]));
+export const loadDets = (set: string): Map<string, Detection> =>
+  new Map(readJsonl<Detection>(join(setCfg(set).base, "detect.jsonl")).filter((d) => !d.error).map((d) => [d.id, d]));
 
 /**
  * The shipped box set's kinds: per photo, whether each box is a book. F-0c's not-a-book flags and F-0f's shelf
@@ -76,7 +78,7 @@ export const loadDets = (set: SetName): Map<string, Detection> =>
  * Then RB-1's box set: boxes F-0i's partition drops and NB-3's `on-lip` boxes are not books either
  * (`--box-set pre-rb1` for the figures as first published).
  */
-export const loadBooks = (set: SetName, dets: Map<string, Detection>): Map<string, boolean[]> => {
+export const loadBooks = (set: string, dets: Map<string, Detection>): Map<string, boolean[]> => {
   const ev = evidenceFor(set);
   const keeps = preRb1() ? () => true : loadBoxSet(set).keeps;
   return new Map([...dets].map(([id, d]) => [id, kinds({ ...d, covers: [] }, ev.get(id)).spines.map((b, i) => b.kind === "spine" && keeps(`${id}:${i}`))]));
@@ -92,7 +94,8 @@ interface PhotoPairs {
   error?: string;
 }
 
-async function pairs(set: SetName): Promise<void> {
+async function pairs(set: string): Promise<void> {
+  needs("F-0g", set, "default boxes", join(setCfg(set).base, "detect.jsonl"), `f0e-cli.ts detect --set ${set} --label bands+strips`);
   const out = join(stage(set), "pairs.jsonl");
   const done = new Set(readJsonl<PhotoPairs>(out).filter((p) => !p.error).map((p) => p.id));
   const dets = loadDets(set);
@@ -133,20 +136,21 @@ async function pairs(set: SetName): Promise<void> {
   writeFileSync(out, (existsSync(out) ? readFileSync(out, "utf8") : "") + rows.map((r) => JSON.stringify(r)).join("\n") + "\n");
 }
 
-const loadPairs = (set: SetName): Map<string, PhotoPairs> => new Map(readJsonl<PhotoPairs>(join(stage(set), "pairs.jsonl")).filter((p) => !p.error).map((p) => [p.id, p]));
+const loadPairs = (set: string): Map<string, PhotoPairs> => new Map(readJsonl<PhotoPairs>(join(stage(set), "pairs.jsonl")).filter((p) => !p.error).map((p) => [p.id, p]));
 
 // --- evidence: each paired spine's reader tops -------------------------------------------------------------
 
 const ref = (c: Candidate): WorkRef => ({ workId: c.workId, title: c.title, authors: c.authors });
 
-function evidence(set: SetName): void {
+function evidence(set: string): void {
+  needs("F-0g", set, "neighbour pairs", join(setPaths(set, ROOT).f0g, "pairs.jsonl"), `f0g-cli.ts pairs ${set}`);
   // Incremental: a spine's evidence depends on its readings and F-0's decision, not on its neighbours, so rows
   // cached before a box-set change are reused and only spines newly paired are scored.
   const out = join(stage(set), "evidence.jsonl");
   const have = new Set(readJsonl<SpineEvidence>(out).map((e) => e.id));
   const t0 = Date.now();
-  const db = openCatalog(SETS[set].catalog);
-  const readings = loadReadings(SETS[set].base);
+  const db = openCatalog(setCfg(set).catalog);
+  const readings = loadReadings(setCfg(set).base);
   const base = loadBase(set);
   const ids = new Set<string>();
   for (const p of loadPairs(set).values()) for (const n of p.pairs) ids.add(`${p.id}:${n.a}`).add(`${p.id}:${n.b}`);
@@ -170,8 +174,8 @@ function evidence(set: SetName): void {
   log(`${set}: evidence for ${rows.length} new spines (${have.size} cached) in ${((Date.now() - t0) / 1000).toFixed(0)} s`);
 }
 
-const loadBase = (set: SetName): Map<string, Slim> => {
-  const path = join(ROOT, "f0c", set, "base-decisions.jsonl");
+const loadBase = (set: string): Map<string, Slim> => {
+  const path = join(setPaths(set, ROOT).f0c, "base-decisions.jsonl");
   if (!existsSync(path)) throw new Error(`run node src/eval/f0c-cli.ts base ${set} first`);
   return new Map(readJsonl<Slim>(path).map((d) => [d.id, d]));
 };
@@ -249,9 +253,9 @@ function calibrate(): void {
 // --- imprint: the edition clue where it can change a decision ---------------------------------------------
 
 /** F-0d's cached imprint reads on the same boxes (the yardstick's default is F-0's run, which F-0d read). */
-const F0D_IMPRINTS: Partial<Record<SetName, string>> = { yardstick: join(ROOT, "private", "f0d", "yardstick-library-b2", "imprint.jsonl") };
+const F0D_IMPRINTS: Partial<Record<string, string>> = { [YARDSTICK]: join(ROOT, "private", "f0d", "yardstick-library-b2", "imprint.jsonl") };
 
-const loadImprints = (set: SetName): Map<string, ImprintReading> =>
+const loadImprints = (set: string): Map<string, ImprintReading> =>
   new Map(
     [...readJsonl<ImprintReading>(F0D_IMPRINTS[set] ?? ""), ...readJsonl<ImprintReading>(join(stage(set), "imprint.jsonl"))]
       .filter((r) => !r.error && (r.crop ?? "") === cropName(CROP))
@@ -262,7 +266,7 @@ const loadImprints = (set: SetName): Map<string, ImprintReading> =>
  * Imprint reads (helpers/label/imprint.py, Qwen) on every member of a copy group that holds a confirmed copy and an
  * unconfirmed one, the only groups where the imprint guard can change a decision; boxes F-0d already read are reused.
  */
-async function imprint(set: SetName, dryRun = false): Promise<void> {
+async function imprint(set: string, dryRun = false): Promise<void> {
   const run = runSet(set);
   const done = loadImprints(set);
   const paths = new Map(imagesOf(set).map((i) => [i.id, i.path]));
@@ -321,7 +325,7 @@ export interface PairOutcome {
 }
 
 export interface SetRun {
-  set: SetName;
+  set: string;
   dets: Map<string, Detection>;
   books: Map<string, boolean[]>;
   base: Map<string, Slim>;
@@ -335,15 +339,15 @@ export interface SetRun {
 
 export const noEvidence = (id: string): SpineEvidence => ({ id, accepted: null, readers: [] });
 
-export function runSet(set: SetName, useImprint = true): SetRun {
+export function runSet(set: string, useImprint = true): SetRun {
   const t0 = Date.now();
   const dets = loadDets(set);
   const books = loadBooks(set, dets);
   const base = loadBase(set);
   const imprints = useImprint ? loadImprints(set) : new Map<string, ImprintReading>();
   const ev = new Map(readJsonl<SpineEvidence>(join(stage(set), "evidence.jsonl")).map((e) => [e.id, { ...e, imprint: boxImprint(imprints.get(e.id)).key }]));
-  const db = openCatalog(SETS[set].catalog);
-  const fit = fitFor(db, loadReadings(SETS[set].base));
+  const db = openCatalog(setCfg(set).catalog);
+  const fit = fitFor(db, loadReadings(setCfg(set).base));
   const pp = loadPairs(set);
   const outcomes: PairOutcome[] = [];
   const groups: SetRun["groups"] = [];
@@ -492,7 +496,7 @@ function analyseSet(run: SetRun) {
 
   const propagatedBoxes = [...decisions.values()].filter((d) => d.basis === "confirmed-by-copy");
   return {
-    scope: SETS[set].scope,
+    scope: setCfg(set).scope,
     photos: photos.length,
     boxCount: photos.reduce((s, p) => s + p.boxes, 0),
     notABookCount: [...books.values()].reduce((s, b) => s + b.filter((x) => !x).length, 0),
@@ -640,6 +644,17 @@ function writeCopies(run: SetRun): void {
   writeFileSync(join(stage(run.set), "copies.jsonl"), lines.join("\n") + "\n");
 }
 
+/**
+ * One set's copy record alone (NS-K2): what `analyse` writes per set, with the calibration pilot-000 fixed
+ * (`VISUAL`), so a session `analyse` never saw gets its `confirmed-by-copy` labels. No aggregate is written.
+ */
+function copies(set: string): void {
+  needs("F-0g", set, "spine evidence", join(setPaths(set, ROOT).f0g, "evidence.jsonl"), `f0g-cli.ts evidence ${set}`);
+  const run = runSet(set);
+  writeCopies(run);
+  log(`${set}: ${run.groups.length} copy groups, ${run.decisions.size} decisions under the data root's private/f0g/${set}/copies.jsonl`);
+}
+
 /** The point estimate `a` sits inside interval `b`. */
 const within = (a: Tri, b: Tri): boolean => a !== null && b !== null && a[0] >= b[1] && a[0] <= b[2];
 
@@ -749,14 +764,16 @@ async function render(): Promise<void> {
 
 if (import.meta.url === `file://${process.argv[1]}`) {
   const [cmd, set, flag] = process.argv.slice(2) as [string, SetName, string?];
-  if (cmd === "pairs") await pairs(set);
-  else if (cmd === "evidence") evidence(set);
+  // pairs, evidence, imprint and copies take any declared session (NS-K2) or the yardstick; anything else is refused.
+  if (cmd === "pairs") await pairs(acceptSet("F-0g", set));
+  else if (cmd === "evidence") evidence(acceptSet("F-0g", set));
+  else if (cmd === "copies") copies(acceptSet("F-0g", set));
   else if (cmd === "calibrate") calibrate();
-  else if (cmd === "imprint") await imprint(set, flag === "--dry-run");
+  else if (cmd === "imprint") await imprint(acceptSet("F-0g", set), flag === "--dry-run");
   else if (cmd === "analyse") analyse();
   else if (cmd === "render") await render();
   else {
-    console.error("usage: node src/eval/f0g-cli.ts pairs|evidence <pilot-000|yardstick> | imprint <set> [--dry-run] | calibrate | analyse | render");
+    console.error("usage: node src/eval/f0g-cli.ts pairs|evidence|copies <session|yardstick> | imprint <set> [--dry-run] | calibrate | analyse | render");
     process.exit(2);
   }
 }

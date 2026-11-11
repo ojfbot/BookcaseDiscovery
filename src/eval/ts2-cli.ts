@@ -6,7 +6,7 @@
 //   node src/eval/ts2-cli.ts analyse          # CPU: arms and measures -> evals/TS2/{metrics.json,report.md}
 //   node src/eval/ts2-cli.ts register         # CPU: models/registry/ts2-spine-reader.json (no path, private-only)
 //
-// <set> is pilot-000 (its val photos only) or yardstick. Every crop, reading and per-box record stays under the data
+// <set> is a declared session (NS-K2; its val photos only, as pre-registered on pilot-000) or yardstick. Every crop, reading and per-box record stays under the data
 // root (private/models/ts2/, private/ts2/<set>/); only aggregates reach evals/TS2/. Each GPU step first checks that
 // no other mlx, torch or qwen job runs, and logs its minutes to private/ts2/gpu.jsonl. No profile input (INV-13).
 import { spawn, spawnSync } from "node:child_process";
@@ -15,14 +15,15 @@ import { join } from "node:path";
 import { createInterface } from "node:readline";
 import { fileURLToPath } from "node:url";
 import type { DatabaseSync } from "node:sqlite";
-import { catalogPaths, openCatalog } from "../catalog/cli.ts";
+import { openCatalog } from "../catalog/cli.ts";
 import { retrieve, scoreWorks, type Candidate } from "../catalog/retrieve.ts";
 import { writeFileDurable } from "../ledger/durable.ts";
-import { dataRoot, ImageStore } from "../ledger/images.ts";
+import { dataRoot } from "../ledger/images.ts";
 import { cropFor, F0_CROP } from "../perceive/crop.ts";
 import { loadReadings, readJsonl, topFor, variantsOf, type Detection, type Reading, type ReaderName } from "./f0.ts";
 import { compactJson, yardstickTruth } from "./q1-cli.ts";
 import { loadBoxSet } from "./rb1.ts";
+import { acceptSet, setPaths } from "./set-paths.ts";
 import { contentHash, parseLabelRow, sha256, type LabelRow } from "./ts0.ts";
 import {
   agreement,
@@ -58,28 +59,22 @@ const LEDGER = join(ROOT, "datasets", "label-ledger");
 const log = (s: string): void => console.error(`[ts2] ${new Date().toISOString().slice(11, 19)} ${s}`);
 const r4 = (x: number) => Math.round(x * 10000) / 10000;
 
-type SetName = "pilot-000" | "yardstick";
-/** Each set's cached F-0 stage (detections, readings), H-2's base decisions and catalog, as H-2 and F-0b read them. */
-const SETS: Record<SetName, { stage: string; decisions: string; catalog: () => string; image: (id: string) => string }> = {
-  "pilot-000": {
-    stage: join(ROOT, "f0e", "pilot-000", "bands+strips"),
-    decisions: join(ROOT, "private", "h2", "pilot-000", "base-decisions.jsonl"),
-    catalog: () => catalogPaths().catalog,
+/** `pilot-000`, any other declared session, or `yardstick` (NS-K2: src/eval/set-paths.ts). */
+type SetName = string;
+/** A set's cached F-0 stage (detections, readings), H-2's base decisions and catalog, as H-2 and F-0b read them. */
+const setOf = (set: SetName): { stage: string; decisions: string; catalog: () => string; image: (id: string) => string } => {
+  const p = setPaths(set, ROOT);
+  return {
+    stage: p.base,
+    decisions: join(p.h2, "base-decisions.jsonl"),
+    catalog: () => p.catalog,
     image: (id) => {
-      const p = new ImageStore(ROOT).find(id);
-      if (!p) throw new Error("a pilot-000 working copy is missing from the image store");
-      return p;
+      const path = p.image(id);
+      if (!path) throw new Error(`a ${set} working copy is missing from the image store`);
+      return path;
     },
-  },
-  yardstick: {
-    stage: join(ROOT, "f0", "yardstick-library-b2"),
-    decisions: join(ROOT, "private", "h2", "yardstick-library-b2", "base-decisions.jsonl"),
-    catalog: () => join(ROOT, "proxy", "library-dataset", "f0-inventory-catalog.sqlite"),
-    image: (id) => join(ROOT, "proxy", "library-dataset", "images", `${id}.jpg`),
-  },
+  };
 };
-const isSet = (s: string | undefined): s is SetName => s === "pilot-000" || s === "yardstick";
-
 function python(): string {
   const p = join(HELPER, ".venv", "bin", "python");
   if (!existsSync(p)) throw new Error("helpers/train has no .venv: run `uv sync` there first");
@@ -104,13 +99,13 @@ function frozenSplits(): Map<string, string> {
 
 function baseBoxes(set: SetName): BaseBox[] {
   const box = loadBoxSet(set);
-  return readJsonl<{ id: string; imageId: string; confirmed: BaseBox["confirmed"]; readText: BaseBox["readText"]; accepted: { workId: string } | null }>(SETS[set].decisions)
+  return readJsonl<{ id: string; imageId: string; confirmed: BaseBox["confirmed"]; readText: BaseBox["readText"]; accepted: { workId: string } | null }>(setOf(set).decisions)
     .filter((d) => box.keeps(d.id))
     .map((d) => ({ id: d.id, imageId: d.imageId, confirmed: d.confirmed, readText: d.readText, accepted: d.accepted?.workId ?? null }));
 }
 
 const loadDets = (set: SetName): Map<string, Detection> =>
-  new Map(readJsonl<Detection>(join(SETS[set].stage, "detect.jsonl")).filter((d) => !d.error).map((d) => [d.id, d]));
+  new Map(readJsonl<Detection>(join(setOf(set).stage, "detect.jsonl")).filter((d) => !d.error).map((d) => [d.id, d]));
 
 const splitId = (id: string): [string, number] => {
   const k = id.lastIndexOf(":");
@@ -190,15 +185,17 @@ function runHelper(args: string[], requests: object[], out: string | null): Prom
 async function data(): Promise<void> {
   const all = ledgerRows();
   const { rows, excluded } = trainRows(all);
-  const readings = loadReadings(SETS["pilot-000"].stage);
-  const db = openCatalog(SETS["pilot-000"].catalog());
+  // Each row's readings come from its own set's default stage (every row is a training source's: trainRows' guard).
+  const stages = new Map<string, ReturnType<typeof loadReadings>>();
+  const readingsOf = (set: string) => stages.get(set) ?? stages.set(set, loadReadings(setOf(set).stage)).get(set)!;
+  const db = openCatalog(setOf("pilot-000").catalog());
   const reqs: { image: string; polygon: [number, number][]; rotation: number; target: string }[] = [];
   const keys: string[] = [];
   let noRotation = 0;
   for (const r of rows) {
     const c = cropFor({ polygon: r.polygon }, { width: 0, height: 0 }, F0_CROP)!;
     if (c.crop !== r.crop) throw new Error(`TS-2: ledger crop ${r.crop} is not F-0's original crop`);
-    const reads = readings.get(r.boxId) ?? {};
+    const reads = readingsOf(r.set).get(r.boxId) ?? {};
     const scores = c.rotations.map((rotation) => {
       const texts = r.readers.flatMap((rd) => (reads[rd]?.variants ?? []).filter((v) => v.rotation === rotation).map((v) => v.text.replace(/\s+/g, " ").trim()).filter((t) => t.length >= 2));
       return { rotation, score: texts.length ? (scoreWorks(db, texts, [r.workId]).get(r.workId)?.score ?? 0) : 0 };
@@ -279,7 +276,7 @@ async function train(): Promise<void> {
 
 // --- read: the student on a set's read set ------------------------------------------------------------------
 
-const outPath = (set: SetName, free: boolean) => join(PRIV, set, `student-${free ? "free" : "steered"}.jsonl`);
+const outPath = (set: SetName, free: boolean) => join(setPaths(set, ROOT).ts2, `student-${free ? "free" : "steered"}.jsonl`);
 
 async function read(set: SetName, free: boolean, dryRun: boolean): Promise<void> {
   if (!dryRun) {
@@ -290,10 +287,10 @@ async function read(set: SetName, free: boolean, dryRun: boolean): Promise<void>
   }
   const ids = readSet(set);
   const dets = loadDets(set);
-  const readings = loadReadings(SETS[set].stage);
-  const db = openCatalog(SETS[set].catalog());
+  const readings = loadReadings(setOf(set).stage);
+  const db = openCatalog(setOf(set).catalog());
   const out = outPath(set, free);
-  mkdirSync(join(PRIV, set), { recursive: true });
+  mkdirSync(setPaths(set, ROOT).ts2, { recursive: true });
   const done = new Set(readJsonl<{ id: string; error?: string }>(out).filter((r) => !r.error).map((r) => r.id));
   const ranked = new Map<string, Candidate[]>();
   const rank = (r: Reading | undefined): Candidate[] => {
@@ -314,7 +311,7 @@ async function read(set: SetName, free: boolean, dryRun: boolean): Promise<void>
       const c = cropFor(s, det, F0_CROP);
       if (!c) return [];
       const cands = free ? [] : steerCandidates(TS2.steer.from.map((rd) => rank(readings.get(id)?.[rd]))).map(targetText);
-      return [{ id, image: SETS[set].image(img), polygon: c.polygon, rotations: c.rotations, candidates: cands }];
+      return [{ id, image: setOf(set).image(img), polygon: c.polygon, rotations: c.rotations, candidates: cands }];
     });
   db.close();
   log(`read ${set} (${free ? "free" : "steered"}): ${reqs.length} boxes to read, ${done.size} cached, ${reqs.filter((r) => r.candidates.length).length} with steering candidates`);
@@ -356,7 +353,7 @@ function studentVotes(set: SetName, free: boolean, db: DatabaseSync): { votes: M
 
 /** Each kept box under the three arms, the student's vote taken from `free` or steered reads. */
 function armRows(set: SetName, votes: Map<string, StudentVote>, only?: (b: BaseBox) => boolean): ArmRow[] {
-  const replacedRead = new Set(readJsonl<{ id: string }>(join(SETS[set].stage, `${TS2.replaces}.jsonl`)).map((r) => r.id));
+  const replacedRead = new Set(readJsonl<{ id: string }>(join(setOf(set).stage, `${TS2.replaces}.jsonl`)).map((r) => r.id));
   const truth = set === "yardstick" ? yardstickTruth() : null;
   return baseBoxes(set)
     .filter((b) => !only || only(b))
@@ -371,7 +368,7 @@ function armRows(set: SetName, votes: Map<string, StudentVote>, only?: (b: BaseB
 function readerSeconds(set: SetName, ids: Set<string>) {
   const out: Record<string, unknown> = {};
   for (const rd of ["vision", "ppocr", "qwen"] as ReaderName[]) {
-    const xs = readJsonl<{ id: string; seconds: number; error?: string }>(join(SETS[set].stage, `${rd}.jsonl`)).filter((r) => !r.error && ids.has(r.id)).map((r) => r.seconds);
+    const xs = readJsonl<{ id: string; seconds: number; error?: string }>(join(setOf(set).stage, `${rd}.jsonl`)).filter((r) => !r.error && ids.has(r.id)).map((r) => r.seconds);
     out[rd] = { n: xs.length, secondsPerCrop: tri(secondsPerCrop(xs)) };
   }
   return out;
@@ -393,7 +390,7 @@ function analyse(): void {
   const verdict: Record<string, unknown> = {};
   // Yardstick (PROXY): the keep rule's set.
   {
-    const db = openCatalog(SETS.yardstick.catalog());
+    const db = openCatalog(setOf("yardstick").catalog());
     const ids = readSet("yardstick");
     const yard: Record<string, unknown> = { scope: "PROXY (library shelves): evaluation only", readSet: ids.size, readers: readerSeconds("yardstick", ids) };
     for (const free of [false, true]) {
@@ -412,7 +409,7 @@ function analyse(): void {
   }
   // pilot-000 val: machine agreement (INV-17).
   {
-    const db = openCatalog(SETS["pilot-000"].catalog());
+    const db = openCatalog(setOf("pilot-000").catalog());
     const ids = readSet("pilot-000");
     const splits = frozenSplits();
     const pilot: Record<string, unknown> = { scope: "real use, val split: machine agreement with the confirmed work, never accuracy (INV-17)", readSet: ids.size, readers: readerSeconds("pilot-000", ids) };
@@ -544,11 +541,12 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   const run = async () => {
     if (cmd === "data") await data();
     else if (cmd === "train") await train();
-    else if (cmd === "read" && isSet(set)) await read(set, free, process.argv.includes("--dry-run"));
+    // A declared session (a held-out one is read, never trained on) or the yardstick; anything else is refused.
+    else if (cmd === "read") await read(acceptSet("TS-2", set), free, process.argv.includes("--dry-run"));
     else if (cmd === "analyse") analyse();
     else if (cmd === "register") register();
     else {
-      console.error("usage: ts2-cli.ts data | train | read <pilot-000|yardstick> [--free] [--dry-run] | analyse | register");
+      console.error("usage: ts2-cli.ts data | train | read <session|yardstick> [--free] [--dry-run] | analyse | register");
       process.exit(2);
     }
   };
