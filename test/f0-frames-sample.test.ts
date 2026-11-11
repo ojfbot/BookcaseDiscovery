@@ -83,3 +83,41 @@ describe("sample part", () => {
     expect(setPaths("sf-store-001", ROOT).f0).toBe(join(ROOT, "f0", "sf-store-001"));
   });
 });
+
+describe("F0-frames aggregates (src/eval/f0-frames-cli.ts)", async () => {
+  const { copyGroupSpan, differences, mix, quantile, recurrence, spread, timing } = await import("../src/eval/f0-frames-cli.ts");
+
+  it("counts copy groups and those spanning more than one frame", () => {
+    const rows = [
+      { id: "a:1", group: 1 }, { id: "a:2", group: 1 },
+      { id: "a:5", group: 2 }, { id: "b:0", group: 2 }, { id: "c:3", group: 2 },
+    ];
+    expect(copyGroupSpan(rows)).toEqual({ groups: 2, groupedBoxCount: 5, multiFrameGroups: 1, boxesInMultiFrameGroups: 3 });
+  });
+
+  it("measures work recurrence across frames, not within one", () => {
+    const r = recurrence([{ id: "a:1", workId: "w1" }, { id: "a:2", workId: "w1" }, { id: "b:0", workId: "w2" }, { id: "c:0", workId: "w2" }, { id: "c:1", workId: "w3" }]);
+    expect(r).toEqual({ acceptedBoxCount: 5, acceptedWorks: 3, worksInTwoOrMoreFrames: 1, acceptedBoxesRecurring: 2, acceptedBoxesRecurringShare: 0.4 });
+  });
+
+  it("summarises lists and mixes", () => {
+    expect(quantile([], 0.5)).toBeNull();
+    expect(quantile([5, 1, 3], 0.5)).toBe(3);
+    expect(spread([2, 4])).toMatchObject({ count: 2, mean: 3, min: 2, max: 4 });
+    expect(mix(["x", "y", "x"], (s) => s)).toEqual({ x: { count: 2, share: 0.6667 }, y: { count: 1, share: 0.3333 } });
+  });
+
+  it("differences only rates, means and per-frame figures", () => {
+    const a = { n: 10, s: { share: 0.5, count: 4 }, r: { vision: { withTextShare: 0.2 } }, m: { "single-reader": { count: 1, share: 0.1 } } };
+    const b = { n: 20, s: { share: 0.25, count: 9 }, r: { vision: { withTextShare: 0.5 } }, m: { "single-reader": { count: 3, share: 0.3 } } };
+    expect(differences(a, b)).toEqual({ s: { share: -0.25 }, r: { vision: { withTextShare: 0.3 } }, m: { "single-reader": { share: 0.2 } } });
+  });
+
+  it("projects the pilot linearly in frames and sets it beside the full run", () => {
+    const pilot = [{ step: "1", name: "F-0", seconds: 100, maxRssBytes: 2 ** 21, exit: 0 }];
+    const t = timing(pilot, [{ step: "1", name: "F-0", seconds: 3000, maxRssBytes: null, exit: 0 }], 20, 616);
+    expect(t.rows[0]).toMatchObject({ pilotSeconds: 100, projectedSeconds: 3080, fullSeconds: 3000, pilotPeakResidentMb: 2 });
+    expect(t.totals).toEqual({ pilotSeconds: 100, projectedSeconds: 3080, fullSeconds: 3000 });
+    expect(timing(pilot, null, 20, 616).totals.fullSeconds).toBeNull();
+  });
+});

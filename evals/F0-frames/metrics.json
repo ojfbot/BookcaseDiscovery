@@ -1,0 +1,330 @@
+{
+  "runId": "F0-frames",
+  "card": "F-0 on frames",
+  "date": "2026-11-11",
+  "status": "stopped after the pilot: the projected full run is over 10 hours (the card's stop rule); the full run was not started",
+  "scope": "time only; the pre-registered agreement measures were not computed on the pilot (prereg.md)",
+  "time": {
+    "pilotFrames": 20,
+    "fullFrames": 616,
+    "rows": [
+      {
+        "step": "1",
+        "name": "F-0",
+        "pilotSeconds": 1181,
+        "projectedSeconds": 36375,
+        "fullSeconds": null,
+        "fullSecondsPerFrame": null,
+        "pilotPeakResidentMb": 5557,
+        "fullPeakResidentMb": null
+      },
+      {
+        "step": "2",
+        "name": "F-0e detect bands",
+        "pilotSeconds": 92,
+        "projectedSeconds": 2834,
+        "fullSeconds": null,
+        "fullSecondsPerFrame": null,
+        "pilotPeakResidentMb": 2041,
+        "fullPeakResidentMb": null
+      },
+      {
+        "step": "2",
+        "name": "F-0e detect bands+strips",
+        "pilotSeconds": 7,
+        "projectedSeconds": 216,
+        "fullSeconds": null,
+        "fullSecondsPerFrame": null,
+        "pilotPeakResidentMb": 446,
+        "fullPeakResidentMb": null
+      },
+      {
+        "step": "2",
+        "name": "F-0e read bands+strips",
+        "pilotSeconds": 1146,
+        "projectedSeconds": 35297,
+        "fullSeconds": null,
+        "fullSecondsPerFrame": null,
+        "pilotPeakResidentMb": 5566,
+        "fullPeakResidentMb": null
+      },
+      {
+        "step": "3",
+        "name": "F-0c detect",
+        "pilotSeconds": 36,
+        "projectedSeconds": 1109,
+        "fullSeconds": null,
+        "fullSecondsPerFrame": null,
+        "pilotPeakResidentMb": 1698,
+        "fullPeakResidentMb": null
+      },
+      {
+        "step": "3",
+        "name": "F-0c read",
+        "pilotSeconds": 124,
+        "projectedSeconds": 3819,
+        "fullSeconds": null,
+        "fullSecondsPerFrame": null,
+        "pilotPeakResidentMb": 6244,
+        "fullPeakResidentMb": null
+      },
+      {
+        "step": "3",
+        "name": "F-0c base",
+        "pilotSeconds": 82,
+        "projectedSeconds": 2526,
+        "fullSeconds": null,
+        "fullSecondsPerFrame": null,
+        "pilotPeakResidentMb": 385,
+        "fullPeakResidentMb": null
+      },
+      {
+        "step": "4",
+        "name": "F-0f probe",
+        "pilotSeconds": 2,
+        "projectedSeconds": 62,
+        "fullSeconds": null,
+        "fullSecondsPerFrame": null,
+        "pilotPeakResidentMb": 118,
+        "fullPeakResidentMb": null
+      },
+      {
+        "step": "5",
+        "name": "Q-2b features",
+        "pilotSeconds": 6,
+        "projectedSeconds": 185,
+        "fullSeconds": null,
+        "fullSecondsPerFrame": null,
+        "pilotPeakResidentMb": 165,
+        "fullPeakResidentMb": null
+      },
+      {
+        "step": "5",
+        "name": "Q-2b outlines",
+        "pilotSeconds": 435,
+        "projectedSeconds": 13398,
+        "fullSeconds": null,
+        "fullSecondsPerFrame": null,
+        "pilotPeakResidentMb": 692,
+        "fullPeakResidentMb": null
+      },
+      {
+        "step": "5",
+        "name": "Q-2b table",
+        "pilotSeconds": 0,
+        "projectedSeconds": 0,
+        "fullSeconds": null,
+        "fullSecondsPerFrame": null,
+        "pilotPeakResidentMb": 158,
+        "fullPeakResidentMb": null
+      },
+      {
+        "step": "6",
+        "name": "H-2 stage",
+        "pilotSeconds": 11,
+        "projectedSeconds": 339,
+        "fullSeconds": null,
+        "fullSecondsPerFrame": null,
+        "pilotPeakResidentMb": 514,
+        "fullPeakResidentMb": null
+      },
+      {
+        "step": "6",
+        "name": "H-2 base",
+        "pilotSeconds": 78,
+        "projectedSeconds": 2402,
+        "fullSeconds": null,
+        "fullSecondsPerFrame": null,
+        "pilotPeakResidentMb": 396,
+        "fullPeakResidentMb": null
+      },
+      {
+        "step": "7",
+        "name": "F-0i plan",
+        "pilotSeconds": 1,
+        "projectedSeconds": 31,
+        "fullSeconds": null,
+        "fullSecondsPerFrame": null,
+        "pilotPeakResidentMb": 131,
+        "fullPeakResidentMb": null
+      },
+      {
+        "step": "7",
+        "name": "F-0i tiles",
+        "pilotSeconds": 77,
+        "projectedSeconds": 2372,
+        "fullSeconds": null,
+        "fullSecondsPerFrame": null,
+        "pilotPeakResidentMb": 695,
+        "fullPeakResidentMb": null
+      },
+      {
+        "step": "7",
+        "name": "F-0i resolve",
+        "pilotSeconds": 36,
+        "projectedSeconds": 1109,
+        "fullSeconds": null,
+        "fullSecondsPerFrame": null,
+        "pilotPeakResidentMb": 482,
+        "fullPeakResidentMb": null
+      },
+      {
+        "step": "8",
+        "name": "NB-3 stage",
+        "pilotSeconds": 2,
+        "projectedSeconds": 62,
+        "fullSeconds": null,
+        "fullSecondsPerFrame": null,
+        "pilotPeakResidentMb": 283,
+        "fullPeakResidentMb": null
+      },
+      {
+        "step": "8",
+        "name": "NB-3 shelf",
+        "pilotSeconds": 31,
+        "projectedSeconds": 955,
+        "fullSeconds": null,
+        "fullSecondsPerFrame": null,
+        "pilotPeakResidentMb": 1036,
+        "fullPeakResidentMb": null
+      },
+      {
+        "step": "8",
+        "name": "NB-3 probe",
+        "pilotSeconds": 2,
+        "projectedSeconds": 62,
+        "fullSeconds": null,
+        "fullSecondsPerFrame": null,
+        "pilotPeakResidentMb": 111,
+        "fullPeakResidentMb": null
+      },
+      {
+        "step": "8",
+        "name": "NB-3 flags",
+        "pilotSeconds": 0,
+        "projectedSeconds": 0,
+        "fullSeconds": null,
+        "fullSecondsPerFrame": null,
+        "pilotPeakResidentMb": 157,
+        "fullPeakResidentMb": null
+      },
+      {
+        "step": "10",
+        "name": "F-0g pairs",
+        "pilotSeconds": 1,
+        "projectedSeconds": 31,
+        "fullSeconds": null,
+        "fullSecondsPerFrame": null,
+        "pilotPeakResidentMb": 159,
+        "fullPeakResidentMb": null
+      },
+      {
+        "step": "10",
+        "name": "F-0g evidence",
+        "pilotSeconds": 68,
+        "projectedSeconds": 2094,
+        "fullSeconds": null,
+        "fullSecondsPerFrame": null,
+        "pilotPeakResidentMb": 392,
+        "fullPeakResidentMb": null
+      },
+      {
+        "step": "10",
+        "name": "F-0g copies",
+        "pilotSeconds": 0,
+        "projectedSeconds": 0,
+        "fullSeconds": null,
+        "fullSecondsPerFrame": null,
+        "pilotPeakResidentMb": 161,
+        "fullPeakResidentMb": null
+      },
+      {
+        "step": "11",
+        "name": "F-0h decide",
+        "pilotSeconds": 61,
+        "projectedSeconds": 1879,
+        "fullSeconds": null,
+        "fullSecondsPerFrame": null,
+        "pilotPeakResidentMb": 953,
+        "fullPeakResidentMb": null
+      }
+    ],
+    "totals": {
+      "pilotSeconds": 3479,
+      "projectedSeconds": 107157,
+      "fullSeconds": null
+    }
+  },
+  "f0ModelSeconds": {
+    "pilot-000": {
+      "frames": 31,
+      "decisionCount": 6894,
+      "detect": {
+        "rows": 31,
+        "seconds": 2206,
+        "secondsPerRow": 71.1603,
+        "secondsPerFrame": 71.1603,
+        "rowsPerFrame": 1
+      },
+      "readers": {
+        "vision": {
+          "rows": 6894,
+          "seconds": 848,
+          "secondsPerRow": 0.123,
+          "secondsPerFrame": 27.3479,
+          "rowsPerFrame": 222.3871
+        },
+        "ppocr": {
+          "rows": 6894,
+          "seconds": 8277,
+          "secondsPerRow": 1.2006,
+          "secondsPerFrame": 266.9906,
+          "rowsPerFrame": 222.3871
+        },
+        "qwen": {
+          "rows": 1240,
+          "seconds": 1973,
+          "secondsPerRow": 1.5915,
+          "secondsPerFrame": 63.6601,
+          "rowsPerFrame": 40
+        }
+      },
+      "hardCropShare": 0.1799
+    },
+    "sf-store-001.every-30": {
+      "frames": 20,
+      "decisionCount": 1268,
+      "detect": {
+        "rows": 20,
+        "seconds": 80,
+        "secondsPerRow": 3.981,
+        "secondsPerFrame": 3.981,
+        "rowsPerFrame": 1
+      },
+      "readers": {
+        "vision": {
+          "rows": 1250,
+          "seconds": 97,
+          "secondsPerRow": 0.0776,
+          "secondsPerFrame": 4.8519,
+          "rowsPerFrame": 62.5
+        },
+        "ppocr": {
+          "rows": 1250,
+          "seconds": 480,
+          "secondsPerRow": 0.3842,
+          "secondsPerFrame": 24.0146,
+          "rowsPerFrame": 62.5
+        },
+        "qwen": {
+          "rows": 587,
+          "seconds": 622,
+          "secondsPerRow": 1.0588,
+          "secondsPerFrame": 31.0753,
+          "rowsPerFrame": 29.35
+        }
+      },
+      "hardCropShare": 0.4629
+    }
+  }
+}
