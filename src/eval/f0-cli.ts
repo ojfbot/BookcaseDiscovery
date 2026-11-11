@@ -40,7 +40,7 @@ import {
   type SpineDecision,
 } from "./f0.ts";
 import { kinds, type BoxKind } from "./f0c.ts";
-import { acceptSet, setPaths } from "./set-paths.ts";
+import { acceptSet, samplePart, sessionImages, setPaths } from "./set-paths.ts";
 import { evidenceOf, type BoxEvidence } from "./f0f.ts";
 import { applyNb3, NB3_SHIP, type NB3Evidence } from "./nb3.ts";
 import { depthStage } from "./nb3-stage.ts";
@@ -162,7 +162,11 @@ async function pilot(session: string, limit: number, qwenCap: number, runId: str
   // trained on); an undeclared name is refused before anything runs.
   acceptSet("F-0", session);
   const root = dataRoot();
-  const images = fixtureImages(root, session).slice(0, limit);
+  // A sample part (`<session>.every-<n>`) takes its session's ledger photos that its image list names, nothing else.
+  const part = samplePart(session);
+  const all = fixtureImages(root, part?.session ?? session);
+  const sample = part ? new Set(sessionImages(session, root).map((i) => i.id)) : null;
+  const images = (sample ? all.filter((i) => sample.has(i.id)) : all).slice(0, limit);
   // --dry-run (NS-K2): the photos the run would take, all found in the image store; no model loads, nothing is written.
   if (dryRun) {
     const cached = new Set(readJsonl<{ id: string; error?: string }>(join(setPaths(session, root).f0, "detect.jsonl")).filter((d) => !d.error).map((d) => d.id));

@@ -48,6 +48,19 @@ export type Stage = keyof typeof STAGES;
 /** A declared session: its role is in `MANIFEST_ROLES` and its name does not read as an evaluation set. */
 export const isSession = (set: string, registry: SetRegistry = SET_REGISTRY): boolean => manifestRefusal(set, registry) === null;
 
+/**
+ * A sample part (F-0 on frames, 2026-11-11): a fixed, evenly spaced sample of a declared session's image list, run
+ * through the stages under its own name, `<session>.every-<n>`: the n-th, 2n-th, … photo of `sessionImages`, in list
+ * order. Its caches sit beside the session's (`<stage>/<session>.every-<n>/…`), never among them, so a pilot run
+ * cannot leave part of the whole run's caches written. It is not declared in the registry, so it is never manifested,
+ * exported or trained on (`assertTrainable` refuses it as undeclared). Null for any other name.
+ */
+export function samplePart(set: string, registry: SetRegistry = SET_REGISTRY): { session: string; every: number } | null {
+  const m = /^(.+)\.every-([1-9]\d*)$/.exec(set);
+  if (!m || !isSession(m[1]!, registry)) return null;
+  return { session: m[1]!, every: Number(m[2]) };
+}
+
 /** The sessions the registry declares (training sources and held-out sessions), sorted. */
 export const sessions = (registry: SetRegistry = SET_REGISTRY): string[] => Object.keys(registry).filter((s) => isSession(s, registry)).sort();
 
@@ -67,6 +80,7 @@ export function acceptSet(stage: Stage, set: string | undefined, registry: SetRe
   const takes = `a session declared in src/eval/set-roles.ts with a role in ${MANIFEST_ROLES.join(" or ")}${yard.length ? `, or ${yard.map((y) => `"${y}"`).join(" or ")}` : ""}`;
   if (!set) throw new Error(`${stage}: name a set (${takes})`);
   if (yard.includes(set)) return set;
+  if (samplePart(set, registry)) return set;
   const why = manifestRefusal(set, registry);
   if (why === null) return set;
   if (why === "undeclared") throw new Error(`${stage}: "${set}" is not a declared set; it takes ${takes} (fail closed)`);
@@ -159,7 +173,7 @@ export function setPaths(set: string, root: string = dataRoot(), registry: SetRe
       image: (id) => join(proxy, "images", `${id}.jpg`),
     };
   }
-  const why = manifestRefusal(set, registry);
+  const why = samplePart(set, registry) ? null : manifestRefusal(set, registry);
   if (why !== null) throw new Error(`"${set}" has no stage paths: it is ${why === "undeclared" ? "not declared in src/eval/set-roles.ts" : `a ${roleOf(set, registry)} set, not a session`} (fail closed)`);
   const store = new ImageStore(root);
   return {
@@ -194,8 +208,11 @@ export function setPaths(set: string, root: string = dataRoot(), registry: SetRe
  * A session's photos from its public manifest (`fixtures/<session>/manifest.json`) and the image store: one entry per
  * manifest row, `id` the working-copy hash, `image` its file. No pixel size, EXIF or capture tier is assumed, so it
  * serves stills and video frames alike. Throws when the manifest is missing or a working copy is not in the store.
+ * A sample part's list is its session's every n-th photo, in list order (`samplePart`).
  */
 export function sessionImages(session: string, root: string = dataRoot(), repo: string = REPO, registry: SetRegistry = SET_REGISTRY): { id: string; image: string }[] {
+  const part = samplePart(session, registry);
+  if (part) return sessionImages(part.session, root, repo, registry).filter((_, i) => (i + 1) % part.every === 0);
   if (!isSession(session, registry)) throw new Error(`"${session}" is not a declared session (src/eval/set-roles.ts)`);
   const path = join(repo, "fixtures", session, "manifest.json");
   if (!existsSync(path)) throw new Error(`${session}: no public manifest at fixtures/${session}/manifest.json (run \`bookcase manifest ${session}\`)`);
