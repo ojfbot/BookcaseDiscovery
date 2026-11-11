@@ -1,18 +1,19 @@
 // F-0e runner. `node src/eval/f0e-cli.ts diagnose|measure|publish`.
 // diagnose: the overlap hypothesis on cached pilot-000 detections (no rerun).
-// detect --set pilot-000|yardstick --label <arm>: run one F-0e arm (F0E_ARMS) and measure it.
-// measure --set pilot-000|yardstick --label <arm>: piece measures of one arm's cached detections, as an aggregate part.
+// detect --set <session>|yardstick --label <arm>: run one F-0e arm (F0E_ARMS) and measure it (any declared session, NS-K2).
+// measure --set <session>|yardstick --label <arm>: piece measures of one arm's cached detections, as an aggregate part.
 // publish: joins the parts into evals/F0e/. Private inputs stay under $BOOKCASE_DATA; only aggregates leave.
 import { spawn } from "node:child_process";
 import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { parseArgs } from "node:util";
 import { fileURLToPath } from "node:url";
-import { dataRoot, ImageStore } from "../ledger/images.ts";
+import { dataRoot } from "../ledger/images.ts";
 import { catalogPaths, openCatalog } from "../catalog/cli.ts";
 import type { Candidate } from "../catalog/retrieve.ts";
 import { CASE_TILING, decide, loadReadings, pyReaderStage, readJsonl, visionStage, type Detection, type InputImage, type SpineDecision } from "./f0.ts";
 import { agreementChange, diagnose, measure, rungCounts, titleDelta } from "./f0e.ts";
+import { acceptSet, needs, setPaths } from "./set-paths.ts";
 
 const REPO_ROOT = fileURLToPath(new URL("../../", import.meta.url));
 const log = (s: string): void => console.error(`[f0e] ${s}`);
@@ -40,17 +41,20 @@ export const F0E_ARMS: Record<string, { env: Record<string, string>; from?: stri
   "tall+strips+extend": { env: { F0_POST: "strips,extend" }, from: "tall" },
 };
 
-/** Cached detections of one arm on one set: F-0's own for `base`, else $BOOKCASE_DATA/f0e/<set>/<arm>/. */
+/**
+ * Cached detections of one arm on one set: F-0's own for `base`, else $BOOKCASE_DATA/f0e/<set>/<arm>/ (set-paths: a
+ * declared session by name; the yardstick's F-0 run is its B2 run).
+ */
 export function armPath(set: string, arm: string): string {
-  const f0Set = set === "yardstick" ? "yardstick-library-b2" : set;
-  return arm === "base" ? join(dataRoot(), "f0", f0Set, "detect.jsonl") : join(dataRoot(), "f0e", set, arm, "detect.jsonl");
+  const p = setPaths(set, dataRoot());
+  return arm === "base" ? join(p.f0, "detect.jsonl") : join(p.f0e, arm, "detect.jsonl");
 }
 
+/** The photos of F-0's own run on a set (a session's from the image store, the yardstick's from its folder). */
 function imagesOf(set: string): { id: string; image: string }[] {
   const base = loadDets(armPath(set, "base"));
-  if (set === "yardstick") return base.map((d) => ({ id: d.id, image: join(dataRoot(), "proxy", "library-dataset", "images", `${d.id}.jpg`) }));
-  const store = new ImageStore(dataRoot());
-  return base.map((d) => ({ id: d.id, image: store.find(d.id)! }));
+  const image = setPaths(set, dataRoot()).image;
+  return base.map((d) => ({ id: d.id, image: image(d.id)! }));
 }
 
 async function detectArm(set: string, arm: string, scaleEnv: Record<string, string>, limit = Infinity): Promise<void> {
@@ -215,28 +219,33 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   });
   const cmd = positionals[0];
   const f0 = join(dataRoot(), "f0");
+  /** F-0's own run gives F-0e its photos; without it an arm would write an empty part (NS-K2: refuse instead). */
+  const needBase = (set: string): string => {
+    needs("F-0e", set, "F-0 run", armPath(set, "base"), `f0-cli.ts pilot --session ${set}`);
+    return set;
+  };
   if (cmd === "diagnose") {
     const set = values.set ?? "pilot-000";
     const dets = loadDets(join(f0, set, "detect.jsonl"));
     writePart(`diagnose-${values.label ?? set}`, { set: set.startsWith("yardstick") ? "yardstick (PROXY)" : "pilot-000 (real use)", ...diagnose(dets, Number(values.tile ?? CASE_TILING.tile), Number(values.overlap ?? CASE_TILING.overlap)) });
   } else if (cmd === "measure") {
-    const set = values.set ?? "pilot-000";
+    const set = acceptSet("F-0e", values.set ?? "pilot-000");
     const path = armPath(set, values.label!);
     if (!existsSync(path)) throw new Error(`no detections for ${set} ${values.label}`);
     writePart(`measure-${set}-${values.label}`, { set, arm: values.label, ...measure(loadDets(path), loadDets(armPath(set, "base"))) });
   } else if (cmd === "detect") {
-    const set = values.set ?? "pilot-000";
+    const set = needBase(acceptSet("F-0e", values.set ?? "pilot-000"));
     // The yardstick keeps F-0's shelf-scale tiling; post arms inherit it from the cache they refine.
     const scale: Record<string, string> = set === "yardstick" ? { F0_TILE: "3100", F0_OVERLAP: "1300" } : {};
     await detectArm(set, values.label!, scale, Number(values.limit ?? Infinity));
     writePart(`measure-${set}-${values.label}`, { set, arm: values.label, ...measure(loadDets(armPath(set, values.label!)), loadDets(armPath(set, "base"))) });
   } else if (cmd === "render") {
     // Private before/after renders under the data root's private/f0e/renders/<set>/index.html (photos; never the repo).
-    const set = values.set ?? "pilot-000";
+    const set = acceptSet("F-0e", values.set ?? "pilot-000");
     const [before, after] = (values.label ?? "base,tall").split(",");
     const priv = join(dataRoot(), "private", "f0e");
     mkdirSync(priv, { recursive: true });
-    const list = join(priv, `images-${set}.jsonl`);
+    const list = setPaths(set, dataRoot()).f0eImages;
     writeFileSync(list, imagesOf(set).map((r) => `${JSON.stringify(r)}\n`).join(""));
     const helper = join(REPO_ROOT, "helpers", "label");
     const args = ["run", "--project", helper, "python", "-I", join(helper, "render_f0e.py"), "--before", armPath(set, before!), "--after", armPath(set, after!),
@@ -245,7 +254,7 @@ if (import.meta.url === `file://${process.argv[1]}`) {
     log(`renders written under the data root's private/f0e/renders/${set}/`);
   } else if (cmd === "read") {
     // Readers on one arm's boxes, then machine agreement (never accuracy, INV-17) against F-0's base run.
-    const set = values.set ?? "pilot-000";
+    const set = needBase(acceptSet("F-0e", values.set ?? "pilot-000"));
     const base = rungCounts(await readArm(set, "base"));
     const arm = rungCounts(await readArm(set, values.label!));
     writePart(`agreement-${set}-${values.label}`, { set, armName: values.label, scope: "machine agreement, not accuracy (INV-17)", ...agreementChange(base, arm) });

@@ -2,7 +2,7 @@
 // default boxes of each set, `kinds` (f0c.ts) gives every box a kind, F-0's readers read the kept covers with the
 // cover crop and Qwen's cover prompt, and F-0's unchanged decision and catalog bar identify them.
 //
-//   node src/eval/f0c-cli.ts detect <set>     # pilot-000 | yardstick: the cover pass on the set's cached boxes
+//   node src/eval/f0c-cli.ts detect <set>     # a declared session or yardstick: the cover pass on the set's cached boxes
 //   node src/eval/f0c-cli.ts read <set>       # Vision, PP-OCR and Qwen (cover prompt) on the kept covers
 //   node src/eval/f0c-cli.ts base <set>       # F-0's decisions on the base's cached readings (cached; analyse needs them)
 //   node src/eval/f0c-cli.ts analyse          # evals/F0c/{metrics.json,report.md} tables (aggregates only)
@@ -16,51 +16,49 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import type { Candidate } from "../catalog/retrieve.ts";
-import { catalogPaths, openCatalog } from "../catalog/cli.ts";
-import { dataRoot, ImageStore } from "../ledger/images.ts";
+import { openCatalog } from "../catalog/cli.ts";
+import { dataRoot } from "../ledger/images.ts";
 import { COVER_CROP, cropFor, cropName, cropSize } from "../perceive/crop.ts";
 import { decide, loadReadings, pyReaderStage, readJsonl, visionStage, type Detection, type InputImage, type Reading, type ReaderName, type SpineDecision } from "./f0.ts";
 import { COVER, coverReading, coverText, kinds, NOT_A_BOOK, type Kinds } from "./f0c.ts";
 import { agreementChange, titleDelta, type RungCounts, type Tri } from "./f0e.ts";
 import { yardstickTruth } from "./q1-cli.ts";
 import { clusterBootstrap, quantile, rate, rng } from "./q1.ts";
+import { acceptSet, needs, REAL_USE_SCOPE, setPaths, YARDSTICK } from "./set-paths.ts";
 
 const REPO = fileURLToPath(new URL("../../", import.meta.url));
 const ROOT = dataRoot();
 const log = (s: string): void => console.error(`[f0c] ${s}`);
 
+/** The two sets F-0c's own analysis compares. Its producing steps take any declared session too (NS-K2). */
 export type SetName = "pilot-000" | "yardstick";
-/** Each set's default boxes and their cached readings (the base), its catalog and F-0's per-photo Qwen cap. */
-export const SETS: Record<SetName, { scope: string; base: string; f0: string; catalog: string; qwenCap: number }> = {
-  "pilot-000": {
-    scope: "real use (OC35): machine agreement, never accuracy (INV-17)",
-    // F-0e's shipped whole-case default (bands+strips), read by F-0's readers with the shipped crop.
-    base: join(ROOT, "f0e", "pilot-000", "bands+strips"),
-    f0: join(ROOT, "f0", "pilot-000"),
-    catalog: catalogPaths().catalog,
-    qwenCap: 40,
-  },
-  yardstick: {
-    scope: "PROXY (library shelves): Library Dataset sample, box arm B2; confirmed = accepted and annotated in the image",
-    // Shelf-scale photos keep F-0's 3100/1300 grid (F-0e), so F-0's own run is the default.
-    base: join(ROOT, "f0", "yardstick-library-b2"),
-    f0: join(ROOT, "f0", "yardstick-library-b2"),
-    catalog: join(ROOT, "proxy", "library-dataset", "f0-inventory-catalog.sqlite"),
-    qwenCap: 15,
-  },
-};
+export interface SetCfg { scope: string; base: string; f0: string; catalog: string; qwenCap: number }
+/**
+ * A set's default boxes and their cached readings (the base), its catalog and F-0's per-photo Qwen cap, from
+ * src/eval/set-paths.ts: a session (pilot-000 or any other declared one) has F-0e's shipped whole-case default
+ * (bands+strips), read by F-0's readers with the shipped crop; the yardstick's shelf-scale photos keep F-0's
+ * 3100/1300 grid (F-0e), so F-0's own B2 run is its default.
+ */
+export function setCfg(set: string): SetCfg {
+  const p = setPaths(set, ROOT);
+  return p.kind === "session"
+    ? { scope: REAL_USE_SCOPE, base: p.base, f0: p.f0, catalog: p.catalog, qwenCap: 40 }
+    : { scope: "PROXY (library shelves): Library Dataset sample, box arm B2; confirmed = accepted and annotated in the image", base: p.base, f0: p.f0, catalog: p.catalog, qwenCap: 15 };
+}
+export const SETS: Record<SetName, SetCfg> = { "pilot-000": setCfg("pilot-000"), yardstick: setCfg(YARDSTICK) };
 
-const stage = (set: SetName) => {
-  const dir = join(ROOT, "f0c", set);
+const stage = (set: string) => {
+  const dir = setPaths(set, ROOT).f0c;
   mkdirSync(join(dir, "covers"), { recursive: true });
   return dir;
 };
 const loadDets = (path: string): Map<string, Detection> => new Map(readJsonl<Detection>(path).filter((d) => !d.error).map((d) => [d.id, d]));
 
-export function imagesOf(set: SetName): InputImage[] {
-  const store = new ImageStore(ROOT);
-  return [...loadDets(join(SETS[set].base, "detect.jsonl")).keys()].map((id) => {
-    const path = set === "pilot-000" ? store.find(id) : join(ROOT, "proxy", "library-dataset", "images", `${id}.jpg`);
+/** The photos of a set's cached default boxes (a session's from the image store, the yardstick's from its folder). */
+export function imagesOf(set: string): InputImage[] {
+  const image = setPaths(set, ROOT).image;
+  return [...loadDets(join(setCfg(set).base, "detect.jsonl")).keys()].map((id) => {
+    const path = image(id);
     if (!path || !existsSync(path)) throw new Error(`image missing for a cached detection in ${set}`);
     return { id, photoHash: id, path, setting: set };
   });
@@ -68,13 +66,14 @@ export function imagesOf(set: SetName): InputImage[] {
 
 // --- detect: the cover pass on cached boxes ------------------------------------------------------------------
 
-async function detect(set: SetName): Promise<void> {
+async function detect(set: string): Promise<void> {
+  needs("F-0c", set, "default boxes", join(setCfg(set).base, "detect.jsonl"), `f0e-cli.ts detect --set ${set} --label bands+strips`);
   const out = join(stage(set), "detect.jsonl");
   const done = new Set(loadDets(out).keys());
   const reqs = imagesOf(set).filter((i) => !done.has(i.id)).map((i) => ({ id: i.id, image: i.path }));
   if (reqs.length === 0) return;
   const helper = join(REPO, "helpers", "label");
-  const args = ["run", "--project", helper, "python", join(helper, "detect.py"), "--from", join(SETS[set].base, "detect.jsonl")];
+  const args = ["run", "--project", helper, "python", join(helper, "detect.py"), "--from", join(setCfg(set).base, "detect.jsonl")];
   await new Promise<void>((resolve, reject) => {
     const child = spawn("uv", args, { stdio: ["pipe", "pipe", "pipe"], env: { ...process.env, F0_ARM: "b2", F0_POST: "covers" } });
     let buf = "";
@@ -106,7 +105,7 @@ function keptCovers(dets: Map<string, Detection>): Set<string> {
   return ids;
 }
 
-async function read(set: SetName): Promise<void> {
+async function read(set: string): Promise<void> {
   const dir = stage(set);
   const dets = loadDets(join(dir, "detect.jsonl"));
   const images = imagesOf(set).filter((i) => dets.has(i.id));
@@ -136,14 +135,16 @@ export interface Slim {
 const slim = (d: SpineDecision): Slim => ({ id: d.id, imageId: d.imageId, accepted: d.accepted?.workId ?? null, confirmed: d.confirmed, readText: d.readText, reason: d.reason });
 
 /** F-0's decision for every cached spine-path box of the base, from its cached readings (recomputed once, then cached). */
-function baseDecisions(set: SetName): Map<string, Slim> {
+function baseDecisions(set: string): Map<string, Slim> {
+  // A set with no default boxes yet would cache an empty file as its decisions: refuse instead (NS-K2).
+  if (!existsSync(join(setPaths(set, ROOT).f0c, "base-decisions.jsonl"))) needs("F-0c", set, "default boxes and readings", join(setCfg(set).base, "detect.jsonl"), `f0e-cli.ts detect|read --set ${set} --label bands+strips`);
   const path = join(stage(set), "base-decisions.jsonl");
   if (!existsSync(path)) {
-    const db = openCatalog(SETS[set].catalog);
-    const readings = loadReadings(SETS[set].base);
+    const db = openCatalog(setCfg(set).catalog);
+    const readings = loadReadings(setCfg(set).base);
     const cache = new Map<string, Candidate | undefined>();
     const out: Slim[] = [];
-    for (const d of loadDets(join(SETS[set].base, "detect.jsonl")).values())
+    for (const d of loadDets(join(setCfg(set).base, "detect.jsonl")).values())
       d.spines.forEach((s, i) => out.push(slim(decide(db, `${d.id}:${i}`, d.id, s.boxScore, readings.get(`${d.id}:${i}`) ?? {}, cache))));
     writeFileSync(path, out.map((x) => JSON.stringify(x)).join("\n") + "\n");
     log(`${set}: base decisions recomputed for ${out.length} boxes`);
@@ -152,8 +153,8 @@ function baseDecisions(set: SetName): Map<string, Slim> {
 }
 
 /** F-0's decision on every kept cover (id `<image>:c<j>`), from its cover readings. */
-function coverDecisions(set: SetName, dets: Map<string, Detection>): { slim: Map<string, Slim>; full: Map<string, SpineDecision>; readings: Map<string, Partial<Record<ReaderName, Reading>>> } {
-  const db = openCatalog(SETS[set].catalog);
+function coverDecisions(set: string, dets: Map<string, Detection>): { slim: Map<string, Slim>; full: Map<string, SpineDecision>; readings: Map<string, Partial<Record<ReaderName, Reading>>> } {
+  const db = openCatalog(setCfg(set).catalog);
   const readings = loadReadings(join(stage(set), "covers"), COVER_CROP);
   const cache = new Map<string, Candidate | undefined>();
   const full = new Map<string, SpineDecision>();
@@ -291,7 +292,7 @@ function analyseSet(set: SetName) {
   const newWorks = rows.map((r, i) => [...coverWorks[i]!].filter((w) => !baseWorks[i]!.has(w)).length);
   // F-0's own run on its own boxes (pilot-000: before F-0e re-tiled), for "missed entirely".
   const f0Works = new Map<string, Set<string>>();
-  for (const d of readJsonl<{ imageId: string; accepted: { workId: string } | null }>(join(SETS[set].f0, "decisions.jsonl")))
+  for (const d of readJsonl<{ imageId: string; accepted: { workId: string } | null }>(join(setCfg(set).f0, "decisions.jsonl")))
     if (d.accepted) f0Works.set(d.imageId, (f0Works.get(d.imageId) ?? new Set()).add(d.accepted.workId));
   const newVsF0 = rows.map((r, i) => [...coverWorks[i]!].filter((w) => !baseWorks[i]!.has(w) && !f0Works.get(r.imageId)?.has(w)).length);
   const absorbed = rows.flatMap((r) => r.kinds.spines.flatMap((b, i) => (b.why === "absorbed" ? [r.arms.base[i]!] : [])));
@@ -303,9 +304,9 @@ function analyseSet(set: SetName) {
   );
   // Not-a-book on the default boxes (the filter arm's flags) and on F-0's original boxes, where F-0b counted its lying boxes.
   const baseDec = new Map([...baseDecisions(set).values()].map((d) => [d.id, { accepted: d.accepted, textRead: isTextRead(d) }]));
-  const f0Dets = loadDets(join(SETS[set].f0, "detect.jsonl"));
+  const f0Dets = loadDets(join(setCfg(set).f0, "detect.jsonl"));
   const f0Dec = new Map(
-    readJsonl<{ id: string; accepted: { workId: string } | null; confirmed: Record<string, string | null> }>(join(SETS[set].f0, "decisions.jsonl")).map((d) => [
+    readJsonl<{ id: string; accepted: { workId: string } | null; confirmed: Record<string, string | null> }>(join(setCfg(set).f0, "decisions.jsonl")).map((d) => [
       d.id,
       { accepted: d.accepted?.workId ?? null, textRead: Object.values(d.confirmed).some(Boolean) },
     ]),
@@ -313,7 +314,7 @@ function analyseSet(set: SetName) {
   const noCovers = new Map<string, Detection>();
   const out: Record<string, unknown> = {
     set,
-    scope: SETS[set].scope,
+    scope: setCfg(set).scope,
     photos: n,
     spinePathBoxes: rows.reduce((s, r) => s + r.arms.base.length, 0),
     coverPass: {
@@ -347,8 +348,8 @@ function analyseSet(set: SetName) {
     },
     arms,
     notABook: {
-      defaultBoxes: notABookOn(loadDets(join(SETS[set].base, "detect.jsonl")), noCovers, baseDec),
-      defaultBoxesWithCovers: notABookOn(loadDets(join(SETS[set].base, "detect.jsonl")), dets, baseDec),
+      defaultBoxes: notABookOn(loadDets(join(setCfg(set).base, "detect.jsonl")), noCovers, baseDec),
+      defaultBoxesWithCovers: notABookOn(loadDets(join(setCfg(set).base, "detect.jsonl")), dets, baseDec),
       f0Boxes: notABookOn(f0Dets, dets, f0Dec),
     },
     runtime: {
@@ -356,7 +357,7 @@ function analyseSet(set: SetName) {
       coverTilesPerPhoto: r4(det.reduce((s, d) => s + (d.coverTiles ?? 0), 0) / Math.max(1, n)),
       coverReaders: secondsOf(join(stage(set), "covers"), COVER_CROP),
       baseDetectSecondsPerPhoto: r4(quantile(det.map((d) => d.seconds - (d.coverSeconds ?? 0)).sort((a, b) => a - b), 0.5)),
-      baseReaders: secondsOf(SETS[set].base),
+      baseReaders: secondsOf(setCfg(set).base),
     },
   };
   if (set === "yardstick") {
@@ -535,13 +536,14 @@ async function render(set: SetName = "pilot-000"): Promise<void> {
 
 if (import.meta.url === `file://${process.argv[1]}`) {
   const [cmd, set] = process.argv.slice(2) as [string, SetName];
-  if (cmd === "detect") await detect(set);
-  else if (cmd === "read") await read(set);
-  else if (cmd === "base") baseDecisions(set);
+  // detect, read and base take any declared session (NS-K2) or the yardstick, and refuse anything else.
+  if (cmd === "detect") await detect(acceptSet("F-0c", set));
+  else if (cmd === "read") await read(acceptSet("F-0c", set));
+  else if (cmd === "base") baseDecisions(acceptSet("F-0c", set));
   else if (cmd === "analyse") analyse();
   else if (cmd === "render") await render(set ?? "pilot-000");
   else {
-    console.error("usage: node src/eval/f0c-cli.ts detect|read <pilot-000|yardstick> | analyse | render");
+    console.error("usage: node src/eval/f0c-cli.ts detect|read|base <session|yardstick> | analyse | render");
     process.exit(2);
   }
 }

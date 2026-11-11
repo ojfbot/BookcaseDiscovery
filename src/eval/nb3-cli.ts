@@ -19,7 +19,8 @@ import { fileURLToPath } from "node:url";
 import { dataRoot } from "../ledger/images.ts";
 import { readJsonl, type Detection } from "./f0.ts";
 import { kinds } from "./f0c.ts";
-import { imagesOf, meanCI, SETS, type SetName, type Slim } from "./f0c-cli.ts";
+import { imagesOf, meanCI, setCfg, SETS, type SetName, type Slim } from "./f0c-cli.ts";
+import { acceptSet, needs, setPaths } from "./set-paths.ts";
 import { agreementChange, titleDelta, type RungCounts, type Tri } from "./f0e.ts";
 import { evidenceFor } from "./f0f-cli.ts";
 import { compactJson, yardstickTruth } from "./q1-cli.ts";
@@ -31,18 +32,16 @@ const REPO = fileURLToPath(new URL("../../", import.meta.url));
 const ROOT = dataRoot();
 const PRIV = join(ROOT, "private", "nb3");
 const H2_CACHE = join(ROOT, "private", "h2", "cache");
-const F0I_SET: Record<SetName, string> = { "pilot-000": "pilot-000", yardstick: "yardstick-library-b2" };
 const NAMES: SetName[] = ["pilot-000", "yardstick"];
 const REPS = 2000;
 /** `--first N`: a smoke run on the first N photos in input order (crashes only, never a measure). */
 const FIRST = process.argv.includes("--first") ? Number(process.argv[process.argv.indexOf("--first") + 1]) : undefined;
-const setDir = (set: SetName): string => {
-  const d = join(PRIV, set, FIRST ? "smoke" : "");
+const setDir = (set: string): string => {
+  const d = join(setPaths(set, ROOT).nb3, FIRST ? "smoke" : "");
   mkdirSync(d, { recursive: true });
   return d;
 };
 const log = (s: string): void => console.error(`[nb3] ${s}`);
-const isSet = (s: string | undefined): s is SetName => s === "pilot-000" || s === "yardstick";
 const py = (helper: string) => {
   const p = join(REPO, "helpers", helper, ".venv", "bin", "python");
   if (!existsSync(p)) throw new Error(`helpers/${helper} has no .venv: run \`uv sync\` there first`);
@@ -50,7 +49,7 @@ const py = (helper: string) => {
 };
 const loadDets = (path: string): Map<string, Detection> => new Map(readJsonl<Detection>(path).filter((d) => !d.error).map((d) => [d.id, d]));
 /** F-0c's detections: the base's spines and bands verbatim, plus the cover pass's boxes (as S-1 and S-2 read them). */
-const detsOf = (set: SetName) => loadDets(join(ROOT, "f0c", set, "detect.jsonl"));
+const detsOf = (set: string) => loadDets(join(setPaths(set, ROOT).f0c, "detect.jsonl"));
 
 function spawnTo(helper: string, out: string, args: string[], what: string): void {
   const fd = openSync(out, "w");
@@ -69,8 +68,9 @@ interface PartRow {
 }
 
 /** F-0i's partition by photo, then by box index. */
-function partitionOf(set: SetName): Map<string, Map<number, PartRow>> {
-  const p = join(ROOT, "private", "f0i", F0I_SET[set], "partition.jsonl");
+function partitionOf(set: string): Map<string, Map<number, PartRow>> {
+  // F-0i names the yardstick by its B2 run (set-paths).
+  const p = join(setPaths(set, ROOT).f0i, "partition.jsonl");
   if (!existsSync(p)) throw new Error(`${set}: no F-0i partition at the data root's private/f0i/`);
   const out = new Map<string, Map<number, PartRow>>();
   for (const r of readJsonl<PartRow>(p)) {
@@ -88,13 +88,14 @@ interface StagePhoto {
   facesKey: string;
 }
 
-function stage(set: SetName): void {
+function stage(set: string): void {
+  needs("NB-3", set, "default boxes", join(setCfg(set).base, "detect.jsonl"), `f0e-cli.ts detect --set ${set} --label bands+strips`);
   const dir = setDir(set);
   const images = join(dir, "images.jsonl");
   writeFileSync(images, imagesOf(set).slice(0, FIRST ?? Infinity).map((i) => JSON.stringify({ id: i.id, image: i.path })).join("\n") + "\n");
   const out = join(dir, "stage.jsonl");
   // The same detections and options as H-2 (and S-1, S-2), so its keys decide what is reused.
-  const args = ["-I", join(REPO, "helpers", "depth", "stage.py"), "--images", images, "--detect", join(SETS[set].base, "detect.jsonl"), "--cache", H2_CACHE, "--exif-fov"];
+  const args = ["-I", join(REPO, "helpers", "depth", "stage.py"), "--images", images, "--detect", join(setCfg(set).base, "detect.jsonl"), "--cache", H2_CACHE, "--exif-fov"];
   // CPU lane: a geometry miss would load MoGe-2 on the GPU, so every photo's geometry must already be cached.
   spawnTo("depth", out, [...args, "--keys"], `stage.py --keys on ${set}`);
   const missing = readJsonl<{ path: string }>(out).filter((k) => !existsSync(k.path)).length;
@@ -104,7 +105,7 @@ function stage(set: SetName): void {
   log(`${set}: ${photos.length} photos, ${photos.filter((p) => !p.hit?.geometry || !p.hit?.faces).length} cache misses`);
 }
 
-function stageRows(set: SetName): { photos: Map<string, StagePhoto>; faces: Map<string, FaceCounts> } {
+function stageRows(set: string): { photos: Map<string, StagePhoto>; faces: Map<string, FaceCounts> } {
   const path = join(setDir(set), "stage.jsonl");
   if (!existsSync(path)) throw new Error(`${set}: run \`nb3-cli.ts stage ${set}\` first`);
   const rows = readJsonl<(StagePhoto & { photo: true }) | (FaceCounts & { id: string; box: number; photo?: undefined })>(path);
@@ -121,7 +122,7 @@ const geometryPath = (key: string) => join(H2_CACHE, "geometry", "moge-2-vitl-no
 
 // --- shelf: S-1's lip features on the partition (as S-2 runs it) -----------------------------------------
 
-function shelf(set: SetName): void {
+function shelf(set: string): void {
   const dir = setDir(set);
   const dets = detsOf(set);
   const part = partitionOf(set);
@@ -152,7 +153,7 @@ function shelf(set: SetName): void {
   spawnTo("depth", join(dir, "shelf.jsonl"), ["-I", join(REPO, "helpers", "shelf", "shelf.py"), "--inputs", inputs, "--maps", join(dir, "shelf-maps")], `shelf.py on ${set}`);
 }
 
-function lipOf(set: SetName): Map<string, (LipFeatures | null)[]> {
+function lipOf(set: string): Map<string, (LipFeatures | null)[]> {
   const path = join(setDir(set), "shelf.jsonl");
   if (!existsSync(path)) throw new Error(`${set}: run \`nb3-cli.ts shelf ${set}\` first`);
   return new Map(readJsonl<{ id: string; boxes: (LipFeatures | null)[] }>(path).map((x) => [x.id, x.boxes]));
@@ -160,14 +161,14 @@ function lipOf(set: SetName): Map<string, (LipFeatures | null)[]> {
 
 // --- probe: version 2 ------------------------------------------------------------------------------------
 
-function probe(set: SetName): void {
+function probe(set: string): void {
   const dir = setDir(set);
   const images = join(dir, "images.jsonl");
   if (!existsSync(images)) throw new Error(`${set}: run \`nb3-cli.ts stage ${set}\` first (it writes the image list)`);
-  spawnTo("label", join(dir, "probe.jsonl"), ["-I", join(REPO, "helpers", "label", "probe.py"), "--detect", join(ROOT, "f0c", set, "detect.jsonl"), "--images", images], `probe.py on ${set}`);
+  spawnTo("label", join(dir, "probe.jsonl"), ["-I", join(REPO, "helpers", "label", "probe.py"), "--detect", join(setPaths(set, ROOT).f0c, "detect.jsonl"), "--images", images], `probe.py on ${set}`);
 }
 
-function probesOf(set: SetName): Map<string, ProbeV2> {
+function probesOf(set: string): Map<string, ProbeV2> {
   const path = join(setDir(set), "probe.jsonl");
   if (!existsSync(path)) throw new Error(`${set}: run \`nb3-cli.ts probe ${set}\` first`);
   return new Map(readJsonl<ProbeV2 & { id: string }>(path).map((p) => [p.id, p]));
@@ -185,7 +186,7 @@ interface BoxRec {
 }
 
 /** Every kept box of the partition (spine path, after the shipped kinds) with NB-3's causes. */
-function boxesOf(set: SetName): BoxRec[] {
+function boxesOf(set: string): BoxRec[] {
   const dets = detsOf(set);
   const part = partitionOf(set);
   const ev = evidenceFor(set);
@@ -211,7 +212,7 @@ function boxesOf(set: SetName): BoxRec[] {
   return out;
 }
 
-function flags(set: SetName): BoxRec[] {
+function flags(set: string): BoxRec[] {
   const rows = boxesOf(set);
   writeFileSync(join(setDir(set), "flags.jsonl"), rows.filter((r) => r.causes.length).map((r) => JSON.stringify({ id: `${r.imageId}:${r.index}`, causes: r.causes })).join("\n") + "\n");
   log(`${set}: ${rows.length} kept boxes, ${rows.filter((r) => r.causes.length).length} with a cause`);
@@ -439,14 +440,15 @@ function render(sets: Record<SetName, SetResult>, spotR: Record<string, { shown:
 // --- main ------------------------------------------------------------------------------------------------------
 
 const [step, arg] = process.argv.slice(2);
-if (step === "stage" && isSet(arg)) stage(arg);
-else if (step === "shelf" && isSet(arg)) shelf(arg);
-else if (step === "probe" && isSet(arg)) probe(arg);
+// stage, shelf, probe and flags take any declared session (NS-K2) or the yardstick; anything else is refused.
+if (step === "stage") stage(acceptSet("NB-3", arg));
+else if (step === "shelf") shelf(acceptSet("NB-3", arg));
+else if (step === "probe") probe(acceptSet("NB-3", arg));
 else if (step === "calibrate") calibrateStep();
-else if (step === "flags" && isSet(arg)) flags(arg);
+else if (step === "flags") flags(acceptSet("NB-3", arg));
 else if (step === "spot") spot();
 else if (step === "analyse") analyse();
 else {
-  console.error("usage: node src/eval/nb3-cli.ts stage|shelf|probe|flags <pilot-000|yardstick> [--first N] | calibrate | spot | analyse");
+  console.error("usage: node src/eval/nb3-cli.ts stage|shelf|probe|flags <session|yardstick> [--first N] | calibrate | spot | analyse");
   process.exit(2);
 }

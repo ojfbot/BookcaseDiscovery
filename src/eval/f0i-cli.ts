@@ -25,6 +25,7 @@ import { modelHashes } from "../ledger/models.ts";
 import { CROP, decide, loadReadings, pyReaderStage, readJsonl, visionStage, type Detection, type InputImage, type Reading, type SpineDecision } from "./f0.ts";
 import { PARTITION_MODELS, PARTITION_SCHEMA } from "./lineage-classes.ts";
 import { F0_CROP, OWN_CROP, cropFor, cropName, type CropMethod, type Point } from "../perceive/crop.ts";
+import { acceptSet, needs, setPaths, YARDSTICK_B2 } from "./set-paths.ts";
 import { SETS as F0B_SETS, cost, delta, firstPassHard, geometry, type Geo, type Pair } from "./f0b-cli.ts";
 import { titleDelta } from "./f0e.ts";
 import { compactJson, outcomeOf, yardstickTruth } from "./q1-cli.ts";
@@ -37,24 +38,16 @@ const PRIV = join(ROOT, "private", "f0i");
 const REPS = 2000;
 const log = (s: string): void => console.error(`[f0i] ${s}`);
 
+/** The two sets F-0i's own analysis compares. plan, tiles and resolve take any declared session too (NS-K2). */
 export type SetName = "pilot-000" | "yardstick-library-b2";
 interface SetCfg { stage: string; outlines: string; table: string; decisions: string; images: string }
-const SETS: Record<SetName, SetCfg> = {
-  "pilot-000": {
-    stage: join(ROOT, "f0e", "pilot-000", "bands+strips"),
-    outlines: join(ROOT, "private", "q2b", "outlines", "pilot-000.jsonl"),
-    table: join(ROOT, "private", "q2b", "table", "pilot-000.jsonl"),
-    decisions: join(ROOT, "private", "h2", "pilot-000", "base-decisions.jsonl"),
-    images: join(ROOT, "private", "h2", "pilot-000", "images.jsonl"),
-  },
-  "yardstick-library-b2": {
-    stage: join(ROOT, "f0", "yardstick-library-b2"),
-    outlines: join(ROOT, "private", "f0b", "yardstick-library-b2", "outline.jsonl"),
-    table: join(ROOT, "private", "q2b", "table", "yardstick-library-b2.jsonl"),
-    decisions: join(ROOT, "private", "h2", "yardstick-library-b2", "base-decisions.jsonl"),
-    images: join(ROOT, "private", "h2", "yardstick-library-b2", "images.jsonl"),
-  },
-};
+/** A set's partition inputs (src/eval/set-paths.ts): the default boxes, outlines, Q-2b's kept ids, H-2's decisions and image list. */
+function setOf(set: string): SetCfg {
+  const p = setPaths(set, ROOT);
+  return { stage: p.base, outlines: p.outlines, table: p.q2bTable, decisions: join(p.h2, "base-decisions.jsonl"), images: join(p.h2, "images.jsonl") };
+}
+const SETS: Record<SetName, SetCfg> = { "pilot-000": setOf("pilot-000"), "yardstick-library-b2": setOf(YARDSTICK_B2) };
+/** strata, render and run (the readers' arms) stay on F-0i's two sets. */
 const isSet = (s: string | undefined): s is SetName => s === "pilot-000" || s === "yardstick-library-b2";
 
 export const ARMS: Record<string, CropMethod> = { clip: CROP, refit: CROP, own: OWN_CROP };
@@ -78,12 +71,12 @@ function py(helper: "coverage" | "label"): string {
   return p;
 }
 
-function loadDets(set: SetName): Map<string, Detection> {
-  return new Map(readJsonl<Detection>(join(SETS[set].stage, "detect.jsonl")).filter((d) => !d.error).map((d) => [d.id, d]));
+function loadDets(set: string): Map<string, Detection> {
+  return new Map(readJsonl<Detection>(join(setOf(set).stage, "detect.jsonl")).filter((d) => !d.error).map((d) => [d.id, d]));
 }
 
-function inputImages(set: SetName, dets: Map<string, Detection>): InputImage[] {
-  const paths = new Map(readJsonl<{ id: string; image: string }>(SETS[set].images).map((x) => [x.id, x.image]));
+function inputImages(set: string, dets: Map<string, Detection>): InputImage[] {
+  const paths = new Map(readJsonl<{ id: string; image: string }>(setOf(set).images).map((x) => [x.id, x.image]));
   return [...dets.keys()].map((id) => {
     const path = paths.get(id);
     if (!path || !existsSync(path)) throw new Error(`image missing for a cached detection in ${set}`);
@@ -92,10 +85,10 @@ function inputImages(set: SetName, dets: Map<string, Detection>): InputImage[] {
 }
 
 /** Box ids the shipped not-a-book rules keep (Q-2b's table, as F-R1 and resolve.py read it). */
-const keptIds = (set: SetName): Set<string> => new Set(readJsonl<{ id: string }>(SETS[set].table).map((r) => r.id));
+const keptIds = (set: string): Set<string> => new Set(readJsonl<{ id: string }>(setOf(set).table).map((r) => r.id));
 
-function partition(set: SetName): Map<string, PartRow> {
-  const p = join(PRIV, set, "partition.jsonl");
+function partition(set: string): Map<string, PartRow> {
+  const p = join(setPaths(set, ROOT).f0i, "partition.jsonl");
   if (!existsSync(p)) throw new Error(`${set}: no partition; run \`f0i-cli.ts resolve ${set}\` first`);
   checkLineage(p, { schema: PARTITION_SCHEMA, models: modelHashes(PARTITION_MODELS) });
   return new Map(readJsonl<PartRow>(p).map((r) => [r.id, r]));
@@ -133,35 +126,44 @@ export function changedSet(dets: Map<string, Detection>, part: Map<string, PartR
   return out;
 }
 
-const resolveArgs = (set: SetName): string[] => {
-  const c = SETS[set];
-  return ["--set", set, "--detect", join(c.stage, "detect.jsonl"), "--outlines", c.outlines, "--table", c.table, "--decisions", c.decisions, "--images", c.images, "--out", join(PRIV, set)];
+const resolveArgs = (set: string): string[] => {
+  const c = setOf(set);
+  return ["--set", set, "--detect", join(c.stage, "detect.jsonl"), "--outlines", c.outlines, "--table", c.table, "--decisions", c.decisions, "--images", c.images, "--out", setPaths(set, ROOT).f0i];
 };
 
 // --- plan, tiles, resolve, render ------------------------------------------------------------------------
 
-function plan(set: SetName): void {
-  mkdirSync(join(PRIV, set), { recursive: true });
+function plan(set: string): void {
+  // The inputs must exist before resolve.py runs, so a missing one is named here (NS-K2).
+  const c = setOf(set);
+  needs("F-0i", set, "default boxes", join(c.stage, "detect.jsonl"), `f0e-cli.ts detect --set ${set} --label bands+strips`);
+  needs("F-0i", set, "box outlines", c.outlines, `q2b-cli.ts outlines ${set}`);
+  needs("F-0i", set, "Q-2b rung table", c.table, `q2b-cli.ts table ${set}`);
+  needs("F-0i", set, "H-2 base decisions", c.decisions, `h2-cli.ts base ${set}`);
+  needs("F-0i", set, "H-2 image list", c.images, `h2-cli.ts stage ${set}`);
+  mkdirSync(setPaths(set, ROOT).f0i, { recursive: true });
   const r = spawnSync(py("coverage"), ["-I", join(REPO, "helpers", "coverage", "resolve.py"), "plan", ...resolveArgs(set)], { stdio: ["ignore", "inherit", "inherit"] });
   if (r.status !== 0) throw new Error(`resolve.py plan failed on ${set}`);
 }
 
-function tiles(set: SetName): void {
-  const fd = openSync(join(PRIV, set, "tiles.jsonl"), "w");
-  const r = spawnSync(py("label"), ["-I", join(REPO, "helpers", "label", "partition.py"), "--groups", join(PRIV, set, "groups.jsonl"), "--cache", join(PRIV, set, "logits")], {
+function tiles(set: string): void {
+  const dir = setPaths(set, ROOT).f0i;
+  const fd = openSync(join(dir, "tiles.jsonl"), "w");
+  const r = spawnSync(py("label"), ["-I", join(REPO, "helpers", "label", "partition.py"), "--groups", join(dir, "groups.jsonl"), "--cache", join(dir, "logits")], {
     stdio: ["ignore", fd, "inherit"],
   });
   closeSync(fd);
   if (r.status !== 0) throw new Error(`partition.py failed on ${set}`);
 }
 
-function resolve(set: SetName): void {
-  const fd = openSync(join(PRIV, set, "metrics.json"), "w");
+function resolve(set: string): void {
+  const dir = setPaths(set, ROOT).f0i;
+  const fd = openSync(join(dir, "metrics.json"), "w");
   const r = spawnSync(py("coverage"), ["-I", join(REPO, "helpers", "coverage", "resolve.py"), "resolve", "--classical", ...resolveArgs(set)], { stdio: ["ignore", fd, "inherit"] });
   closeSync(fd);
   if (r.status !== 0) throw new Error(`resolve.py resolve failed on ${set}`);
   // DL-3: the partition is stamped from here, since resolve.py writes it and knows nothing of the manifest.
-  writeLineage(join(PRIV, set, "partition.jsonl"), makeStamp({ schema: PARTITION_SCHEMA, models: modelHashes(PARTITION_MODELS) }));
+  writeLineage(join(dir, "partition.jsonl"), makeStamp({ schema: PARTITION_SCHEMA, models: modelHashes(PARTITION_MODELS) }));
 }
 
 function strata(set: SetName): void {
@@ -564,9 +566,10 @@ function tables(m: { verdict: any; sets: Record<string, any> }): string {
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   const [cmd, set, arg] = process.argv.slice(2);
-  if (cmd === "plan" && isSet(set)) plan(set);
-  else if (cmd === "tiles" && isSet(set)) tiles(set);
-  else if (cmd === "resolve" && isSet(set)) resolve(set);
+  // plan, tiles and resolve take any declared session (NS-K2) or the yardstick's B2 run; anything else is refused.
+  if (cmd === "plan") plan(acceptSet("F-0i", set));
+  else if (cmd === "tiles") tiles(acceptSet("F-0i", set));
+  else if (cmd === "resolve") resolve(acceptSet("F-0i", set));
   else if (cmd === "strata" && isSet(set)) strata(set);
   else if (cmd === "render" && isSet(set)) render(set);
   else if (cmd === "run" && isSet(set) && arg) await run(set, arg);

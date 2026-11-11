@@ -29,6 +29,7 @@ import { ACCEPT, ARM_MODELS, armsOf, loadReadings, rankedFor, readJsonl, READER_
 import { compactJson } from "./q1-cli.ts";
 import type { Rung } from "./q2.ts";
 import { loadBoxSet, type PartitionRow } from "./rb1.ts";
+import { isSession, setPaths } from "./set-paths.ts";
 import { assertManifestable, heldOutSessions } from "./set-roles.ts";
 import { ownTitleForm, rarityOf, type Rarity } from "./ts1.ts";
 import {
@@ -51,20 +52,23 @@ import {
 const REPO = fileURLToPath(new URL("../../", import.meta.url));
 const log = (s: string): void => console.error(`[ts0] ${new Date().toISOString().slice(11, 19)} ${s}`);
 
-/** Where each set's machine-label caches are (each cache names the set its own way). Only real-use fixtures today. */
-const SOURCES = (root: string): Record<string, { session: string; f0i: string; detect: string; readings: string; decisions: string; copies: string; context: string; rungs: string }> => ({
-  "pilot-000": {
-    session: "pilot-000",
-    f0i: "pilot-000",
+/**
+ * Where a set's machine-label caches are (NS-K2: by set-paths' convention, so any declared session has them).
+ * `assertTrainable` runs first in `setInputs`, so only a training source gets this far; the yardstick never does.
+ */
+const sourceOf = (set: string, root: string): { session: string; detect: string; readings: string; decisions: string; copies: string; context: string; rungs: string } => {
+  const p = setPaths(set, root);
+  return {
+    session: set,
     // F-0c's detection on F-0e's shipped whole-case default (bands+strips), as Q-3 reads it.
-    detect: join(root, "f0c", "pilot-000", "detect.jsonl"),
-    readings: join(root, "f0e", "pilot-000", "bands+strips"),
-    decisions: join(root, "private", "h2", "pilot-000", "base-decisions.jsonl"),
-    copies: join(root, "private", "f0g", "pilot-000", "copies.jsonl"),
-    context: join(root, "private", "f0h", "pilot-000", "decisions.jsonl"),
-    rungs: join(root, "private", "q2b", "table", "pilot-000.jsonl"),
-  },
-});
+    detect: join(p.f0c, "detect.jsonl"),
+    readings: p.base,
+    decisions: join(p.h2, "base-decisions.jsonl"),
+    copies: join(p.f0g, "copies.jsonl"),
+    context: join(p.f0h, "decisions.jsonl"),
+    rungs: p.q2bTable,
+  };
+};
 
 export const datasetDir = (root: string): string => join(root, "datasets", TS0.dataset);
 
@@ -162,9 +166,8 @@ interface SetInputs {
 
 function setInputs(set: string, root: string): SetInputs {
   assertTrainable(set);
-  const src = SOURCES(root)[set];
-  if (!src) throw new Error(`${set}: no machine-label caches are known for this set`);
-  const box = loadBoxSet(set as "pilot-000", root);
+  const src = sourceOf(set, root);
+  const box = loadBoxSet(set, root);
   const kept = [...box.rows.values()].filter((r: PartitionRow) => r.state === "kept" && box.keeps(r.id)).map((r) => r.id).sort();
   const detRows = readJsonl<Detection>(must(src.detect, "detection"));
   const arms = armsOf(detRows);
@@ -232,7 +235,7 @@ export function versionStampParts(root: string, dir: string): { boxSet: string; 
   // NS-4: a version's own schema is its manifest's, so a legacy version is stamped as what it is and refused as stale.
   const schemaVersion = (JSON.parse(readFileSync(join(dir, "manifest.json"), "utf8")) as { schemaVersion?: number }).schemaVersion ?? 1;
   const arms = b.sets.flatMap((s) => {
-    const detect = SOURCES(root)[s]?.detect;
+    const detect = isSession(s) ? sourceOf(s, root).detect : undefined;
     return detect && existsSync(detect) ? armsOf(readJsonl<Detection>(detect)) : [];
   });
   const catalogPath = catalogPaths().catalog;
@@ -246,7 +249,7 @@ export function versionStampParts(root: string, dir: string): { boxSet: string; 
  * frozen as `held-out` from its first build on; no row is made on its photos and the export guard refuses one.
  */
 export function manifestSessions(root: string, sets: readonly string[]): { sessions: string[]; heldOut: string[] } {
-  const sources = [...new Set(sets.map((s) => SOURCES(root)[s]?.session ?? s))];
+  const sources = [...new Set(sets)];
   const heldOut = heldOutSessions().filter((s) => !sources.includes(s) && existsSync(sessionLedgerPath(root, s)));
   return { sessions: [...sources, ...heldOut], heldOut };
 }
@@ -428,7 +431,8 @@ export function report(root = dataRoot(), version?: string): string {
   assertExportable(rows, manifest);
   const m = {
     card: "TS-0",
-    scope: "pilot-000, real use (OC35): machine labels, never accuracy (INV-17); the yardstick is never exported",
+    // Every exported set is a training source: real use, whatever its name (NS-K2).
+    scope: `${b.sets.join(", ")}, real use (OC35): machine labels, never accuracy (INV-17); the yardstick is never exported`,
     version: v,
     sets: b.sets,
     keptBoxes: b.keptBoxes,

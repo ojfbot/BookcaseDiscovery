@@ -270,6 +270,33 @@ function boxesFor(run: Run, set: string, tau: number, real: Map<string, number |
   return boxes;
 }
 
+/**
+ * NS-K2: one session's rung table outside the two-set analysis, for a session the analysis never saw: Q-2's teacher
+ * (unchanged) at a fixed τ, the one the analysis set on pilot-000's null pairing. The student is not refitted and does
+ * not score these boxes, so its columns are null; the rung, the population test and the geometry are as `analyse`
+ * writes them. Returns the number of rows written to `<priv>/table/<set>.jsonl`.
+ */
+export function rungTable(run: Run, set: string, tau: number): number {
+  const inp = run.sets[set];
+  if (!inp) throw new Error(`${run.card}: no inputs for ${set}`);
+  const decisions = readJsonl<Decision>(inp.decisions).filter((d) => !inp.keep || inp.keep(d.id));
+  const { real } = agreements(set, loadReadings(inp.stage), decisions);
+  const boxes = boxesFor(run, set, tau, real, decisions);
+  const inPop = inPopulation(FLOOR);
+  mkdirSync(join(run.priv, "table"), { recursive: true });
+  writeFileSync(join(run.priv, "table", `${set}.jsonl`), boxes.map((b) => {
+    const pop = inPop(b);
+    return JSON.stringify({
+      id: b.id, imageId: b.imageId, index: b.index, rung: b.rung, filled: b.y, inPopulation: pop,
+      why: pop ? null : b.boxScore < FLOOR ? "below-floor" : b.lying ? "lying" : "incomplete",
+      pStudent: null, pBaseline: null, pGeometry: null,
+      fragment: b.fragment, heightOverBand: b.heightOverBand === null ? null : r4(b.heightOverBand),
+      topSeam: b.topSeam, topClass: b.top, topY: b.topY, heightOff: b.heightOff === null ? null : r4(b.heightOff), edge: b.edge, topInView: b.topInView,
+    });
+  }).join("\n") + "\n");
+  return boxes.length;
+}
+
 // --- the student -----------------------------------------------------------------------------------------
 
 /** §4 S-S2's five, each with the direction the hypothesis gives it. Transforms fixed before fitting. */

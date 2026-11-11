@@ -2,6 +2,7 @@
 //
 //   node src/eval/f0h-cli.ts stats              # the yardstick's inventory catalog gets C-7's statistics sidecar (once)
 //   node src/eval/f0h-cli.ts analyse            # both sets: evals/F0h/{metrics.json,report.md} tables (aggregates only)
+//   node src/eval/f0h-cli.ts decide <session>   # NS-K2: one session's per-box files (decisions.jsonl) alone, no aggregates
 //   node src/eval/f0h-cli.ts render             # the data root's private/f0h/renders/pilot-000/index.html (private)
 //   node src/eval/f0h-cli.ts analyse --row-context sc1   # F-0h v2 check: SC-1's shelf context replaces the strip
 //                                                        # adapter; aggregates and per-box files go under the data
@@ -22,7 +23,8 @@ import { retrieve, scoreWorks, type Candidate } from "../catalog/retrieve.ts";
 import { LOOKALIKE } from "../catalog/lookalike.ts";
 import { dataRoot } from "../ledger/images.ts";
 import { confirms, loadReadings, readJsonl, READERS, variantsOf, type Detection, type Reading, type ReaderName } from "./f0.ts";
-import { imagesOf, meanCI, SETS, type SetName, type Slim } from "./f0c-cli.ts";
+import { imagesOf, meanCI, setCfg, type SetName, type Slim } from "./f0c-cli.ts";
+import { acceptSet, needs, setPaths } from "./set-paths.ts";
 import { boxRows, type Tri } from "./f0e.ts";
 import { kinds } from "./f0c.ts";
 import { evidenceFor } from "./f0f-cli.ts";
@@ -75,7 +77,8 @@ const triOf = (b: { value: number; lo: number; hi: number } | null): Tri => (b ?
 const SET_NAMES: SetName[] = ["pilot-000", "yardstick"];
 
 const stage = (set: string): string => {
-  const dir = join(PRIV, set);
+  // set-paths names the default folder; SC-1's v2 check writes beside it under private/sc1/f0h-v2/<set>/.
+  const dir = SC1_ROWS ? join(PRIV, set) : setPaths(set, ROOT).f0h;
   mkdirSync(dir, { recursive: true });
   return dir;
 };
@@ -165,7 +168,7 @@ interface Slot {
 }
 
 interface SetData {
-  set: SetName;
+  set: string;
   dets: Map<string, Detection>;
   books: Map<string, boolean[]>;
   base: Map<string, Slim>;
@@ -180,15 +183,15 @@ interface SetData {
   half: { a: Set<string>; b: Set<string> } | null;
 }
 
-function loadSet(set: SetName): SetData {
+function loadSet(set: string): SetData {
   const dets = loadDets(set);
   const books = loadBooks(set, dets);
-  const basePath = join(ROOT, "f0c", set, "base-decisions.jsonl");
+  const basePath = join(setPaths(set, ROOT).f0c, "base-decisions.jsonl");
   if (!existsSync(basePath)) throw new Error(`run node src/eval/f0c-cli.ts base ${set} first`);
   const base = new Map(readJsonl<Slim>(basePath).map((d) => [d.id, d]));
-  const readings = loadReadings(SETS[set].base);
-  const cat = new Catalog(SETS[set].catalog);
-  const copiesPath = join(ROOT, "private", "f0g", set, "copies.jsonl");
+  const readings = loadReadings(setCfg(set).base);
+  const cat = new Catalog(setCfg(set).catalog);
+  const copiesPath = join(setPaths(set, ROOT).f0g, "copies.jsonl");
   const copies = new Map(readJsonl<{ id: string; basis: string | null; workId: string | null }>(copiesPath).filter((c) => c.basis === "confirmed-by-copy" && c.workId).map((c) => [c.id, c.workId!]));
   const rows = new Map<string, (Row & { key: string })[]>();
   const slots = new Map<string, Slot>();
@@ -557,7 +560,7 @@ interface PhotoCount {
   wrongWith?: number;
 }
 
-function analyseSet(set: SetName) {
+function analyseSet(set: string) {
   const t0 = Date.now();
   const sd = loadSet(set);
   const rs = new ReaderSide(sd.cat, sd.readings);
@@ -789,7 +792,7 @@ function summarise(sd: SetData, x: any) {
     return { n: hs.length, top1: triOf(clusterBootstrap(hs, rate((h) => h.top1), REPS, SEED)), top5: triOf(clusterBootstrap(hs, rate((h) => h.top5), REPS, SEED)) };
   };
   return {
-    scope: SETS[sd.set].scope,
+    scope: setCfg(sd.set).scope,
     evaluation: sd.half ? "half B (16 photos)" : "all photos",
     eval: scope(Boolean(sd.half)),
     all: sd.half ? scope(false) : null,
@@ -828,6 +831,16 @@ function wrongShare(photos: PhotoCount[], withCtx: boolean): Tri {
 
 /** The point estimate `a` sits inside interval `b`. */
 const within = (a: Tri, b: Tri): boolean => a !== null && b !== null && a[0] >= b[1] && a[0] <= b[2];
+
+/**
+ * One session's private per-box files alone (NS-K2): what `analyse` writes per set (decisions, hypotheses, detection-gap
+ * flags), for a session `analyse` never saw. Nothing is aggregated or published; the rules and constants are unchanged.
+ */
+function decide(set: string): void {
+  needs("F-0h", set, "F-0g copy record", join(setPaths(set, ROOT).f0g, "copies.jsonl"), `f0g-cli.ts copies ${set}`);
+  analyseSet(set);
+  log(`${set}: per-box decisions under the data root's private/f0h/${set}/`);
+}
 
 function analyse(): void {
   const t0 = Date.now();
@@ -948,7 +961,7 @@ function tables(m: any): string {
 /** C-7's statistics sidecar for the yardstick's inventory catalog (the default catalog's exists). */
 function stats(): void {
   for (const set of SET_NAMES) {
-    const cat = SETS[set].catalog;
+    const cat = setCfg(set).catalog;
     if (existsSync(statsPathFor(cat))) continue;
     const c = buildStats(cat, statsPathFor(cat), log);
     log(`${set}: sidecar built, ${c.works} works in ${c.seconds} s`);
@@ -1002,12 +1015,13 @@ async function render(): Promise<void> {
 }
 
 if (import.meta.url === `file://${process.argv[1]}`) {
-  const [cmd] = process.argv.slice(2);
+  const [cmd, set] = process.argv.slice(2);
   if (cmd === "stats") stats();
+  else if (cmd === "decide") decide(acceptSet("F-0h", set));
   else if (cmd === "analyse") analyse();
   else if (cmd === "render") await render();
   else {
-    console.error("usage: node src/eval/f0h-cli.ts stats | analyse | render");
+    console.error("usage: node src/eval/f0h-cli.ts stats | decide <session> | analyse | render");
     process.exit(2);
   }
 }
