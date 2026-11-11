@@ -15,7 +15,7 @@ import type { Claim, JobHandler, JobSpec } from "./vendor/fleet-runner/jobs.d.ts
 import { nasEligibility } from "./fleet-eligibility.ts";
 
 export const G6_TRIAL_IDS = ["lid-1", "lid-2", "lid-3", "wifi-1", "wifi-2", "wifi-3"] as const;
-export const APP_MAIN_PIN = "ed3f01e5e7d5369beda01b5a2c1c567cec691d66";
+export const APP_MAIN_PIN = "699a1a8c9730ab038199d03ecddc447b0e1cf9e3";
 export const APP_VENDOR_CORE_PIN = "dad1d204bb2e01c691aa69de3ce3f0b218f7de21";
 export const NAS_CORE_PIN = "78c71e9a7f085c092425fdbe99193a06c06e9e3f";
 export const NAS_BUILD_LABEL = "78c71e9";
@@ -108,14 +108,18 @@ export function validateTlsEnvironment(env: NodeJS.ProcessEnv): void {
   if (!tokenStat?.isFile() || (tokenStat.mode & 0o077) !== 0) throw new Error("existing-local-token-permissions-invalid");
 }
 
-export function assertCandidateSnapshot(snapshot: unknown, priorPassedTrialCount: number): asserts snapshot is ServiceSnapshot {
+export function assertPriorPassedTrialCount(priorPassedTrialCount: number): void {
+  if (!Number.isSafeInteger(priorPassedTrialCount) || priorPassedTrialCount < 0 || priorPassedTrialCount >= G6_TRIAL_IDS.length) throw new Error("invalid-prior-trial-count");
+}
+
+export function assertCandidateSnapshot(snapshot: unknown, completedTrialCount: number): asserts snapshot is ServiceSnapshot {
   if (!currentSnapshot(snapshot)) throw new Error("candidate-status-stale-or-incompatible");
   if (snapshot.service.build !== NAS_BUILD_LABEL || !snapshot.service.ready) throw new Error("candidate-build-or-readiness-mismatch");
-  if (!Number.isSafeInteger(priorPassedTrialCount) || priorPassedTrialCount < 0 || priorPassedTrialCount > 5) throw new Error("invalid-prior-trial-count");
+  if (!Number.isSafeInteger(completedTrialCount) || completedTrialCount < 0 || completedTrialCount > G6_TRIAL_IDS.length) throw new Error("invalid-completed-trial-count");
   const counts = new Map(snapshot.kinds.map((item) => [item.kind, item]));
   const vision = counts.get("read-vision");
   const fixture = counts.get("proof-fixture");
-  const expectedProofFixtures = HISTORICAL_PROOF_FIXTURE_DONE + priorPassedTrialCount;
+  const expectedProofFixtures = HISTORICAL_PROOF_FIXTURE_DONE + completedTrialCount;
   if (!vision || vision.done !== HISTORICAL_READ_VISION_DONE || vision.ready !== 0 || vision.claimed !== 0 || vision.failed !== 0) throw new Error("historical-four-read-vision-outputs-not-preserved");
   if ((fixture?.done ?? 0) !== expectedProofFixtures || (fixture?.ready ?? 0) !== 0 || (fixture?.claimed ?? 0) !== 0 || (fixture?.failed ?? 0) !== 0) throw new Error("proof-fixture-count-does-not-match-ten-plus-passed-trials");
   if (snapshot.queue.ready !== 0 || snapshot.queue.claimed !== 0 || snapshot.queue.failed !== 0 || snapshot.queue.done !== HISTORICAL_READ_VISION_DONE + expectedProofFixtures) throw new Error("candidate-queue-is-not-isolated-and-idle");
@@ -127,6 +131,7 @@ export async function preflightThenLock(
   priorPassedTrialCount: number,
   createLock: () => void,
 ): Promise<ServiceSnapshot> {
+  assertPriorPassedTrialCount(priorPassedTrialCount);
   const snapshot = await owner.status();
   assertCandidateSnapshot(snapshot, priorPassedTrialCount);
   createLock();
@@ -222,7 +227,7 @@ function writeJsonAtomic(path: string, value: unknown, exclusive = false): void 
 
 function loadPacket(dir: string, trialId: string): TrialPacket {
   const packet = JSON.parse(readFileSync(packetPath(dir, trialId), "utf8")) as TrialPacket;
-  if (packet.protocol !== PROTOCOL || packet.trialId !== trialId || packet.appMainPin !== APP_MAIN_PIN || packet.appVendorCorePin !== APP_VENDOR_CORE_PIN || packet.nasCorePin !== NAS_CORE_PIN || packet.nasBuildLabel !== NAS_BUILD_LABEL || packet.nasImageId !== NAS_IMAGE_ID || packet.fixtureSha256 !== FIXTURE_SHA256 || !CAPABILITY.test(packet.capability) || !SHA256.test(packet.jobKey)) throw new Error("trial-packet-pin-or-integrity-failure");
+  if (packet.protocol !== PROTOCOL || packet.trialId !== trialId || packet.appMainPin !== APP_MAIN_PIN || packet.appVendorCorePin !== APP_VENDOR_CORE_PIN || packet.nasCorePin !== NAS_CORE_PIN || packet.nasBuildLabel !== NAS_BUILD_LABEL || packet.nasImageId !== NAS_IMAGE_ID || packet.fixtureSha256 !== FIXTURE_SHA256 || !Number.isSafeInteger(packet.priorPassedTrialCount) || packet.priorPassedTrialCount < 0 || packet.priorPassedTrialCount >= G6_TRIAL_IDS.length || !CAPABILITY.test(packet.capability) || !SHA256.test(packet.jobKey)) throw new Error("trial-packet-pin-or-integrity-failure");
   if (packet.appSourceCommit !== assertSourcePin()) throw new Error("trial-packet-source-commit-mismatch");
   return packet;
 }

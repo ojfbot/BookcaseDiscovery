@@ -15,6 +15,7 @@ import {
   NAS_BUILD_LABEL,
   NAS_IMAGE_ID,
   assertCandidateSnapshot,
+  assertPriorPassedTrialCount,
   capabilityFor,
   preflightThenLock,
   proofFixtureSpec,
@@ -73,6 +74,7 @@ describe("bounded current-runtime G6 physical adapter", () => {
   it("preserves the ten historical fixtures and four real read-vision outputs", () => {
     expect(() => assertCandidateSnapshot(snapshot(), 0)).not.toThrow();
     expect(() => assertCandidateSnapshot(snapshot(1), 1)).not.toThrow();
+    expect(() => assertCandidateSnapshot(snapshot(6), 6)).not.toThrow();
     const wrongFixtureCount = snapshot(); wrongFixtureCount.kinds[1]!.done = 9; wrongFixtureCount.queue.done = 13;
     expect(() => assertCandidateSnapshot(wrongFixtureCount, 0)).toThrow(/ten-plus-passed-trials/);
     const changedVision = snapshot(); changedVision.kinds[0]!.done = 5;
@@ -88,6 +90,17 @@ describe("bounded current-runtime G6 physical adapter", () => {
     const valid = await preflightThenLock({ status: async () => snapshot() }, 0, createLock);
     expect(valid.queue.done).toBe(14);
     expect(lockCreated).toBe(true);
+  });
+
+  it("allows verification of trial six but rejects a seventh admission before status or lock", async () => {
+    expect(() => assertCandidateSnapshot(snapshot(6), 6)).not.toThrow();
+    expect(() => assertPriorPassedTrialCount(6)).toThrow(/invalid-prior-trial-count/);
+    let statusRead = false;
+    let lockCreated = false;
+    await expect(preflightThenLock({ status: async () => { statusRead = true; return snapshot(6); } }, 6, () => { lockCreated = true; }))
+      .rejects.toThrow(/invalid-prior-trial-count/);
+    expect(statusRead).toBe(false);
+    expect(lockCreated).toBe(false);
   });
 
   it("requires an absolute evidence path and verifies the directory is private", () => {
