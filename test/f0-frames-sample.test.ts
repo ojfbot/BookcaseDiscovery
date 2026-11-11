@@ -85,7 +85,7 @@ describe("sample part", () => {
 });
 
 describe("F0-frames aggregates (src/eval/f0-frames-cli.ts)", async () => {
-  const { copyGroupSpan, differences, mix, quantile, recurrence, spread, timing } = await import("../src/eval/f0-frames-cli.ts");
+  const { copyGroupSpan, differences, mix, quantile, recurrence, sampleScope, spread, timing } = await import("../src/eval/f0-frames-cli.ts");
 
   it("counts copy groups and those spanning more than one frame", () => {
     const rows = [
@@ -111,6 +111,13 @@ describe("F0-frames aggregates (src/eval/f0-frames-cli.ts)", async () => {
     const a = { n: 10, s: { share: 0.5, count: 4 }, r: { vision: { withTextShare: 0.2 } }, m: { "single-reader": { count: 1, share: 0.1 } } };
     const b = { n: 20, s: { share: 0.25, count: 9 }, r: { vision: { withTextShare: 0.5 } }, m: { "single-reader": { count: 3, share: 0.3 } } };
     expect(differences(a, b)).toEqual({ s: { share: -0.25 }, r: { vision: { withTextShare: 0.3 } }, m: { "single-reader": { share: 0.2 } } });
+  });
+
+  it("states what part of its session a sample part covers, and nothing for a whole set", () => {
+    const frames = (s: string) => (s === "sf-store-001" ? 616 : 205);
+    expect(sampleScope("sf-store-001.every-3", frames)).toEqual({ session: "sf-store-001", every: 3, frames: 205, sessionFrames: 616, frameShare: 0.3328 });
+    expect(sampleScope("pilot-000", frames)).toBeNull();
+    expect(sampleScope("sf-store-001", frames)).toBeNull();
   });
 
   it("projects the pilot linearly in frames and sets it beside the full run", () => {

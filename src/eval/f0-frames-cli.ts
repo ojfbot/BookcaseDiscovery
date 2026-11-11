@@ -14,7 +14,7 @@ import { parseArgs } from "node:util";
 import { dataRoot } from "../ledger/images.ts";
 import { loadReadings, READERS, readJsonl, variantsOf, type Detection, type ReaderName } from "./f0.ts";
 import { loadBoxSet } from "./rb1.ts";
-import { REAL_USE_SCOPE, sessionImages, setPaths } from "./set-paths.ts";
+import { REAL_USE_SCOPE, samplePart, sessionImages, setPaths } from "./set-paths.ts";
 
 const REPO = fileURLToPath(new URL("../../", import.meta.url));
 const r4 = (x: number): number => Math.round(x * 10000) / 10000;
@@ -234,6 +234,15 @@ export function f0ModelSeconds(set: string, root = dataRoot()) {
   return { frames: photos, decisionCount: decisions, detect: of("detect"), readers, hardCropShare: share(readers.qwen!.rows, decisions) };
 }
 
+/** What part of its session a sample part covers (null for a whole set): the run's scope, stated beside its figures. */
+export function sampleScope(set: string, frameCount: (s: string) => number = (s) => sessionImages(s).length) {
+  const part = samplePart(set);
+  if (!part) return null;
+  const frames = frameCount(set);
+  const sessionFrames = frameCount(part.session);
+  return { session: part.session, every: part.every, frames, sessionFrames, frameShare: share(frames, sessionFrames) };
+}
+
 /** The card stopped after the pilot (its stop rule): time only. The pre-registered measures are not computed on the pilot. */
 function pilotOnly(timingPilot: string, sample: string, set: string): object {
   return {
@@ -273,6 +282,7 @@ function main(): void {
     date: new Date().toLocaleDateString("en-CA"),
     scope: "real use (OC35): machine agreement between the stack's own stages and readers, never accuracy (INV-17); no hand labels (OC36)",
     note: "Frames overlap (1 fps sweeps): one physical book is counted once per frame it appears in; nothing is deduplicated across frames.",
+    sample: sampleScope(set),
     sets: { "pilot-000": reference, [set]: frames },
     difference: { of: `${set} minus pilot-000`, ...(differences(reference, frames) as object) },
     time,
