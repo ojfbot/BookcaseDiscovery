@@ -1,7 +1,7 @@
 // F-0 on frames: a sample part (`<session>.every-<n>`) runs a fixed, evenly spaced sample of a session's image list
 // through the stages under its own cache names, so a pilot never mixes with the whole session's caches; it is never a
 // declared set, so it is never exported or trained on. pilot-000's and the whole session's paths and lists are unchanged.
-import { mkdirSync, mkdtempSync, writeFileSync } from "node:fs";
+import { mkdirSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
@@ -85,19 +85,25 @@ describe("sample part", () => {
 });
 
 describe("F0-frames aggregates (src/eval/f0-frames-cli.ts)", async () => {
-  const { copyGroupSpan, differences, mix, quantile, recurrence, sampleScope, spread, timing } = await import("../src/eval/f0-frames-cli.ts");
+  const { acceptedBoxes, copyGroupSpan, differences, frameCount, mix, quantile, recurrence, sampleScope, spread, timing } = await import("../src/eval/f0-frames-cli.ts");
 
   it("counts copy groups and those spanning more than one frame", () => {
     const rows = [
       { id: "a:1", group: 1 }, { id: "a:2", group: 1 },
       { id: "a:5", group: 2 }, { id: "b:0", group: 2 }, { id: "c:3", group: 2 },
     ];
-    expect(copyGroupSpan(rows)).toEqual({ groups: 2, groupedBoxCount: 5, multiFrameGroups: 1, boxesInMultiFrameGroups: 3 });
+    expect(copyGroupSpan(rows)).toEqual({ groups: 2, groupedBoxCount: 5, multiFrameGroups: 1, boxesInMultiFrameGroups: 3, groupsBySize: { "2": { count: 1, share: 0.5 }, "3": { count: 1, share: 0.5 } } });
   });
 
   it("measures work recurrence across frames, not within one", () => {
     const r = recurrence([{ id: "a:1", workId: "w1" }, { id: "a:2", workId: "w1" }, { id: "b:0", workId: "w2" }, { id: "c:0", workId: "w2" }, { id: "c:1", workId: "w3" }]);
     expect(r).toEqual({ acceptedBoxCount: 5, acceptedWorks: 3, worksInTwoOrMoreFrames: 1, acceptedBoxesRecurring: 2, acceptedBoxesRecurringShare: 0.4 });
+  });
+
+  it("takes each accepted box's work from F-0c's accepted work id, so recurrence counts works, not one bucket", () => {
+    const ds = [{ id: "a:1", accepted: "w1" }, { id: "a:2", accepted: null }, { id: "b:0", accepted: "w1" }, { id: "c:0", accepted: "w2" }];
+    expect(acceptedBoxes(ds)).toEqual([{ id: "a:1", workId: "w1" }, { id: "b:0", workId: "w1" }, { id: "c:0", workId: "w2" }]);
+    expect(recurrence(acceptedBoxes(ds))).toMatchObject({ acceptedWorks: 2, worksInTwoOrMoreFrames: 1, acceptedBoxesRecurring: 2 });
   });
 
   it("summarises lists and mixes", () => {
@@ -118,6 +124,17 @@ describe("F0-frames aggregates (src/eval/f0-frames-cli.ts)", async () => {
     expect(sampleScope("sf-store-001.every-3", frames)).toEqual({ session: "sf-store-001", every: 3, frames: 205, sessionFrames: 616, frameShare: 0.3328 });
     expect(sampleScope("pilot-000", frames)).toBeNull();
     expect(sampleScope("sf-store-001", frames)).toBeNull();
+  });
+
+  it("counts a sample part's frames from its session's list, and a set's from its manifest", () => {
+    const { root, repo } = store(616);
+    // The registry is the shipped one here, so the temporary session is named by a declared session's sample part.
+    mkdirSync(join(repo, "fixtures", "sf-store-001"), { recursive: true });
+    const manifest = JSON.parse(readFileSync(join(repo, "fixtures", "test-store-009", "manifest.json"), "utf8")) as { session: string };
+    writeFileSync(join(repo, "fixtures", "sf-store-001", "manifest.json"), JSON.stringify({ ...manifest, session: "sf-store-001" }));
+    expect(frameCount("sf-store-001", root, repo)).toBe(616);
+    expect(frameCount("sf-store-001.every-3", root, repo)).toBe(205);
+    expect(frameCount("sf-store-001.every-30", root, repo)).toBe(20);
   });
 
   it("projects the pilot linearly in frames and sets it beside the full run", () => {

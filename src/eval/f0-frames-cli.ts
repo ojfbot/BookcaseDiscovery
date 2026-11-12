@@ -48,7 +48,7 @@ export function mix<T>(rows: T[], key: (r: T) => string): Record<string, { count
 }
 
 /** Copy groups and how many photos each spans (F-0g groups are numbered across the whole set). */
-export function copyGroupSpan(rows: { id: string; group: number }[]): { groups: number; groupedBoxCount: number; multiFrameGroups: number; boxesInMultiFrameGroups: number } {
+export function copyGroupSpan(rows: { id: string; group: number }[]): { groups: number; groupedBoxCount: number; multiFrameGroups: number; boxesInMultiFrameGroups: number; groupsBySize: Record<string, { count: number; share: number | null }> } {
   const g = new Map<number, { photos: Set<string>; n: number }>();
   for (const r of rows) {
     const e = g.get(r.group) ?? { photos: new Set<string>(), n: 0 };
@@ -57,7 +57,7 @@ export function copyGroupSpan(rows: { id: string; group: number }[]): { groups: 
     g.set(r.group, e);
   }
   const multi = [...g.values()].filter((e) => e.photos.size > 1);
-  return { groups: g.size, groupedBoxCount: rows.length, multiFrameGroups: multi.length, boxesInMultiFrameGroups: multi.reduce((s, e) => s + e.n, 0) };
+  return { groups: g.size, groupedBoxCount: rows.length, multiFrameGroups: multi.length, boxesInMultiFrameGroups: multi.reduce((s, e) => s + e.n, 0), groupsBySize: mix([...g.values()], (e) => String(e.n)) };
 }
 
 /** Work recurrence: of the accepted works, those accepted in two or more photos, and the accepted boxes whose work is accepted in another photo. */
@@ -74,7 +74,11 @@ export function recurrence(accepted: { id: string; workId: string }[]): { accept
   };
 }
 
-interface Decision { id: string; accepted: { workId: string } | null; confirmed: Partial<Record<ReaderName, string | null>>; agreeing?: string[]; reason: string | null }
+interface Decision { id: string; accepted: string | null; confirmed: Partial<Record<ReaderName, string | null>>; agreeing?: string[]; reason: string | null }
+
+/** The accepted boxes of a decision file and their work (F-0c's `accepted` is the work id itself, or null). */
+export const acceptedBoxes = (ds: Pick<Decision, "id" | "accepted">[]): { id: string; workId: string }[] =>
+  ds.flatMap((d) => (d.accepted ? [{ id: d.id, workId: d.accepted }] : []));
 
 /** The basis of a decision: `accepted`, else its reason. */
 const basisOf = (d: Decision): string => (d.accepted ? "accepted" : (d.reason ?? "none"));
@@ -101,10 +105,16 @@ function decisionFigures(ds: Decision[], readers: ReaderName[]) {
 
 const sum = (xs: (number | undefined)[]): number => xs.reduce<number>((s, x) => s + (typeof x === "number" ? x : 0), 0);
 
+/** Frames a set is measured against: its manifest's photos, or for a sample part the frames it takes from its session. */
+export function frameCount(set: string, root = dataRoot(), repo = REPO): number {
+  if (samplePart(set)) return sessionImages(set, root, repo).length;
+  return (JSON.parse(readFileSync(join(repo, "fixtures", set, "manifest.json"), "utf8")) as { photos: unknown[] }).photos.length;
+}
+
 /** Every pre-registered measure on one set, from its caches under the data root. */
 export function measureSet(set: string, root = dataRoot()) {
   const p = setPaths(set, root);
-  const manifest = (JSON.parse(readFileSync(join(REPO, "fixtures", set, "manifest.json"), "utf8")) as { photos: unknown[] }).photos.length;
+  const manifest = frameCount(set, root);
   const f0Det = readJsonl<Detection & { error?: string }>(join(p.f0, "detect.jsonl"));
   const defDet = readJsonl<Detection & { error?: string }>(join(p.base, "detect.jsonl"));
   const ok = (rows: (Detection & { error?: string })[]) => rows.filter((d) => !d.error);
@@ -164,10 +174,9 @@ export function measureSet(set: string, root = dataRoot()) {
     copyGroups: {
       ...copyGroupSpan(copies),
       groupedShareOfDefault: share(copies.length, boxIds.length),
-      sizeMix: mix(copies, (c) => String(c.groupSize)),
       basisMix: mix(copies, (c) => c.basis ?? "none"),
     },
-    workRecurrence: recurrence(base.filter((d) => d.accepted).map((d) => ({ id: d.id, workId: d.accepted!.workId }))),
+    workRecurrence: recurrence(acceptedBoxes(base)),
     contextDecisions: { rows: f0h.length, byBasis: mix(f0h, (r) => r.basis ?? "none"), usable: f0h.filter((r) => r.usable).length },
     modelSeconds: {
       f0RunDetectPerFrame: share(sum(ok(f0Det).map((d) => (d as { seconds?: number }).seconds)), ok(f0Det).length),
