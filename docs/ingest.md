@@ -182,6 +182,125 @@ AVFoundation fallback was not needed. ffmpeg itself is not installed and was not
 A 1080p frame is about 2 MP (1080 × 1920 = 2.07 MP); the still stages are tuned on 48 MP stills. Quality on frames is
 expected to be lower and is **unmeasured** until the F-0 card runs on them. The 4K reshoot with stills comes later.
 
+## Video and stills (2026-11-11 shoot) (NS-K3, 2026-11-14)
+
+The owner's second bookstore shoot is a step towards the reshoot protocol, not the protocol itself. Stock Camera,
+iPhone 17 Pro, no location tags: 28 clips in 4K (2160 × 3840 portrait, about 30 fps, H.264, each with an AAC and a
+spatial audio (`apac`) track), and 16 stills at 48 MP on the 2.22 mm f/2.2 camera, across three store visits. The owner
+gave the visit-to-store mapping. Three sessions, declared in `src/eval/set-roles.ts`:
+
+| session | role | holds | store |
+|---|---|---|---|
+| `sf-store-003` | `training-source` | 12 clips, 16 stills | the same store as `sf-store-001` |
+| `sf-store-004` | `held-out` | 13 clips | the same store as `sf-store-002`, which stays held out |
+| `sf-store-005` | `held-out` | 3 clips | a store not filmed before; held out by the conductor's default until the owner rules |
+
+The clip commands are the 2026-11-07 ones, unchanged; no code assumed 1080p. The clips are stored portrait (rotation
+0), as the 1080p clips were, so the `nativeSize` test (frame size against the clip's) holds, and the sharpness score
+is taken on a grey copy at 640 px on the long side whatever the clip's size. The stills went through the still path,
+unchanged, with every file `real-use` (a private settings map built from the folder listing, as for `pilot-000`). For
+`sf-store-003` the still ingest ran after `clip ingest` and before `clip frames`: `bookcase ingest` refuses a ledger
+that already holds the session, and `clip frames` appends to the ledger and merges into the private manifest. Store
+permission: not stated by the owner (private manifest only). No face check ran and no frame was dropped for faces.
+
+```sh
+bookcase clip ingest <visit folder>/clips --session <session> --permission-note <the note>
+bookcase ingest <visit 1 folder>/stills --session sf-store-003 --settings <the private all-real-use map>   # before clip frames
+bookcase clip frames <session> --rate 1
+bookcase manifest <session>
+bookcase clip report <session>
+```
+
+### Counts
+
+| | `sf-store-003` | `sf-store-004` | `sf-store-005` |
+|---|---|---|---|
+| clips ingested / refused | 12 / 0 | 13 / 0 | 3 / 0 |
+| duration | 816.99 s | 811.99 s | 575.70 s |
+| codec, size | H.264, 2160 × 3840 (all 12) | H.264, 2160 × 3840 (all 13) | H.264, 2160 × 3840 (all 3) |
+| nominal frame rate | 29.98 fps | 29.98 and 30.00 fps | 29.98 fps |
+| device class | `metric-depth` (all 12) | `metric-depth` (all 13) | `metric-depth` (all 3) |
+| tracks before | per clip: 1 video (`avc1`), 2 audio (`aac `, `apac`), 6 timed metadata (`mebx`) | the same | the same |
+| tracks after | per clip: 1 video, 6 timed metadata, 0 audio | the same | the same |
+| audio-free copies / video sample counts equal | 12 / 12 | 13 / 13 | 3 / 3 |
+| decoder saw every video sample | 12 of 12 clips (24,490 frames decoded) | 13 of 13 (24,340) | 3 of 3 (17,257) |
+| frames kept (2160 × 3840) | 823 | 816 | 577 |
+| stills accepted / rejected (6048 × 8064) | 16 / 0 | none | none |
+| photos in the public manifest | 839 | 816 | 577 |
+| wall time: clip ingest / still ingest / frames | 33 s / 7 s / 306 s | 34 s / none / 304 s | 12 s / none / 214 s |
+
+The clip under 3 s (in `sf-store-004`, 0.83 s) was ingested like the others and gave 1 frame. Every frame and still
+is on its camera's native grid (`nativeSize`). All 16 stills carry K-1's `edited-derivative` flag: their EXIF size is
+the transpose of the stored pixels, as for `pilot-000`'s portraits. The private manifest has the flag's signal; no
+still was dropped for it.
+
+**Audio-strip check.** An exiftool pass over the stored copies (every track's handler) finds 0 audio tracks, 28 video
+tracks and every timed metadata track; the same pass over the inbox originals finds 56 audio tracks (2 per clip). The
+video sample counts are equal for 28 of 28 clips. The originals with audio stay in the inbox untouched. A rerun of
+`clip ingest` on visit 1 skipped all 12 clips, and a rerun of `clip frames` on `sf-store-003` framed none.
+
+Sharpness of the kept frames (variance of the Laplacian, grey copy at 640 px on the long side; higher is sharper),
+beside the 2026-11-07 figures:
+
+| | p10 | p25 | median | p75 | p90 | min | max |
+|---|---|---|---|---|---|---|---|
+| `sf-store-001` (1080p, 2026-11-07) | 1344.04 | 1690.69 | 2029.23 | 2328.80 | 2551.90 | 243.93 | 2988.84 |
+| `sf-store-002` (1080p, 2026-11-07) | 1184.17 | 1463.06 | 1640.36 | 1825.06 | 1996.47 | 320.55 | 3089.35 |
+| `sf-store-003` (4K, 2026-11-11) | 1311.52 | 1608.98 | 1942.05 | 2268.96 | 2542.57 | 545.68 | 3477.02 |
+| `sf-store-004` (4K, 2026-11-11) | 1268.00 | 1536.03 | 1751.23 | 1971.19 | 2237.32 | 259.18 | 4007.84 |
+| `sf-store-005` (4K, 2026-11-11) | 1625.78 | 2130.12 | 2521.86 | 2891.35 | 3325.73 | 19.25 | 3927.27 |
+
+The kept frame over its window's median sharpness: median 1.23 (p10 1.06, p90 1.77) in `sf-store-003`, 1.20 (p10 1.04,
+p90 1.64) in `sf-store-004`, 1.27 (p10 1.06, p90 1.97) in `sf-store-005`. Both shoots are scored on the same 640 px
+grid, so the figures compare motion blur and focus at that scale; they say nothing about the extra detail a 4K frame
+holds at its native size, and nothing about reading.
+
+Storage (MiB):
+
+| | `sf-store-003` | `sf-store-004` | `sf-store-005` |
+|---|---|---|---|
+| clip originals, with audio (inbox) | 2499.3 | 2485.7 | 1757.9 |
+| audio-free clips (`video/`) | 2445.2 | 2431.5 | 1719.4 |
+| frames (image store) | 1498.4 | 1482.5 | 1158.3 |
+| stills: originals / working copies (image store) | 169.4 / 169.4 | none | none |
+
+### Stills and frames in one session
+
+`sf-store-003` holds both, and each photo's kind can be read from fields the records already have:
+
+- **ledger and public manifest:** size. A frame is 2160 × 3840; a still is 6048 × 8064. In the ledger a frame is
+  also its own working copy (`imageHash` = `workingCopyHash`), and a still has a separate working copy. Both are
+  `real-use`, so the setting does not tell them apart.
+- **private manifests:** `frames.json` lists the 823 frame hashes with their clip, and each frame's row in the private
+  fixture manifest has the provenance `natural-sweep`. A still has no provenance row and is read as a `shopper-still`
+  (`captureModeOf("real-use")`).
+
+Every stage takes a session's photos from its public manifest, which is sorted by hash, so a stage run on
+`sf-store-003` takes both kinds, interleaved, and the sample part `sf-store-003.every-3` takes 279 photos: 272 frames
+and 7 stills. A card that measures frames and stills apart splits the results by size, or adds a filter by kind.
+
+### The capture tier
+
+A 4K frame is 2160 × 3840 = 8.29 MP, 4.0 times a 1080p frame (2.07 MP). The stills are 8064 × 6048 = 48.77 MP, the
+size the still stages were tuned on, and the same camera as most of `pilot-000`. This is an observation only: how the
+stack does on either is **unmeasured** until the next card runs.
+
+### Scaling projection for the next card (a projection from 2 MP timings)
+
+Input: F-0 on frames (#98) measured steps 1 to 11 on `sf-store-001.every-3` at 30,556 s for 205 frames of 2 MP, which
+is 149 s per frame (30,556 / 205 = 149.05). Frames only; the 16 stills are not projected here. Every 3rd frame is the
+3rd, 6th, … of each session's frames, ⌊n / 3⌋.
+
+| | frames | all frames × 149 s | every 3rd | every 3rd × 149 s |
+|---|---|---|---|---|
+| `sf-store-003` | 823 | 122,627 s = 34.06 h | 274 | 40,826 s = 11.34 h |
+| `sf-store-004` | 816 | 121,584 s = 33.77 h | 272 | 40,528 s = 11.26 h |
+| `sf-store-005` | 577 | 85,973 s = 23.88 h | 192 | 28,608 s = 7.95 h |
+| all three | 2,216 | 330,184 s = 91.72 h | 738 | 109,962 s = 30.55 h |
+
+Treat these as a **lower bound**. A 4K frame has 4 times the pixels of the frames the 149 s came from, and is likely
+to give more boxes per frame, and the reading steps scale with boxes.
+
 ## Stage order: a session through TS-0 and TS-2 (NS-K2, 2026-11-11)
 
 Worked backwards from what TS-0's build (`setInputs`) and TS-2 read, this is the **critical path**: the stages whose

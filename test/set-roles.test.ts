@@ -15,9 +15,9 @@ describe("the registry", () => {
     for (const role of Object.values(SET_REGISTRY)) expect(SET_ROLES).toContain(role);
   });
 
-  it("declares pilot-000 and NS-K's sf-store-001 as the training sources today", () => {
-    expect(Object.entries(SET_REGISTRY).filter(([, r]) => r === "training-source").map(([s]) => s)).toEqual(["pilot-000", "sf-store-001"]);
-    expect(setsByRole()["training-source"]).toBe(2);
+  it("declares pilot-000, NS-K's sf-store-001 and NS-K3's sf-store-003 as the training sources today", () => {
+    expect(Object.entries(SET_REGISTRY).filter(([, r]) => r === "training-source").map(([s]) => s)).toEqual(["pilot-000", "sf-store-001", "sf-store-003"]);
+    expect(setsByRole()["training-source"]).toBe(3);
   });
 
   it("names no training source the way an evaluation set is named (the two checks agree)", () => {
@@ -26,6 +26,14 @@ describe("the registry", () => {
 
   it("holds F-1's reserved held-out set as held-out", () => {
     expect(roleOf("sf-store-002")).toBe("held-out");
+  });
+
+  it("holds NS-K3's second and third visits of the 2026-11-11 shoot as held-out (the store already held out, and a new store by default)", () => {
+    for (const s of ["sf-store-004", "sf-store-005"]) {
+      expect(roleOf(s)).toBe("held-out");
+      expect(isTrainable(s)).toBe(false);
+    }
+    expect(isTrainable("sf-store-003")).toBe(true);
   });
 
   it("is not fooled by an inherited key", () => {
@@ -47,8 +55,8 @@ describe("the guard: by role, fail closed, then by name", () => {
   });
 
   it("refuses a set with no declared role (fail closed)", () => {
-    expect(refusal("sf-store-003")).toBe("undeclared");
-    expect(() => assertTrainable("sf-store-003")).toThrow(/no declared set role/);
+    expect(refusal("sf-store-999")).toBe("undeclared");
+    expect(() => assertTrainable("sf-store-999")).toThrow(/no declared set role/);
   });
 
   it("keeps the name test as a second check: a training source named like a yardstick is refused", () => {

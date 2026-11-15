@@ -53,6 +53,13 @@ export const SET_REGISTRY: SetRegistry = {
   "sf-store-001": "training-source",
   // F-1: reserved as held-out from the start. NS-K: the second store visit of the 2026-11-07 shoot, video only, 1080p30.
   "sf-store-002": "held-out",
+  // NS-K3: the first store visit of the 2026-11-11 shoot, 4K30 clips and 48 MP stills; the same store as sf-store-001.
+  "sf-store-003": "training-source",
+  // NS-K3: the second store visit of the 2026-11-11 shoot, 4K30 clips; the same store as sf-store-002, so held out too.
+  "sf-store-004": "held-out",
+  // NS-K3: the third store visit of the 2026-11-11 shoot, 4K30 clips; a store not filmed before. Held out is the
+  // conductor's conservative default until the owner rules on its role (OC35: a held-out session is never trained on).
+  "sf-store-005": "held-out",
 };
 
 /** The second check: a name that reads as a yardstick, PROXY or audit set is never trainable, whatever its role. */
