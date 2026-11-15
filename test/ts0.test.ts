@@ -161,8 +161,8 @@ describe("OC35: yardstick and audit sets are never exported", () => {
     expect(() => assertTrainable("pilot-000")).not.toThrow();
   });
 
-  // DL-5: by declared role, fail closed. sf-store-002 is F-1's held-out set; sf-store-003 is not declared.
-  it.each(["sf-store-002", "sf-store-003", "library-b2"])("refuses %s (held out or undeclared)", (set) => {
+  // DL-5: by declared role, fail closed. sf-store-002, -004 and -005 are held out; sf-store-999 is not declared.
+  it.each(["sf-store-002", "sf-store-004", "sf-store-005", "sf-store-999", "library-b2"])("refuses %s (held out or undeclared)", (set) => {
     expect(() => assertTrainable(set)).toThrow(/never exported/);
   });
 

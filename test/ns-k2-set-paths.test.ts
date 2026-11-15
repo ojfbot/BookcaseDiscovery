@@ -153,8 +153,8 @@ describe("a new session resolves at every stage on the path", () => {
     }
   });
 
-  it("gives the declared sessions today: pilot-000 and both store visits", () => {
-    expect(sessions()).toEqual(["pilot-000", "sf-store-001", "sf-store-002"]);
+  it("gives the declared sessions today: pilot-000 and the five store visits of both shoots", () => {
+    expect(sessions()).toEqual(["pilot-000", "sf-store-001", "sf-store-002", "sf-store-003", "sf-store-004", "sf-store-005"]);
     expect(isSession("sf-store-002")).toBe(true);
     for (const y of YARDSTICK_NAMES) expect(isSession(y)).toBe(false);
   });
