@@ -257,13 +257,22 @@ export function sampleScope(set: string, frameCount: (s: string) => number = (s)
   return { session: part.session, ...(part.kind ? { kind: part.kind } : {}), every: part.every, frames, sessionFrames, frameShare: share(frames, sessionFrames) };
 }
 
-/** One part's run time: per step and in total, per image, and its peak resident memory (F-0 on 4K). */
+/**
+ * One part's run time: per step and in total, per image, and its peak resident memory (F-0 on 4K). A step run more
+ * than once (a rerun after a stop: the stages are idempotent and keep what the first attempt cached) counts the
+ * seconds of every attempt, its peak over all of them, and the last attempt's exit.
+ */
 export function partTime(rows: TimingRow[], images: number) {
   const perImage = (x: number) => (images > 0 ? Math.round((x / images) * 100) / 100 : null);
-  const steps = rows.map((r) => ({ step: r.step, name: r.name, seconds: r.seconds, secondsPerImage: perImage(r.seconds), peakResidentMb: r.maxRssBytes ? Math.round(r.maxRssBytes / 2 ** 20) : null, exit: r.exit }));
+  const mb = (b: number) => (b > 0 ? Math.round(b / 2 ** 20) : null);
+  const byName = new Map<string, TimingRow[]>();
+  for (const r of rows) byName.set(r.name, [...(byName.get(r.name) ?? []), r]);
+  const steps = [...byName.values()].map((rs) => {
+    const seconds = sum(rs.map((r) => r.seconds));
+    return { step: rs[0]!.step, name: rs[0]!.name, attempts: rs.length, seconds, secondsPerImage: perImage(seconds), peakResidentMb: mb(Math.max(...rs.map((r) => r.maxRssBytes ?? 0))), exit: rs.at(-1)!.exit };
+  });
   const total = sum(rows.map((r) => r.seconds));
-  const rss = rows.map((r) => r.maxRssBytes ?? 0);
-  return { images, commands: rows.length, commandsFailed: rows.filter((r) => r.exit !== 0).length, steps, totalSeconds: total, secondsPerImage: perImage(total), peakResidentMb: rss.some((x) => x > 0) ? Math.round(Math.max(...rss) / 2 ** 20) : null };
+  return { images, commands: steps.length, commandsFailed: steps.filter((s) => s.exit !== 0).length, attemptsFailed: rows.filter((r) => r.exit !== 0).length, steps, totalSeconds: total, secondsPerImage: perImage(total), peakResidentMb: mb(Math.max(0, ...rows.map((r) => r.maxRssBytes ?? 0))) };
 }
 
 /** A reference run's per-step seconds per image (from its committed timing aggregates), beside a part's. */

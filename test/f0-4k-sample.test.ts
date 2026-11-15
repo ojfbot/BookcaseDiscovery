@@ -165,9 +165,16 @@ describe("F0-4k aggregates (src/eval/f0-frames-cli.ts sample)", async () => {
 
   it("states a part's time per step and per image, with its peak memory", () => {
     const t = partTime(rows, 20);
-    expect(t).toMatchObject({ images: 20, commands: 2, commandsFailed: 0, totalSeconds: 601, secondsPerImage: 30.05, peakResidentMb: 5 });
-    expect(t.steps[0]).toEqual({ step: "1", name: "F-0", seconds: 400, secondsPerImage: 20, peakResidentMb: 3, exit: 0 });
+    expect(t).toMatchObject({ images: 20, commands: 2, commandsFailed: 0, attemptsFailed: 0, totalSeconds: 601, secondsPerImage: 30.05, peakResidentMb: 5 });
+    expect(t.steps[0]).toEqual({ step: "1", name: "F-0", attempts: 1, seconds: 400, secondsPerImage: 20, peakResidentMb: 3, exit: 0 });
     expect(partTime([{ ...rows[0]!, exit: 1 }], 4).commandsFailed).toBe(1);
+  });
+
+  it("counts every attempt of a rerun step: the seconds of both, the peak of both, the last exit", () => {
+    const failedThenRerun = [{ ...rows[0]!, seconds: 737, maxRssBytes: 7 * 2 ** 20, exit: 1 }, { ...rows[0]!, seconds: 300, exit: 0 }, rows[1]!];
+    const t = partTime(failedThenRerun, 16);
+    expect(t).toMatchObject({ commands: 2, commandsFailed: 0, attemptsFailed: 1, totalSeconds: 1238, peakResidentMb: 7 });
+    expect(t.steps[0]).toEqual({ step: "1", name: "F-0", attempts: 2, seconds: 1037, secondsPerImage: 64.81, peakResidentMb: 7, exit: 0 });
   });
 
   it("sets each step beside the reference run's seconds per image", () => {
