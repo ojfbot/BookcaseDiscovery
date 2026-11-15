@@ -1,0 +1,1777 @@
+{
+  "runId": "F0-4k-every-10",
+  "card": "F-0 on 4K, every 10th frame",
+  "date": "2026-11-15",
+  "scope": "real use (OC35): machine agreement between the stack's own stages and readers, never accuracy (INV-17); no hand labels (OC36)",
+  "note": "Each part is measured on its own; stills and frames are never pooled. Frames overlap (1 fps sweeps): one physical book is counted once per image it appears in; nothing is deduplicated across images. Small samples: counts stand beside every share, and no difference is tested.",
+  "samples": {
+    "sf-store-003.frames.every-10": {
+      "session": "sf-store-003",
+      "kind": "frames",
+      "every": 10,
+      "frames": 82,
+      "sessionFrames": 823,
+      "frameShare": 0.0996
+    },
+    "sf-store-003.frames.every-41": {
+      "session": "sf-store-003",
+      "kind": "frames",
+      "every": 41,
+      "frames": 20,
+      "sessionFrames": 823,
+      "frameShare": 0.0243
+    },
+    "sf-store-001.every-3": {
+      "session": "sf-store-001",
+      "every": 3,
+      "frames": 205,
+      "sessionFrames": 616,
+      "frameShare": 0.3328
+    }
+  },
+  "sets": {
+    "sf-store-003.frames.every-41": {
+      "set": "sf-store-003.frames.every-41",
+      "scope": "real use (OC35): machine agreement, never accuracy (INV-17)",
+      "frames": {
+        "manifest": 20,
+        "f0Run": {
+          "processed": 20,
+          "failed": 0
+        },
+        "defaultBoxes": {
+          "processed": 20,
+          "failed": 0
+        }
+      },
+      "boxesPerFrame": {
+        "defaultBoxes": {
+          "count": 20,
+          "mean": 93.65,
+          "p10": 55,
+          "p50": 86,
+          "p90": 121,
+          "min": 36,
+          "max": 148
+        },
+        "f0Run": {
+          "count": 20,
+          "mean": 93.65,
+          "p10": 55,
+          "p50": 86,
+          "p90": 121,
+          "min": 36,
+          "max": 148
+        }
+      },
+      "defaultBoxCount": 1873,
+      "readerCoverage": {
+        "vision": {
+          "readingRows": 1872,
+          "rowShare": 0.9995,
+          "withText": 1116,
+          "withTextShare": 0.5958
+        },
+        "ppocr": {
+          "readingRows": 1872,
+          "rowShare": 0.9995,
+          "withText": 1169,
+          "withTextShare": 0.6241
+        },
+        "qwen": {
+          "readingRows": 750,
+          "rowShare": 0.4004,
+          "withText": 653,
+          "withTextShare": 0.3486
+        }
+      },
+      "baseDecision": {
+        "decisionCount": 1873,
+        "accepted": 163,
+        "acceptedShare": 0.087,
+        "basisMix": {
+          "no-catalog-match": {
+            "count": 878,
+            "share": 0.4688
+          },
+          "no-text": {
+            "count": 625,
+            "share": 0.3337
+          },
+          "single-reader": {
+            "count": 186,
+            "share": 0.0993
+          },
+          "accepted": {
+            "count": 163,
+            "share": 0.087
+          },
+          "readers-disagree": {
+            "count": 21,
+            "share": 0.0112
+          }
+        },
+        "readerPairs": {
+          "vision+ppocr": {
+            "bothConfirmed": 100,
+            "sameWork": 94,
+            "sameWorkShareOfAll": 0.0502,
+            "sameWorkShareOfBothConfirmed": 0.94
+          }
+        }
+      },
+      "f0RunDecision": {
+        "decisionCount": 1873,
+        "accepted": 162,
+        "acceptedShare": 0.0865,
+        "basisMix": {
+          "no-catalog-match": {
+            "count": 880,
+            "share": 0.4698
+          },
+          "no-text": {
+            "count": 620,
+            "share": 0.331
+          },
+          "single-reader": {
+            "count": 182,
+            "share": 0.0972
+          },
+          "accepted": {
+            "count": 162,
+            "share": 0.0865
+          },
+          "readers-disagree": {
+            "count": 29,
+            "share": 0.0155
+          }
+        },
+        "readerPairs": {
+          "vision+ppocr": {
+            "bothConfirmed": 98,
+            "sameWork": 93,
+            "sameWorkShareOfAll": 0.0497,
+            "sameWorkShareOfBothConfirmed": 0.949
+          },
+          "vision+qwen": {
+            "bothConfirmed": 73,
+            "sameWork": 54,
+            "sameWorkShareOfAll": 0.0288,
+            "sameWorkShareOfBothConfirmed": 0.7397
+          },
+          "ppocr+qwen": {
+            "bothConfirmed": 20,
+            "sameWork": 15,
+            "sameWorkShareOfAll": 0.008,
+            "sameWorkShareOfBothConfirmed": 0.75
+          }
+        },
+        "agreeingReaders": {
+          "two": 162,
+          "three": 0
+        }
+      },
+      "partition": {
+        "rows": 1865,
+        "kept": 1757,
+        "dropped": 108,
+        "keptShare": 0.9421,
+        "droppedByReason": {
+          "piece-of": {
+            "count": 63,
+            "share": 0.5833
+          },
+          "duplicate": {
+            "count": 30,
+            "share": 0.2778
+          },
+          "merged-parent": {
+            "count": 14,
+            "share": 0.1296
+          },
+          "absorbed": {
+            "count": 1,
+            "share": 0.0093
+          }
+        },
+        "keptByRole": {
+          "member": {
+            "count": 1679,
+            "share": 0.9556
+          },
+          "group-child": {
+            "count": 41,
+            "share": 0.0233
+          },
+          "remainder": {
+            "count": 37,
+            "share": 0.0211
+          }
+        }
+      },
+      "notABookFlags": {
+        "flagged": 69,
+        "flaggedShareOfPartition": 0.037,
+        "byCause": {
+          "depth": {
+            "count": 39,
+            "share": 0.5652
+          },
+          "pixel": {
+            "count": 27,
+            "share": 0.3913
+          },
+          "on-lip": {
+            "count": 2,
+            "share": 0.029
+          },
+          "depth+pixel": {
+            "count": 1,
+            "share": 0.0145
+          }
+        },
+        "rb1BoxSet": 1755
+      },
+      "copyGroups": {
+        "groups": 58,
+        "groupedBoxCount": 133,
+        "multiFrameGroups": 0,
+        "boxesInMultiFrameGroups": 0,
+        "groupsBySize": {
+          "2": {
+            "count": 49,
+            "share": 0.8448
+          },
+          "3": {
+            "count": 7,
+            "share": 0.1207
+          },
+          "5": {
+            "count": 1,
+            "share": 0.0172
+          },
+          "9": {
+            "count": 1,
+            "share": 0.0172
+          }
+        },
+        "groupedShareOfDefault": 0.071,
+        "basisMix": {
+          "none": {
+            "count": 97,
+            "share": 0.7293
+          },
+          "readers-agree": {
+            "count": 33,
+            "share": 0.2481
+          },
+          "confirmed-by-copy": {
+            "count": 3,
+            "share": 0.0226
+          }
+        }
+      },
+      "workRecurrence": {
+        "acceptedBoxCount": 163,
+        "acceptedWorks": 125,
+        "worksInTwoOrMoreFrames": 4,
+        "acceptedBoxesRecurring": 9,
+        "acceptedBoxesRecurringShare": 0.0552
+      },
+      "contextDecisions": {
+        "rows": 250,
+        "byBasis": {
+          "none": {
+            "count": 229,
+            "share": 0.916
+          },
+          "confirmed-by-context": {
+            "count": 21,
+            "share": 0.084
+          }
+        },
+        "usable": 191
+      },
+      "modelSeconds": {
+        "f0RunDetectPerFrame": 10.131,
+        "defaultDetectPerFrame": 10.179,
+        "defaultReaderSecondsPerFrame": {
+          "vision": 9.65,
+          "ppocr": 57.05,
+          "qwen": 39.7
+        }
+      }
+    },
+    "sf-store-001.every-3": {
+      "set": "sf-store-001.every-3",
+      "scope": "real use (OC35): machine agreement, never accuracy (INV-17)",
+      "frames": {
+        "manifest": 205,
+        "f0Run": {
+          "processed": 205,
+          "failed": 0
+        },
+        "defaultBoxes": {
+          "processed": 205,
+          "failed": 0
+        }
+      },
+      "boxesPerFrame": {
+        "defaultBoxes": {
+          "count": 205,
+          "mean": 57.7,
+          "p10": 17,
+          "p50": 56,
+          "p90": 98,
+          "min": 5,
+          "max": 170
+        },
+        "f0Run": {
+          "count": 205,
+          "mean": 57.36,
+          "p10": 14,
+          "p50": 56,
+          "p90": 98,
+          "min": 5,
+          "max": 170
+        }
+      },
+      "defaultBoxCount": 11828,
+      "readerCoverage": {
+        "vision": {
+          "readingRows": 11822,
+          "rowShare": 0.9995,
+          "withText": 6221,
+          "withTextShare": 0.526
+        },
+        "ppocr": {
+          "readingRows": 11822,
+          "rowShare": 0.9995,
+          "withText": 6575,
+          "withTextShare": 0.5559
+        },
+        "qwen": {
+          "readingRows": 5743,
+          "rowShare": 0.4855,
+          "withText": 4854,
+          "withTextShare": 0.4104
+        }
+      },
+      "baseDecision": {
+        "decisionCount": 11828,
+        "accepted": 556,
+        "acceptedShare": 0.047,
+        "basisMix": {
+          "no-catalog-match": {
+            "count": 5360,
+            "share": 0.4532
+          },
+          "no-text": {
+            "count": 4606,
+            "share": 0.3894
+          },
+          "single-reader": {
+            "count": 1158,
+            "share": 0.0979
+          },
+          "accepted": {
+            "count": 556,
+            "share": 0.047
+          },
+          "readers-disagree": {
+            "count": 148,
+            "share": 0.0125
+          }
+        },
+        "readerPairs": {
+          "vision+ppocr": {
+            "bothConfirmed": 337,
+            "sameWork": 291,
+            "sameWorkShareOfAll": 0.0246,
+            "sameWorkShareOfBothConfirmed": 0.8635
+          }
+        }
+      },
+      "f0RunDecision": {
+        "decisionCount": 11758,
+        "accepted": 545,
+        "acceptedShare": 0.0464,
+        "basisMix": {
+          "no-catalog-match": {
+            "count": 5251,
+            "share": 0.4466
+          },
+          "no-text": {
+            "count": 4697,
+            "share": 0.3995
+          },
+          "single-reader": {
+            "count": 1122,
+            "share": 0.0954
+          },
+          "accepted": {
+            "count": 545,
+            "share": 0.0464
+          },
+          "readers-disagree": {
+            "count": 143,
+            "share": 0.0122
+          }
+        },
+        "readerPairs": {
+          "vision+ppocr": {
+            "bothConfirmed": 328,
+            "sameWork": 280,
+            "sameWorkShareOfAll": 0.0238,
+            "sameWorkShareOfBothConfirmed": 0.8537
+          },
+          "vision+qwen": {
+            "bothConfirmed": 317,
+            "sameWork": 222,
+            "sameWorkShareOfAll": 0.0189,
+            "sameWorkShareOfBothConfirmed": 0.7003
+          },
+          "ppocr+qwen": {
+            "bothConfirmed": 87,
+            "sameWork": 43,
+            "sameWorkShareOfAll": 0.0037,
+            "sameWorkShareOfBothConfirmed": 0.4943
+          }
+        },
+        "agreeingReaders": {
+          "two": 545,
+          "three": 0
+        }
+      },
+      "partition": {
+        "rows": 11650,
+        "kept": 11293,
+        "dropped": 357,
+        "keptShare": 0.9694,
+        "droppedByReason": {
+          "piece-of": {
+            "count": 191,
+            "share": 0.535
+          },
+          "duplicate": {
+            "count": 96,
+            "share": 0.2689
+          },
+          "merged-parent": {
+            "count": 60,
+            "share": 0.1681
+          },
+          "absorbed": {
+            "count": 10,
+            "share": 0.028
+          }
+        },
+        "keptByRole": {
+          "member": {
+            "count": 10824,
+            "share": 0.9585
+          },
+          "group-child": {
+            "count": 256,
+            "share": 0.0227
+          },
+          "remainder": {
+            "count": 213,
+            "share": 0.0189
+          }
+        }
+      },
+      "notABookFlags": {
+        "flagged": 328,
+        "flaggedShareOfPartition": 0.0282,
+        "byCause": {
+          "pixel": {
+            "count": 284,
+            "share": 0.8659
+          },
+          "depth": {
+            "count": 31,
+            "share": 0.0945
+          },
+          "on-lip": {
+            "count": 11,
+            "share": 0.0335
+          },
+          "depth+pixel": {
+            "count": 2,
+            "share": 0.0061
+          }
+        },
+        "rb1BoxSet": 11282
+      },
+      "copyGroups": {
+        "groups": 395,
+        "groupedBoxCount": 918,
+        "multiFrameGroups": 0,
+        "boxesInMultiFrameGroups": 0,
+        "groupsBySize": {
+          "2": {
+            "count": 302,
+            "share": 0.7646
+          },
+          "3": {
+            "count": 65,
+            "share": 0.1646
+          },
+          "4": {
+            "count": 21,
+            "share": 0.0532
+          },
+          "5": {
+            "count": 7,
+            "share": 0.0177
+          }
+        },
+        "groupedShareOfDefault": 0.0776,
+        "basisMix": {
+          "none": {
+            "count": 849,
+            "share": 0.9248
+          },
+          "readers-agree": {
+            "count": 57,
+            "share": 0.0621
+          },
+          "confirmed-by-copy": {
+            "count": 12,
+            "share": 0.0131
+          }
+        }
+      },
+      "workRecurrence": {
+        "acceptedBoxCount": 556,
+        "acceptedWorks": 333,
+        "worksInTwoOrMoreFrames": 108,
+        "acceptedBoxesRecurring": 315,
+        "acceptedBoxesRecurringShare": 0.5665
+      },
+      "contextDecisions": {
+        "rows": 1181,
+        "byBasis": {
+          "none": {
+            "count": 1137,
+            "share": 0.9627
+          },
+          "confirmed-by-context": {
+            "count": 44,
+            "share": 0.0373
+          }
+        },
+        "usable": 850
+      },
+      "modelSeconds": {
+        "f0RunDetectPerFrame": 3.6241,
+        "defaultDetectPerFrame": 3.6151,
+        "defaultReaderSecondsPerFrame": {
+          "vision": 4.2293,
+          "ppocr": 25.6098,
+          "qwen": 28.7171
+        }
+      }
+    },
+    "sf-store-003.frames.every-10": {
+      "set": "sf-store-003.frames.every-10",
+      "scope": "real use (OC35): machine agreement, never accuracy (INV-17)",
+      "frames": {
+        "manifest": 82,
+        "f0Run": {
+          "processed": 82,
+          "failed": 0
+        },
+        "defaultBoxes": {
+          "processed": 82,
+          "failed": 0
+        }
+      },
+      "boxesPerFrame": {
+        "defaultBoxes": {
+          "count": 82,
+          "mean": 99.83,
+          "p10": 51,
+          "p50": 97,
+          "p90": 138,
+          "min": 23,
+          "max": 195
+        },
+        "f0Run": {
+          "count": 82,
+          "mean": 99.83,
+          "p10": 51,
+          "p50": 97,
+          "p90": 138,
+          "min": 23,
+          "max": 195
+        }
+      },
+      "defaultBoxCount": 8186,
+      "readerCoverage": {
+        "vision": {
+          "readingRows": 8182,
+          "rowShare": 0.9995,
+          "withText": 5177,
+          "withTextShare": 0.6324
+        },
+        "ppocr": {
+          "readingRows": 8182,
+          "rowShare": 0.9995,
+          "withText": 5196,
+          "withTextShare": 0.6347
+        },
+        "qwen": {
+          "readingRows": 3078,
+          "rowShare": 0.376,
+          "withText": 2737,
+          "withTextShare": 0.3344
+        }
+      },
+      "baseDecision": {
+        "decisionCount": 8186,
+        "accepted": 580,
+        "acceptedShare": 0.0709,
+        "basisMix": {
+          "no-catalog-match": {
+            "count": 4142,
+            "share": 0.506
+          },
+          "no-text": {
+            "count": 2551,
+            "share": 0.3116
+          },
+          "single-reader": {
+            "count": 830,
+            "share": 0.1014
+          },
+          "accepted": {
+            "count": 580,
+            "share": 0.0709
+          },
+          "readers-disagree": {
+            "count": 83,
+            "share": 0.0101
+          }
+        },
+        "readerPairs": {
+          "vision+ppocr": {
+            "bothConfirmed": 386,
+            "sameWork": 341,
+            "sameWorkShareOfAll": 0.0417,
+            "sameWorkShareOfBothConfirmed": 0.8834
+          }
+        }
+      },
+      "f0RunDecision": {
+        "decisionCount": 8186,
+        "accepted": 585,
+        "acceptedShare": 0.0715,
+        "basisMix": {
+          "no-catalog-match": {
+            "count": 4134,
+            "share": 0.505
+          },
+          "no-text": {
+            "count": 2587,
+            "share": 0.316
+          },
+          "single-reader": {
+            "count": 803,
+            "share": 0.0981
+          },
+          "accepted": {
+            "count": 585,
+            "share": 0.0715
+          },
+          "readers-disagree": {
+            "count": 77,
+            "share": 0.0094
+          }
+        },
+        "readerPairs": {
+          "vision+ppocr": {
+            "bothConfirmed": 388,
+            "sameWork": 342,
+            "sameWorkShareOfAll": 0.0418,
+            "sameWorkShareOfBothConfirmed": 0.8814
+          },
+          "vision+qwen": {
+            "bothConfirmed": 254,
+            "sameWork": 207,
+            "sameWorkShareOfAll": 0.0253,
+            "sameWorkShareOfBothConfirmed": 0.815
+          },
+          "ppocr+qwen": {
+            "bothConfirmed": 68,
+            "sameWork": 36,
+            "sameWorkShareOfAll": 0.0044,
+            "sameWorkShareOfBothConfirmed": 0.5294
+          }
+        },
+        "agreeingReaders": {
+          "two": 585,
+          "three": 0
+        }
+      },
+      "partition": {
+        "rows": 8153,
+        "kept": 7774,
+        "dropped": 379,
+        "keptShare": 0.9535,
+        "droppedByReason": {
+          "piece-of": {
+            "count": 219,
+            "share": 0.5778
+          },
+          "duplicate": {
+            "count": 111,
+            "share": 0.2929
+          },
+          "merged-parent": {
+            "count": 43,
+            "share": 0.1135
+          },
+          "absorbed": {
+            "count": 6,
+            "share": 0.0158
+          }
+        },
+        "keptByRole": {
+          "member": {
+            "count": 7399,
+            "share": 0.9518
+          },
+          "group-child": {
+            "count": 209,
+            "share": 0.0269
+          },
+          "remainder": {
+            "count": 166,
+            "share": 0.0214
+          }
+        }
+      },
+      "notABookFlags": {
+        "flagged": 202,
+        "flaggedShareOfPartition": 0.0248,
+        "byCause": {
+          "pixel": {
+            "count": 144,
+            "share": 0.7129
+          },
+          "depth": {
+            "count": 39,
+            "share": 0.1931
+          },
+          "on-lip": {
+            "count": 12,
+            "share": 0.0594
+          },
+          "depth+pixel": {
+            "count": 7,
+            "share": 0.0347
+          }
+        },
+        "rb1BoxSet": 7762
+      },
+      "copyGroups": {
+        "groups": 307,
+        "groupedBoxCount": 737,
+        "multiFrameGroups": 0,
+        "boxesInMultiFrameGroups": 0,
+        "groupsBySize": {
+          "2": {
+            "count": 236,
+            "share": 0.7687
+          },
+          "3": {
+            "count": 44,
+            "share": 0.1433
+          },
+          "4": {
+            "count": 16,
+            "share": 0.0521
+          },
+          "5": {
+            "count": 4,
+            "share": 0.013
+          },
+          "6": {
+            "count": 4,
+            "share": 0.013
+          },
+          "8": {
+            "count": 2,
+            "share": 0.0065
+          },
+          "9": {
+            "count": 1,
+            "share": 0.0033
+          }
+        },
+        "groupedShareOfDefault": 0.09,
+        "basisMix": {
+          "none": {
+            "count": 639,
+            "share": 0.867
+          },
+          "readers-agree": {
+            "count": 83,
+            "share": 0.1126
+          },
+          "confirmed-by-copy": {
+            "count": 15,
+            "share": 0.0204
+          }
+        }
+      },
+      "workRecurrence": {
+        "acceptedBoxCount": 580,
+        "acceptedWorks": 418,
+        "worksInTwoOrMoreFrames": 66,
+        "acceptedBoxesRecurring": 184,
+        "acceptedBoxesRecurringShare": 0.3172
+      },
+      "contextDecisions": {
+        "rows": 1012,
+        "byBasis": {
+          "none": {
+            "count": 948,
+            "share": 0.9368
+          },
+          "confirmed-by-context": {
+            "count": 64,
+            "share": 0.0632
+          }
+        },
+        "usable": 776
+      },
+      "modelSeconds": {
+        "f0RunDetectPerFrame": 9.6138,
+        "defaultDetectPerFrame": 9.5179,
+        "defaultReaderSecondsPerFrame": {
+          "vision": 10.2195,
+          "ppocr": 56.9634,
+          "qwen": 39.3537
+        }
+      }
+    }
+  },
+  "difference": {
+    "sf-store-003.frames.every-10 minus sf-store-003.frames.every-41": {
+      "boxesPerFrame": {
+        "defaultBoxes": {
+          "mean": 6.18,
+          "p50": 11
+        },
+        "f0Run": {
+          "mean": 6.18,
+          "p50": 11
+        }
+      },
+      "readerCoverage": {
+        "vision": {
+          "rowShare": 0,
+          "withTextShare": 0.0366
+        },
+        "ppocr": {
+          "rowShare": 0,
+          "withTextShare": 0.0106
+        },
+        "qwen": {
+          "rowShare": -0.0244,
+          "withTextShare": -0.0142
+        }
+      },
+      "baseDecision": {
+        "acceptedShare": -0.0161,
+        "basisMix": {
+          "no-catalog-match": {
+            "share": 0.0372
+          },
+          "no-text": {
+            "share": -0.0221
+          },
+          "single-reader": {
+            "share": 0.0021
+          },
+          "accepted": {
+            "share": -0.0161
+          },
+          "readers-disagree": {
+            "share": -0.0011
+          }
+        },
+        "readerPairs": {
+          "vision+ppocr": {
+            "sameWorkShareOfAll": -0.0085,
+            "sameWorkShareOfBothConfirmed": -0.0566
+          }
+        }
+      },
+      "f0RunDecision": {
+        "acceptedShare": -0.015,
+        "basisMix": {
+          "no-catalog-match": {
+            "share": 0.0352
+          },
+          "no-text": {
+            "share": -0.015
+          },
+          "single-reader": {
+            "share": 0.0009
+          },
+          "accepted": {
+            "share": -0.015
+          },
+          "readers-disagree": {
+            "share": -0.0061
+          }
+        },
+        "readerPairs": {
+          "vision+ppocr": {
+            "sameWorkShareOfAll": -0.0079,
+            "sameWorkShareOfBothConfirmed": -0.0676
+          },
+          "vision+qwen": {
+            "sameWorkShareOfAll": -0.0035,
+            "sameWorkShareOfBothConfirmed": 0.0753
+          },
+          "ppocr+qwen": {
+            "sameWorkShareOfAll": -0.0036,
+            "sameWorkShareOfBothConfirmed": -0.2206
+          }
+        }
+      },
+      "partition": {
+        "keptShare": 0.0114,
+        "droppedByReason": {
+          "piece-of": {
+            "share": -0.0055
+          },
+          "duplicate": {
+            "share": 0.0151
+          },
+          "merged-parent": {
+            "share": -0.0161
+          },
+          "absorbed": {
+            "share": 0.0065
+          }
+        },
+        "keptByRole": {
+          "member": {
+            "share": -0.0038
+          },
+          "group-child": {
+            "share": 0.0036
+          },
+          "remainder": {
+            "share": 0.0003
+          }
+        }
+      },
+      "notABookFlags": {
+        "flaggedShareOfPartition": -0.0122,
+        "byCause": {
+          "pixel": {
+            "share": 0.3216
+          },
+          "depth": {
+            "share": -0.3721
+          },
+          "on-lip": {
+            "share": 0.0304
+          },
+          "depth+pixel": {
+            "share": 0.0202
+          }
+        }
+      },
+      "copyGroups": {
+        "groupsBySize": {
+          "2": {
+            "share": -0.0761
+          },
+          "3": {
+            "share": 0.0226
+          },
+          "5": {
+            "share": -0.0042
+          },
+          "9": {
+            "share": -0.0139
+          }
+        },
+        "groupedShareOfDefault": 0.019,
+        "basisMix": {
+          "none": {
+            "share": 0.1377
+          },
+          "readers-agree": {
+            "share": -0.1355
+          },
+          "confirmed-by-copy": {
+            "share": -0.0022
+          }
+        }
+      },
+      "workRecurrence": {
+        "acceptedBoxesRecurringShare": 0.262
+      },
+      "contextDecisions": {
+        "byBasis": {
+          "none": {
+            "share": 0.0208
+          },
+          "confirmed-by-context": {
+            "share": -0.0208
+          }
+        }
+      },
+      "modelSeconds": {
+        "f0RunDetectPerFrame": -0.5172,
+        "defaultDetectPerFrame": -0.6611,
+        "defaultReaderSecondsPerFrame": {
+          "vision": 0.5695,
+          "ppocr": -0.0866,
+          "qwen": -0.3463
+        }
+      }
+    },
+    "sf-store-003.frames.every-10 minus sf-store-001.every-3": {
+      "boxesPerFrame": {
+        "defaultBoxes": {
+          "mean": 42.13,
+          "p50": 41
+        },
+        "f0Run": {
+          "mean": 42.47,
+          "p50": 41
+        }
+      },
+      "readerCoverage": {
+        "vision": {
+          "rowShare": 0,
+          "withTextShare": 0.1064
+        },
+        "ppocr": {
+          "rowShare": 0,
+          "withTextShare": 0.0788
+        },
+        "qwen": {
+          "rowShare": -0.1095,
+          "withTextShare": -0.076
+        }
+      },
+      "baseDecision": {
+        "acceptedShare": 0.0239,
+        "basisMix": {
+          "no-catalog-match": {
+            "share": 0.0528
+          },
+          "no-text": {
+            "share": -0.0778
+          },
+          "single-reader": {
+            "share": 0.0035
+          },
+          "accepted": {
+            "share": 0.0239
+          },
+          "readers-disagree": {
+            "share": -0.0024
+          }
+        },
+        "readerPairs": {
+          "vision+ppocr": {
+            "sameWorkShareOfAll": 0.0171,
+            "sameWorkShareOfBothConfirmed": 0.0199
+          }
+        }
+      },
+      "f0RunDecision": {
+        "acceptedShare": 0.0251,
+        "basisMix": {
+          "no-catalog-match": {
+            "share": 0.0584
+          },
+          "no-text": {
+            "share": -0.0835
+          },
+          "single-reader": {
+            "share": 0.0027
+          },
+          "accepted": {
+            "share": 0.0251
+          },
+          "readers-disagree": {
+            "share": -0.0028
+          }
+        },
+        "readerPairs": {
+          "vision+ppocr": {
+            "sameWorkShareOfAll": 0.018,
+            "sameWorkShareOfBothConfirmed": 0.0277
+          },
+          "vision+qwen": {
+            "sameWorkShareOfAll": 0.0064,
+            "sameWorkShareOfBothConfirmed": 0.1147
+          },
+          "ppocr+qwen": {
+            "sameWorkShareOfAll": 0.0007,
+            "sameWorkShareOfBothConfirmed": 0.0351
+          }
+        }
+      },
+      "partition": {
+        "keptShare": -0.0159,
+        "droppedByReason": {
+          "piece-of": {
+            "share": 0.0428
+          },
+          "duplicate": {
+            "share": 0.024
+          },
+          "merged-parent": {
+            "share": -0.0546
+          },
+          "absorbed": {
+            "share": -0.0122
+          }
+        },
+        "keptByRole": {
+          "member": {
+            "share": -0.0067
+          },
+          "group-child": {
+            "share": 0.0042
+          },
+          "remainder": {
+            "share": 0.0025
+          }
+        }
+      },
+      "notABookFlags": {
+        "flaggedShareOfPartition": -0.0034,
+        "byCause": {
+          "pixel": {
+            "share": -0.153
+          },
+          "depth": {
+            "share": 0.0986
+          },
+          "on-lip": {
+            "share": 0.0259
+          },
+          "depth+pixel": {
+            "share": 0.0286
+          }
+        }
+      },
+      "copyGroups": {
+        "groupsBySize": {
+          "2": {
+            "share": 0.0041
+          },
+          "3": {
+            "share": -0.0213
+          },
+          "4": {
+            "share": -0.0011
+          },
+          "5": {
+            "share": -0.0047
+          }
+        },
+        "groupedShareOfDefault": 0.0124,
+        "basisMix": {
+          "none": {
+            "share": -0.0578
+          },
+          "readers-agree": {
+            "share": 0.0505
+          },
+          "confirmed-by-copy": {
+            "share": 0.0073
+          }
+        }
+      },
+      "workRecurrence": {
+        "acceptedBoxesRecurringShare": -0.2493
+      },
+      "contextDecisions": {
+        "byBasis": {
+          "none": {
+            "share": -0.0259
+          },
+          "confirmed-by-context": {
+            "share": 0.0259
+          }
+        }
+      },
+      "modelSeconds": {
+        "f0RunDetectPerFrame": 5.9897,
+        "defaultDetectPerFrame": 5.9028,
+        "defaultReaderSecondsPerFrame": {
+          "vision": 5.9902,
+          "ppocr": 31.3536,
+          "qwen": 10.6366
+        }
+      }
+    }
+  },
+  "time": {
+    "sf-store-003.frames.every-10": {
+      "images": 82,
+      "commands": 24,
+      "commandsFailed": 0,
+      "attemptsFailed": 0,
+      "attemptsInterrupted": 0,
+      "steps": [
+        {
+          "step": "1",
+          "name": "F-0",
+          "attempts": 1,
+          "seconds": 8725,
+          "secondsPerImage": 106.4,
+          "peakResidentMb": 5658,
+          "exit": 0
+        },
+        {
+          "step": "2",
+          "name": "F-0e detect bands",
+          "attempts": 1,
+          "seconds": 786,
+          "secondsPerImage": 9.59,
+          "peakResidentMb": 5095,
+          "exit": 0
+        },
+        {
+          "step": "2",
+          "name": "F-0e detect bands+strips",
+          "attempts": 1,
+          "seconds": 9,
+          "secondsPerImage": 0.11,
+          "peakResidentMb": 493,
+          "exit": 0
+        },
+        {
+          "step": "2",
+          "name": "F-0e read bands+strips",
+          "attempts": 1,
+          "seconds": 6992,
+          "secondsPerImage": 85.27,
+          "peakResidentMb": 7792,
+          "exit": 0
+        },
+        {
+          "step": "3",
+          "name": "F-0c detect",
+          "attempts": 1,
+          "seconds": 267,
+          "secondsPerImage": 3.26,
+          "peakResidentMb": 3998,
+          "exit": 0
+        },
+        {
+          "step": "3",
+          "name": "F-0c read",
+          "attempts": 1,
+          "seconds": 1011,
+          "secondsPerImage": 12.33,
+          "peakResidentMb": 12384,
+          "exit": 0
+        },
+        {
+          "step": "3",
+          "name": "F-0c base",
+          "attempts": 1,
+          "seconds": 637,
+          "secondsPerImage": 7.77,
+          "peakResidentMb": 501,
+          "exit": 0
+        },
+        {
+          "step": "4",
+          "name": "F-0f probe",
+          "attempts": 1,
+          "seconds": 10,
+          "secondsPerImage": 0.12,
+          "peakResidentMb": 171,
+          "exit": 0
+        },
+        {
+          "step": "5",
+          "name": "Q-2b features",
+          "attempts": 1,
+          "seconds": 33,
+          "secondsPerImage": 0.4,
+          "peakResidentMb": 323,
+          "exit": 0
+        },
+        {
+          "step": "5",
+          "name": "Q-2b outlines",
+          "attempts": 1,
+          "seconds": 2542,
+          "secondsPerImage": 31,
+          "peakResidentMb": 799,
+          "exit": 0
+        },
+        {
+          "step": "5",
+          "name": "Q-2b table",
+          "attempts": 1,
+          "seconds": 1,
+          "secondsPerImage": 0.01,
+          "peakResidentMb": 314,
+          "exit": 0
+        },
+        {
+          "step": "6",
+          "name": "H-2 stage",
+          "attempts": 1,
+          "seconds": 50,
+          "secondsPerImage": 0.61,
+          "peakResidentMb": 524,
+          "exit": 0
+        },
+        {
+          "step": "6",
+          "name": "H-2 base",
+          "attempts": 1,
+          "seconds": 631,
+          "secondsPerImage": 7.7,
+          "peakResidentMb": 497,
+          "exit": 0
+        },
+        {
+          "step": "7",
+          "name": "F-0i plan",
+          "attempts": 1,
+          "seconds": 7,
+          "secondsPerImage": 0.09,
+          "peakResidentMb": 219,
+          "exit": 0
+        },
+        {
+          "step": "7",
+          "name": "F-0i tiles",
+          "attempts": 1,
+          "seconds": 607,
+          "secondsPerImage": 7.4,
+          "peakResidentMb": 860,
+          "exit": 0
+        },
+        {
+          "step": "7",
+          "name": "F-0i resolve",
+          "attempts": 1,
+          "seconds": 384,
+          "secondsPerImage": 4.68,
+          "peakResidentMb": 916,
+          "exit": 0
+        },
+        {
+          "step": "8",
+          "name": "NB-3 stage",
+          "attempts": 1,
+          "seconds": 6,
+          "secondsPerImage": 0.07,
+          "peakResidentMb": 295,
+          "exit": 0
+        },
+        {
+          "step": "8",
+          "name": "NB-3 shelf",
+          "attempts": 1,
+          "seconds": 188,
+          "secondsPerImage": 2.29,
+          "peakResidentMb": 1139,
+          "exit": 0
+        },
+        {
+          "step": "8",
+          "name": "NB-3 probe",
+          "attempts": 1,
+          "seconds": 10,
+          "secondsPerImage": 0.12,
+          "peakResidentMb": 166,
+          "exit": 0
+        },
+        {
+          "step": "8",
+          "name": "NB-3 flags",
+          "attempts": 1,
+          "seconds": 0,
+          "secondsPerImage": 0,
+          "peakResidentMb": 483,
+          "exit": 0
+        },
+        {
+          "step": "10",
+          "name": "F-0g pairs",
+          "attempts": 1,
+          "seconds": 8,
+          "secondsPerImage": 0.1,
+          "peakResidentMb": 460,
+          "exit": 0
+        },
+        {
+          "step": "10",
+          "name": "F-0g evidence",
+          "attempts": 1,
+          "seconds": 578,
+          "secondsPerImage": 7.05,
+          "peakResidentMb": 496,
+          "exit": 0
+        },
+        {
+          "step": "10",
+          "name": "F-0g copies",
+          "attempts": 1,
+          "seconds": 1,
+          "secondsPerImage": 0.01,
+          "peakResidentMb": 480,
+          "exit": 0
+        },
+        {
+          "step": "11",
+          "name": "F-0h decide",
+          "attempts": 1,
+          "seconds": 646,
+          "secondsPerImage": 7.88,
+          "peakResidentMb": 3794,
+          "exit": 0
+        }
+      ],
+      "totalSeconds": 24129,
+      "secondsPerImage": 294.26,
+      "peakResidentMb": 12384,
+      "againstF0Frames": {
+        "referenceImages": 205,
+        "referenceSecondsPerImage": 149.05,
+        "perStep": [
+          {
+            "name": "F-0",
+            "secondsPerImage": 106.4,
+            "referenceSecondsPerImage": 51.47,
+            "ratio": 2.07
+          },
+          {
+            "name": "F-0e detect bands",
+            "secondsPerImage": 9.59,
+            "referenceSecondsPerImage": 3.63,
+            "ratio": 2.64
+          },
+          {
+            "name": "F-0e detect bands+strips",
+            "secondsPerImage": 0.11,
+            "referenceSecondsPerImage": 0.03,
+            "ratio": 3.67
+          },
+          {
+            "name": "F-0e read bands+strips",
+            "secondsPerImage": 85.27,
+            "referenceSecondsPerImage": 48.82,
+            "ratio": 1.75
+          },
+          {
+            "name": "F-0c detect",
+            "secondsPerImage": 3.26,
+            "referenceSecondsPerImage": 1.39,
+            "ratio": 2.35
+          },
+          {
+            "name": "F-0c read",
+            "secondsPerImage": 12.33,
+            "referenceSecondsPerImage": 5.56,
+            "ratio": 2.22
+          },
+          {
+            "name": "F-0c base",
+            "secondsPerImage": 7.77,
+            "referenceSecondsPerImage": 3.64,
+            "ratio": 2.13
+          },
+          {
+            "name": "F-0f probe",
+            "secondsPerImage": 0.12,
+            "referenceSecondsPerImage": 0.06,
+            "ratio": 2
+          },
+          {
+            "name": "Q-2b features",
+            "secondsPerImage": 0.4,
+            "referenceSecondsPerImage": 0.13,
+            "ratio": 3.08
+          },
+          {
+            "name": "Q-2b outlines",
+            "secondsPerImage": 31,
+            "referenceSecondsPerImage": 18.59,
+            "ratio": 1.67
+          },
+          {
+            "name": "Q-2b table",
+            "secondsPerImage": 0.01,
+            "referenceSecondsPerImage": 0,
+            "ratio": null
+          },
+          {
+            "name": "H-2 stage",
+            "secondsPerImage": 0.61,
+            "referenceSecondsPerImage": 0.43,
+            "ratio": 1.42
+          },
+          {
+            "name": "H-2 base",
+            "secondsPerImage": 7.7,
+            "referenceSecondsPerImage": 3.35,
+            "ratio": 2.3
+          },
+          {
+            "name": "F-0i plan",
+            "secondsPerImage": 0.09,
+            "referenceSecondsPerImage": 0.02,
+            "ratio": 4.5
+          },
+          {
+            "name": "F-0i tiles",
+            "secondsPerImage": 7.4,
+            "referenceSecondsPerImage": 3.26,
+            "ratio": 2.27
+          },
+          {
+            "name": "F-0i resolve",
+            "secondsPerImage": 4.68,
+            "referenceSecondsPerImage": 1.55,
+            "ratio": 3.02
+          },
+          {
+            "name": "NB-3 stage",
+            "secondsPerImage": 0.07,
+            "referenceSecondsPerImage": 0.05,
+            "ratio": 1.4
+          },
+          {
+            "name": "NB-3 shelf",
+            "secondsPerImage": 2.29,
+            "referenceSecondsPerImage": 1.36,
+            "ratio": 1.68
+          },
+          {
+            "name": "NB-3 probe",
+            "secondsPerImage": 0.12,
+            "referenceSecondsPerImage": 0.06,
+            "ratio": 2
+          },
+          {
+            "name": "NB-3 flags",
+            "secondsPerImage": 0,
+            "referenceSecondsPerImage": 0,
+            "ratio": null
+          },
+          {
+            "name": "F-0g pairs",
+            "secondsPerImage": 0.1,
+            "referenceSecondsPerImage": 0.04,
+            "ratio": 2.5
+          },
+          {
+            "name": "F-0g evidence",
+            "secondsPerImage": 7.05,
+            "referenceSecondsPerImage": 2.8,
+            "ratio": 2.52
+          },
+          {
+            "name": "F-0g copies",
+            "secondsPerImage": 0.01,
+            "referenceSecondsPerImage": 0,
+            "ratio": null
+          },
+          {
+            "name": "F-0h decide",
+            "secondsPerImage": 7.88,
+            "referenceSecondsPerImage": 2.77,
+            "ratio": 2.84
+          }
+        ]
+      }
+    }
+  },
+  "projection": null,
+  "projectionCheck": {
+    "against": "F0-4k: sf-store-003.frames.every-41",
+    "rule": "the reference's seconds per step × (the part's frames ÷ the reference's frames), rounded per step and summed; ratio = actual ÷ projected",
+    "referenceFrames": 20,
+    "parts": [
+      {
+        "part": "sf-store-003.frames.every-10",
+        "frames": 82,
+        "perStep": [
+          {
+            "name": "F-0",
+            "projected": 7671,
+            "actual": 8725,
+            "ratio": 1.14
+          },
+          {
+            "name": "F-0e detect bands",
+            "projected": 849,
+            "actual": 786,
+            "ratio": 0.93
+          },
+          {
+            "name": "F-0e detect bands+strips",
+            "projected": 12,
+            "actual": 9,
+            "ratio": 0.75
+          },
+          {
+            "name": "F-0e read bands+strips",
+            "projected": 7019,
+            "actual": 6992,
+            "ratio": 1
+          },
+          {
+            "name": "F-0c detect",
+            "projected": 295,
+            "actual": 267,
+            "ratio": 0.91
+          },
+          {
+            "name": "F-0c read",
+            "projected": 1037,
+            "actual": 1011,
+            "ratio": 0.97
+          },
+          {
+            "name": "F-0c base",
+            "projected": 648,
+            "actual": 637,
+            "ratio": 0.98
+          },
+          {
+            "name": "F-0f probe",
+            "projected": 8,
+            "actual": 10,
+            "ratio": 1.25
+          },
+          {
+            "name": "Q-2b features",
+            "projected": 37,
+            "actual": 33,
+            "ratio": 0.89
+          },
+          {
+            "name": "Q-2b outlines",
+            "projected": 2386,
+            "actual": 2542,
+            "ratio": 1.07
+          },
+          {
+            "name": "Q-2b table",
+            "projected": 4,
+            "actual": 1,
+            "ratio": 0.25
+          },
+          {
+            "name": "H-2 stage",
+            "projected": 57,
+            "actual": 50,
+            "ratio": 0.88
+          },
+          {
+            "name": "H-2 base",
+            "projected": 636,
+            "actual": 631,
+            "ratio": 0.99
+          },
+          {
+            "name": "F-0i plan",
+            "projected": 8,
+            "actual": 7,
+            "ratio": 0.88
+          },
+          {
+            "name": "F-0i tiles",
+            "projected": 652,
+            "actual": 607,
+            "ratio": 0.93
+          },
+          {
+            "name": "F-0i resolve",
+            "projected": 361,
+            "actual": 384,
+            "ratio": 1.06
+          },
+          {
+            "name": "NB-3 stage",
+            "projected": 8,
+            "actual": 6,
+            "ratio": 0.75
+          },
+          {
+            "name": "NB-3 shelf",
+            "projected": 185,
+            "actual": 188,
+            "ratio": 1.02
+          },
+          {
+            "name": "NB-3 probe",
+            "projected": 8,
+            "actual": 10,
+            "ratio": 1.25
+          },
+          {
+            "name": "NB-3 flags",
+            "projected": 4,
+            "actual": 0,
+            "ratio": 0
+          },
+          {
+            "name": "F-0g pairs",
+            "projected": 8,
+            "actual": 8,
+            "ratio": 1
+          },
+          {
+            "name": "F-0g evidence",
+            "projected": 549,
+            "actual": 578,
+            "ratio": 1.05
+          },
+          {
+            "name": "F-0g copies",
+            "projected": 0,
+            "actual": 1,
+            "ratio": null
+          },
+          {
+            "name": "F-0h decide",
+            "projected": 845,
+            "actual": 646,
+            "ratio": 0.76
+          }
+        ],
+        "projected": 23287,
+        "actual": 24129,
+        "projectedHours": 6.47,
+        "actualHours": 6.7,
+        "ratio": 1.04
+      }
+    ],
+    "total": {
+      "frames": 82,
+      "projected": 23287,
+      "actual": 24129,
+      "projectedHours": 6.47,
+      "actualHours": 6.7,
+      "ratio": 1.04
+    }
+  }
+}
