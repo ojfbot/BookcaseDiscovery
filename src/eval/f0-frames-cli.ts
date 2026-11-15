@@ -8,7 +8,9 @@
 //   node src/eval/f0-frames-cli.ts sample --run F0-4k --parts <a,b> --references <c,d> --timing <part>=<tsv> …
 //        [--project-from <frames part> --project <s1,s2> --project-every 1,3,10]   # F-0 on 4K: parts apart, projected
 //
-// The timing files are the run's own clock: one row per command (step, name, seconds, peak resident bytes, exit).
+// The timing files are the run's own clock: one row per command (step, name, seconds, peak resident bytes, exit). An
+// attempt stopped from outside (the process was killed, so the runner wrote no row) is entered by hand with the exit
+// `interrupted`, its seconds from its start to its log's last write.
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -201,12 +203,13 @@ export function differences(a: unknown, b: unknown, key = ""): unknown {
   return out;
 }
 
-export interface TimingRow { step: string; name: string; seconds: number; maxRssBytes: number | null; exit: number }
+/** One command's clock row. `exit` is null for an attempt interrupted from outside (not a failure of the step). */
+export interface TimingRow { step: string; name: string; seconds: number; maxRssBytes: number | null; exit: number | null }
 
 export function readTiming(path: string): TimingRow[] {
   return readFileSync(path, "utf8").trim().split("\n").slice(1).map((l) => {
     const [step, name, seconds, rss, exit] = l.split("\t");
-    return { step: step!, name: name!, seconds: Number(seconds), maxRssBytes: rss ? Number(rss) : null, exit: Number(exit) };
+    return { step: step!, name: name!, seconds: Number(seconds), maxRssBytes: rss ? Number(rss) : null, exit: exit === "interrupted" ? null : Number(exit) };
   });
 }
 
@@ -260,7 +263,8 @@ export function sampleScope(set: string, frameCount: (s: string) => number = (s)
 /**
  * One part's run time: per step and in total, per image, and its peak resident memory (F-0 on 4K). A step run more
  * than once (a rerun after a stop: the stages are idempotent and keep what the first attempt cached) counts the
- * seconds of every attempt, its peak over all of them, and the last attempt's exit.
+ * seconds of every attempt, its peak over all of them, and the last attempt's exit. An attempt that failed (a non-zero
+ * exit) and one interrupted from outside (exit null) are counted apart.
  */
 export function partTime(rows: TimingRow[], images: number) {
   const perImage = (x: number) => (images > 0 ? Math.round((x / images) * 100) / 100 : null);
@@ -272,7 +276,7 @@ export function partTime(rows: TimingRow[], images: number) {
     return { step: rs[0]!.step, name: rs[0]!.name, attempts: rs.length, seconds, secondsPerImage: perImage(seconds), peakResidentMb: mb(Math.max(...rs.map((r) => r.maxRssBytes ?? 0))), exit: rs.at(-1)!.exit };
   });
   const total = sum(rows.map((r) => r.seconds));
-  return { images, commands: steps.length, commandsFailed: steps.filter((s) => s.exit !== 0).length, attemptsFailed: rows.filter((r) => r.exit !== 0).length, steps, totalSeconds: total, secondsPerImage: perImage(total), peakResidentMb: mb(Math.max(0, ...rows.map((r) => r.maxRssBytes ?? 0))) };
+  return { images, commands: steps.length, commandsFailed: steps.filter((s) => s.exit !== 0).length, attemptsFailed: rows.filter((r) => r.exit !== null && r.exit !== 0).length, attemptsInterrupted: rows.filter((r) => r.exit === null).length, steps, totalSeconds: total, secondsPerImage: perImage(total), peakResidentMb: mb(Math.max(0, ...rows.map((r) => r.maxRssBytes ?? 0))) };
 }
 
 /** A reference run's per-step seconds per image (from its committed timing aggregates), beside a part's. */

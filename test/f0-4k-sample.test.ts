@@ -149,7 +149,7 @@ describe("sample parts by kind", () => {
 });
 
 describe("F0-4k aggregates (src/eval/f0-frames-cli.ts sample)", async () => {
-  const { partTime, perStepAgainst, project, sampleScope } = await import("../src/eval/f0-frames-cli.ts");
+  const { partTime, perStepAgainst, project, readTiming, sampleScope } = await import("../src/eval/f0-frames-cli.ts");
   const rows = [
     { step: "1", name: "F-0", seconds: 400, maxRssBytes: 3 * 2 ** 20, exit: 0 },
     { step: "2", name: "F-0e read bands+strips", seconds: 201, maxRssBytes: 5 * 2 ** 20, exit: 0 },
@@ -175,6 +175,18 @@ describe("F0-4k aggregates (src/eval/f0-frames-cli.ts sample)", async () => {
     const t = partTime(failedThenRerun, 16);
     expect(t).toMatchObject({ commands: 2, commandsFailed: 0, attemptsFailed: 1, totalSeconds: 1238, peakResidentMb: 7 });
     expect(t.steps[0]).toEqual({ step: "1", name: "F-0", attempts: 2, seconds: 1037, secondsPerImage: 64.81, peakResidentMb: 7, exit: 0 });
+  });
+
+  it("counts an attempt interrupted from outside apart from a failed one, and reads it from the clock file", () => {
+    const dir = mkdtempSync(join(tmpdir(), "f0-4k-timing-"));
+    const path = join(dir, "timing.tsv");
+    writeFileSync(path, "step\tname\tseconds\tmaxRssBytes\texit\n1\tF-0\t737\t7340032\t1\n1\tF-0\t1091\t\tinterrupted\n1\tF-0\t500\t1048576\t0\n");
+    const read = readTiming(path);
+    expect(read.map((r) => r.exit)).toEqual([1, null, 0]);
+    expect(read[1]!.maxRssBytes).toBeNull();
+    const t = partTime(read, 16);
+    expect(t).toMatchObject({ commands: 1, commandsFailed: 0, attemptsFailed: 1, attemptsInterrupted: 1, totalSeconds: 2328, peakResidentMb: 7 });
+    expect(t.steps[0]).toMatchObject({ attempts: 3, seconds: 2328, exit: 0 });
   });
 
   it("sets each step beside the reference run's seconds per image", () => {
