@@ -5,8 +5,12 @@
 //
 //   node src/eval/f0-frames-cli.ts measure --timing-pilot <tsv> --timing-full <tsv>   # metrics.json
 //   node src/eval/f0-frames-cli.ts pilot --timing-pilot <tsv>    # time only, when the card stops after the pilot
+//   node src/eval/f0-frames-cli.ts sample --run F0-4k --parts <a,b> --references <c,d> --timing <part>=<tsv> …
+//        [--project-from <frames part> --project <s1,s2> --project-every 1,3,10]   # F-0 on 4K: parts apart, projected
 //
-// The timing files are the run's own clock: one row per command (step, name, seconds, peak resident bytes, exit).
+// The timing files are the run's own clock: one row per command (step, name, seconds, peak resident bytes, exit). An
+// attempt stopped from outside (the process was killed, so the runner wrote no row) is entered by hand with the exit
+// `interrupted`, its seconds from its start to its log's last write.
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -199,12 +203,13 @@ export function differences(a: unknown, b: unknown, key = ""): unknown {
   return out;
 }
 
-export interface TimingRow { step: string; name: string; seconds: number; maxRssBytes: number | null; exit: number }
+/** One command's clock row. `exit` is null for an attempt interrupted from outside (not a failure of the step). */
+export interface TimingRow { step: string; name: string; seconds: number; maxRssBytes: number | null; exit: number | null }
 
 export function readTiming(path: string): TimingRow[] {
   return readFileSync(path, "utf8").trim().split("\n").slice(1).map((l) => {
     const [step, name, seconds, rss, exit] = l.split("\t");
-    return { step: step!, name: name!, seconds: Number(seconds), maxRssBytes: rss ? Number(rss) : null, exit: Number(exit) };
+    return { step: step!, name: name!, seconds: Number(seconds), maxRssBytes: rss ? Number(rss) : null, exit: exit === "interrupted" ? null : Number(exit) };
   });
 }
 
@@ -243,13 +248,57 @@ export function f0ModelSeconds(set: string, root = dataRoot()) {
   return { frames: photos, decisionCount: decisions, detect: of("detect"), readers, hardCropShare: share(readers.qwen!.rows, decisions) };
 }
 
-/** What part of its session a sample part covers (null for a whole set): the run's scope, stated beside its figures. */
+/**
+ * What part of its session a sample part covers (null for a whole set): the run's scope, stated beside its figures. A
+ * part by kind (F-0 on 4K) is counted against its session's photos of that kind: its stills, or its frames.
+ */
 export function sampleScope(set: string, frameCount: (s: string) => number = (s) => sessionImages(s).length) {
   const part = samplePart(set);
   if (!part) return null;
   const frames = frameCount(set);
-  const sessionFrames = frameCount(part.session);
-  return { session: part.session, every: part.every, frames, sessionFrames, frameShare: share(frames, sessionFrames) };
+  const sessionFrames = frameCount(part.kind === "stills" ? `${part.session}.stills` : part.kind === "frames" ? `${part.session}.frames.every-1` : part.session);
+  return { session: part.session, ...(part.kind ? { kind: part.kind } : {}), every: part.every, frames, sessionFrames, frameShare: share(frames, sessionFrames) };
+}
+
+/**
+ * One part's run time: per step and in total, per image, and its peak resident memory (F-0 on 4K). A step run more
+ * than once (a rerun after a stop: the stages are idempotent and keep what the first attempt cached) counts the
+ * seconds of every attempt, its peak over all of them, and the last attempt's exit. An attempt that failed (a non-zero
+ * exit) and one interrupted from outside (exit null) are counted apart.
+ */
+export function partTime(rows: TimingRow[], images: number) {
+  const perImage = (x: number) => (images > 0 ? Math.round((x / images) * 100) / 100 : null);
+  const mb = (b: number) => (b > 0 ? Math.round(b / 2 ** 20) : null);
+  const byName = new Map<string, TimingRow[]>();
+  for (const r of rows) byName.set(r.name, [...(byName.get(r.name) ?? []), r]);
+  const steps = [...byName.values()].map((rs) => {
+    const seconds = sum(rs.map((r) => r.seconds));
+    return { step: rs[0]!.step, name: rs[0]!.name, attempts: rs.length, seconds, secondsPerImage: perImage(seconds), peakResidentMb: mb(Math.max(...rs.map((r) => r.maxRssBytes ?? 0))), exit: rs.at(-1)!.exit };
+  });
+  const total = sum(rows.map((r) => r.seconds));
+  return { images, commands: steps.length, commandsFailed: steps.filter((s) => s.exit !== 0).length, attemptsFailed: rows.filter((r) => r.exit !== null && r.exit !== 0).length, attemptsInterrupted: rows.filter((r) => r.exit === null).length, steps, totalSeconds: total, secondsPerImage: perImage(total), peakResidentMb: mb(Math.max(0, ...rows.map((r) => r.maxRssBytes ?? 0))) };
+}
+
+/** A reference run's per-step seconds per image (from its committed timing aggregates), beside a part's. */
+export function perStepAgainst(part: ReturnType<typeof partTime>, reference: { name: string; fullSeconds: number | null }[], referenceImages: number) {
+  return part.steps.map((s) => {
+    const ref = reference.find((r) => r.name === s.name)?.fullSeconds ?? null;
+    const refPer = ref === null ? null : Math.round((ref / referenceImages) * 100) / 100;
+    return { name: s.name, secondsPerImage: s.secondsPerImage, referenceSecondsPerImage: refPer, ratio: refPer && s.secondsPerImage !== null ? Math.round((s.secondsPerImage / refPer) * 100) / 100 : null };
+  });
+}
+
+/**
+ * The linear projection of a run (F-0 on 4K, prereg §3): each step's sample seconds × (frames to run ÷ sample frames),
+ * rounded per step and summed. `frames` names each run's frame count. A lower bound where a step grows faster than
+ * its input.
+ */
+export function project(rows: TimingRow[], sampleFrames: number, runs: { session: string; every: number; frames: number }[]) {
+  return runs.map((r) => {
+    const perStep = rows.map((s) => Math.round((s.seconds * r.frames) / sampleFrames));
+    const seconds = sum(perStep);
+    return { ...r, seconds, hours: Math.round((seconds / 3600) * 100) / 100 };
+  });
 }
 
 /** The card stopped after the pilot (its stop rule): time only. The pre-registered measures are not computed on the pilot. */
@@ -265,8 +314,81 @@ function pilotOnly(timingPilot: string, sample: string, set: string): object {
   };
 }
 
+/**
+ * F-0 on 4K: each sample part and each reference measured on its own (never pooled), every part minus every
+ * reference, each part's time against the reference frames' time, and the projection from the frames part. Writes
+ * evals/<run>/metrics.json.
+ */
+function sampleRun(values: { run?: string; parts?: string; references?: string; timing?: string[]; "project-from"?: string; project?: string; "project-every"?: string }): void {
+  const list = (x: string | undefined, what: string) => {
+    const l = (x ?? "").split(",").map((v) => v.trim()).filter(Boolean);
+    if (!l.length) throw new Error(`sample: name --${what}`);
+    return l;
+  };
+  const run = values.run ?? "F0-4k";
+  const parts = list(values.parts, "parts");
+  const references = list(values.references, "references");
+  const timings = new Map((values.timing ?? []).map((t) => {
+    const i = t.indexOf("=");
+    if (i < 0) throw new Error("sample: --timing <part>=<tsv>");
+    return [t.slice(0, i), readTiming(t.slice(i + 1))] as const;
+  }));
+  const sets: Record<string, ReturnType<typeof measureSet>> = {};
+  for (const s of [...references, ...parts]) sets[s] = measureSet(s);
+  const difference: Record<string, unknown> = {};
+  for (const p of parts) for (const r of references) difference[`${p} minus ${r}`] = differences(sets[r], sets[p]);
+  // The reference frames' time: #98's committed aggregates (evals/F0-frames/metrics.json), never recomputed.
+  const f0frames = JSON.parse(readFileSync(join(REPO, "evals", "F0-frames", "metrics.json"), "utf8")) as { sample: { frames: number }; time: { rows: { name: string; fullSeconds: number | null }[]; totals: { fullSeconds: number } } };
+  const refImages = f0frames.sample.frames;
+  const time = Object.fromEntries(parts.map((p) => {
+    const rows = timings.get(p);
+    if (!rows) return [p, null];
+    const t = partTime(rows, sessionImages(p).length);
+    return [p, { ...t, againstF0Frames: { referenceImages: refImages, referenceSecondsPerImage: Math.round((f0frames.time.totals.fullSeconds / refImages) * 100) / 100, perStep: perStepAgainst(t, f0frames.time.rows, refImages) } }];
+  }));
+  let projection: object | null = null;
+  if (values["project-from"]) {
+    const from = values["project-from"];
+    const rows = timings.get(from);
+    if (!rows) throw new Error(`sample: no --timing for ${from}`);
+    const sampleFrames = sessionImages(from).length;
+    const everys = list(values["project-every"] ?? "1,3,10", "project-every").map(Number);
+    const runs = list(values.project, "project").flatMap((s) => everys.map((every) => ({ session: s, every, frames: sessionImages(`${s}.frames.every-${every}`).length })));
+    const rowsOut = project(rows, sampleFrames, runs);
+    const totals = everys.map((every) => {
+      const of = rowsOut.filter((r) => r.every === every);
+      const seconds = sum(of.map((r) => r.seconds));
+      return { every, frames: sum(of.map((r) => r.frames)), seconds, hours: Math.round((seconds / 3600) * 100) / 100 };
+    });
+    projection = { from, sampleFrames, sampleSeconds: sum(rows.map((r) => r.seconds)), rule: "each step's sample seconds × (frames to run ÷ sample frames), rounded per step and summed; linear in frames, a lower bound where a step grows faster", runs: rowsOut, totals };
+  }
+  const metrics = {
+    runId: run,
+    card: "F-0 on 4K",
+    date: new Date().toLocaleDateString("en-CA"),
+    scope: "real use (OC35): machine agreement between the stack's own stages and readers, never accuracy (INV-17); no hand labels (OC36)",
+    note: "Each part is measured on its own; stills and frames are never pooled. Frames overlap (1 fps sweeps): one physical book is counted once per image it appears in; nothing is deduplicated across images. Small samples: counts stand beside every share, and no difference is tested.",
+    samples: Object.fromEntries([...parts, ...references].map((s) => [s, sampleScope(s)])),
+    sets,
+    difference,
+    time,
+    projection,
+  };
+  const out = join(REPO, "evals", run);
+  mkdirSync(out, { recursive: true });
+  writeFileSync(join(out, "metrics.json"), `${JSON.stringify(metrics, null, 2)}\n`);
+  console.error(`[f0-frames] ${run} metrics -> evals/${run}/metrics.json (${parts.map((p) => `${p}: ${sets[p]!.defaultBoxCount}`).join(", ")} default boxes)`);
+}
+
 function main(): void {
-  const { positionals, values } = parseArgs({ allowPositionals: true, options: { "timing-pilot": { type: "string" }, "timing-full": { type: "string" }, set: { type: "string", default: "sf-store-001" }, pilot: { type: "string", default: "sf-store-001.every-30" } } });
+  const { positionals, values } = parseArgs({
+    allowPositionals: true,
+    options: {
+      "timing-pilot": { type: "string" }, "timing-full": { type: "string" }, set: { type: "string", default: "sf-store-001" }, pilot: { type: "string", default: "sf-store-001.every-30" },
+      run: { type: "string" }, parts: { type: "string" }, references: { type: "string" }, timing: { type: "string", multiple: true }, "project-from": { type: "string" }, project: { type: "string" }, "project-every": { type: "string" },
+    },
+  });
+  if (positionals[0] === "sample") return sampleRun(values);
   const set = values.set!;
   const write = (m: object) => {
     const out = join(REPO, "evals", "F0-frames");
@@ -279,7 +401,7 @@ function main(): void {
     console.error("[f0-frames] pilot time -> evals/F0-frames/metrics.json");
     return;
   }
-  if (positionals[0] !== "measure") throw new Error("usage: f0-frames-cli.ts measure --timing-pilot <tsv> [--timing-full <tsv>] | pilot --timing-pilot <tsv>");
+  if (positionals[0] !== "measure") throw new Error("usage: f0-frames-cli.ts measure --timing-pilot <tsv> [--timing-full <tsv>] | pilot --timing-pilot <tsv> | sample --parts <a,b> --references <c,d> --timing <part>=<tsv> … [--project-from <part> --project <sessions> --project-every 1,3,10]");
   const reference = measureSet("pilot-000");
   const frames = measureSet(set);
   const pilotFrames = sessionImages(values.pilot!).length;
