@@ -147,3 +147,42 @@ describe("sample parts by kind", () => {
     expect(sessionImages(S, root, repo, reg).map((x) => x.id)).toEqual(hashes);
   });
 });
+
+describe("F0-4k aggregates (src/eval/f0-frames-cli.ts sample)", async () => {
+  const { partTime, perStepAgainst, project, sampleScope } = await import("../src/eval/f0-frames-cli.ts");
+  const rows = [
+    { step: "1", name: "F-0", seconds: 400, maxRssBytes: 3 * 2 ** 20, exit: 0 },
+    { step: "2", name: "F-0e read bands+strips", seconds: 201, maxRssBytes: 5 * 2 ** 20, exit: 0 },
+  ];
+
+  it("counts a part by kind against its session's photos of that kind, and leaves `every-<n>` as it was", () => {
+    const n: Record<string, number> = { "sf-store-003": 839, "sf-store-003.stills": 16, "sf-store-003.frames.every-1": 823, "sf-store-003.frames.every-41": 20, "sf-store-001": 616, "sf-store-001.every-3": 205 };
+    const count = (s: string) => n[s]!;
+    expect(sampleScope("sf-store-003.stills", count)).toEqual({ session: "sf-store-003", kind: "stills", every: 1, frames: 16, sessionFrames: 16, frameShare: 1 });
+    expect(sampleScope("sf-store-003.frames.every-41", count)).toEqual({ session: "sf-store-003", kind: "frames", every: 41, frames: 20, sessionFrames: 823, frameShare: 0.0243 });
+    expect(sampleScope("sf-store-001.every-3", count)).toEqual({ session: "sf-store-001", every: 3, frames: 205, sessionFrames: 616, frameShare: 0.3328 });
+  });
+
+  it("states a part's time per step and per image, with its peak memory", () => {
+    const t = partTime(rows, 20);
+    expect(t).toMatchObject({ images: 20, commands: 2, commandsFailed: 0, totalSeconds: 601, secondsPerImage: 30.05, peakResidentMb: 5 });
+    expect(t.steps[0]).toEqual({ step: "1", name: "F-0", seconds: 400, secondsPerImage: 20, peakResidentMb: 3, exit: 0 });
+    expect(partTime([{ ...rows[0]!, exit: 1 }], 4).commandsFailed).toBe(1);
+  });
+
+  it("sets each step beside the reference run's seconds per image", () => {
+    const against = perStepAgainst(partTime(rows, 20), [{ name: "F-0", fullSeconds: 1025 }, { name: "F-0e read bands+strips", fullSeconds: null }], 205);
+    expect(against).toEqual([
+      { name: "F-0", secondsPerImage: 20, referenceSecondsPerImage: 5, ratio: 4 },
+      { name: "F-0e read bands+strips", secondsPerImage: 10.05, referenceSecondsPerImage: null, ratio: null },
+    ]);
+  });
+
+  it("projects linearly in frames, rounded per step and summed", () => {
+    const p = project(rows, 20, [{ session: "sf-store-003", every: 1, frames: 823 }, { session: "sf-store-003", every: 10, frames: 82 }]);
+    // 400 × 823 / 20 = 16,460; 201 × 823 / 20 = 8,271.15 → 8,271.
+    expect(p[0]).toEqual({ session: "sf-store-003", every: 1, frames: 823, seconds: 16460 + 8271, hours: 6.87 });
+    // 400 × 82 / 20 = 1,640; 201 × 82 / 20 = 824.1 → 824.
+    expect(p[1]).toEqual({ session: "sf-store-003", every: 10, frames: 82, seconds: 1640 + 824, hours: 0.68 });
+  });
+});
