@@ -200,8 +200,8 @@ The clip commands are the 2026-11-07 ones, unchanged; no code assumed 1080p. The
 is taken on a grey copy at 640 px on the long side whatever the clip's size. The stills went through the still path,
 unchanged, with every file `real-use` (a private settings map built from the folder listing, as for `pilot-000`). For
 `sf-store-003` the still ingest ran after `clip ingest` and before `clip frames`: `bookcase ingest` refuses a ledger
-that already holds the session, and `clip frames` appends to the ledger and merges into the private manifest. Store
-permission: not stated by the owner (private manifest only). No face check ran and no frame was dropped for faces.
+that already holds the session, and `clip frames` appends to the ledger and merges into the private manifest. No
+face check ran and no frame was dropped for faces.
 
 ```sh
 bookcase clip ingest <visit folder>/clips --session <session> --permission-note <the note>
