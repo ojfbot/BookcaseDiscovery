@@ -12,6 +12,7 @@
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
+import { readFrameManifest } from "../capture/clip.ts";
 import { catalogPaths } from "../catalog/cli.ts";
 import { dataRoot, ImageStore } from "../ledger/images.ts";
 import { manifestRefusal, MANIFEST_ROLES, roleOf, SET_REGISTRY, type SetRegistry } from "./set-roles.ts";
@@ -48,17 +49,39 @@ export type Stage = keyof typeof STAGES;
 /** A declared session: its role is in `MANIFEST_ROLES` and its name does not read as an evaluation set. */
 export const isSession = (set: string, registry: SetRegistry = SET_REGISTRY): boolean => manifestRefusal(set, registry) === null;
 
+/** Which of a session's photos a sample part by kind takes (F-0 on 4K): only the stills, or only the frames. */
+export type SampleKind = "stills" | "frames";
+
 /**
- * A sample part (F-0 on frames, 2026-11-11): a fixed, evenly spaced sample of a declared session's image list, run
- * through the stages under its own name, `<session>.every-<n>`: the n-th, 2n-th, … photo of `sessionImages`, in list
- * order. Its caches sit beside the session's (`<stage>/<session>.every-<n>/…`), never among them, so a pilot run
- * cannot leave part of the whole run's caches written. It is not declared in the registry, so it is never manifested,
- * exported or trained on (`assertTrainable` refuses it as undeclared). Null for any other name.
+ * A sample part: a fixed sample of a declared session's image list, run through the stages under its own name. Its
+ * caches sit beside the session's (`<stage>/<part>/…`), never among them, so a sample run cannot leave part of the whole
+ * run's caches written. It is not declared in the registry, so it is never manifested, exported or trained on
+ * (`assertTrainable` refuses it as undeclared). Null for any other name. Three forms:
+ * - `<session>.every-<n>` (F-0 on frames, 2026-11-11): the n-th, 2n-th, … photo of `sessionImages`, in list order;
+ * - `<session>.stills` (F-0 on 4K, 2026-11-14): only the session's stills, in list order;
+ * - `<session>.frames.every-<n>` (F-0 on 4K): the n-th, 2n-th, … of the session's frames, in list order.
+ * A frame is a photo the session's private frame list (`frames.json`) names; a still is one it does not name. The first
+ * form takes both kinds and has no `kind`.
  */
-export function samplePart(set: string, registry: SetRegistry = SET_REGISTRY): { session: string; every: number } | null {
+export function samplePart(set: string, registry: SetRegistry = SET_REGISTRY): { session: string; every: number; kind?: SampleKind } | null {
+  const stills = /^(.+)\.stills$/.exec(set);
+  if (stills) return isSession(stills[1]!, registry) ? { session: stills[1]!, every: 1, kind: "stills" } : null;
+  const frames = /^(.+)\.frames\.every-([1-9]\d*)$/.exec(set);
+  if (frames) return isSession(frames[1]!, registry) ? { session: frames[1]!, every: Number(frames[2]), kind: "frames" } : null;
   const m = /^(.+)\.every-([1-9]\d*)$/.exec(set);
   if (!m || !isSession(m[1]!, registry)) return null;
   return { session: m[1]!, every: Number(m[2]) };
+}
+
+/**
+ * The frame hashes a session's private frame list names (`<data root>/private/fixtures/<session>/frames.json`). Fails
+ * closed when the list is missing or names another session: without it a still cannot be told from a frame.
+ */
+export function sessionFrameHashes(session: string, root: string = dataRoot()): Set<string> {
+  const frames = readFrameManifest(root, session);
+  if (!frames) throw new Error(`${session}: no private frame list, so its stills and frames cannot be told apart (run \`bookcase clip frames ${session}\`)`);
+  if (frames.session !== session) throw new Error(`${session}: the private frame list names another session`);
+  return new Set(frames.clips.flatMap((c) => c.frames.map((f) => f.frameHash)));
 }
 
 /** The sessions the registry declares (training sources and held-out sessions), sorted. */
@@ -208,11 +231,19 @@ export function setPaths(set: string, root: string = dataRoot(), registry: SetRe
  * A session's photos from its public manifest (`fixtures/<session>/manifest.json`) and the image store: one entry per
  * manifest row, `id` the working-copy hash, `image` its file. No pixel size, EXIF or capture tier is assumed, so it
  * serves stills and video frames alike. Throws when the manifest is missing or a working copy is not in the store.
- * A sample part's list is its session's every n-th photo, in list order (`samplePart`).
+ * A sample part's list is its session's every n-th photo, or only its stills, or every n-th of its frames, in list
+ * order (`samplePart`).
  */
 export function sessionImages(session: string, root: string = dataRoot(), repo: string = REPO, registry: SetRegistry = SET_REGISTRY): { id: string; image: string }[] {
   const part = samplePart(session, registry);
-  if (part) return sessionImages(part.session, root, repo, registry).filter((_, i) => (i + 1) % part.every === 0);
+  if (part) {
+    let list = sessionImages(part.session, root, repo, registry);
+    if (part.kind) {
+      const frames = sessionFrameHashes(part.session, root);
+      list = list.filter((p) => frames.has(p.id) === (part.kind === "frames"));
+    }
+    return list.filter((_, i) => (i + 1) % part.every === 0);
+  }
   if (!isSession(session, registry)) throw new Error(`"${session}" is not a declared session (src/eval/set-roles.ts)`);
   const path = join(repo, "fixtures", session, "manifest.json");
   if (!existsSync(path)) throw new Error(`${session}: no public manifest at fixtures/${session}/manifest.json (run \`bookcase manifest ${session}\`)`);
