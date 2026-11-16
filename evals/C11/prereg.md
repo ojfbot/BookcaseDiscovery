@@ -72,3 +72,15 @@ arms on the store sets.
 
 Aggregates only, in `evals/C11/{prereg.md,metrics.json,report.md}`. No titles, authors, work ids, reader text, image
 ids, file names, store names, private paths or capture times.
+
+## Amendment, 2026-11-16 (the conductor's ruling, before any figure was read)
+
+The stills' v2 re-decision ran at about 0.5–0.7 s per box, so the two largest sets project near or past the 2-hour
+stop. Asked before any set reached it, the conductor ruled:
+
+- **The 2-hour stop applies per set.** A set that reaches it is stopped and reported as timed out, with its elapsed
+  time, boxes done and rate. No partial v2 figure is reported for it, and nothing it leaves under the data root is
+  deleted. The card goes on to the next set. The reproduction gate still stops the whole card.
+- **Order:** `sf-store-003.stills`, `sf-store-003.frames.every-41`, `sf-store-003.frames.every-10`,
+  `sf-store-005.frames.every-10`, then `sf-store-004.frames.every-10` and `sf-store-001.every-3`.
+- Unchanged: the cap, the method, the sets, the measures. A timed-out set goes to a later card on the owner's word.
