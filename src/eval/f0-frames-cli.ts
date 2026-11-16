@@ -301,6 +301,34 @@ export function project(rows: TimingRow[], sampleFrames: number, runs: { session
   });
 }
 
+/**
+ * F-0 on 4K, every 10th frame (prereg §3): an earlier projection checked against the actual run. Each step's projected
+ * seconds are the reference's seconds × (the part's frames ÷ the reference's frames), rounded per step as `project` does.
+ * They stand beside the part's actual seconds (every attempt summed, `partTime`), per step and in total, for each part
+ * and for all parts together. A ratio is actual ÷ projected. A step the part ran that the reference did not, or the
+ * reverse, keeps a null on the missing side and is left out of neither total.
+ */
+export function projectionCheck(reference: { name: string; seconds: number }[], referenceFrames: number, parts: { part: string; frames: number; steps: { name: string; seconds: number }[] }[]) {
+  const ratio = (a: number, p: number) => (p > 0 ? Math.round((a / p) * 100) / 100 : null);
+  const hours = (s: number) => Math.round((s / 3600) * 100) / 100;
+  const out = parts.map(({ part, frames, steps }) => {
+    const names = [...reference.map((r) => r.name), ...steps.map((s) => s.name).filter((n) => !reference.some((r) => r.name === n))];
+    const perStep = names.map((name) => {
+      const ref = reference.find((r) => r.name === name);
+      const act = steps.find((s) => s.name === name);
+      const projected = ref ? Math.round((ref.seconds * frames) / referenceFrames) : null;
+      const actual = act ? act.seconds : null;
+      return { name, projected, actual, ratio: projected !== null && actual !== null ? ratio(actual, projected) : null };
+    });
+    const projected = sum(perStep.map((s) => s.projected ?? 0));
+    const actual = sum(perStep.map((s) => s.actual ?? 0));
+    return { part, frames, perStep, projected, actual, projectedHours: hours(projected), actualHours: hours(actual), ratio: ratio(actual, projected) };
+  });
+  const projected = sum(out.map((p) => p.projected));
+  const actual = sum(out.map((p) => p.actual));
+  return { referenceFrames, parts: out, total: { frames: sum(out.map((p) => p.frames)), projected, actual, projectedHours: hours(projected), actualHours: hours(actual), ratio: ratio(actual, projected) } };
+}
+
 /** The card stopped after the pilot (its stop rule): time only. The pre-registered measures are not computed on the pilot. */
 function pilotOnly(timingPilot: string, sample: string, set: string): object {
   return {
@@ -319,7 +347,7 @@ function pilotOnly(timingPilot: string, sample: string, set: string): object {
  * reference, each part's time against the reference frames' time, and the projection from the frames part. Writes
  * evals/<run>/metrics.json.
  */
-function sampleRun(values: { run?: string; parts?: string; references?: string; timing?: string[]; "project-from"?: string; project?: string; "project-every"?: string }): void {
+function sampleRun(values: { run?: string; card?: string; parts?: string; references?: string; timing?: string[]; "project-from"?: string; project?: string; "project-every"?: string; "check-projection"?: string }): void {
   const list = (x: string | undefined, what: string) => {
     const l = (x ?? "").split(",").map((v) => v.trim()).filter(Boolean);
     if (!l.length) throw new Error(`sample: name --${what}`);
@@ -362,9 +390,22 @@ function sampleRun(values: { run?: string; parts?: string; references?: string; 
     });
     projection = { from, sampleFrames, sampleSeconds: sum(rows.map((r) => r.seconds)), rule: "each step's sample seconds × (frames to run ÷ sample frames), rounded per step and summed; linear in frames, a lower bound where a step grows faster", runs: rowsOut, totals };
   }
+  // F-0 on 4K, every 10th frame: an earlier card's projection (its committed metrics.json) against the actual run.
+  let projectionChecked: object | null = null;
+  if (values["check-projection"]) {
+    const earlier = JSON.parse(readFileSync(join(REPO, values["check-projection"]), "utf8")) as { runId: string; projection: { from: string; sampleFrames: number } | null; time: Record<string, { steps: { name: string; seconds: number }[] } | null> };
+    const from = earlier.projection?.from;
+    const steps = from ? earlier.time[from]?.steps : undefined;
+    if (!from || !steps) throw new Error(`sample: ${values["check-projection"]} has no projection with its sample's time`);
+    const done = parts.flatMap((p) => {
+      const t = time[p] as { images: number; steps: { name: string; seconds: number }[] } | null;
+      return t ? [{ part: p, frames: t.images, steps: t.steps }] : [];
+    });
+    projectionChecked = { against: `${earlier.runId}: ${from}`, rule: "the reference's seconds per step × (the part's frames ÷ the reference's frames), rounded per step and summed; ratio = actual ÷ projected", ...projectionCheck(steps, earlier.projection!.sampleFrames, done) };
+  }
   const metrics = {
     runId: run,
-    card: "F-0 on 4K",
+    card: values.card ?? "F-0 on 4K",
     date: new Date().toLocaleDateString("en-CA"),
     scope: "real use (OC35): machine agreement between the stack's own stages and readers, never accuracy (INV-17); no hand labels (OC36)",
     note: "Each part is measured on its own; stills and frames are never pooled. Frames overlap (1 fps sweeps): one physical book is counted once per image it appears in; nothing is deduplicated across images. Small samples: counts stand beside every share, and no difference is tested.",
@@ -373,6 +414,7 @@ function sampleRun(values: { run?: string; parts?: string; references?: string; 
     difference,
     time,
     projection,
+    ...(projectionChecked ? { projectionCheck: projectionChecked } : {}),
   };
   const out = join(REPO, "evals", run);
   mkdirSync(out, { recursive: true });
@@ -386,6 +428,7 @@ function main(): void {
     options: {
       "timing-pilot": { type: "string" }, "timing-full": { type: "string" }, set: { type: "string", default: "sf-store-001" }, pilot: { type: "string", default: "sf-store-001.every-30" },
       run: { type: "string" }, parts: { type: "string" }, references: { type: "string" }, timing: { type: "string", multiple: true }, "project-from": { type: "string" }, project: { type: "string" }, "project-every": { type: "string" },
+      card: { type: "string" }, "check-projection": { type: "string" },
     },
   });
   if (positionals[0] === "sample") return sampleRun(values);
