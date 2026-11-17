@@ -71,3 +71,24 @@ The repo is public. Photos, crops, labels, per-spine results and any personal da
 ## Licence
 
 AGPL-3.0. See [`LICENSE`](LICENSE) and [`NOTICE`](NOTICE).
+
+### Installed ledger replay job
+
+`pnpm build:ledger-job NEW_OUTPUT_DIRECTORY` builds the fixed 21-event ledger
+scenario into a relocatable Node artifact. The build calls the existing scenario
+and contract parsers, records the source and output hashes, and refuses an existing
+output directory. A dirty build reports `clean:false` and cannot execute jobs.
+
+The artifact contains `src/ledger/ledger-job.mjs`, the runtime contracts and
+`install.mjs`. The installer verifies the supplied official Node signature,
+checks every release file, copies one immutable version and updates only its own
+`ledger-job/current` link. It downloads nothing and refuses an existing version.
+
+The installed command accepts `--grant FILE` and one `{job,outDir}` envelope on
+stdin. The private grant binds the proof ID, exact job key, code revision, fixture
+digest, private output directory and expiry. The command validates the envelope,
+constructs fresh source and target SQLite databases through the actual app APIs,
+compares event/view digests and runs `replay()`. It writes the computed canonical
+result to `<key>.<fence>.jsonl` and emits only `{file,sha256}`. It refuses stale
+grants, mismatched jobs, corrupt fixtures, exposed grant permissions and output
+overwrite. The application command never schedules work or controls another host.

@@ -29,3 +29,6 @@ chat.html
 
 # SwiftPM build output
 .build/
+
+# Immutable ledger-job build outputs
+dist/

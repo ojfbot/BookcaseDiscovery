@@ -518,3 +518,7 @@ The owner chose authenticated LAN HTTP for the original read-vision pilot becaus
 - **2026-11-03 (compute tracer, core #578).** The N-2 plan called for SSH CLI calls and rsync. The owner chose authenticated LAN HTTP because Remote Login is off on Yuri, combining N-2 worker and N-3 queue-transport proof for read-vision. Remaining card exits carry forward.
 - **2026-11-08 (G4 policy/resources).** The first NAS profile locked only the resident entrypoint and reduced denied eligibility to paused. Apply one host slot and the same gate to resident and one-shot clients, recheck helper drift, and report fixed eligibility reasons. External model owners reserve explicitly; do not infer arbitrary GPU occupancy.
 - **2026-11-08 (G5 process status).** Process observations run independently during idle, pause and drain, and cannot renew leases. Server controls are an additional claim gate; local host policy and reservations remain in force. No original-pilot or model-download changes.
+
+- The declared pnpm release uses a newer executable layout than the environment’s Corepack shim expects. Used the release’s own executable from an isolated task cache; did not change the declared version or global package-manager configuration.
+
+- Existing Qwen fixture stubs put process.execPath in a shebang; the verified runtime was stored in a path containing spaces, so the kernel refused the stub. Source checks now use a byte-identical, signature-verified runtime copy at a task-only path without spaces; no Qwen source or test was weakened.
