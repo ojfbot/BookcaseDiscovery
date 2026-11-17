@@ -79,8 +79,14 @@ scenario into a relocatable Node artifact. The build calls the existing scenario
 and contract parsers, records the source and output hashes, and refuses an existing
 output directory. A dirty build reports `clean:false` and cannot execute jobs.
 
-The artifact contains `src/ledger/ledger-job.mjs`, the runtime contracts and
-`install.mjs`. The installer verifies the supplied official Node signature,
+The artifact contains `src/ledger/ledger-job.mjs` and the runtime contracts.
+Run `scripts/install-ledger-job.mjs` from the independently reviewed source,
+with `--release`, `--root`, `--node` and `--manifest-sha256`. The manifest digest
+comes from the independently frozen release record, not from the downloaded
+package itself. Verify the installer against that reviewed source before running
+it; the untrusted package contains no executable installer. The installer verifies
+the external manifest pin before parsing its metadata or executing package code,
+then verifies the supplied official Node signature,
 checks every release file, copies one immutable version and updates only its own
 `ledger-job/current` link. It downloads nothing and refuses an existing version.
 

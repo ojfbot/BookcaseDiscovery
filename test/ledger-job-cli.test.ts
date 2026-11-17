@@ -53,8 +53,13 @@ it("verifies every release file and refuses changed bytes or unlisted files", ()
   visit(app);
   const manifest = { name: "bookcase-ledger-job", version: "0.1.0", commit: "a".repeat(40), clean: true, fixtureSha256, events: 21, node_floor: "24.22.2", files };
   writeFileSync(join(app, "manifest.json"), JSON.stringify(manifest));
-  expect(verifyLedgerRelease(app).commit).toBe(manifest.commit);
-  writeFileSync(join(app, "unlisted"), "extra"); expect(() => verifyLedgerRelease(app)).toThrow("ledger-release-file-mismatch"); rmSync(join(app, "unlisted"));
-  writeFileSync(bundle, "changed"); expect(() => verifyLedgerRelease(app)).toThrow("ledger-release-hash-mismatch");
+  const pin = sha256(readFileSync(join(app, "manifest.json")));
+  expect(verifyLedgerRelease(app, pin).commit).toBe(manifest.commit);
+  writeFileSync(join(app, "unlisted"), "extra"); expect(() => verifyLedgerRelease(app, pin)).toThrow("ledger-release-file-mismatch"); rmSync(join(app, "unlisted"));
+  writeFileSync(bundle, "changed"); expect(() => verifyLedgerRelease(app, pin)).toThrow("ledger-release-hash-mismatch");
+  files["src/ledger/ledger-job.mjs"] = sha256(readFileSync(bundle));
+  writeFileSync(join(app, "manifest.json"), JSON.stringify({ ...manifest, files }));
+  expect(() => verifyLedgerRelease(app, pin)).toThrow("ledger-release-manifest-pin-mismatch");
+  expect(() => verifyLedgerRelease(app)).toThrow("ledger-release-manifest-pin-required");
 });
 import * as requirePath from "node:path";

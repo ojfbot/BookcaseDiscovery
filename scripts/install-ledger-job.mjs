@@ -10,11 +10,14 @@ const allFiles = dir => readdirSync(dir, { withFileTypes: true }).flatMap(entry 
   if (entry.isSymbolicLink() || (!entry.isDirectory() && !entry.isFile())) throw Error('unsafe-ledger-release');
   return entry.isDirectory() ? allFiles(path) : [path];
 }).sort();
-export function verifyLedgerRelease(directory) {
+export function verifyLedgerRelease(directory, expectedManifestSha256) {
+  if (!/^[a-f0-9]{64}$/.test(expectedManifestSha256 ?? '')) throw Error('ledger-release-manifest-pin-required');
+  const manifestBytes = readFileSync(join(directory, 'manifest.json'));
+  if (hash(manifestBytes) !== expectedManifestSha256) throw Error('ledger-release-manifest-pin-mismatch');
   const root = lstatSync(directory);
   if (!root.isDirectory() || root.isSymbolicLink()) throw Error('unsafe-ledger-release');
   const names = allFiles(directory);
-  const manifest = JSON.parse(readFileSync(join(directory, 'manifest.json'), 'utf8'));
+  const manifest = JSON.parse(manifestBytes.toString('utf8'));
   if (manifest.name !== 'bookcase-ledger-job' || manifest.clean !== true || manifest.version !== '0.1.0' ||
       !/^[a-f0-9]{40}$/.test(manifest.commit) || !/^[a-f0-9]{64}$/.test(manifest.fixtureSha256) ||
       manifest.events !== 21 || manifest.node_floor !== '24.22.2' || !manifest.files || typeof manifest.files !== 'object') throw Error('invalid-ledger-release');
@@ -25,14 +28,14 @@ export function verifyLedgerRelease(directory) {
   }
   return manifest;
 }
-export function installLedgerRelease({ release, root, node }) {
+export function installLedgerRelease({ release, root, node, manifestSha256 }) {
   if (![release, root, node].every(isAbsolute)) throw Error('absolute-install-paths-required');
   const info = lstatSync(node);
   if (!info.isFile() || info.isSymbolicLink() || (info.mode & 0o022)) throw Error('unsafe-node-binary');
   const requirement = 'identifier node and anchor apple generic and certificate leaf[subject.OU] = HX7739G8FX';
   const signed = binary => execFileSync('/usr/bin/codesign', ['--verify', '--strict', `-R=${requirement}`, binary], { stdio: 'ignore' });
   signed(node);
-  const manifest = verifyLedgerRelease(release);
+  const manifest = verifyLedgerRelease(release, manifestSha256);
   const version = execFileSync(node, ['--version'], { encoding: 'utf8' }).trim();
   const match = /^v24\.(\d+)\.(\d+)$/.exec(version);
   if (!match || Number(match[1]) < 22 || (Number(match[1]) === 22 && Number(match[2]) < 2)) throw Error('unsupported-node-version');
@@ -49,7 +52,7 @@ export function installLedgerRelease({ release, root, node }) {
     cpSync(node, join(target, 'node'));
     signed(join(target, 'node'));
     if (hash(readFileSync(node)) !== hash(readFileSync(join(target, 'node')))) throw Error('node-copy-mismatch');
-    verifyLedgerRelease(join(target, 'app'));
+    verifyLedgerRelease(join(target, 'app'), manifestSha256);
     const actual = JSON.parse(execFileSync(join(target, 'node'), [join(target, 'app/src/ledger/ledger-job.mjs'), 'version'], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }));
     if (actual.clean !== true || actual.commit !== manifest.commit || actual.fixtureSha256 !== manifest.fixtureSha256) throw Error('installed-release-identity-mismatch');
     writeFileSync(join(target, 'install.json'), `${JSON.stringify({ schemaVersion: 1, version: manifest.version, commit: manifest.commit, nodeVersion: version, nodeSha256: hash(readFileSync(node)), releaseManifestSha256: hash(readFileSync(join(release, 'manifest.json'))), signatureCheckedBy: '/usr/bin/codesign' }, null, 2)}\n`, { mode: 0o400 });
@@ -64,7 +67,7 @@ export function installLedgerRelease({ release, root, node }) {
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
   try {
     const args = process.argv.slice(2);
-    if (args.length !== 6 || args[0] !== '--release' || args[2] !== '--root' || args[4] !== '--node') throw Error('invalid-installer-arguments');
-    console.log(JSON.stringify(installLedgerRelease({ release: resolve(args[1]), root: resolve(args[3]), node: resolve(args[5]) })));
+    if (args.length !== 8 || args[0] !== '--release' || args[2] !== '--root' || args[4] !== '--node' || args[6] !== '--manifest-sha256') throw Error('invalid-installer-arguments');
+    console.log(JSON.stringify(installLedgerRelease({ release: resolve(args[1]), root: resolve(args[3]), node: resolve(args[5]), manifestSha256: args[7] })));
   } catch { process.stderr.write('ledger-install-refused\n'); process.exitCode = 1; }
 }
