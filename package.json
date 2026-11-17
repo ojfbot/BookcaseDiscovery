@@ -22,13 +22,15 @@
     "guard": "node scripts/privacy-guard.mjs",
     "prepare": "simple-git-hooks",
     "report:synthetic": "node scripts/synthetic-report.ts",
-    "f0": "node src/eval/f0-cli.ts"
+    "f0": "node src/eval/f0-cli.ts",
+    "build:ledger-job": "node scripts/build-ledger-job.ts"
   },
   "simple-git-hooks": {
     "pre-commit": "if [ -f scripts/privacy-guard.mjs ]; then node scripts/privacy-guard.mjs; fi"
   },
   "devDependencies": {
     "@types/node": "^26.6.6",
+    "esbuild": "0.21.5",
     "simple-git-hooks": "^2.14.0",
     "typescript": "^7.0.2",
     "vitest": "^5.0.5"
