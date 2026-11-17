@@ -6,7 +6,11 @@
 //                                                                         F-0's cached readings re-decided, F-0's bar unchanged
 //   node src/eval/c5-eval.ts publish                                   join the parts into evals/C5/metrics.json
 //
-// Every part writes aggregates only to $BOOKCASE_DATA/catalog/c5/<part>.json; the per-box and per-spine detail
+//   lookalike and publish take --run <card> (default C5): a later card (C-11) writes its parts to
+//   $BOOKCASE_DATA/catalog/<card>/ and publishes them to evals/<card>/metrics.json, leaving C-5's record alone.
+//   lookalike --min-reproduced <share> stops before v2 when F-0's cached decisions reproduce below that share.
+//
+// Every part writes aggregates only to $BOOKCASE_DATA/catalog/<run>/<part>.json; the per-box and per-spine detail
 // never leaves this process. Nothing here makes a network call.
 import { execFileSync } from "node:child_process";
 import { existsSync, mkdirSync, readdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
@@ -29,12 +33,20 @@ const REPO = fileURLToPath(new URL("../../", import.meta.url));
 const log = (s: string) => console.error(`[c5] ${new Date().toISOString().slice(11, 19)} ${s}`);
 const r4 = (x: number) => Math.round(x * 10000) / 10000;
 
-function partsDir(): string {
-  const d = join(dataRoot(), "catalog", "c5");
+/** A run id names a card's eval folder: `C5`, `C11`. Anything else is refused, so it can never be a path. */
+export function checkRun(run: string): string {
+  if (!/^C\d+$/.test(run)) throw new Error(`--run must look like C5 or C11, not ${JSON.stringify(run)}`);
+  return run;
+}
+/** `C11` -> `C-11`. */
+export const cardOf = (run: string) => checkRun(run).replace(/^C/, "C-");
+
+export function partsDir(run = "C5", root = dataRoot()): string {
+  const d = join(root, "catalog", checkRun(run).toLowerCase());
   mkdirSync(d, { recursive: true });
   return d;
 }
-const writePart = (name: string, data: unknown) => writeFileSync(join(partsDir(), `${name}.json`), `${JSON.stringify(data, null, 2)}\n`);
+const writePart = (name: string, data: unknown, run = "C5") => writeFileSync(join(partsDir(run), `${name}.json`), `${JSON.stringify(data, null, 2)}\n`);
 
 function catalogMeta(db: DatabaseSync, path: string) {
   const m = Object.fromEntries((db.prepare("SELECT key, value FROM meta").all() as Array<{ key: string; value: string }>).map((r) => [r.key, r.value]));
@@ -245,15 +257,61 @@ function redecide(db: DatabaseSync, decisions: SpineDecision[], readings: Map<st
  * Re-decisions are slow (a full retrieve per reading), so each (set, catalog file) result is cached privately under
  * the data root, keyed by the file's size and mtime. The cache holds spine ids and work ids: never copied to the repo.
  */
-function cachedRedecide(set: string, catalogPath: string, run: () => Redecided[]): Redecided[] {
+function cachedRedecide(set: string, catalogPath: string, run: () => Redecided[], runId = "C5", timing?: Timing): Redecided[] {
   const st = statSync(catalogPath);
-  const dir = join(partsDir(), "private");
+  const dir = join(partsDir(runId), "private");
   mkdirSync(dir, { recursive: true });
   const file = join(dir, `${set}.${catalogPath.split("/").at(-1)}.${st.size}.${Math.round(st.mtimeMs)}.json`);
-  if (existsSync(file)) return JSON.parse(readFileSync(file, "utf8")) as Redecided[];
+  const t0 = performance.now();
+  if (existsSync(file)) {
+    const rows = JSON.parse(readFileSync(file, "utf8")) as Redecided[];
+    timing?.push({ step: set, seconds: r4((performance.now() - t0) / 1000), fromCache: true });
+    return rows;
+  }
   const out = run();
   writeFileSync(file, JSON.stringify(out));
+  timing?.push({ step: set, seconds: Math.round((performance.now() - t0) / 100) / 10, fromCache: false });
   return out;
+}
+type Timing = Array<{ step: string; seconds: number; fromCache: boolean }>;
+
+/** C-11's gate: refuse to re-decide on v2 with readings that do not reproduce F-0's cached decisions. */
+export function checkReproduced(set: string, reproduced: number, min: number | undefined): void {
+  if (min !== undefined && reproduced < min) throw new Error(`${set}: F-0's cached decisions reproduce on ${reproduced}, below --min-reproduced ${min}; stopped before v2`);
+}
+
+/** A box's outcome: `accepted`, or the reason it stayed unknown. */
+export const outcomeOf = (r: { accepted: string | null; reason: string | null }) => (r.accepted ? "accepted" : (r.reason ?? "?"));
+
+/**
+ * Where each v1 outcome went on v2 (counts), and the headline for v1's `no-catalog-match` boxes: the share v2 accepts,
+ * and the share that leaves `no-catalog-match` for any outcome, each with the photo-cluster bootstrap.
+ */
+export function outcomeFlow<T extends { accepted: string | null; reason: string | null }>(paired: Array<{ imageId: string; a: T; b: T }>, reps = 2000) {
+  const mix = (side: "a" | "b") => {
+    const m: Record<string, number> = {};
+    for (const p of paired) m[outcomeOf(p[side])] = (m[outcomeOf(p[side])] ?? 0) + 1;
+    return m;
+  };
+  const flow: Record<string, Record<string, number>> = {};
+  for (const p of paired) {
+    const [from, to] = [outcomeOf(p.a), outcomeOf(p.b)];
+    flow[from] ??= {};
+    flow[from][to] = (flow[from][to] ?? 0) + 1;
+  }
+  const ncm = paired.filter((p) => outcomeOf(p.a) === "no-catalog-match");
+  const share = (f: (p: (typeof ncm)[number]) => boolean) => clusterBootstrap(ncm, (x) => (x.length ? x.filter(f).length / x.length : null), reps, SEED);
+  return {
+    outcomes: { v1: mix("a"), v2: mix("b") },
+    flow,
+    noCatalogMatch: {
+      v1: ncm.length,
+      toAccepted: ncm.filter((p) => p.b.accepted).length,
+      toAcceptedShare: share((p) => p.b.accepted !== null),
+      leftNoCatalogMatch: ncm.filter((p) => outcomeOf(p.b) !== "no-catalog-match").length,
+      leftNoCatalogMatchShare: share((p) => outcomeOf(p.b) !== "no-catalog-match"),
+    },
+  };
 }
 
 function quantiles(xs: number[]) {
@@ -262,7 +320,8 @@ function quantiles(xs: number[]) {
   return { n: s.length, p10: q(0.1), p25: q(0.25), p50: q(0.5), p75: q(0.75), under002: s.length ? r4(s.filter((x) => x < 0.02).length / s.length) : null, under005: s.length ? r4(s.filter((x) => x < 0.05).length / s.length) : null };
 }
 
-function lookalike(paths: Record<"v1" | "v2", string>, set: string, only?: string): void {
+function lookalike(paths: Record<"v1" | "v2", string>, set: string, only?: string, run = "C5", minReproduced?: number): void {
+  const timing: Timing = [];
   const root = dataRoot();
   const dir = stageDir(root, set);
   const decisions = readJsonl<SpineDecision>(join(dir, "decisions.jsonl"));
@@ -276,14 +335,16 @@ function lookalike(paths: Record<"v1" | "v2", string>, set: string, only?: strin
   let readingSet = "crop-clip";
   const agree = (rs: Redecided[]) => rs.filter((r, i) => r.accepted === (decisions[i]!.accepted?.workId ?? null) && r.reason === decisions[i]!.reason).length / rs.length;
   log(`${set}: reproducing the cached decisions on ${proxy ? "the inventory catalog" : "v1"}`);
-  let base = cachedRedecide(`${set}.crop-clip.base`, cachedCatalog, () => redecide(sanityDb, decisions, readings, null));
+  let base = cachedRedecide(`${set}.crop-clip.base`, cachedCatalog, () => redecide(sanityDb, decisions, readings, null), run, timing);
   if (agree(base) < 0.99) {
     const all = loadReadings(dir);
-    const alt = cachedRedecide(`${set}.all-crops.base`, cachedCatalog, () => redecide(sanityDb, decisions, all, null));
+    const alt = cachedRedecide(`${set}.all-crops.base`, cachedCatalog, () => redecide(sanityDb, decisions, all, null), run, timing);
     if (agree(alt) > agree(base)) (readings = all), (base = alt), (readingSet = "all-crops");
   }
   const reproduced = r4(agree(base));
   sanityDb.close();
+  log(`${set}: reproducedCachedDecisions ${reproduced} (${readingSet})`);
+  checkReproduced(set, reproduced, minReproduced);
 
   const byCatalog: Record<string, Redecided[]> = {};
   for (const [name, path] of Object.entries(paths)) {
@@ -294,7 +355,7 @@ function lookalike(paths: Record<"v1" | "v2", string>, set: string, only?: strin
     if (only && only !== name) continue;
     log(`${set}: re-deciding on ${name}`);
     const db = openCatalog(path);
-    byCatalog[name] = cachedRedecide(`${set}.${readingSet}`, path, () => redecide(db, decisions, readings, truth));
+    byCatalog[name] = cachedRedecide(`${set}.${readingSet}`, path, () => redecide(db, decisions, readings, truth), run, timing);
     db.close();
   }
   if (only) return;
@@ -341,16 +402,18 @@ function lookalike(paths: Record<"v1" | "v2", string>, set: string, only?: strin
     v1: summary(byCatalog.v1!), v2: summary(byCatalog.v2!),
     delta: { confirmedShare: delta((r) => r.accepted !== null), ...(proxy ? { wrongAcceptShareOfSpines: delta((r) => r.wrong === true) } : {}) },
     transitions, lostToReason: lostTo,
+    ...outcomeFlow(paired),
+    timing,
     ...(proxy ? { wrongAmongSwitched: paired.filter((p) => p.a.accepted && p.b.accepted && p.a.accepted !== p.b.accepted && p.b.wrong).length, wrongAmongGained: paired.filter((p) => !p.a.accepted && p.b.wrong).length } : {}),
-  });
+  }, run);
 }
 
 // ---------------------------------------------------------------------------------------------
 // publish
 // ---------------------------------------------------------------------------------------------
 
-function publish(): void {
-  const dir = partsDir();
+export function publish(run = "C5", outRoot = join(REPO, "evals")): string {
+  const dir = partsDir(run);
   const parts = Object.fromEntries(readdirSync(dir).filter((f) => f.endsWith(".json")).sort().map((f) => [f.replace(/\.json$/, ""), JSON.parse(readFileSync(join(dir, f), "utf8"))]));
   // Golden ranks per query id are public (the golden set is), but keep the file small: drop the rank maps.
   if (parts.golden) for (const k of ["v1", "v2"]) delete (parts.golden[k] as Record<string, unknown>).ranks;
@@ -360,24 +423,28 @@ function publish(): void {
   } catch {
     /* not a checkout */
   }
-  const out = join(REPO, "evals", "C5");
+  const out = join(outRoot, run);
   mkdirSync(out, { recursive: true });
-  writeFileSync(join(out, "metrics.json"), `${JSON.stringify({ runId: "C5", card: "C-5", date: new Date().toLocaleDateString("en-CA"), code, recordLimits: LIMITS, ...parts }, null, 2)}\n`);
-  log(`published ${Object.keys(parts).join(", ")} -> evals/C5/metrics.json`);
+  writeFileSync(join(out, "metrics.json"), `${JSON.stringify({ runId: run, card: cardOf(run), date: new Date().toLocaleDateString("en-CA"), code, recordLimits: LIMITS, ...parts }, null, 2)}\n`);
+  log(`published ${Object.keys(parts).join(", ")} -> evals/${run}/metrics.json`);
+  return join(out, "metrics.json");
 }
 
 async function main(argv: string[]): Promise<number> {
   const [cmd, ...rest] = argv;
-  const { values } = parseArgs({ args: rest, options: { v1: { type: "string" }, v2: { type: "string" }, set: { type: "string" }, only: { type: "string" } } });
+  const { values } = parseArgs({ args: rest, options: { v1: { type: "string" }, v2: { type: "string" }, set: { type: "string" }, only: { type: "string" }, run: { type: "string" }, "min-reproduced": { type: "string" } } });
+  const run = checkRun(values.run ?? "C5");
+  const minReproduced = values["min-reproduced"] === undefined ? undefined : Number(values["min-reproduced"]);
+  if (minReproduced !== undefined && !(minReproduced >= 0 && minReproduced <= 1)) throw new Error("--min-reproduced must be a share between 0 and 1");
   const p = catalogPaths({ ...process.env, BOOKCASE_CATALOG: "" });
   const paths = { v1: values.v1 ?? p.catalog, v2: values.v2 ?? p.catalogV2 };
   if (cmd !== "publish") for (const [k, f] of Object.entries(paths)) if ((!values.only || values.only === k) && !existsSync(f)) throw new Error(`catalog missing: ${f}`);
   if (cmd === "golden") golden(paths);
   else if (cmd === "coverage") coverage(paths);
-  else if (cmd === "lookalike") lookalike(paths, values.set ?? "pilot-000", values.only);
-  else if (cmd === "publish") publish();
+  else if (cmd === "lookalike") lookalike(paths, values.set ?? "pilot-000", values.only, run, minReproduced);
+  else if (cmd === "publish") publish(run);
   else {
-    console.error("usage: node src/eval/c5-eval.ts <golden|coverage|lookalike|publish> [--v1 <file>] [--v2 <file>] [--set <name>]");
+    console.error("usage: node src/eval/c5-eval.ts <golden|coverage|lookalike|publish> [--v1 <file>] [--v2 <file>] [--set <name>] [--run <card>] [--min-reproduced <share>]");
     return 1;
   }
   return 0;

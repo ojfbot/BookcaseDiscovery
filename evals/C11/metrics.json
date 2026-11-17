@@ -1,0 +1,1054 @@
+{
+  "runId": "C11",
+  "card": "C-11",
+  "date": "2026-11-16",
+  "code": "8fadea242260",
+  "recordLimits": {
+    "records": 10,
+    "olQueriesPerBox": 8,
+    "locQueriesPerBox": 2,
+    "keywordTokens": 10,
+    "recordAuthors": 3
+  },
+  "lookalike-sf-store-001.every-3": {
+    "set": "sf-store-001.every-3",
+    "scope": "real use (OC35): machine agreement only, never accuracy (INV-17)",
+    "spineCount": 11758,
+    "images": 205,
+    "accept": {
+      "minScore": 0.72,
+      "minTitleEvidence": 0.8,
+      "minCoverage": 0.5,
+      "minReaders": 2
+    },
+    "readingSet": "crop-clip",
+    "reproducedCachedDecisions": 1,
+    "v1": {
+      "confirmed": 545,
+      "confirmedShare": {
+        "value": 0.04635142030957646,
+        "lo": 0.03767337709641916,
+        "hi": 0.05642105152321185
+      },
+      "confirmedOpenLibraryWorks": 0,
+      "unknownByReason": {
+        "single-reader": 1122,
+        "readers-disagree": 143,
+        "no-catalog-match": 5251,
+        "no-text": 4697
+      },
+      "topMargin": {
+        "all": {
+          "n": 14723,
+          "p10": 0,
+          "p25": 0.001,
+          "p50": 0.027,
+          "p75": 0.079,
+          "under002": 0.4304,
+          "under005": 0.641
+        },
+        "topConfirms": {
+          "n": 2520,
+          "p10": 0,
+          "p25": 0.019,
+          "p50": 0.098,
+          "p75": 0.206,
+          "under002": 0.2528,
+          "under005": 0.3742
+        }
+      }
+    },
+    "v2": {
+      "confirmed": 1425,
+      "confirmedShare": {
+        "value": 0.1211940806259568,
+        "lo": 0.10985083037172196,
+        "hi": 0.13234236017035442
+      },
+      "confirmedOpenLibraryWorks": 1073,
+      "unknownByReason": {
+        "single-reader": 2192,
+        "readers-disagree": 521,
+        "no-catalog-match": 2923,
+        "no-text": 4697
+      },
+      "topMargin": {
+        "all": {
+          "n": 15492,
+          "p10": 0,
+          "p25": 0,
+          "p50": 0.023,
+          "p75": 0.087,
+          "under002": 0.4768,
+          "under005": 0.6414
+        },
+        "topConfirms": {
+          "n": 6501,
+          "p10": 0,
+          "p25": 0,
+          "p50": 0.058,
+          "p75": 0.172,
+          "under002": 0.3755,
+          "under005": 0.4808
+        }
+      }
+    },
+    "delta": {
+      "confirmedShare": {
+        "value": 0.07484266031638033,
+        "lo": 0.06458938940591534,
+        "hi": 0.08469541205628085
+      }
+    },
+    "transitions": {
+      "gained": 916,
+      "lost": 36,
+      "switched": 170,
+      "switchedToOpenLibrary": 158,
+      "same": 339
+    },
+    "lostToReason": {
+      "no-catalog-match": 3,
+      "readers-disagree": 22,
+      "single-reader": 11
+    },
+    "outcomes": {
+      "v1": {
+        "accepted": 545,
+        "single-reader": 1122,
+        "readers-disagree": 143,
+        "no-catalog-match": 5251,
+        "no-text": 4697
+      },
+      "v2": {
+        "accepted": 1425,
+        "single-reader": 2192,
+        "readers-disagree": 521,
+        "no-catalog-match": 2923,
+        "no-text": 4697
+      }
+    },
+    "flow": {
+      "accepted": {
+        "accepted": 509,
+        "no-catalog-match": 3,
+        "readers-disagree": 22,
+        "single-reader": 11
+      },
+      "single-reader": {
+        "single-reader": 861,
+        "readers-disagree": 169,
+        "no-catalog-match": 25,
+        "accepted": 67
+      },
+      "readers-disagree": {
+        "readers-disagree": 127,
+        "single-reader": 10,
+        "no-catalog-match": 1,
+        "accepted": 5
+      },
+      "no-catalog-match": {
+        "accepted": 844,
+        "no-catalog-match": 2894,
+        "single-reader": 1310,
+        "readers-disagree": 203
+      },
+      "no-text": {
+        "no-text": 4697
+      }
+    },
+    "noCatalogMatch": {
+      "v1": 5251,
+      "toAccepted": 844,
+      "toAcceptedShare": {
+        "value": 0.16073128927823271,
+        "lo": 0.1437233450454489,
+        "hi": 0.17603915504372786
+      },
+      "leftNoCatalogMatch": 2357,
+      "leftNoCatalogMatchShare": {
+        "value": 0.4488668824985717,
+        "lo": 0.42311459833266984,
+        "hi": 0.4711898258695756
+      }
+    },
+    "timing": [
+      {
+        "step": "sf-store-001.every-3.crop-clip.base",
+        "seconds": 700.3,
+        "fromCache": false
+      },
+      {
+        "step": "sf-store-001.every-3.crop-clip",
+        "seconds": 4584.3,
+        "fromCache": false
+      }
+    ]
+  },
+  "lookalike-sf-store-003.frames.every-10": {
+    "set": "sf-store-003.frames.every-10",
+    "scope": "real use (OC35): machine agreement only, never accuracy (INV-17)",
+    "spineCount": 8186,
+    "images": 82,
+    "accept": {
+      "minScore": 0.72,
+      "minTitleEvidence": 0.8,
+      "minCoverage": 0.5,
+      "minReaders": 2
+    },
+    "readingSet": "crop-clip",
+    "reproducedCachedDecisions": 1,
+    "v1": {
+      "confirmed": 585,
+      "confirmedShare": {
+        "value": 0.07146347422428537,
+        "lo": 0.05355247763668463,
+        "hi": 0.09061724386609885
+      },
+      "confirmedOpenLibraryWorks": 0,
+      "unknownByReason": {
+        "no-text": 2587,
+        "single-reader": 803,
+        "no-catalog-match": 4134,
+        "readers-disagree": 77
+      },
+      "topMargin": {
+        "all": {
+          "n": 11689,
+          "p10": 0,
+          "p25": 0.004,
+          "p50": 0.034,
+          "p75": 0.092,
+          "under002": 0.3957,
+          "under005": 0.6041
+        },
+        "topConfirms": {
+          "n": 2151,
+          "p10": 0,
+          "p25": 0.045,
+          "p50": 0.146,
+          "p75": 0.238,
+          "under002": 0.1734,
+          "under005": 0.2655
+        }
+      }
+    },
+    "v2": {
+      "confirmed": 1320,
+      "confirmedShare": {
+        "value": 0.1612509161983875,
+        "lo": 0.14192118930958955,
+        "hi": 0.18120377147566694
+      },
+      "confirmedOpenLibraryWorks": 848,
+      "unknownByReason": {
+        "no-text": 2587,
+        "single-reader": 1599,
+        "no-catalog-match": 2356,
+        "readers-disagree": 324
+      },
+      "topMargin": {
+        "all": {
+          "n": 12134,
+          "p10": 0,
+          "p25": 0,
+          "p50": 0.027,
+          "p75": 0.103,
+          "under002": 0.4584,
+          "under005": 0.6121
+        },
+        "topConfirms": {
+          "n": 5239,
+          "p10": 0,
+          "p25": 0,
+          "p50": 0.082,
+          "p75": 0.191,
+          "under002": 0.3449,
+          "under005": 0.423
+        }
+      }
+    },
+    "delta": {
+      "confirmedShare": {
+        "value": 0.08978744197410213,
+        "lo": 0.07142540937990118,
+        "hi": 0.10970822858636585
+      }
+    },
+    "transitions": {
+      "gained": 773,
+      "lost": 38,
+      "switched": 78,
+      "switchedToOpenLibrary": 76,
+      "same": 469
+    },
+    "lostToReason": {
+      "readers-disagree": 23,
+      "single-reader": 14,
+      "no-catalog-match": 1
+    },
+    "outcomes": {
+      "v1": {
+        "no-text": 2587,
+        "single-reader": 803,
+        "no-catalog-match": 4134,
+        "accepted": 585,
+        "readers-disagree": 77
+      },
+      "v2": {
+        "no-text": 2587,
+        "single-reader": 1599,
+        "no-catalog-match": 2356,
+        "accepted": 1320,
+        "readers-disagree": 324
+      }
+    },
+    "flow": {
+      "no-text": {
+        "no-text": 2587
+      },
+      "single-reader": {
+        "single-reader": 656,
+        "accepted": 37,
+        "readers-disagree": 83,
+        "no-catalog-match": 27
+      },
+      "no-catalog-match": {
+        "no-catalog-match": 2328,
+        "accepted": 733,
+        "readers-disagree": 146,
+        "single-reader": 927
+      },
+      "accepted": {
+        "accepted": 547,
+        "readers-disagree": 23,
+        "single-reader": 14,
+        "no-catalog-match": 1
+      },
+      "readers-disagree": {
+        "readers-disagree": 72,
+        "accepted": 3,
+        "single-reader": 2
+      }
+    },
+    "noCatalogMatch": {
+      "v1": 4134,
+      "toAccepted": 733,
+      "toAcceptedShare": {
+        "value": 0.17731011127237542,
+        "lo": 0.15133089098900326,
+        "hi": 0.20317386794673206
+      },
+      "leftNoCatalogMatch": 1806,
+      "leftNoCatalogMatchShare": {
+        "value": 0.43686502177068215,
+        "lo": 0.4017505992226202,
+        "hi": 0.46862212405187254
+      }
+    },
+    "timing": [
+      {
+        "step": "sf-store-003.frames.every-10.crop-clip.base",
+        "seconds": 668.4,
+        "fromCache": false
+      },
+      {
+        "step": "sf-store-003.frames.every-10.crop-clip",
+        "seconds": 4728.9,
+        "fromCache": false
+      }
+    ]
+  },
+  "lookalike-sf-store-003.frames.every-41": {
+    "set": "sf-store-003.frames.every-41",
+    "scope": "real use (OC35): machine agreement only, never accuracy (INV-17)",
+    "spineCount": 1873,
+    "images": 20,
+    "accept": {
+      "minScore": 0.72,
+      "minTitleEvidence": 0.8,
+      "minCoverage": 0.5,
+      "minReaders": 2
+    },
+    "readingSet": "crop-clip",
+    "reproducedCachedDecisions": 1,
+    "v1": {
+      "confirmed": 162,
+      "confirmedShare": {
+        "value": 0.08649225840896957,
+        "lo": 0.04836175949530504,
+        "hi": 0.13963129913237696
+      },
+      "confirmedOpenLibraryWorks": 0,
+      "unknownByReason": {
+        "no-catalog-match": 880,
+        "single-reader": 182,
+        "readers-disagree": 29,
+        "no-text": 620
+      },
+      "topMargin": {
+        "all": {
+          "n": 2619,
+          "p10": 0,
+          "p25": 0.004,
+          "p50": 0.032,
+          "p75": 0.099,
+          "under002": 0.3929,
+          "under005": 0.588
+        },
+        "topConfirms": {
+          "n": 564,
+          "p10": 0,
+          "p25": 0.048,
+          "p50": 0.137,
+          "p75": 0.231,
+          "under002": 0.1525,
+          "under005": 0.2642
+        }
+      }
+    },
+    "v2": {
+      "confirmed": 336,
+      "confirmedShare": {
+        "value": 0.1793913507741591,
+        "lo": 0.13617753160515897,
+        "hi": 0.22422418484041953
+      },
+      "confirmedOpenLibraryWorks": 208,
+      "unknownByReason": {
+        "single-reader": 342,
+        "no-catalog-match": 494,
+        "readers-disagree": 81,
+        "no-text": 620
+      },
+      "topMargin": {
+        "all": {
+          "n": 2732,
+          "p10": 0,
+          "p25": 0,
+          "p50": 0.03,
+          "p75": 0.119,
+          "under002": 0.4429,
+          "under005": 0.582
+        },
+        "topConfirms": {
+          "n": 1260,
+          "p10": 0,
+          "p25": 0,
+          "p50": 0.092,
+          "p75": 0.196,
+          "under002": 0.3214,
+          "under005": 0.3968
+        }
+      }
+    },
+    "delta": {
+      "confirmedShare": {
+        "value": 0.09289909236518953,
+        "lo": 0.04959688148531768,
+        "hi": 0.13711934010715043
+      }
+    },
+    "transitions": {
+      "gained": 187,
+      "lost": 13,
+      "switched": 22,
+      "switchedToOpenLibrary": 21,
+      "same": 127
+    },
+    "lostToReason": {
+      "readers-disagree": 6,
+      "single-reader": 4,
+      "no-catalog-match": 3
+    },
+    "outcomes": {
+      "v1": {
+        "no-catalog-match": 880,
+        "single-reader": 182,
+        "accepted": 162,
+        "readers-disagree": 29,
+        "no-text": 620
+      },
+      "v2": {
+        "single-reader": 342,
+        "no-catalog-match": 494,
+        "readers-disagree": 81,
+        "accepted": 336,
+        "no-text": 620
+      }
+    },
+    "flow": {
+      "no-catalog-match": {
+        "single-reader": 194,
+        "no-catalog-match": 488,
+        "readers-disagree": 20,
+        "accepted": 178
+      },
+      "single-reader": {
+        "single-reader": 143,
+        "readers-disagree": 27,
+        "accepted": 9,
+        "no-catalog-match": 3
+      },
+      "accepted": {
+        "readers-disagree": 6,
+        "accepted": 149,
+        "single-reader": 4,
+        "no-catalog-match": 3
+      },
+      "readers-disagree": {
+        "readers-disagree": 28,
+        "single-reader": 1
+      },
+      "no-text": {
+        "no-text": 620
+      }
+    },
+    "noCatalogMatch": {
+      "v1": 880,
+      "toAccepted": 178,
+      "toAcceptedShare": {
+        "value": 0.20227272727272727,
+        "lo": 0.13708171116054874,
+        "hi": 0.2601739938877021
+      },
+      "leftNoCatalogMatch": 392,
+      "leftNoCatalogMatchShare": {
+        "value": 0.44545454545454544,
+        "lo": 0.36569831254920304,
+        "hi": 0.5054410298729483
+      }
+    },
+    "timing": [
+      {
+        "step": "sf-store-003.frames.every-41.crop-clip.base",
+        "seconds": 160.9,
+        "fromCache": false
+      },
+      {
+        "step": "sf-store-003.frames.every-41.crop-clip",
+        "seconds": 1128.4,
+        "fromCache": false
+      }
+    ]
+  },
+  "lookalike-sf-store-003.stills": {
+    "set": "sf-store-003.stills",
+    "scope": "real use (OC35): machine agreement only, never accuracy (INV-17)",
+    "spineCount": 5039,
+    "images": 16,
+    "accept": {
+      "minScore": 0.72,
+      "minTitleEvidence": 0.8,
+      "minCoverage": 0.5,
+      "minReaders": 2
+    },
+    "readingSet": "crop-clip",
+    "reproducedCachedDecisions": 1,
+    "v1": {
+      "confirmed": 235,
+      "confirmedShare": {
+        "value": 0.0466362373486803,
+        "lo": 0.018210110119773314,
+        "hi": 0.0809239388529602
+      },
+      "confirmedOpenLibraryWorks": 0,
+      "unknownByReason": {
+        "no-text": 1602,
+        "no-catalog-match": 2863,
+        "single-reader": 327,
+        "readers-disagree": 12
+      },
+      "topMargin": {
+        "all": {
+          "n": 6164,
+          "p10": 0,
+          "p25": 0.003,
+          "p50": 0.029,
+          "p75": 0.077,
+          "under002": 0.4137,
+          "under005": 0.6442
+        },
+        "topConfirms": {
+          "n": 821,
+          "p10": 0,
+          "p25": 0.047,
+          "p50": 0.147,
+          "p75": 0.227,
+          "under002": 0.1827,
+          "under005": 0.257
+        }
+      }
+    },
+    "v2": {
+      "confirmed": 689,
+      "confirmedShare": {
+        "value": 0.13673347886485412,
+        "lo": 0.10942958460987547,
+        "hi": 0.16290302333715007
+      },
+      "confirmedOpenLibraryWorks": 501,
+      "unknownByReason": {
+        "no-text": 1602,
+        "no-catalog-match": 1723,
+        "single-reader": 909,
+        "readers-disagree": 116
+      },
+      "topMargin": {
+        "all": {
+          "n": 6468,
+          "p10": 0,
+          "p25": 0,
+          "p50": 0.028,
+          "p75": 0.102,
+          "under002": 0.4493,
+          "under005": 0.6163
+        },
+        "topConfirms": {
+          "n": 2613,
+          "p10": 0,
+          "p25": 0,
+          "p50": 0.088,
+          "p75": 0.186,
+          "under002": 0.3383,
+          "under005": 0.4221
+        }
+      }
+    },
+    "delta": {
+      "confirmedShare": {
+        "value": 0.09009724151617385,
+        "lo": 0.05749121424359622,
+        "hi": 0.12114044998232029
+      }
+    },
+    "transitions": {
+      "gained": 463,
+      "lost": 9,
+      "switched": 39,
+      "switchedToOpenLibrary": 38,
+      "same": 187
+    },
+    "lostToReason": {
+      "single-reader": 4,
+      "readers-disagree": 4,
+      "no-catalog-match": 1
+    },
+    "outcomes": {
+      "v1": {
+        "no-text": 1602,
+        "no-catalog-match": 2863,
+        "single-reader": 327,
+        "accepted": 235,
+        "readers-disagree": 12
+      },
+      "v2": {
+        "no-text": 1602,
+        "no-catalog-match": 1723,
+        "single-reader": 909,
+        "accepted": 689,
+        "readers-disagree": 116
+      }
+    },
+    "flow": {
+      "no-text": {
+        "no-text": 1602
+      },
+      "no-catalog-match": {
+        "no-catalog-match": 1715,
+        "single-reader": 629,
+        "accepted": 452,
+        "readers-disagree": 67
+      },
+      "single-reader": {
+        "single-reader": 276,
+        "readers-disagree": 33,
+        "accepted": 11,
+        "no-catalog-match": 7
+      },
+      "accepted": {
+        "accepted": 226,
+        "single-reader": 4,
+        "readers-disagree": 4,
+        "no-catalog-match": 1
+      },
+      "readers-disagree": {
+        "readers-disagree": 12
+      }
+    },
+    "noCatalogMatch": {
+      "v1": 2863,
+      "toAccepted": 452,
+      "toAcceptedShare": {
+        "value": 0.15787635347537549,
+        "lo": 0.11592115320862446,
+        "hi": 0.19102692280225664
+      },
+      "leftNoCatalogMatch": 1148,
+      "leftNoCatalogMatchShare": {
+        "value": 0.40097799511002447,
+        "lo": 0.33833335297456657,
+        "hi": 0.44498618246551674
+      }
+    },
+    "timing": [
+      {
+        "step": "sf-store-003.stills.crop-clip.base",
+        "seconds": 409.4,
+        "fromCache": false
+      },
+      {
+        "step": "sf-store-003.stills.crop-clip",
+        "seconds": 3017.7,
+        "fromCache": false
+      }
+    ]
+  },
+  "lookalike-sf-store-004.frames.every-10": {
+    "set": "sf-store-004.frames.every-10",
+    "scope": "real use (OC35): machine agreement only, never accuracy (INV-17)",
+    "spineCount": 11027,
+    "images": 81,
+    "accept": {
+      "minScore": 0.72,
+      "minTitleEvidence": 0.8,
+      "minCoverage": 0.5,
+      "minReaders": 2
+    },
+    "readingSet": "crop-clip",
+    "reproducedCachedDecisions": 1,
+    "v1": {
+      "confirmed": 520,
+      "confirmedShare": {
+        "value": 0.047156978325927267,
+        "lo": 0.03587950982148366,
+        "hi": 0.06043237431632632
+      },
+      "confirmedOpenLibraryWorks": 0,
+      "unknownByReason": {
+        "readers-disagree": 56,
+        "no-catalog-match": 6778,
+        "single-reader": 866,
+        "no-text": 2807
+      },
+      "topMargin": {
+        "all": {
+          "n": 16285,
+          "p10": 0,
+          "p25": 0.001,
+          "p50": 0.025,
+          "p75": 0.068,
+          "under002": 0.4443,
+          "under005": 0.6732
+        },
+        "topConfirms": {
+          "n": 2036,
+          "p10": 0,
+          "p25": 0.019,
+          "p50": 0.104,
+          "p75": 0.231,
+          "under002": 0.2544,
+          "under005": 0.3664
+        }
+      }
+    },
+    "v2": {
+      "confirmed": 1811,
+      "confirmedShare": {
+        "value": 0.16423324566971978,
+        "lo": 0.14805107361236058,
+        "hi": 0.18058669120265228
+      },
+      "confirmedOpenLibraryWorks": 1468,
+      "unknownByReason": {
+        "readers-disagree": 325,
+        "no-catalog-match": 3863,
+        "single-reader": 2221,
+        "no-text": 2807
+      },
+      "topMargin": {
+        "all": {
+          "n": 16887,
+          "p10": 0,
+          "p25": 0,
+          "p50": 0.029,
+          "p75": 0.118,
+          "under002": 0.437,
+          "under005": 0.599
+        },
+        "topConfirms": {
+          "n": 6978,
+          "p10": 0,
+          "p25": 0.001,
+          "p50": 0.113,
+          "p75": 0.236,
+          "under002": 0.303,
+          "under005": 0.3799
+        }
+      }
+    },
+    "delta": {
+      "confirmedShare": {
+        "value": 0.1170762673437925,
+        "lo": 0.10298456841585285,
+        "hi": 0.13195658955769957
+      }
+    },
+    "transitions": {
+      "gained": 1341,
+      "lost": 50,
+      "switched": 131,
+      "switchedToOpenLibrary": 127,
+      "same": 339
+    },
+    "lostToReason": {
+      "single-reader": 9,
+      "readers-disagree": 33,
+      "no-catalog-match": 8
+    },
+    "outcomes": {
+      "v1": {
+        "readers-disagree": 56,
+        "no-catalog-match": 6778,
+        "accepted": 520,
+        "single-reader": 866,
+        "no-text": 2807
+      },
+      "v2": {
+        "readers-disagree": 325,
+        "no-catalog-match": 3863,
+        "accepted": 1811,
+        "single-reader": 2221,
+        "no-text": 2807
+      }
+    },
+    "flow": {
+      "readers-disagree": {
+        "readers-disagree": 49,
+        "accepted": 5,
+        "single-reader": 2
+      },
+      "no-catalog-match": {
+        "no-catalog-match": 3822,
+        "readers-disagree": 130,
+        "single-reader": 1547,
+        "accepted": 1279
+      },
+      "accepted": {
+        "accepted": 470,
+        "single-reader": 9,
+        "readers-disagree": 33,
+        "no-catalog-match": 8
+      },
+      "single-reader": {
+        "single-reader": 663,
+        "readers-disagree": 113,
+        "no-catalog-match": 33,
+        "accepted": 57
+      },
+      "no-text": {
+        "no-text": 2807
+      }
+    },
+    "noCatalogMatch": {
+      "v1": 6778,
+      "toAccepted": 1279,
+      "toAcceptedShare": {
+        "value": 0.18869873118914135,
+        "lo": 0.17126396868191834,
+        "hi": 0.2058455763430285
+      },
+      "leftNoCatalogMatch": 2956,
+      "leftNoCatalogMatchShare": {
+        "value": 0.43611684862791383,
+        "lo": 0.4167861178239004,
+        "hi": 0.45636447987620027
+      }
+    },
+    "timing": [
+      {
+        "step": "sf-store-004.frames.every-10.crop-clip.base",
+        "seconds": 951.3,
+        "fromCache": false
+      },
+      {
+        "step": "sf-store-004.frames.every-10.crop-clip",
+        "seconds": 6212.9,
+        "fromCache": false
+      }
+    ]
+  },
+  "lookalike-sf-store-005.frames.every-10": {
+    "set": "sf-store-005.frames.every-10",
+    "scope": "real use (OC35): machine agreement only, never accuracy (INV-17)",
+    "spineCount": 5325,
+    "images": 57,
+    "accept": {
+      "minScore": 0.72,
+      "minTitleEvidence": 0.8,
+      "minCoverage": 0.5,
+      "minReaders": 2
+    },
+    "readingSet": "crop-clip",
+    "reproducedCachedDecisions": 1,
+    "v1": {
+      "confirmed": 290,
+      "confirmedShare": {
+        "value": 0.054460093896713614,
+        "lo": 0.040563007037902436,
+        "hi": 0.07164215472612286
+      },
+      "confirmedOpenLibraryWorks": 0,
+      "unknownByReason": {
+        "no-text": 1027,
+        "no-catalog-match": 3443,
+        "readers-disagree": 35,
+        "single-reader": 530
+      },
+      "topMargin": {
+        "all": {
+          "n": 9179,
+          "p10": 0,
+          "p25": 0.002,
+          "p50": 0.026,
+          "p75": 0.071,
+          "under002": 0.443,
+          "under005": 0.665
+        },
+        "topConfirms": {
+          "n": 1185,
+          "p10": 0,
+          "p25": 0.029,
+          "p50": 0.107,
+          "p75": 0.226,
+          "under002": 0.2253,
+          "under005": 0.3148
+        }
+      }
+    },
+    "v2": {
+      "confirmed": 1138,
+      "confirmedShare": {
+        "value": 0.21370892018779342,
+        "lo": 0.19123648684443742,
+        "hi": 0.23606285627713747
+      },
+      "confirmedOpenLibraryWorks": 916,
+      "unknownByReason": {
+        "no-text": 1027,
+        "no-catalog-match": 1772,
+        "readers-disagree": 206,
+        "single-reader": 1182
+      },
+      "topMargin": {
+        "all": {
+          "n": 9456,
+          "p10": 0,
+          "p25": 0,
+          "p50": 0.029,
+          "p75": 0.12,
+          "under002": 0.4401,
+          "under005": 0.5929
+        },
+        "topConfirms": {
+          "n": 4220,
+          "p10": 0,
+          "p25": 0,
+          "p50": 0.094,
+          "p75": 0.215,
+          "under002": 0.322,
+          "under005": 0.4085
+        }
+      }
+    },
+    "delta": {
+      "confirmedShare": {
+        "value": 0.1592488262910798,
+        "lo": 0.1382005092466839,
+        "hi": 0.1797767604264421
+      }
+    },
+    "transitions": {
+      "gained": 865,
+      "lost": 17,
+      "switched": 52,
+      "switchedToOpenLibrary": 51,
+      "same": 221
+    },
+    "lostToReason": {
+      "readers-disagree": 11,
+      "single-reader": 5,
+      "no-catalog-match": 1
+    },
+    "outcomes": {
+      "v1": {
+        "no-text": 1027,
+        "accepted": 290,
+        "no-catalog-match": 3443,
+        "readers-disagree": 35,
+        "single-reader": 530
+      },
+      "v2": {
+        "no-text": 1027,
+        "accepted": 1138,
+        "no-catalog-match": 1772,
+        "readers-disagree": 206,
+        "single-reader": 1182
+      }
+    },
+    "flow": {
+      "no-text": {
+        "no-text": 1027
+      },
+      "accepted": {
+        "accepted": 273,
+        "readers-disagree": 11,
+        "single-reader": 5,
+        "no-catalog-match": 1
+      },
+      "no-catalog-match": {
+        "no-catalog-match": 1756,
+        "single-reader": 787,
+        "accepted": 823,
+        "readers-disagree": 77
+      },
+      "readers-disagree": {
+        "readers-disagree": 34,
+        "accepted": 1
+      },
+      "single-reader": {
+        "no-catalog-match": 15,
+        "single-reader": 390,
+        "accepted": 41,
+        "readers-disagree": 84
+      }
+    },
+    "noCatalogMatch": {
+      "v1": 3443,
+      "toAccepted": 823,
+      "toAcceptedShare": {
+        "value": 0.23903572465872786,
+        "lo": 0.21648686303378928,
+        "hi": 0.26319839770561937
+      },
+      "leftNoCatalogMatch": 1687,
+      "leftNoCatalogMatchShare": {
+        "value": 0.48997966889340694,
+        "lo": 0.46529639038567605,
+        "hi": 0.514180075495577
+      }
+    },
+    "timing": [
+      {
+        "step": "sf-store-005.frames.every-10.crop-clip.base",
+        "seconds": 594.4,
+        "fromCache": false
+      },
+      {
+        "step": "sf-store-005.frames.every-10.crop-clip",
+        "seconds": 4121.4,
+        "fromCache": false
+      }
+    ]
+  }
+}
