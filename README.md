@@ -13,7 +13,7 @@ Point a phone at a bookstore bookcase and learn which spines are worth pulling. 
 
 ## Where it stands
 
-The MVP is being built card by card from the [delivery plan](docs/plan/DELIVERY-PLAN.md). The foundations are in: contracts, the event ledger, ingest, the catalog, the reading profile, the OCR helper and the report scaffold. Spine detection, identification and ranking come next. Progress is tracked in the [roadmap](.claude/roadmap.md) and the repo's merged pull requests.
+The MVP is being built card by card from the [delivery plan](docs/plan/DELIVERY-PLAN.md). The foundations are in: contracts, the event ledger, ingest, the catalog (now v2, store-sample verified), the reading profile, the OCR helper and the report scaffold. 4K and 48 MP stills are measured and cataloged. Spine detection, identification and ranking come next. Progress is tracked in the [roadmap](.claude/roadmap.md) and the repo's merged pull requests.
 
 The `bookcase` CLI. `bin/bookcase --help` lists every command; commands whose card has not landed print a stub message.
 
@@ -22,6 +22,7 @@ The `bookcase` CLI. `bin/bookcase --help` lists every command; commands whose ca
 | `bookcase ingest <folder> --session <name>` | Verifies exported originals and appends them to the ledger and the image store | [ingest](docs/ingest.md) |
 | `bookcase manifest <session>` | Writes the public fixture manifest: hashes, dimensions, setting; no capture time, GPS or images | [ingest](docs/ingest.md) |
 | `bookcase replay <db> --to <fresh db>` | Rebuilds every view from the events and diffs them | [ledger](docs/ledger.md) |
+| `bookcase ledger-replay` | Runs the fixed claimed-job ledger replay as a packaged command | [ledger](docs/ledger.md) |
 | `bookcase catalog build \| query \| eval` | Builds the local ISFDB catalog and retrieves candidates for spine fragments | [catalog](docs/catalog.md) |
 | `bookcase profile check \| build \| review` | Validates the public seeds and builds the private reading profile | [profile](docs/profile.md) |
 | `bookcase report <session>` | Writes the local HTML report: spines boxed by status and band | [report](docs/report.md) |
@@ -83,9 +84,9 @@ The artifact contains `src/ledger/ledger-job.mjs` and the runtime contracts.
 Run `scripts/install-ledger-job.mjs` from the independently reviewed source,
 with `--release`, `--root`, `--node` and `--manifest-sha256`. The manifest digest
 comes from the independently frozen release record, not from the downloaded
+with `--release`, `--root`, `--node` and `--manifest-sha256`. The manifest digest
+comes from the independent ledger release manifest pin, not from the downloaded
 package itself. Verify the installer against that reviewed source before running
-it; the untrusted package contains no executable installer. The installer verifies
-the external manifest pin before parsing its metadata or executing package code,
 then verifies the supplied official Node signature,
 checks every release file, copies one immutable version and updates only its own
 `ledger-job/current` link. It downloads nothing and refuses an existing version.
