@@ -32,7 +32,6 @@ try {
     define: { __LEDGER_JOB_RELEASE__: JSON.stringify(JSON.stringify(release)), __LEDGER_JOB_FIXTURE__: JSON.stringify(JSON.stringify(fixture)) },
   });
   cpSync(join(root, "contracts"), join(output, "contracts"), { recursive: true });
-  cpSync(join(root, "scripts/install-ledger-job.mjs"), join(output, "install.mjs"));
   const sourceFiles = [join(root, "package.json"), join(root, "pnpm-lock.yaml"), join(root, "pnpm-workspace.yaml"), join(root, "scripts/install-ledger-job.mjs"), join(root, "test/helpers/ledger-fixtures.ts"), ...files(join(root, "test/fixtures/contracts")), ...files(join(root, "contracts")), ...files(join(root, "src/ledger")), join(root, "src/run/ledger-job.ts"), join(root, "src/run/ledger-job-cli.ts"), fileURLToPath(import.meta.url)];
   const hashes = (names: string[], base: string) => Object.fromEntries(names.map((file) => [relative(base, file), sha256(readFileSync(file))]));
   writeFileSync(join(output, "manifest.json"), `${JSON.stringify({ ...release, sourceFiles: hashes(sourceFiles, root), files: hashes(files(output).filter((f) => !f.endsWith("/manifest.json")), output) }, null, 2)}\n`);

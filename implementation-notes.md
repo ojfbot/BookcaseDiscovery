@@ -522,3 +522,5 @@ The owner chose authenticated LAN HTTP for the original read-vision pilot becaus
 - The declared pnpm release uses a newer executable layout than the environment’s Corepack shim expects. Used the release’s own executable from an isolated task cache; did not change the declared version or global package-manager configuration.
 
 - Existing Qwen fixture stubs put process.execPath in a shebang; the verified runtime was stored in a path containing spaces, so the kernel refused the stub. Source checks now use a byte-identical, signature-verified runtime copy at a task-only path without spaces; no Qwen source or test was weakened.
+
+- Independent review showed a self-manifest could be replaced together with the bundle. Installation now requires the independently frozen manifest SHA-256 before package metadata or code is used, and the trusted installer is supplied separately from the untrusted artifact.
