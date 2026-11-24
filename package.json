@@ -20,6 +20,7 @@
     "catalog:check": "node src/catalog/isfdb-import.ts check",
     "catalog:ol": "node src/catalog/ol-import.ts",
     "guard": "node scripts/privacy-guard.mjs",
+    "check:ci-tests": "node scripts/check-ci-tests.mjs",
     "prepare": "simple-git-hooks",
     "report:synthetic": "node scripts/synthetic-report.ts",
     "f0": "node src/eval/f0-cli.ts",
