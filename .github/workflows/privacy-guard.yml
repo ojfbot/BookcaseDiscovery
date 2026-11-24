@@ -39,4 +39,8 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm typecheck
       - run: pnpm exec node scripts/check-fleet-vendor.mjs
-      - run: pnpm exec vitest run test/fleet-policy-resource.test.ts test/fleet-inputs.test.ts test/fleet.test.ts test/fleet-service.test.ts test/fleet-runtime.test.ts test/jobs.test.ts test/read-qwen.test.ts test/read-qwen-cli.test.ts
+      - name: Every test file is run by CI
+        run: node scripts/check-ci-tests.mjs
+      # The whole suite, not a list. Tests that need local tools (swift, python venv, exiftool)
+      # skip themselves when the tool is absent; they are not left out of the run.
+      - run: pnpm test
